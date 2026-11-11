@@ -229,6 +229,8 @@ public sealed class PdfPage
         }
 
         ArgumentNullException.ThrowIfNull(options);
+        if (!double.IsFinite(options.Opacity) || options.Opacity is < 0 or > 1)
+            throw new ArgumentOutOfRangeException(nameof(options), "Opacity must be between zero and one.");
 
         if (options.FontSize <= 0)
         {
@@ -260,7 +262,21 @@ public sealed class PdfPage
             Underline: options.Underline,
             Strikethrough: options.Strikethrough,
             CharacterSpacing: options.CharacterSpacing,
-            HorizontalScalingPercent: options.HorizontalScalingPercent));
+            HorizontalScalingPercent: options.HorizontalScalingPercent,
+            Opacity: options.Opacity));
+    }
+
+    /// <summary>Measures a single line using the same font resolution as DrawText.</summary>
+    public double MeasureTextWidth(string text, PdfDrawTextOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(options);
+        if (!double.IsFinite(options.FontSize) || options.FontSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(options));
+        var resolved = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
+        PdfEmbeddedFont? embedded = null;
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolved), IsItalicFont(resolved), out embedded);
+        return embedded?.MeasureWidth(text, options.FontSize) ?? EstimateTextWidth(text, options.FontSize, resolved);
     }
 
     public void DrawTextFromTop(string text, double x, double topY, double fontSize = 12, PdfStandardFont? font = null)
@@ -1708,6 +1724,17 @@ public sealed class PdfPage
         });
     }
 
+    /// <summary>Adds a checkbox with an explicit normal appearance shared by viewers and printing.</summary>
+    public void AddCheckBox(PdfCheckBoxAnnotation annotation)
+    {
+        ArgumentNullException.ThrowIfNull(annotation);
+        ValidateFormField(annotation.FieldName, annotation.Width, annotation.Height);
+        if (annotation.CheckStyle is not ("checked" or "cross" or "dot" or "empty")
+            || !double.IsFinite(annotation.BorderWidth) || annotation.BorderWidth <= 0)
+            throw new ArgumentException("Invalid checkbox appearance.", nameof(annotation));
+        _checkBoxAnnotations.Add(annotation with { Accessibility = _activeArtifact ? null : _activeAccessibility });
+    }
+
     /// <summary>Adds an interactive list-box field.</summary>
     public void AddListBox(
         string fieldName,
@@ -2295,10 +2322,20 @@ public sealed class PdfPage
 
     private PdfStandardFont ResolveFont(PdfStandardFont? font, PdfFontFamily? fontFamily, bool bold, bool italic)
     {
-        return font
-            ?? (fontFamily is { } family
-                ? PdfStandardFonts.FromStyle(family, bold, italic)
-                : DefaultFont);
+        if (font is { } explicitFont) return explicitFont;
+        if (fontFamily is { } family) return PdfStandardFonts.FromStyle(family, bold, italic);
+        if (!bold && !italic) return DefaultFont;
+
+        var defaultFamily = DefaultFont switch
+        {
+            PdfStandardFont.TimesRoman or PdfStandardFont.TimesBold or PdfStandardFont.TimesItalic
+                or PdfStandardFont.TimesBoldItalic => PdfFontFamily.Times,
+            PdfStandardFont.Courier or PdfStandardFont.CourierBold or PdfStandardFont.CourierOblique
+                or PdfStandardFont.CourierBoldOblique => PdfFontFamily.Courier,
+            _ => PdfFontFamily.Helvetica
+        };
+        return PdfStandardFonts.FromStyle(defaultFamily,
+            bold || IsBoldFont(DefaultFont), italic || IsItalicFont(DefaultFont));
     }
 
     private static (double Width, double Height) CalculateFitSize(PdfImageData image, double maxWidth, double maxHeight)

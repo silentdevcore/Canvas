@@ -69,7 +69,7 @@ C# PDF execution.
 
 - [x] One command creates a complete visual report for every supported element.
 - [x] Every element can be inspected across Canvas, Live Preview, backend PDF, and C# PDF.
-- [x] Canvas and Live Preview have no visible layout differences from backend PDF at 200%.
+- [ ] Canvas and Live Preview have no visible layout differences from backend PDF at 200%.
 - [x] Normal backend export and C# PDF contain the same content and layout.
 - [x] Text Field and Text Area geometry and appearance match across all four outputs.
 - [x] A new element type cannot be added without a visual-parity fixture.
@@ -84,7 +84,7 @@ C# PDF execution.
 - Backend and generated C# PDF element crops must remain pixel-identical.
 - Exact PDF byte equality is not required; canonical-model and visual equivalence are required.
 
-## Latest audit baseline
+## Historical audit baseline
 
 - Audit date: 2026-08-22.
 - Coverage: 4 pages, 39 element instances, and all 38 catalog element types.
@@ -114,3 +114,114 @@ C# PDF execution.
   RMSE, overlays, and highlighted pixel differences for inspection.
 - `npm run test:visual-parity:ci` enforces the approved material thresholds and exact equivalence of
   normal backend and generated C# PDF output.
+
+## November 2026 regression follow-up
+
+The 2026-11-11 image inspection supersedes the earlier blanket 200% acceptance:
+aggregate scores missed meaningful Arabic, font-style and control differences.
+The strict acceptance item above remains open until all remaining images are
+reviewed, not merely until the metric passes.
+
+- [x] Honor bold/italic options when the page's default font family is used.
+- [x] Package Noto Sans Arabic for browser and API output with its original OFL license.
+- [x] Shape Arabic glyphs through HarfBuzz and retain logical PDF text.
+- [x] Correct RTL SVG anchoring and reject clipped/missing RTL text in the browser audit.
+- [x] Verify Arabic text extraction in both normal and generated C# PDFs.
+- [x] Give checkbox widgets explicit checked/unchecked normal appearances.
+- [x] Share radio rendering and honor stored selection in Canvas and Preview.
+- [x] Share TOC rendering with configured titles, levels and page-number settings.
+- [x] Remove double watermark rotation and preserve weight, case and opacity.
+- [x] Add focused backend and frontend rendering regression tests.
+- [x] Complete the final post-fix API regression run and archive its results.
+- [x] Review the final image reports after all corrections, without replacing approved baselines.
+
+Post-fix validation: 1,223 API tests, 833 Designer tests, 57 PDF infrastructure
+tests, TypeScript checking and the Designer production build passed. All eight
+PDF Trust corpus/operation comparisons retained their approved references.
+The final all-elements report has 0 P0, 0 P1, 18 P2 and 22 matches; mixed layout
+has 0 P0, 0 P1, 1 P2 and 2 matches. Backend and C# output are pixel-identical
+on all seven pages. The remaining P2 details, including small wrapping/style
+differences, still require inspection; they are not automatically reclassified
+as anti-aliasing or approved as perfect 200% parity.
+
+Local before/after evidence is written under
+`artifacts/visual-validation-2026-11-11` and `artifacts/visual-fixes-2026-11-11`.
+These ignored artifacts are not public documentation or release approvals.
+
+## Remaining P2 correction pass (2026-11-11)
+
+- [x] Inspect all 19 P2 findings from the preceding all-elements and mixed-layout runs.
+- [x] Match field labels, required markers and widget-border placement to PDF output.
+- [x] Reuse the PDF paragraph estimator for note and content-control wrapping.
+- [x] Replace editor-only footnote blocks with the actual reference and page-footer body.
+- [x] Reject clipped footnote bodies in the browser audit, including ancestor clipping.
+- [x] Match centered shape borders, circle radii and fixed PDF line dash patterns.
+- [x] Render standard tables with canonical cell data, relative column weights and PDF row heights.
+- [x] Keep advanced cell-style rendering instead of silently dropping existing overrides.
+- [x] Synchronize table dimension edits with cell data and preserve retained values/settings.
+- [x] Render PDF underline and strikethrough strokes in the text color.
+- [x] Re-run both visual fixtures and all eight Trust visual comparisons without baseline changes.
+- [x] Run the current focused API tests, PDF infrastructure tests, Designer tests, typecheck and build.
+- [ ] Resolve or explicitly approve the six remaining P2 findings after individual image review.
+- [ ] Extend the standard-table parity guarantee to the advanced per-cell-style rendering path.
+
+Results: all-elements has 0 P0, 0 P1, 5 P2 and 35 matches; mixed-layout has
+0 P0, 0 P1, 1 P2 and 2 matches. Across both packs, P2 findings decreased from
+19 to 6, and all seven backend/C# page pairs remain pixel-identical. Element
+box drift is zero; this does not certify equal internal glyph geometry.
+
+Remaining items are `text`, `dropdown`, `optionlist`, `qrcode`, `link`, and
+mixed-layout `custom-title`. QR source pixels are verified identical in both
+PDFs; native image resampling differs. The other five still show small glyph,
+widget-baseline or decoration-extent differences and are not silently accepted
+as anti-aliasing. The strict 200% acceptance above therefore stays open.
+
+Current validation: 845 Designer tests, 95 focused API tests (including the
+new decoration cases), 57 PDF infrastructure tests and 26 versioning/release
+tests passed, along with typecheck and production build. The earlier full
+1,223-test API run is evidence for the preceding pass, not a newly executed
+full-suite certification of these later changes. Product version, published
+releases, canonical fixtures and approved Trust references remain unchanged.
+
+Detailed local report: `artifacts/visual-p2-2026-11-11/REPORT.md`; side-by-side
+HTML reports and unchanged-threshold metrics are under its `final` directory.
+
+## Choice, link and raster follow-up (2026-11-11)
+
+- [x] Give Dropdown and form Option List explicit, clipped normal PDF appearances.
+- [x] Embed the packaged regular font in these appearances when a font loader is configured.
+- [x] Match first-option defaults, minimum widget font size, and the non-interactive dropdown fallback.
+- [x] Invalidate obsolete choice appearances after form-value updates; retain fill and flatten coverage.
+- [x] Draw link underlines with the PDF offset, thickness, color and measured unkerned advance.
+- [x] Wait for browser font readiness before final underline measurement.
+- [x] Use normal QR downsampling while retaining barcode rendering and original symbol pixels.
+- [x] Check real PDF text positions, baselines and advances independently of image scores.
+- [x] Add negative tests for missing text, wrong pages, repeated labels and text-metric drift.
+- [x] Inject a five-point baseline error in an isolated browser run; verify rejection and browser/server cleanup.
+- [x] Preserve all approved invoice hash pins and all eight Trust visual references.
+- [x] Run the final Designer, focused API, Generator, PDF infrastructure and tooling checks.
+- [ ] Obtain explicit visual acceptance for the two residual bold-text raster findings.
+
+Final results: all-elements has 0 P0, 0 P1, 1 P2 and 39 matches; mixed layout
+has 0 P0, 0 P1, 1 P2 and 2 matches. Four of the preceding six findings are
+resolved; only `text` and `custom-title` remain P2. Both PDF paths remain
+pixel-identical on all seven pages. Twelve browser text-run comparisons pass
+the additional 0.1-point guard; maximum observed drift is 0.0255 point.
+The remaining bold text uses the same packaged font bytes and matching
+baselines. Small native rasterization/subpixel-width differences are retained
+in the reports rather than automatically approved as perfect 200% parity.
+
+An experiment with finer CID-width serialization was rejected because it
+changed pinned electronic-invoice hashes without resolving these residual
+findings. The final implementation preserves the existing width contract and
+the approved invoice manifests, rather than updating references to obtain a pass.
+
+Final validation: 850 Designer tests, 103 focused API tests, 141 Generator tests,
+57 PDF infrastructure tests and 37 visual-tool/versioning/release tests passed.
+Designer typecheck and production build passed. This is not a new full API
+suite or complete Solution certification. Existing advanced cell-style table
+coverage and the strict 200% acceptance item remain separate open work.
+
+Current local report: `artifacts/visual-final-alignment-2026-11-11/REPORT.md`.
+Previous reports remain historical evidence. No commit, version bump or
+publication was performed.

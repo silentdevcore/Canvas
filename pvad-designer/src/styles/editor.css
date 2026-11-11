@@ -1044,6 +1044,11 @@ html[data-visual-parity="true"] #root {
   cursor: grabbing;
 }
 
+.editor-canvas-element:has(svg[data-content-control]),
+.editor-canvas-element:has(svg[data-pdf-overflow]) {
+  overflow: visible;
+}
+
 .editor-canvas-element:hover {
   border-color: #d6d3d1;
   box-shadow: 0 10px 24px rgba(28, 25, 23, 0.12);
@@ -3382,6 +3387,14 @@ html[data-visual-parity="true"] #root {
   outline: none;
 }
 .editor-heading-select:focus { border-color: #6366f1; }
+@font-face {
+  font-family: 'PVADE Arabic';
+  src: url('../../../assets/fonts/noto-arabic/NotoSansArabic-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
 @font-face {
   font-family: 'PVADE Helvetica';
   src: url('../../../assets/fonts/liberation/LiberationSans-Regular.ttf') format('truetype');

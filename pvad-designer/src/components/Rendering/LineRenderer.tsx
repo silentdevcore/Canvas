@@ -6,20 +6,15 @@ export default function LineRenderer({ element }: { element: SimpleElement }) {
   const strokeWidth = Math.max(Number(style.strokeWidth ?? 1), 0.5);
   const horizontal = element.width >= element.height;
   const dashStyle = style.dashStyle ?? style.borderStyle;
-  const background = dashStyle === 'dashed'
-    ? `repeating-linear-gradient(${horizontal ? '90deg' : '0deg'}, ${color} 0 ${strokeWidth * 4}px, transparent ${strokeWidth * 4}px ${strokeWidth * 6}px)`
-    : dashStyle === 'dotted'
-      ? `repeating-linear-gradient(${horizontal ? '90deg' : '0deg'}, ${color} 0 ${strokeWidth}px, transparent ${strokeWidth}px ${strokeWidth * 3}px)`
-      : color;
+  const dash = dashStyle === 'dashed' ? '8 4'
+    : dashStyle === 'dotted' ? `${strokeWidth} ${strokeWidth * 2}` : undefined;
 
   return (
-    <div style={{
-      position: 'absolute',
-      left: horizontal ? 0 : `calc(50% - ${strokeWidth / 2}px)`,
-      top: horizontal ? `calc(50% - ${strokeWidth / 2}px)` : 0,
-      width: horizontal ? '100%' : strokeWidth,
-      height: horizontal ? strokeWidth : '100%',
-      background,
-    }} />
+    <svg data-pdf-overflow="true" viewBox={`0 0 ${element.width} ${element.height}`}
+      width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', overflow: 'visible' }}>
+      <line x1={horizontal ? 0 : element.width / 2} y1={horizontal ? element.height / 2 : 0}
+        x2={horizontal ? element.width : element.width / 2} y2={horizontal ? element.height / 2 : element.height}
+        stroke={color} strokeWidth={strokeWidth} strokeDasharray={dash} />
+    </svg>
   );
 }

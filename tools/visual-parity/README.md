@@ -3,6 +3,52 @@
 The visual parity tools use deterministic local fixtures and pinned rendering
 settings. `run.mjs` compares Designer surfaces with generated PDF output.
 
+The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
+network-loaded fonts. PDF and generated C# output retain Arabic logical text
+through shaped glyphs and ActualText. In addition to aggregate pixel metrics,
+the runner rejects missing/clipped RTL SVG text and verifies Arabic words in
+both PDFs through `pdftotext`. Poppler's `pdftoppm`, `pdftotext`, and `pdfimages`,
+plus ImageMagick, must therefore be available on PATH.
+
+Footnote and endnote references remain at their element position; their body
+uses the effective page height and the backend footer offset. The browser run
+also rejects footer text clipped by an element wrapper or another ancestor.
+Standard tables use the same cell matrix, relative column weights, paragraph
+wrapping, minimum row heights, text positioning and single grid as the PDF.
+Tables with individual cell-style overrides retain the existing advanced
+renderer; the standard-table correction does not certify that separate path.
+Table dimension edits resize the cell matrix and preserve retained values,
+column settings and in-range cell overrides in the same update.
+
+Normal widget appearances, stored radio selection, default-family bold/italic
+styles, TOC titles, and single-rotation watermark rendering have focused tests
+in `VisualRenderingRegressionTests.cs` and `pdfVisualRendering.test.tsx`.
+The same tests cover form-label offsets, required markers, note wrapping,
+footnote position, centered shape borders, dashed lines, table resizing and
+colored PDF text decorations. P2 findings remain visible in the reports;
+matching aggregate thresholds does not make different glyph shapes, widget
+baselines or underline extents automatically equivalent at 200% inspection.
+
+The artifact generator also reads `text-metrics.json` back from the real PDF.
+For unrotated, left-aligned non-RTL Text and Link runs, the browser comparison
+independently checks the baseline, start position and actual unkerned advance
+within 0.1 point. The JSON report retains both sets of measurements and the
+embedded font's hash. This is an additional layout guard, not a replacement for
+pixel comparisons or an increase of the approved image thresholds. Reused
+artifacts must include the current metrics sidecar; regenerate older outputs.
+
+Choice widgets have explicit normal appearances, clipped to their inner boxes,
+and embed the packaged regular font when a loader is configured. The existing
+PDF CID-width serialization remains unchanged to preserve pinned invoice evidence.
+Form filling invalidates the old choice appearance so readers do not display
+the old value. Link underlines use explicit PDF-positioned strokes, rather than
+browser-specific decoration metrics. QR images use normal downsampling;
+barcode image rendering remains pixelated and original symbol pixels remain
+verified in both PDF outputs.
+Aggregate pixel metrics alone are not a semantic correctness guarantee; review
+the per-element images as well. Thresholds and approved Trust references must
+not be changed just to conceal a rendering failure.
+
 `pdf-trust-golden.mjs` covers the current PDF Trust visual contract:
 
 - `signed`: digital signature appearance and page geometry

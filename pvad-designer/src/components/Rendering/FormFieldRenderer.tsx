@@ -1,4 +1,5 @@
 import type { SimpleElement } from '@/types';
+import { pdfFontFamily } from './PdfTextRenderer';
 
 export const FORM_LABEL_OFFSET = 16;
 export const FORM_FIELD_MAX_HEIGHT = 24;
@@ -28,55 +29,22 @@ export default function FormFieldRenderer({ element, multiline = false, resolveC
       : '#ffffff';
 
   return (
-    <div
+    <svg
       className="pvad-form-field-renderer"
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-        fontFamily: style.fontFamily ?? 'Arial',
-      }}
+      viewBox={`0 0 ${element.width} ${element.height}`}
+      width="100%" height="100%" preserveAspectRatio="none"
+      style={{ display: 'block', overflow: 'visible' }}
+      data-pdf-overflow="true"
     >
       {label && (
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: 2,
-            height: FORM_LABEL_OFFSET - 2,
-            overflow: 'hidden',
-            color: labelColor,
-            fontSize,
-            lineHeight: 1.2,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {label}
-          {element.required && <span style={{ color: '#ef4444' }}> *</span>}
-        </div>
+        <g fontFamily={pdfFontFamily()} fontSize={fontSize}>
+          <text x="0" y={2 + fontSize * 0.72} fill={labelColor}>{label}</text>
+          {element.required && <text x={label.length * fontSize * 0.52}
+            y={2 + fontSize * 0.72} fill="#ef4444"> *</text>}
+        </g>
       )}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: FORM_LABEL_OFFSET,
-          height: boxHeight,
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          border: `1px solid ${borderColor}`,
-          background,
-          color: '#000000',
-          fontSize,
-          fontStyle: 'normal',
-          lineHeight: `${Math.max(1, boxHeight - 2)}px`,
-          padding: '0 6px',
-          whiteSpace: 'nowrap',
-        }}
-      />
-    </div>
+      <rect x="0.5" y={FORM_LABEL_OFFSET + 0.5} width={Math.max(0, element.width - 1)} height={boxHeight - 1}
+        fill={background} stroke={borderColor} strokeWidth="1" />
+    </svg>
   );
 }

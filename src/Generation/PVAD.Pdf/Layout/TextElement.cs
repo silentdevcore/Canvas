@@ -15,4 +15,5 @@ internal sealed record TextElement(
     bool Underline = false,
     bool Strikethrough = false,
     double CharacterSpacing = 0,
-    double HorizontalScalingPercent = 100) : PdfPageElement;
+    double HorizontalScalingPercent = 100,
+    double Opacity = 1) : PdfPageElement;

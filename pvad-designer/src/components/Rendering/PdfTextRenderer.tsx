@@ -1,4 +1,5 @@
 import type { SimpleElement } from '@/types';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
@@ -18,6 +19,7 @@ const pdfFontSlot = (value?: string): 'serif' | 'mono' | 'sans' => {
 };
 
 export const pdfFontFamily = (value?: string) => {
+  if (/arabic/i.test(value ?? '')) return "'PVADE Arabic', sans-serif";
   switch (pdfFontSlot(value)) {
     case 'serif': return 'Times New Roman, Times, serif';
     case 'mono': return 'Courier New, Courier, monospace';
@@ -112,6 +114,18 @@ export function PdfSingleLineText({
   const decoration = kind === 'link' || String(style.textDecoration ?? '').includes('underline')
     ? 'underline'
     : undefined;
+  const textNode = useRef<SVGTextElement>(null);
+  const [advance, setAdvance] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    let active = true;
+    const measure = () => {
+      if (active && typeof textNode.current?.getComputedTextLength === 'function')
+        setAdvance(textNode.current.getComputedTextLength());
+    };
+    measure();
+    void document.fonts?.ready.then(measure);
+    return () => { active = false; };
+  }, [text, size, style.fontFamily, style.fontStyle, weight]);
 
   return (
     <svg
@@ -123,6 +137,7 @@ export function PdfSingleLineText({
       style={{ display: 'block', overflow: 'hidden' }}
     >
       <text
+        ref={textNode}
         x="0"
         y={size * 0.72}
         fill={style.color ?? (kind === 'link' ? '#2563eb' : '#101828')}
@@ -130,17 +145,23 @@ export function PdfSingleLineText({
         fontSize={size}
         fontWeight={weight}
         fontStyle={style.fontStyle ?? 'normal'}
-        textDecoration={decoration}
       >
         {text}
       </text>
+      {decoration && <line data-pdf-underline="true" x1="0" x2={advance ?? pdfTextWidth(text, size, style.fontFamily)}
+        y1={size * 0.84} y2={size * 0.84} stroke={style.color ?? (kind === 'link' ? '#2563eb' : '#101828')}
+        strokeWidth={Math.max(0.5, size * 0.06)} />}
     </svg>
   );
 }
 
-const wrapPdfText = (text: string, width: number, fontSize: number, family?: string) => {
+export const pdfTextWidth = (text: string, fontSize: number, family?: string) => {
   const slot = pdfFontSlot(family);
   const factor = slot === 'mono' ? 0.6 : slot === 'serif' ? 0.5 : 0.52;
+  return text.length * fontSize * factor;
+};
+
+export const wrapPdfText = (text: string, width: number, fontSize: number, family?: string) => {
   const lines: string[] = [];
   text.replace(/\r\n/g, '\n').split('\n').forEach(paragraph => {
     if (!paragraph) {
@@ -148,9 +169,9 @@ const wrapPdfText = (text: string, width: number, fontSize: number, family?: str
       return;
     }
     let current = '';
-    paragraph.split(/\s+/).filter(Boolean).forEach(word => {
+    paragraph.split(' ').filter(Boolean).forEach(word => {
       const candidate = current ? `${current} ${word}` : word;
-      if (!current || candidate.length * fontSize * factor <= width) current = candidate;
+      if (!current || pdfTextWidth(candidate, fontSize, family) <= width) current = candidate;
       else {
         lines.push(current);
         current = word;
@@ -174,7 +195,8 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
   const lines = wrapPdfText(text, availableWidth, size, style.fontFamily);
   const alignment = style.textAlign ?? 'left';
   const x = alignment === 'center' ? element.width / 2 : alignment === 'right' ? element.width - right : left;
-  const anchor = alignment === 'center' ? 'middle' : alignment === 'right' ? 'end' : 'start';
+  const rtl = element.textDirection === 'rtl';
+  const anchor = alignment === 'center' ? 'middle' : (alignment === 'right') !== rtl ? 'end' : 'start';
   const weight = style.fontWeight === 'bold' || Number(style.fontWeight) >= 600 ? 700 : 400;
   const borderWidth = Number(style.borderWidth ?? 0);
   const sideBorders = (['Top', 'Right', 'Bottom', 'Left'] as const)
@@ -192,31 +214,31 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
       preserveAspectRatio="none"
       width="100%"
       height="100%"
-      style={{ display: 'block', overflow: 'hidden' }}
+      style={{ display: 'block', overflow: 'visible' }}
+      data-pdf-overflow="true"
     >
       {style.backgroundColor && style.backgroundColor !== 'transparent' && (
         <rect width={element.width} height={element.height} fill={style.backgroundColor} />
       )}
       {borderWidth > 0 && sideBorders.length === 0 && (
         <rect
-          x={borderWidth / 2}
-          y={borderWidth / 2}
-          width={element.width - borderWidth}
-          height={element.height - borderWidth}
+          x={0}
+          y={0}
+          width={element.width}
+          height={element.height}
           fill="none"
           stroke={style.borderColor ?? '#000000'}
           strokeWidth={borderWidth}
         />
       )}
       {sideBorders.map(border => {
-        const half = border.width / 2;
         const coordinates = border.side === 'Top'
-          ? { x1: 0, y1: half, x2: element.width, y2: half }
+          ? { x1: 0, y1: 0, x2: element.width, y2: 0 }
           : border.side === 'Right'
-            ? { x1: element.width - half, y1: 0, x2: element.width - half, y2: element.height }
+            ? { x1: element.width, y1: 0, x2: element.width, y2: element.height }
             : border.side === 'Bottom'
-              ? { x1: 0, y1: element.height - half, x2: element.width, y2: element.height - half }
-              : { x1: half, y1: 0, x2: half, y2: element.height };
+              ? { x1: 0, y1: element.height, x2: element.width, y2: element.height }
+              : { x1: 0, y1: 0, x2: 0, y2: element.height };
         return <line key={border.side} {...coordinates} stroke={border.color} strokeWidth={border.width} />;
       })}
       {lines.map((line, index) => line && (

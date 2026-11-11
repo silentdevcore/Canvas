@@ -1,6 +1,8 @@
 import type { SimpleElement } from '@/types';
+import { useId } from 'react';
+import { pdfFontFamily } from './PdfTextRenderer';
 
-const sans = 'Arial, Helvetica, sans-serif';
+const sans = pdfFontFamily();
 
 export function PdfCheckboxRenderer({ element }: { element: SimpleElement }) {
   const style = element.style ?? {};
@@ -14,7 +16,7 @@ export function PdfCheckboxRenderer({ element }: { element: SimpleElement }) {
     <svg viewBox={`0 0 ${element.width} ${element.height}`} preserveAspectRatio="none" width="100%" height="100%" style={{ display: 'block' }}>
       <rect x="0.75" y={top + 0.75} width="12.5" height="12.5" fill={style.backgroundColor ?? '#ffffff'} stroke={color} strokeWidth="1.5" />
       {state === 'checked' && (
-        <path d={`M 2.5 ${top + 7.5} L 5.5 ${top + 4} L 11.5 ${top + 11}`} fill="none" stroke={color} strokeWidth="1.5" />
+        <path d={`M 2.5 ${top + 6.5} L 5.5 ${top + 10} L 11.5 ${top + 3}`} fill="none" stroke={color} strokeWidth="1.5" />
       )}
       {state === 'cross' && (
         <path d={`M 3 ${top + 11} L 11 ${top + 3} M 11 ${top + 11} L 3 ${top + 3}`} fill="none" stroke={color} strokeWidth="1.5" />
@@ -31,14 +33,43 @@ export function PdfCheckboxRenderer({ element }: { element: SimpleElement }) {
 
 export function PdfDropdownRenderer({ element }: { element: SimpleElement }) {
   const style = element.style ?? {};
-  const fontSize = Number(style.fontSize ?? 12);
-  const value = element.selectedValue ?? element.fieldLabel ?? element.content ?? '';
+  const interactive = Boolean(element.options?.length);
+  const fontSize = Math.max(interactive ? 6 : 1, Number(style.fontSize ?? 12));
+  const value = interactive ? element.selectedValue || element.options![0] : element.fieldLabel ?? element.content ?? '';
+  const clip = useId();
+  const baseline = interactive ? (element.height - fontSize) / 2 + fontSize * 0.8
+    : (element.height - fontSize * 1.4) / 2 + fontSize * 0.72;
   return (
     <svg viewBox={`0 0 ${element.width} ${element.height}`} preserveAspectRatio="none" width="100%" height="100%" style={{ display: 'block' }}>
-      <rect x="0.5" y="0.5" width={element.width - 1} height={element.height - 1} fill="#ffffff" stroke="#000000" strokeWidth="1" />
-      {value && <text x="2" y={fontSize * 0.72} fill="#000000" fontFamily={sans} fontSize={fontSize}>{value}</text>}
+      <defs><clipPath id={clip}><rect x="1" y="1" width={Math.max(0, element.width - 2)} height={Math.max(0, element.height - 2)} /></clipPath></defs>
+      <rect x={interactive ? 0.5 : 0} y={interactive ? 0.5 : 0}
+        width={element.width - (interactive ? 1 : 0)} height={element.height - (interactive ? 1 : 0)}
+        fill="#ffffff" stroke={interactive ? '#000000' : style.borderColor ?? '#d1d5db'} strokeWidth="1" />
+      {value && <text x={interactive ? 2 : 6} y={baseline} fill={interactive ? '#000000' : style.color ?? '#374151'}
+        clipPath={interactive ? `url(#${clip})` : undefined} fontFamily={pdfFontFamily()} fontSize={fontSize}>{value}</text>}
+      {!interactive && <text x={element.width - 14} y={baseline} fill="#9ca3af" fontFamily={pdfFontFamily()} fontSize={fontSize}>v</text>}
     </svg>
   );
+}
+
+export function PdfRadioRenderer({ element }: { element: SimpleElement }) {
+  const size = Number(element.style?.fontSize ?? 11);
+  const marker = Math.max(10, Math.min(14, size + 2));
+  const color = element.style?.color ?? '#101828';
+  return <svg viewBox={`0 0 ${element.width} ${element.height}`} width="100%" height="100%"
+    preserveAspectRatio="none" style={{ display: 'block', overflow: 'hidden' }}>
+    {(element.options ?? []).map((option, index) => {
+      const top = index * size * 1.7;
+      if (top + size > element.height) return null;
+      const selected = option === element.selectedValue || (element.selectedValue == null && index === 0);
+      return <g key={index} data-radio-selected={selected}>
+        <circle cx={marker / 2} cy={top + marker / 2} r={marker / 2 - 0.5} fill="white" stroke={color} />
+        {selected && <circle cx={marker / 2} cy={top + marker / 2} r={marker * 0.25} fill={color} />}
+        <text x={marker + 6} y={top + size * 0.72} fontSize={size}
+          fontFamily={pdfFontFamily(element.style?.fontFamily)} fill={color}>{option}</text>
+      </g>;
+    })}
+  </svg>;
 }
 
 export function PdfCheckmarkRenderer({ element }: { element: SimpleElement }) {
@@ -51,7 +82,7 @@ export function PdfCheckmarkRenderer({ element }: { element: SimpleElement }) {
   const fontSize = Number(style.fontSize ?? 12);
   return (
     <svg viewBox={`0 0 ${element.width} ${element.height}`} preserveAspectRatio="none" width="100%" height="100%" style={{ display: 'block' }}>
-      <rect x={stroke / 2} y={top + stroke / 2} width={size - stroke} height={size - stroke} fill="none" stroke={color} strokeWidth={stroke} />
+      <rect x={0} y={top} width={size} height={size} fill="none" stroke={color} strokeWidth={stroke} />
       {state === 'checked' && <path d={`M ${size * 0.2} ${top + size / 2} L ${size * 0.45} ${top + size * 0.75} L ${size * 0.85} ${top + size * 0.2}`} fill="none" stroke={color} strokeWidth={stroke} />}
       {state === 'cross' && <path d={`M 4 ${top + size - 4} L ${size - 4} ${top + 4} M ${size - 4} ${top + size - 4} L 4 ${top + 4}`} fill="none" stroke={color} strokeWidth={stroke} />}
       {state === 'dot' && <circle cx={size / 2} cy={top + size / 2} r={size * 0.25} fill={color} />}
@@ -81,7 +112,7 @@ export function PdfButtonRenderer({ element }: { element: SimpleElement }) {
   const baseline = (element.height - fontSize * 1.4) / 2 + fontSize * 0.72;
   return (
     <svg viewBox={`0 0 ${element.width} ${element.height}`} preserveAspectRatio="none" width="100%" height="100%" style={{ display: 'block' }}>
-      <rect x="0.25" y="0.25" width={element.width - 0.5} height={element.height - 0.5} rx={radius} fill={fill} stroke={fill} strokeWidth="0.5" />
+      <rect x="0" y="0" width={element.width} height={element.height} rx={radius} fill={fill} stroke={fill} strokeWidth="0.5" />
       {element.content && <text x="8" y={baseline} fill={style.color ?? '#ffffff'} fontFamily={sans} fontSize={fontSize} fontWeight="700">{element.content}</text>}
     </svg>
   );

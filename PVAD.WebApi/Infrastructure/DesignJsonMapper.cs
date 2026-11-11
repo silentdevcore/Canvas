@@ -567,32 +567,7 @@ public static class DesignJsonMapper
                 var hasFill = fillStr != "transparent";
                 var fontSize = GetDouble(style, "fontSize", 12);
 
-                page.DrawRectangle(elX, boxY, boxSize, boxSize,
-                    lineWidth: 1.5, fill: hasFill, strokeColor: borderColor,
-                    fillColor: hasFill ? ParseColor(fillStr) : PdfColor.White);
-
                 var state = el.CheckState ?? "empty";
-                var midBoxY = boxY + boxSize / 2;
-
-                if (state == "checked")
-                {
-                    page.DrawLine(elX + 2.5, midBoxY - 0.5, elX + 5.5, midBoxY + 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                    page.DrawLine(elX + 5.5, midBoxY + 3, elX + 11.5, midBoxY - 4,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                }
-                else if (state == "cross")
-                {
-                    page.DrawLine(elX + 3, boxY + 3, elX + boxSize - 3, boxY + boxSize - 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                    page.DrawLine(elX + boxSize - 3, boxY + 3, elX + 3, boxY + boxSize - 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                }
-                else if (state == "dot")
-                {
-                    page.DrawCircle(elX + boxSize / 2, midBoxY, 3,
-                        lineWidth: 1, fill: true, strokeColor: borderColor, fillColor: borderColor);
-                }
 
                 var cbLabel = el.FieldLabel ?? "";
                 if (!string.IsNullOrEmpty(cbLabel))
@@ -607,7 +582,13 @@ public static class DesignJsonMapper
                 var checkboxFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
                     : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
                     : Guid.NewGuid().ToString("N");
-                page.AddCheckBox(checkboxFieldName, elX, boxY, boxSize, state == "checked");
+                page.AddCheckBox(new PdfCheckBoxAnnotation
+                {
+                    FieldName = checkboxFieldName, X = elX, Y = boxY, Width = boxSize, Height = boxSize,
+                    IsChecked = state != "empty", CheckStyle = state,
+                    BorderColor = borderColor, BorderWidth = 1.5,
+                    BackgroundColor = hasFill ? ParseColor(fillStr) : null
+                });
                 break;
             }
 
@@ -832,14 +813,23 @@ public static class DesignJsonMapper
                 var text = el.Content ?? "";
                 if (string.IsNullOrWhiteSpace(text)) return;
                 var fontSize = GetDouble(style, "fontSize", 48) * Math.Max(GetDouble(style, "scale", 1), 0.1);
-                var rotation = GetDouble(style, "rotation", 45);
+                var rotation = GetDouble(style, "rotation", 0);
                 if (rotation == 0) rotation = ParseRotation(GetString(style, "transform"));
-                page.DrawText(text, elX + w / 2, pageH - elY - h / 2, new PdfDrawTextOptions
+                var options = new PdfDrawTextOptions
                 {
                     FontSize = fontSize,
-                    FillColor = ParseColor(GetString(style, "color") ?? "#d1d5db"),
-                    RotationDegrees = rotation
-                });
+                    FontFamily = ParseFontFamily(GetString(style, "fontFamily")),
+                    Bold = GetString(style, "fontWeight") is "bold" or "700" or "600",
+                    Italic = GetString(style, "fontStyle") == "italic",
+                    FillColor = ParseColor(GetString(style, "color") ?? "#64748b"),
+                    Opacity = Math.Clamp(GetDouble(style, "opacity", 0.18), 0, 1),
+                    RotationDegrees = -rotation
+                };
+                var radians = -rotation * Math.PI / 180;
+                var dx = -page.MeasureTextWidth(text, options) / 2;
+                var dy = -fontSize * 0.22;
+                page.DrawText(text, elX + w / 2 + dx * Math.Cos(radians) - dy * Math.Sin(radians),
+                    pageH - elY - h / 2 + dx * Math.Sin(radians) + dy * Math.Cos(radians), options);
                 break;
             }
 
@@ -1054,11 +1044,19 @@ public static class DesignJsonMapper
                     var optCssY = elY + i * lineH;
                     if (optCssY + fs > elY + h) break;
                     var isSelected = options[i] == el.SelectedValue;
-                    var bullet = el.Type == "radio"
-                        ? (isSelected ? "* " : "o ")
-                        : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
-                    page.DrawText($"{bullet}{options[i]}", elX, TextY(pageH, optCssY, fs),
-                        new PdfDrawTextOptions { FontSize = fs, Bold = isSelected, FillColor = textColor });
+                    var markerSize = Math.Max(10, Math.Min(14, fs + 2));
+                    if (el.Type == "radio")
+                    {
+                        var centerY = pageH - optCssY - markerSize / 2;
+                        page.DrawCircle(elX + markerSize / 2, centerY, markerSize / 2 - 0.5,
+                            lineWidth: 1, strokeColor: textColor);
+                        if (isSelected || (el.SelectedValue is null && i == 0))
+                            page.DrawCircle(elX + markerSize / 2, centerY, markerSize * 0.25,
+                                lineWidth: 0.01, fill: true, strokeColor: textColor, fillColor: textColor);
+                    }
+                    var bullet = el.Type == "radio" ? "" : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
+                    page.DrawText($"{bullet}{options[i]}", elX + (el.Type == "radio" ? markerSize + 6 : 0), TextY(pageH, optCssY, fs),
+                        new PdfDrawTextOptions { FontSize = fs, FillColor = textColor });
                 }
                 if (el.Type == "radio")
                 {
