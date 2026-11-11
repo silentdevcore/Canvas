@@ -53,14 +53,14 @@ public sealed class DesignerProjectsController(
                     Assets = assets,
                     CodeWorkspace = codeWorkspace,
                 }, cancellationToken);
-            await WriteAudit(organizationId, userId, document.Id, "pxap", "export", "succeeded",
+            await WriteAudit(organizationId, userId, document.Id, "pvadp", "export", "succeeded",
                 package.LongLength, assets.Count, cancellationToken: cancellationToken);
             return File(package, PvadProjectFormat.PvadpMediaType,
                 $"{ExportFileNameSanitizer.Sanitize(document.Name, "document")}{PvadProjectFormat.PvadpExtension}");
         }
         catch (PvadProjectFormatException exception)
         {
-            await WriteAudit(organizationId, userId, document.Id, "pxap", "export", "failed",
+            await WriteAudit(organizationId, userId, document.Id, "pvadp", "export", "failed",
                 diagnosticCode: exception.Code, cancellationToken: cancellationToken);
             return ProjectProblem(exception);
         }
@@ -80,14 +80,14 @@ public sealed class DesignerProjectsController(
             var assets = PvadProjectAssetMapper.ExtractSpreadsheetAssets(workbook);
             var package = PvadProjectArchive.WriteSpreadsheet(
                 workbook, new PvadProjectWriteOptions { Assets = assets }, cancellationToken);
-            await WriteAudit(organizationId, userId, workbook.Id, "pxas", "export", "succeeded",
+            await WriteAudit(organizationId, userId, workbook.Id, "pvads", "export", "succeeded",
                 package.LongLength, assets.Count, cancellationToken: cancellationToken);
             return File(package, PvadProjectFormat.PvadsMediaType,
                 $"{ExportFileNameSanitizer.Sanitize(workbook.Name, "workbook")}{PvadProjectFormat.PvadsExtension}");
         }
         catch (PvadProjectFormatException exception)
         {
-            await WriteAudit(organizationId, userId, workbook.Id, "pxas", "export", "failed",
+            await WriteAudit(organizationId, userId, workbook.Id, "pvads", "export", "failed",
                 diagnosticCode: exception.Code, cancellationToken: cancellationToken);
             return ProjectProblem(exception);
         }
@@ -106,7 +106,7 @@ public sealed class DesignerProjectsController(
             return Unauthorized();
         if (!TryOpenUpload(file, PvadProjectFormat.PvadpExtension, out var stream, out var failure, out var failureCode))
         {
-            await WriteAudit(organizationId, userId, "unknown", "pxap", "open", "failed",
+            await WriteAudit(organizationId, userId, "unknown", "pvadp", "open", "failed",
                 file?.Length, diagnosticCode: failureCode, cancellationToken: cancellationToken);
             return failure!;
         }
@@ -117,22 +117,22 @@ public sealed class DesignerProjectsController(
                 var package = PvadProjectArchive.ReadPdf(stream, cancellationToken: cancellationToken);
                 if (!TryParseReservedIds(reservedIds, out var targetIds, out var idFailure))
                 {
-                    await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxap", "open", "failed",
-                        file!.Length, package.Assets.Count, diagnosticCode: "PXAPROJECT014",
+                    await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvadp", "open", "failed",
+                        file!.Length, package.Assets.Count, diagnosticCode: "PVADPROJECT014",
                         cancellationToken: cancellationToken);
                     return idFailure!;
                 }
                 var remap = PvadProjectIdCollisionResolver.Resolve(package.Document, targetIds);
                 PvadProjectAssetMapper.HydratePdfAssets(package);
                 var response = ToResponse(package, remap.Remaps);
-                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxap", "open", "succeeded",
+                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvadp", "open", "succeeded",
                     file!.Length, package.Assets.Count, response.Compatibility.RequiresReview,
                     cancellationToken: cancellationToken);
                 return Ok(response);
             }
             catch (PvadProjectFormatException exception)
             {
-                await WriteAudit(organizationId, userId, "unknown", "pxap", "open", "failed",
+                await WriteAudit(organizationId, userId, "unknown", "pvadp", "open", "failed",
                     file!.Length, diagnosticCode: exception.Code, cancellationToken: cancellationToken);
                 return ProjectProblem(exception);
             }
@@ -152,7 +152,7 @@ public sealed class DesignerProjectsController(
             return Unauthorized();
         if (!TryOpenUpload(file, PvadProjectFormat.PvadsExtension, out var stream, out var failure, out var failureCode))
         {
-            await WriteAudit(organizationId, userId, "unknown", "pxas", "open", "failed",
+            await WriteAudit(organizationId, userId, "unknown", "pvads", "open", "failed",
                 file?.Length, diagnosticCode: failureCode, cancellationToken: cancellationToken);
             return failure!;
         }
@@ -163,22 +163,22 @@ public sealed class DesignerProjectsController(
                 var package = PvadProjectArchive.ReadSpreadsheet(stream, cancellationToken: cancellationToken);
                 if (!TryParseReservedIds(reservedIds, out var targetIds, out var idFailure))
                 {
-                    await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxas", "open", "failed",
-                        file!.Length, package.Assets.Count, diagnosticCode: "PXAPROJECT014",
+                    await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvads", "open", "failed",
+                        file!.Length, package.Assets.Count, diagnosticCode: "PVADPROJECT014",
                         cancellationToken: cancellationToken);
                     return idFailure!;
                 }
                 var remap = PvadProjectIdCollisionResolver.Resolve(package.Document, targetIds);
                 PvadProjectAssetMapper.HydrateSpreadsheetAssets(package);
                 var response = ToResponse(package, remap.Remaps);
-                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxas", "open", "succeeded",
+                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvads", "open", "succeeded",
                     file!.Length, package.Assets.Count, response.Compatibility.RequiresReview,
                     cancellationToken: cancellationToken);
                 return Ok(response);
             }
             catch (PvadProjectFormatException exception)
             {
-                await WriteAudit(organizationId, userId, "unknown", "pxas", "open", "failed",
+                await WriteAudit(organizationId, userId, "unknown", "pvads", "open", "failed",
                     file!.Length, diagnosticCode: exception.Code, cancellationToken: cancellationToken);
                 return ProjectProblem(exception);
             }
@@ -197,7 +197,7 @@ public sealed class DesignerProjectsController(
             return Unauthorized();
         if (!TryOpenUpload(file, PvadProjectFormat.PvadpExtension, out var stream, out var failure, out var failureCode))
         {
-            await WriteAudit(organizationId, userId, "unknown", "pxap", "validate", "failed",
+            await WriteAudit(organizationId, userId, "unknown", "pvadp", "validate", "failed",
                 file?.Length, diagnosticCode: failureCode, cancellationToken: cancellationToken);
             return failure!;
         }
@@ -206,13 +206,13 @@ public sealed class DesignerProjectsController(
             try
             {
                 var package = PvadProjectArchive.ReadPdf(stream, cancellationToken: cancellationToken);
-                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxap", "validate", "succeeded",
+                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvadp", "validate", "succeeded",
                     file!.Length, package.Assets.Count, cancellationToken: cancellationToken);
                 return Ok(new PvadProjectValidationResponse(true, package.Manifest, package.PackageSha256));
             }
             catch (PvadProjectFormatException exception)
             {
-                await WriteAudit(organizationId, userId, "unknown", "pxap", "validate", "failed",
+                await WriteAudit(organizationId, userId, "unknown", "pvadp", "validate", "failed",
                     file!.Length, diagnosticCode: exception.Code, cancellationToken: cancellationToken);
                 return ProjectProblem(exception);
             }
@@ -231,7 +231,7 @@ public sealed class DesignerProjectsController(
             return Unauthorized();
         if (!TryOpenUpload(file, PvadProjectFormat.PvadsExtension, out var stream, out var failure, out var failureCode))
         {
-            await WriteAudit(organizationId, userId, "unknown", "pxas", "validate", "failed",
+            await WriteAudit(organizationId, userId, "unknown", "pvads", "validate", "failed",
                 file?.Length, diagnosticCode: failureCode, cancellationToken: cancellationToken);
             return failure!;
         }
@@ -240,13 +240,13 @@ public sealed class DesignerProjectsController(
             try
             {
                 var package = PvadProjectArchive.ReadSpreadsheet(stream, cancellationToken: cancellationToken);
-                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pxas", "validate", "succeeded",
+                await WriteAudit(organizationId, userId, package.Manifest.DocumentId, "pvads", "validate", "succeeded",
                     file!.Length, package.Assets.Count, cancellationToken: cancellationToken);
                 return Ok(new PvadProjectValidationResponse(true, package.Manifest, package.PackageSha256));
             }
             catch (PvadProjectFormatException exception)
             {
-                await WriteAudit(organizationId, userId, "unknown", "pxas", "validate", "failed",
+                await WriteAudit(organizationId, userId, "unknown", "pvads", "validate", "failed",
                     file!.Length, diagnosticCode: exception.Code, cancellationToken: cancellationToken);
                 return ProjectProblem(exception);
             }
@@ -279,8 +279,7 @@ public sealed class DesignerProjectsController(
     {
         if (!TryGetActor(out var organizationId, out var userId))
             return Unauthorized();
-        // Keep audit event identifiers stable independently of the exported envelope.
-        var formatId = PvadProjectFormat.LegacyFormatId(projectKind);
+        var formatId = PvadProjectFormat.FormatId(projectKind);
         if (!TryOpenUpload(file, extension, out var stream, out var failure, out var failureCode))
         {
             await WriteAudit(organizationId, userId, "unknown", formatId, "inspect", "failed",
@@ -342,19 +341,19 @@ public sealed class DesignerProjectsController(
         diagnosticCode = null;
         if (file is null || file.Length == 0)
         {
-            diagnosticCode = "PXAPROJECT_REQUIRED";
+            diagnosticCode = "PVADPROJECT_REQUIRED";
             failure = ProjectProblem(diagnosticCode, $"A {extension} project file is required.", 400);
             return false;
         }
         if (file.Length > MaximumPackageBytes)
         {
-            diagnosticCode = "PXAPROJECT005";
+            diagnosticCode = "PVADPROJECT005";
             failure = ProjectProblem(diagnosticCode, "The project package exceeds its compressed-size limit.", 413);
             return false;
         }
         if (!PvadProjectFormat.AcceptsExtension(extension, Path.GetExtension(file.FileName)))
         {
-            diagnosticCode = "PXAPROJECT002";
+            diagnosticCode = "PVADPROJECT002";
             failure = ProjectProblem(diagnosticCode, $"The uploaded file must use the {extension} extension.", 415);
             return false;
         }
@@ -374,7 +373,6 @@ public sealed class DesignerProjectsController(
             Extensions =
             {
                 ["code"] = code,
-                ["canonicalCode"] = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(code),
             },
         });
 
@@ -389,7 +387,7 @@ public sealed class DesignerProjectsController(
             return true;
         if (json.Length > 1_000_000)
         {
-            failure = ProjectProblem("PXAPROJECT014", "The reserved ID list exceeds its size limit.", 400);
+            failure = ProjectProblem("PVADPROJECT014", "The reserved ID list exceeds its size limit.", 400);
             return false;
         }
         try
@@ -398,7 +396,7 @@ public sealed class DesignerProjectsController(
             if (values.Length > 100_000 || values.Any(value =>
                     string.IsNullOrWhiteSpace(value) || value.Length > 200 || value.Any(char.IsControl)))
             {
-                failure = ProjectProblem("PXAPROJECT014", "The reserved ID list is invalid.", 400);
+                failure = ProjectProblem("PVADPROJECT014", "The reserved ID list is invalid.", 400);
                 return false;
             }
             ids = values.Distinct(StringComparer.Ordinal).ToArray();
@@ -406,7 +404,7 @@ public sealed class DesignerProjectsController(
         }
         catch (JsonException)
         {
-            failure = ProjectProblem("PXAPROJECT014", "The reserved ID list is invalid.", 400);
+            failure = ProjectProblem("PVADPROJECT014", "The reserved ID list is invalid.", 400);
             return false;
         }
     }
@@ -420,12 +418,6 @@ public sealed class DesignerProjectsController(
             .Order(StringComparer.Ordinal)
             .ToArray();
         var diagnostics = package.Manifest.Diagnostics.ToList();
-        if (package.Manifest.FormatId is "pxap" or "pxas")
-            diagnostics.Add(new PvadProjectDiagnostic
-            {
-                Code = "PVADPROJECT_LEGACY_FORMAT", Severity = "warning",
-                Message = "This legacy project will open without changing the original file. Save project downloads a new PVADP or PVADS copy with recalculated integrity hashes.",
-            });
         var compatibility = new PvadProjectCompatibilityInfo(
             missingFeatures.Length > 0 || diagnostics.Any(diagnostic => diagnostic.Severity != "info"),
             missingFeatures,
@@ -460,7 +452,6 @@ public sealed record PvadProjectCompatibilityInfo(
 
 public sealed record PvadProjectDiagnosticResponse(string Code, string Severity, string Message, string? Source)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 }
 
 public sealed record PvadProjectAssetInfo(

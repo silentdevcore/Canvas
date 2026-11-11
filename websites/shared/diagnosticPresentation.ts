@@ -1,14 +1,17 @@
-/** Presentation aliases only. Never use these values for authorization or persistence. */
+/** Diagnostic codes are shown exactly as issued. */
 export function displayDiagnosticCode(code: string | null | undefined): string {
-  return (code ?? '').replace(/^PXA(?=[A-Z0-9_-]|$)/, 'PVAD');
+  return code ?? '';
 }
 
 export function displaySystemMessage(message: string): string {
-  return message.replace(/\bPXA(?=[A-Z0-9_-])/g, 'PVAD');
+  return message;
 }
 
+// Published release history keeps its original product names; present them with the current brand.
 function displayReleaseText(text: string): string {
-  return displaySystemMessage(text).replace(/\b(?:Power Dox Automation|PXA)\b/g, 'PVADE');
+  return text
+    .replace(/\bPXA(?=[A-Z0-9_-])/g, 'PVAD')
+    .replace(/\b(?:Power Dox Automation|PXA)\b/g, 'PVADE');
 }
 
 export function presentRelease<T extends {

@@ -1,4 +1,3 @@
-import { readMigratedStorage } from '../../shared/storageMigration.js';
 
 export const accountLocales = ['en', 'de', 'fr', 'es', 'it', 'ar'] as const;
 export type AccountLocale = (typeof accountLocales)[number];
@@ -290,7 +289,7 @@ const translations: Record<AccountLocale, Translations> = {
 export function accountLocale(): AccountLocale {
   let stored: string | undefined;
   try {
-    stored = readMigratedStorage(localStorage, 'pvad_locale', 'pxa_locale')?.split('-')[0];
+    stored = localStorage.getItem('pvad_locale')?.split('-')[0];
   } catch {
     // Fall back to the browser language when storage is blocked.
   }

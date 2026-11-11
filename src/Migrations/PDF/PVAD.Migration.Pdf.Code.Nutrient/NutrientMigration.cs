@@ -910,12 +910,8 @@ public sealed class NutrientMigration : CSharpSourceMigration
 
             _diagnostics.Add(Warning("CANMIGNUTNET061",
                 $"A hard-coded PDF password was removed. Supply it at runtime through {environmentVariable} or replace the generated lookup with a secret-provider expression."));
-            var legacy = "PXA_" + environmentVariable["PVAD_".Length..];
-            return $"((global::System.Environment.GetEnvironmentVariable(\"{environmentVariable}\"), " +
-                $"global::System.Environment.GetEnvironmentVariable(\"{legacy}\")) switch {{ " +
-                $"(null, null) => throw new global::System.InvalidOperationException(\"Missing {environmentVariable}.\"), " +
-                $"(string current, string previous) when current != previous => throw new global::System.InvalidOperationException(\"Conflicting {environmentVariable} and {legacy}.\"), " +
-                "(var current, var previous) => current ?? previous! })";
+            return $"(global::System.Environment.GetEnvironmentVariable(\"{environmentVariable}\") ?? " +
+                $"throw new global::System.InvalidOperationException(\"Missing {environmentVariable}.\"))";
         }
 
         private SyntaxNode? ReviewOperation(

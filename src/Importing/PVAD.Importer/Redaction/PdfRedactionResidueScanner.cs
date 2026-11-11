@@ -23,7 +23,7 @@ internal static class PdfRedactionResidueScanner
         if (coveredImages > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT304",
+                "PVADPDFREDACT304",
                 PdfRedactionCapability.Unsupported,
                 $"{coveredImages} image(s) still intersect a redaction region, so covered pixels remain extractable."));
         }
@@ -32,7 +32,7 @@ internal static class PdfRedactionResidueScanner
         if (thumbnails > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT305",
+                "PVADPDFREDACT305",
                 PdfRedactionCapability.Unsupported,
                 $"{thumbnails} page thumbnail(s) remain; a thumbnail can render content the page no longer contains."));
         }
@@ -41,7 +41,7 @@ internal static class PdfRedactionResidueScanner
         if (layers > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT306",
+                "PVADPDFREDACT306",
                 PdfRedactionCapability.Unsupported,
                 $"{layers} optional content entr(y/ies) remain; a viewer could reveal content the rendered page does not show."));
         }
@@ -50,7 +50,7 @@ internal static class PdfRedactionResidueScanner
         if (hiddenAppearances > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT307",
+                "PVADPDFREDACT307",
                 PdfRedactionCapability.Unsupported,
                 $"{hiddenAppearances} non-normal appearance stream(s) remain and can carry covered content."));
         }

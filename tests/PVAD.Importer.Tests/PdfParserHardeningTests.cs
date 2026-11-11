@@ -25,7 +25,7 @@ public sealed class PdfParserHardeningTests
         var (context, graph) = ParseGraph(pdf);
 
         Assert.Empty(graph.Objects);
-        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE001");
+        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE001");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class PdfParserHardeningTests
         var (context, graph) = ParseGraph(pdf);
 
         Assert.Empty(graph.Objects);
-        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE001");
+        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE001");
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class PdfParserHardeningTests
         var (context, graph) = ParseGraph(pdf, limits);
 
         Assert.Empty(graph.Objects);
-        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE002");
+        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE002");
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class PdfParserHardeningTests
         var (context, graph) = ParseGraph(Encoding.Latin1.GetBytes(pdf));
 
         // The cycle is broken and reported; the objects themselves still parse.
-        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE006");
+        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE006");
         Assert.NotEmpty(graph.Objects);
     }
 
@@ -80,7 +80,7 @@ public sealed class PdfParserHardeningTests
 
         new PdfObjectParser(context, table).ParseDocumentGraph();
 
-        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE004");
+        Assert.Contains(context.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE004");
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public sealed class PdfParserHardeningTests
         var exception = Assert.Throws<PdfParseLimitExceededException>(
             () => decoder.Decode(bomb, new PdfDictionary()));
 
-        Assert.Equal("PXAPDFPARSE008", exception.Code);
+        Assert.Equal("PVADPDFPARSE008", exception.Code);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class PdfParserHardeningTests
         var exception = Assert.Throws<PdfParseLimitExceededException>(
             () => new LzwStreamDecoder(limits).Decode(encoded, new PdfDictionary()));
 
-        Assert.Equal("PXAPDFPARSE009", exception.Code);
+        Assert.Equal("PVADPDFPARSE009", exception.Code);
     }
 
     [Theory]
@@ -153,7 +153,7 @@ public sealed class PdfParserHardeningTests
         var exception = Assert.Throws<PdfParseLimitExceededException>(
             () => new CcittFaxStreamDecoder(new PdfParseLimits()).Decode(new byte[] { 0 }, dictionary));
 
-        Assert.Equal("PXAPDFPARSE011", exception.Code);
+        Assert.Equal("PVADPDFPARSE011", exception.Code);
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public sealed class PdfParserHardeningTests
         var exception = Assert.Throws<PdfParseLimitExceededException>(
             () => new CcittFaxStreamDecoder(limits).Decode(new byte[] { 0 }, dictionary));
 
-        Assert.Equal("PXAPDFPARSE011", exception.Code);
+        Assert.Equal("PVADPDFPARSE011", exception.Code);
     }
 
     [Theory]
@@ -210,7 +210,7 @@ public sealed class PdfParserHardeningTests
         var report = await new PdfTrustInspector().InspectAsync(stream);
 
         Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFPARSE001");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFPARSE001");
     }
 
     [Fact]

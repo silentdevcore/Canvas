@@ -274,7 +274,7 @@ test.describe('electronic invoice workspace', () => {
         defaultEnabled: true,
         documentationPath: '/#electronic-invoicing-details',
         enabled: false,
-        decisionCode: 'PXA_DESIGNER_ENTITLEMENT_REQUIRED',
+        decisionCode: 'PVAD_DESIGNER_ENTITLEMENT_REQUIRED',
         decisionReason: 'The active subscription does not include electronic invoicing.',
       }]),
     }));

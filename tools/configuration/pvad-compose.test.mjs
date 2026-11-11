@@ -5,14 +5,13 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { prepareComposeEnvironment } from './pvad-compose.mjs';
 
-test('Compose resolves legacy files and canonical environment without exposing values', async () => {
+test('Compose resolves env files and canonical environment', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pvad-compose-'));
-  await writeFile(join(root, '.env'), 'PXA_API_HOST_PORT=5087\nNEUTRAL=value\n');
+  await writeFile(join(root, '.env'), 'PVAD_API_HOST_PORT=5087\nNEUTRAL=value\n');
   const resolved = await prepareComposeEnvironment([], {}, root);
   assert.equal(resolved.PVAD_API_HOST_PORT, '5087');
   assert.equal(resolved.NEUTRAL, 'value');
-  await assert.rejects(prepareComposeEnvironment([], { PVAD_API_HOST_PORT: '9999' }, root),
-    /Conflicting configuration keys/);
+  assert.equal((await prepareComposeEnvironment([], { PVAD_API_HOST_PORT: '9999' }, root)).PVAD_API_HOST_PORT, '9999');
 });
 
 test('Compose honors explicit env files and shell precedence for the same key', async () => {

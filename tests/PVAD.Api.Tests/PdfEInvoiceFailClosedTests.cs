@@ -119,8 +119,8 @@ public sealed class PdfEInvoiceFailClosedTests
     // ── Business arithmetic PVAD can check on its own ─────────────────────────
 
     [Theory]
-    [InlineData(0, "PXAEINV113")]
-    [InlineData(-3, "PXAEINV113")]
+    [InlineData(0, "PVADEINV113")]
+    [InlineData(-3, "PVADEINV113")]
     public void A_non_positive_quantity_is_refused_with_its_own_code(decimal quantity, string code)
     {
         var generated = Generate(Invoice() with
@@ -140,7 +140,7 @@ public sealed class PdfEInvoiceFailClosedTests
             Lines = [new("1", "Service", 1, "C62", -1m, 19m)]
         });
 
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV114");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV114");
     }
 
     [Theory]
@@ -153,7 +153,7 @@ public sealed class PdfEInvoiceFailClosedTests
             Lines = [new("1", "Service", 1, "C62", 100m, rate)]
         });
 
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV115");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV115");
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public sealed class PdfEInvoiceFailClosedTests
             ]
         });
 
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV112");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV112");
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public sealed class PdfEInvoiceFailClosedTests
     {
         var generated = Generate(Invoice() with { DueDate = new DateOnly(2020, 1, 1) });
 
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV116");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV116");
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class PdfEInvoiceFailClosedTests
     {
         var generated = Generate(Invoice() with { Lines = [] });
 
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV106");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV106");
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class PdfEInvoiceFailClosedTests
         var generated = Generate(Invoice() with { Lines = lines });
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV107");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV107");
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public sealed class PdfEInvoiceFailClosedTests
         });
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV109");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV109");
     }
 
     [Fact]
@@ -242,7 +242,7 @@ public sealed class PdfEInvoiceFailClosedTests
         });
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV104");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV104");
     }
 
     [Theory]
@@ -255,7 +255,7 @@ public sealed class PdfEInvoiceFailClosedTests
 
         Assert.False(generated.IsGenerated);
         Assert.Contains(generated.Diagnostics,
-            diagnostic => diagnostic.Code is "PXAEINV101" or "PXAEINV102");
+            diagnostic => diagnostic.Code is "PVADEINV101" or "PVADEINV102");
     }
 
     [Theory]
@@ -266,7 +266,7 @@ public sealed class PdfEInvoiceFailClosedTests
         var generated = Generate(Invoice() with { CurrencyDecimalPlaces = places });
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV103");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV103");
     }
 
     // ── Attachment safety ────────────────────────────────────────────────────
@@ -386,7 +386,7 @@ public sealed class PdfEInvoiceFailClosedTests
                 IsConformanceValidated: false,
                 Syntax: null,
                 GuidelineIdentifier: null,
-                Diagnostics: [new PvadEInvoiceDiagnostic("PXAEINVTEST", "The request was refused before validation produced a report.", "error")])
+                Diagnostics: [new PvadEInvoiceDiagnostic("PVADEINVTEST", "The request was refused before validation produced a report.", "error")])
         };
     }
 

@@ -208,23 +208,17 @@ public sealed class PdfFileImporter : IFileImporter
         PdfDocumentModel document,
         List<ImportDiagnosticDto> diagnostics)
     {
-        var canonical = document.Metadata[ChartMetadataCodec.PdfInfoKey];
-        var legacy = document.Metadata[ChartMetadataCodec.LegacyPdfInfoKey];
-        if (canonical is null && legacy is null)
+        var metadata = document.Metadata[ChartMetadataCodec.PdfInfoKey];
+        if (metadata is null)
             return [];
 
-        var value = (canonical ?? legacy) as PVAD.Importer.Objects.PdfString;
-        // A conflicting alias must not replace or rescue the authoritative payload.
-        var conflicting = canonical is not null && legacy is not null &&
-            (canonical is not PVAD.Importer.Objects.PdfString current ||
-             legacy is not PVAD.Importer.Objects.PdfString previous ||
-             !string.Equals(current.ToLatin1String(), previous.ToLatin1String(), StringComparison.Ordinal));
-        if (value is null || conflicting ||
+        var value = metadata as PVAD.Importer.Objects.PdfString;
+        if (value is null ||
             !ChartMetadataCodec.TryDecode(value.ToLatin1String(), out var envelope))
         {
             diagnostics.Add(new ImportDiagnosticDto
             {
-                Code = "PXA-PDF-CHART-001",
+                Code = "PVAD-PDF-CHART-001",
                 Severity = "warning",
                 Source = "PDF metadata",
                 Message = "Embedded PVAD chart metadata was invalid and was ignored."
@@ -234,7 +228,7 @@ public sealed class PdfFileImporter : IFileImporter
 
         diagnostics.Add(new ImportDiagnosticDto
         {
-            Code = "PXA-PDF-CHART-002",
+            Code = "PVAD-PDF-CHART-002",
             Severity = "info",
             Source = "PDF metadata",
             Message = $"Restored {envelope.Charts.Count} editable chart(s) from lossless PVAD metadata."
@@ -249,7 +243,7 @@ public sealed class PdfFileImporter : IFileImporter
             Status = "automatic",
             Confidence = 1,
             SourceKind = ChartDefinitionNormalizer.MetadataSourceKind,
-            DiagnosticCode = "PXA-PDF-CHART-002"
+            DiagnosticCode = "PVAD-PDF-CHART-002"
         };
         var element = new ElementDto
         {

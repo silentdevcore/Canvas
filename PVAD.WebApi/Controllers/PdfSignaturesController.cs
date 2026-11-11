@@ -39,7 +39,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI101",
+                "PVADPDFTRUSTAPI101",
                 "A PDF and signing certificate are required",
                 "Upload non-empty 'pdf' and 'certificate' multipart fields.");
         }
@@ -48,7 +48,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status413PayloadTooLarge,
-                "PXAPDFTRUSTAPI102",
+                "PVADPDFTRUSTAPI102",
                 "A signing upload exceeds its limit",
                 "PDF files may contain up to 100 MiB and PKCS#12 certificates up to 10 MiB.");
         }
@@ -58,7 +58,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI103",
+                "PVADPDFTRUSTAPI103",
                 "The document is not a PDF",
                 "Use a .pdf file or the application/pdf content type.");
         }
@@ -77,7 +77,7 @@ public sealed class PdfSignaturesController(
             {
                 return SigningProblem(
                     StatusCodes.Status503ServiceUnavailable,
-                    "PXAPDFTRUSTAPI105",
+                    "PVADPDFTRUSTAPI105",
                     "Timestamped PAdES signing is unavailable",
                     "The server does not have an RFC 3161 timestamp authority configured.");
             }
@@ -157,7 +157,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status502BadGateway,
-                "PXAPDFTRUSTAPI106",
+                "PVADPDFTRUSTAPI106",
                 "The PDF timestamp could not be obtained",
                 "The configured RFC 3161 timestamp authority did not return a valid trusted response.");
         }
@@ -167,7 +167,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI104",
+                "PVADPDFTRUSTAPI104",
                 "The PDF could not be signed",
                 "Verify the PDF, PKCS#12 certificate, password, certificate validity, and supported RSA key type.");
         }
@@ -196,7 +196,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI121",
+                "PVADPDFTRUSTAPI121",
                 "A PDF is required",
                 "Upload a non-empty PDF in the 'pdf' multipart field.");
         }
@@ -204,7 +204,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status413PayloadTooLarge,
-                "PXAPDFTRUSTAPI122",
+                "PVADPDFTRUSTAPI122",
                 "The PDF is too large to timestamp",
                 "PDF document timestamping accepts files up to 100 MiB.");
         }
@@ -213,7 +213,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI123",
+                "PVADPDFTRUSTAPI123",
                 "The document is not a PDF",
                 "Use a .pdf file or the application/pdf content type.");
         }
@@ -223,7 +223,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status503ServiceUnavailable,
-                "PXAPDFTRUSTAPI124",
+                "PVADPDFTRUSTAPI124",
                 "PDF document timestamping is unavailable",
                 "The server does not have an RFC 3161 timestamp authority configured.");
         }
@@ -255,7 +255,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status502BadGateway,
-                "PXAPDFTRUSTAPI125",
+                "PVADPDFTRUSTAPI125",
                 "The PDF timestamp could not be obtained",
                 "The configured RFC 3161 timestamp authority did not return a valid trusted response.");
         }
@@ -265,7 +265,7 @@ public sealed class PdfSignaturesController(
         {
             return SigningProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI126",
+                "PVADPDFTRUSTAPI126",
                 "The PDF could not be timestamped",
                 "Verify the PDF and the configured RFC 3161 timestamp policy.");
         }
@@ -286,7 +286,7 @@ public sealed class PdfSignaturesController(
         {
             return SignatureValidationProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI111",
+                "PVADPDFTRUSTAPI111",
                 "A PDF file is required",
                 "Upload a non-empty PDF in the 'file' multipart field.");
         }
@@ -295,7 +295,7 @@ public sealed class PdfSignaturesController(
         {
             return SignatureValidationProblem(
                 StatusCodes.Status413PayloadTooLarge,
-                "PXAPDFTRUSTAPI112",
+                "PVADPDFTRUSTAPI112",
                 "The PDF is too large to validate",
                 "PDF signature validation accepts files up to 100 MiB.");
         }
@@ -305,7 +305,7 @@ public sealed class PdfSignaturesController(
         {
             return SignatureValidationProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI113",
+                "PVADPDFTRUSTAPI113",
                 "The uploaded file is not a PDF",
                 "Use a .pdf file or the application/pdf content type.");
         }
@@ -326,7 +326,7 @@ public sealed class PdfSignaturesController(
         {
             return SignatureValidationProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAPDFTRUSTAPI114",
+                "PVADPDFTRUSTAPI114",
                 "The PDF could not be validated",
                 "The uploaded PDF is malformed or exceeds the configured validation limits.");
         }

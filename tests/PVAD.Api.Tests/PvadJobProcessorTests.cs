@@ -371,7 +371,7 @@ public sealed class PvadJobProcessorTests
                 CreatedByUserId = userId,
                 Type = PvadJobQueue.DesignerCodeExecutionType,
                 PayloadJson = "{\"sourceChecksum\":\"sha256-only\"}",
-                DiagnosticsJson = "{\"diagnosticCodes\":[\"PXACODE030\"]}",
+                DiagnosticsJson = "{\"diagnosticCodes\":[\"PVADCODE030\"]}",
                 Status = PvadBackgroundJobStatus.Completed,
                 RetentionMode = PvadJobRetentionMode.Transient,
                 CompletedAt = DateTimeOffset.UtcNow.AddHours(-2),

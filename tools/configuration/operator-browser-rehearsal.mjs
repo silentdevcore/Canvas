@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createRequire } from 'node:module';
-import { grafanaDatasourcePath, grafanaProviderPath, prepareGrafanaInventory } from './rename-grafana-provider.mjs';
+import { grafanaDatasourcePath, grafanaProviderPath, prepareGrafanaInventory } from './grafana-inventory.mjs';
 import { exerciseOperatorBrowser } from './operator-browser-scenarios.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -117,7 +117,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
   const harnessPaths = ['tools/configuration/operator-browser-rehearsal.mjs', 'tools/configuration/operator-browser-scenarios.mjs',
     ...(withMonitoring ? ['tools/configuration/monitoring-operator-lab.mjs', 'tools/configuration/monitoring-operator-checks.mjs',
       'tools/configuration/monitoring-operator-rehearsal.mjs', 'tools/configuration/monitoring-webhook-receiver.mjs',
-      'tools/configuration/rename-grafana-provider.mjs', 'tools/configuration/grafana-cutover-smoke.mjs'] : [])];
+      'tools/configuration/grafana-inventory.mjs', 'tools/configuration/grafana-backup-smoke.mjs'] : [])];
   const harnessChecksums = async () => {
     const values = [];
     for (const path of harnessPaths) values.push({ path, sha256: hash(await readFile(resolve(root, path))) });
@@ -253,7 +253,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
       ...(monitoring?.grafanaStorage ?? ['--tmpfs', '/var/lib/grafana:uid=472,gid=0,size=256m']),
       ...(monitoring?.grafanaProvisioning
         ? mount(monitoring.grafanaProvisioning, '/etc/grafana/provisioning')
-        : [...mount(grafanaProviderPath(), '/etc/grafana/provisioning/dashboards/dashboards.yml'),
+        : [...mount(grafanaProviderPath, '/etc/grafana/provisioning/dashboards/dashboards.yml'),
           ...mount(grafanaDatasourcePath, '/etc/grafana/provisioning/datasources/datasources.yml')]),
       ...mount('deploy/observability/grafana/dashboards', '/var/lib/grafana/dashboards'),
       '--env', 'GF_SECURITY_ADMIN_PASSWORD',

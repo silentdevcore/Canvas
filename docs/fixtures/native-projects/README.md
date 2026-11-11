@@ -1,5 +1,11 @@
 # Native Project Reference Fixtures
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../../../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 These synthetic files contain no customer data, credentials, tenant identifiers, or
 external resources:
 

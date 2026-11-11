@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-. "$(dirname "$0")/../configuration/environment.sh"
-pvad_environment_alias PVAD_DATABASE_URL PXA_DATABASE_URL "${PVAD_DATABASE_URL+x}" "${PVAD_DATABASE_URL-}" "${PXA_DATABASE_URL+x}" "${PXA_DATABASE_URL-}"
-pvad_environment_alias PVAD_DATABASE_URL_FILE PXA_DATABASE_URL_FILE "${PVAD_DATABASE_URL_FILE+x}" "${PVAD_DATABASE_URL_FILE-}" "${PXA_DATABASE_URL_FILE+x}" "${PXA_DATABASE_URL_FILE-}"
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repository_root"

@@ -351,10 +351,8 @@ public sealed class NutrientMigrationTests
         Assert.Contains("Algorithm = PdfEncryptionAlgorithm.Aes256", result.MigratedCode);
         Assert.Contains("Environment.GetEnvironmentVariable(\"PVAD_PDF_OWNER_PASSWORD\")", result.MigratedCode);
         Assert.Contains("Environment.GetEnvironmentVariable(\"PVAD_PDF_USER_PASSWORD\")", result.MigratedCode);
-        Assert.Contains("Environment.GetEnvironmentVariable(\"PXA_PDF_OWNER_PASSWORD\")", result.MigratedCode);
-        Assert.Contains("Environment.GetEnvironmentVariable(\"PXA_PDF_USER_PASSWORD\")", result.MigratedCode);
-        Assert.Contains("when current != previous", result.MigratedCode);
-        Assert.Contains("Conflicting PVAD_PDF_OWNER_PASSWORD and PXA_PDF_OWNER_PASSWORD.", result.MigratedCode);
+        Assert.Contains("Missing PVAD_PDF_OWNER_PASSWORD.", result.MigratedCode);
+        Assert.DoesNotContain("PXA_PDF_", result.MigratedCode);
         Assert.DoesNotContain("owner-secret", result.MigratedCode);
         Assert.DoesNotContain("user-secret", result.MigratedCode);
         Assert.DoesNotContain(result.Diagnostics, item => item.Id == "CANMIGNUTNET023");

@@ -22,7 +22,7 @@ export interface EInvoiceValidationReport {
   isConformanceValidated: boolean;
   syntax?: string | null;
   guidelineIdentifier?: string | null;
-  diagnostics: Array<{ code: string; canonicalCode?: string | null; severity: string; message: string }>;
+  diagnostics: Array<{ code: string; severity: string; message: string }>;
   /**
    * The backend's own vocabulary: `valid` only ever comes from a pinned official artifact set,
    * `unavailable` means an artifact set was selected but could not be verified, and

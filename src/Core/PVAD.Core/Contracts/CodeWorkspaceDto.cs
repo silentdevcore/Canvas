@@ -48,8 +48,7 @@ public static class PvadCodeValue
 
 public sealed class PvadCodeDiagnosticDto
 {
-    public string Code { get; set; } = "PXACODE000";
-    public string? CanonicalCode => PvadDiagnosticAliases.CanonicalCode(Code);
+    public string Code { get; set; } = "PVADCODE000";
     public string Severity { get; set; } = "info";
     public string Message { get; set; } = "";
     public int? Line { get; set; }

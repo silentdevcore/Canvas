@@ -170,7 +170,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                     <input
                       type="checkbox"
                       checked={feature.enabled}
-                      disabled={feature.decisionCode === 'PXA_DESIGNER_ALPHA_NOT_ALLOWED'}
+                      disabled={feature.decisionCode === 'PVAD_DESIGNER_ALPHA_NOT_ALLOWED'}
                       onChange={event => void setFeaturePreference(feature.id, event.target.checked)}
                     />
                     <span>{feature.enabled ? t('productExperience.on') : t('productExperience.off')}</span>

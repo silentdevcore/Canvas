@@ -25,7 +25,7 @@ const makePage = (elements: SimpleElement[] = []): Page => ({ id: 'page-1', elem
 
 // J: Test save/load round-trip — export payload structure
 describe('convertElementsToTemplate', () => {
-  test.each(['pvadMetadata', 'pxaMetadata'] as const)(
+  test.each(['pvadMetadata', 'pvadMetadata'] as const)(
     'export canonicalizes both %s chart recognition fields without overwriting drafts', sourceKind => {
       const chart = makeEl({
         type: 'chart',

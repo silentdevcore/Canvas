@@ -48,7 +48,6 @@ public sealed class SmtpMailTransport : IPvadMailTransport
             null,
             MediaTypeNames.Text.Plain));
         mail.Headers.Add("X-PVAD-Outbox-Id", message.OutboxId.ToString());
-        mail.Headers.Add("X-PXA-Outbox-Id", message.OutboxId.ToString());
         return mail;
     }
 }

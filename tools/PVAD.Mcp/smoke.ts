@@ -92,8 +92,6 @@ assert(listedResources.every(resource => !/pxa|power\s?dox/i.test(resource.title
 const resources = listedResources.map((r) => r.uri);
 assert(resources.includes('pvad://schema/design-export'), `PVAD design-schema resource is exposed`);
 assert(resources.includes('pvad://schema/pvad-workbook'), `PVAD workbook-schema resource is exposed`);
-assert(resources.includes('pxa://schema/design-export'), `Legacy design-schema resource remains readable`);
-assert(resources.includes('pxa://schema/pxa-workbook'), `Legacy workbook-schema resource remains readable`);
 for (const resource of listedResources) {
   const result = await client.readResource({ uri: resource.uri });
   const kind = resource.uri.startsWith('pvad:') ? 'primary' : 'compatibility alias';

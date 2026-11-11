@@ -144,7 +144,7 @@ public static class PvadDesignerPermissionResolver
         var value = (PvadAuthorizationPaths.Normalize(path).Value ?? string.Empty).TrimEnd('/').ToLowerInvariant();
         var normalizedMethod = method.ToUpperInvariant();
 
-        if (StartsWith(value, "/api/export") || StartsWith(value, "/api/pxa/export"))
+        if (StartsWith(value, "/api/export") || StartsWith(value, "/api/pvad/export"))
             return PvadDesignerPermissions.PdfExport;
 
         if (StartsWith(value, "/api/pvad/v1/document-jobs"))
@@ -244,7 +244,7 @@ public static class PvadDesignerPermissionResolver
                 ? PvadDesignerPermissions.PdfSignaturesValidate
                 : PvadDesignerPermissions.PdfSignaturesSign;
 
-        if (StartsWith(value, "/api/document") || StartsWith(value, "/api/pxa/document"))
+        if (StartsWith(value, "/api/document") || StartsWith(value, "/api/pvad/document"))
         {
             if (value.Contains("/import-", StringComparison.Ordinal) ||
                 value.EndsWith("/debug-pdf-engine", StringComparison.Ordinal))
@@ -256,10 +256,10 @@ public static class PvadDesignerPermissionResolver
             return PvadDesignerPermissions.PdfEdit;
         }
 
-        if (StartsWith(value, "/api/migration") || StartsWith(value, "/api/pxa/migration"))
+        if (StartsWith(value, "/api/migration") || StartsWith(value, "/api/pvad/migration"))
             return PvadDesignerPermissions.Access;
 
-        if (StartsWith(value, "/api/spreadsheet") || StartsWith(value, "/api/pxa/spreadsheet"))
+        if (StartsWith(value, "/api/spreadsheet") || StartsWith(value, "/api/pvad/spreadsheet"))
         {
             if (value.EndsWith("/import", StringComparison.Ordinal))
                 return PvadDesignerPermissions.SpreadsheetImport;
@@ -271,7 +271,7 @@ public static class PvadDesignerPermissionResolver
             return PvadDesignerPermissions.SpreadsheetEdit;
         }
 
-        if (StartsWith(value, "/api/pdf-viewer") || StartsWith(value, "/api/pxa/pdf-viewer"))
+        if (StartsWith(value, "/api/pdf-viewer") || StartsWith(value, "/api/pvad/pdf-viewer"))
         {
             if (value.Contains("/redact", StringComparison.Ordinal))
                 return PvadDesignerPermissions.PdfViewerRedact;
@@ -284,7 +284,7 @@ public static class PvadDesignerPermissionResolver
             return PvadDesignerPermissions.PdfViewerAnnotate;
         }
 
-        if (StartsWith(value, "/api/templates") || StartsWith(value, "/api/pxa/templates"))
+        if (StartsWith(value, "/api/templates") || StartsWith(value, "/api/pvad/templates"))
         {
             if (value.Contains("/csharp", StringComparison.Ordinal))
                 return PvadDesignerPermissions.CodeExecute;
@@ -294,7 +294,7 @@ public static class PvadDesignerPermissionResolver
             if (normalizedMethod == "GET")
                 return PvadDesignerPermissions.PdfTemplatesRead;
             if (normalizedMethod == "POST" &&
-                (value == "/api/templates" || value == "/api/pxa/templates"))
+                (value == "/api/templates" || value == "/api/pvad/templates"))
                 return PvadDesignerPermissions.PdfCreate;
             return PvadDesignerPermissions.PdfEdit;
         }

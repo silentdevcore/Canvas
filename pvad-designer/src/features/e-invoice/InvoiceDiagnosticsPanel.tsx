@@ -95,7 +95,7 @@ const InvoiceDiagnosticsPanel: React.FC<InvoiceDiagnosticsPanelProps> = ({
                 <span className="einv-diagnostic-body">
                   <span className="einv-diagnostic-message">{displaySystemMessage(diagnostic.message)}</span>
                   <span className="einv-diagnostic-meta">
-                    <code className="einv-diagnostic-code" title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code>
+                    <code className="einv-diagnostic-code" title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.code)}</code>
                   </span>
                 </span>
               </li>

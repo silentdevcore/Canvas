@@ -1,5 +1,5 @@
 const SIGNAL_PARAM = 'pvad_signed_in';
-const LEGACY_SIGNAL_PARAM = 'pxa_signed_in';
+const LEGACY_SIGNAL_PARAM = 'pvad_signed_in';
 
 /**
  * Appends a one-time, purely cosmetic "signed in" signal to a return-URL

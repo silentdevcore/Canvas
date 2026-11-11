@@ -32,7 +32,7 @@ namespace PVAD.Generator.Tests;
 /// </remarks>
 public sealed class EInvoicePdfaFixtureTests
 {
-    private const string ManifestSchema = "pxa.e-invoice.pdfa-fixtures/1";
+    private const string ManifestSchema = "pvad.e-invoice.pdfa-fixtures/1";
 
     /// <summary>One PDF/A validation input.</summary>
     private sealed record Fixture(
@@ -138,8 +138,8 @@ public sealed class EInvoicePdfaFixtureTests
                 ["path"] = fileName,
                 ["sha256"] = Sha256(bytes),
                 ["sizeBytes"] = bytes.Length,
-                ["provenance"] = "pxa-authored",
-                ["license"] = "PXA test asset, redistributable with this repository",
+                ["provenance"] = "pvad-authored",
+                ["license"] = "PVAD test asset, redistributable with this repository",
                 ["standard"] = fixture.Standard.ToString(),
                 ["standardVersion"] = VersionFor(fixture.Standard),
                 ["profile"] = fixture.Profile,
@@ -160,7 +160,7 @@ public sealed class EInvoicePdfaFixtureTests
                 + "SHA-256 below is what the evidence runner checks before handing a file to veraPDF. "
                 + "veraPDF proves PDF/A properties only and is not a Factur-X, ZUGFeRD or XRechnung "
                 + "conformance claim.",
-            ["provenanceKinds"] = new JsonArray("pxa-authored"),
+            ["provenanceKinds"] = new JsonArray("pvad-authored"),
             ["expectedResults"] = new JsonArray("compliant", "nonCompliant"),
             ["generatorVersion"] = ProductVersion,
             ["outputDirectory"] = "artifacts/e-invoicing/pdfa",
@@ -207,7 +207,7 @@ public sealed class EInvoicePdfaFixtureTests
     public void Approved_runtime_baseline_is_bound_to_validation_and_preserved_previous_hashes()
     {
         var directory = Path.Combine(RepositoryRoot, "test-assets", "e-invoicing");
-        var current = File.ReadAllBytes(Path.Combine(directory, "pdfa-fixtures.json"));
+        var current = File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.13-pdfa-fixtures.json"));
         var previous = File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.5-pdfa-fixtures.json"));
         var review = JsonNode.Parse(File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.13-validation.json")))!;
         Assert.Equal(Sha256(current), review["candidateManifestSha256"]!.GetValue<string>());
@@ -232,6 +232,35 @@ public sealed class EInvoicePdfaFixtureTests
             Assert.True(result["attachmentsEqual"]!.GetValue<bool>());
             Assert.True(result["pages"]!.GetValue<int>() > 0);
             Assert.Equal(144, result["rasterDpi"]!.GetValue<int>());
+        }
+    }
+
+    [Fact]
+    public void Approved_manifest_is_bound_to_the_rename_validation_record()
+    {
+        var directory = Path.Combine(RepositoryRoot, "test-assets", "e-invoicing");
+        var current = File.ReadAllBytes(Path.Combine(directory, "pdfa-fixtures.json"));
+        var previous = File.ReadAllBytes(Path.Combine(directory, "baselines", "dotnet-10.0.13-pdfa-fixtures.json"));
+        var review = JsonNode.Parse(File.ReadAllBytes(Path.Combine(directory, "baselines", "pvad-hard-cut-validation.json")))!;
+        Assert.Equal(Sha256(current), review["candidateManifestSha256"]!.GetValue<string>());
+        Assert.Equal(Sha256(previous), review["previousManifestSha256"]!.GetValue<string>());
+        Assert.Equal("veraPDF", review["validator"]!["name"]!.GetValue<string>());
+        var approved = JsonNode.Parse(current)!["fixtures"]!.AsArray();
+        var historical = JsonNode.Parse(previous)!["fixtures"]!.AsArray();
+        var results = review["results"]!.AsArray();
+        Assert.Equal(approved.Count, results.Count);
+        foreach (var fixture in approved)
+        {
+            var id = fixture!["id"]!.GetValue<string>();
+            var result = Assert.Single(results, item => item!["id"]!.GetValue<string>() == id)!;
+            var old = Assert.Single(historical, item => item!["id"]!.GetValue<string>() == id)!;
+            Assert.Equal(fixture["sha256"]!.GetValue<string>(), result["candidateSha256"]!.GetValue<string>());
+            Assert.Equal(old["sha256"]!.GetValue<string>(), result["previousSha256"]!.GetValue<string>());
+            Assert.Equal(fixture["expectedResult"]!.GetValue<string>(), result["observedResult"]!.GetValue<string>());
+            // Only the retired product name may differ in the extracted text and embedded invoices.
+            Assert.True(result["textEqualAfterRename"]!.GetValue<bool>());
+            Assert.True(result["attachmentsEqualAfterRename"]!.GetValue<bool>());
+            Assert.True(result["pages"]!.GetValue<int>() > 0);
         }
     }
 
@@ -339,9 +368,9 @@ public sealed class EInvoicePdfaFixtureTests
         DueDate = new DateOnly(2026, 10, 27),
         Currency = "EUR",
         BuyerReference = buyerReference,
-        Seller = new("PXA Synthetic Seller GmbH", TaxIdentifier: "DE123456789",
+        Seller = new("PVAD Synthetic Seller GmbH", TaxIdentifier: "DE123456789",
             Address: new("Hauptstrasse 1", "Berlin", "10115", "DE")),
-        Buyer = new("PXA Synthetic Buyer AG", TaxIdentifier: "DE987654321",
+        Buyer = new("PVAD Synthetic Buyer AG", TaxIdentifier: "DE987654321",
             Address: new("Buyer Street 2", "Munich", "80331", "DE")),
         Lines = lines
     };

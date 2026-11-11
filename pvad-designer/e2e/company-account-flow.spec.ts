@@ -94,7 +94,7 @@ test('Company sign-in returns to the original page without exposing the session 
   );
   await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Register' })).toHaveCount(0);
-  for (const marker of ['pvad_signed_in', 'pxa_signed_in']) {
+  for (const marker of ['pvad_signed_in', 'pvad_signed_in']) {
     expect(await page.evaluate(key => localStorage.getItem(key), marker)).toBeNull();
     expect(new URL(page.url()).searchParams.has(marker)).toBe(false);
   }

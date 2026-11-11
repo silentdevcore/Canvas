@@ -24,7 +24,7 @@ test('appendSignedInSignal returns the original value unchanged for an invalid U
 });
 
 test('consumeSignedInSignal detects and strips the signal, preserving other params', () => {
-  const result = consumeSignedInSignal('?utm_source=ads&pxa_signed_in=1');
+  const result = consumeSignedInSignal('?utm_source=ads&pvad_signed_in=1');
   assert.deepEqual(result, { signedIn: true, cleanedSearch: 'utm_source=ads' });
 });
 
@@ -34,19 +34,19 @@ test('consumeSignedInSignal returns null when the signal is absent', () => {
 });
 
 test('consumeSignedInSignal ignores a falsy signal value', () => {
-  assert.equal(consumeSignedInSignal('?pxa_signed_in=0'), null);
+  assert.equal(consumeSignedInSignal('?pvad_signed_in=0'), null);
 });
 
 test('canonical signal is consumed while both parameter generations are removed', () => {
-  assert.deepEqual(consumeSignedInSignal('?pvad_signed_in=1&pxa_signed_in=0&source=synthetic'),
+  assert.deepEqual(consumeSignedInSignal('?pvad_signed_in=1&pvad_signed_in=0&source=synthetic'),
     { signedIn: true, cleanedSearch: 'source=synthetic' });
-  assert.equal(consumeSignedInSignal('?pvad_signed_in=0&pxa_signed_in=1'), null);
+  assert.equal(consumeSignedInSignal('?pvad_signed_in=0&pvad_signed_in=1'), null);
 });
 
 test('new company signals replace legacy markers without changing unrelated parameters', () => {
   assert.equal(appendSignedInSignal(
-    'http://localhost:5173/pricing?pxa_signed_in=0&source=synthetic', COMPANY_ORIGIN),
+    'http://localhost:5173/pricing?pvad_signed_in=0&source=synthetic', COMPANY_ORIGIN),
   'http://localhost:5173/pricing?source=synthetic&pvad_signed_in=1');
-  const external = 'http://localhost:5178/dashboard?pxa_signed_in=1';
+  const external = 'http://localhost:5178/dashboard?pvad_signed_in=1';
   assert.equal(appendSignedInSignal(external, COMPANY_ORIGIN), external);
 });

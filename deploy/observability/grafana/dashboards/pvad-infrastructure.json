@@ -8,7 +8,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -78,7 +78,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -140,7 +140,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -202,7 +202,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -246,7 +246,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "min(up{job=~\"(pvad|pxa)-(postgresql|containers)\"})",
+          "expr": "min(up{job=~\"pvad-(postgresql|containers)\"})",
           "legendFormat": "Exporters",
           "range": true,
           "refId": "A"
@@ -258,7 +258,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -298,7 +298,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * sum by (container_label_com_docker_compose_service) (rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\",cpu=\"total\"}[5m])) / max by (container_label_com_docker_compose_service) (container_spec_cpu_quota{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"} / container_spec_cpu_period{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"})",
+          "expr": "100 * sum by (container_label_com_docker_compose_service) (rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"pvad-.+\",cpu=\"total\"}[5m])) / max by (container_label_com_docker_compose_service) (container_spec_cpu_quota{container_label_com_docker_compose_service=~\"pvad-.+\"} / container_spec_cpu_period{container_label_com_docker_compose_service=~\"pvad-.+\"})",
           "legendFormat": "{{container_label_com_docker_compose_service}}",
           "range": true,
           "refId": "A"
@@ -310,7 +310,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -350,7 +350,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "100 * container_memory_working_set_bytes{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"} / container_spec_memory_limit_bytes{container_label_com_docker_compose_service=~\"(pvad|pxa)-.+\"}",
+          "expr": "100 * container_memory_working_set_bytes{container_label_com_docker_compose_service=~\"pvad-.+\"} / container_spec_memory_limit_bytes{container_label_com_docker_compose_service=~\"pvad-.+\"}",
           "legendFormat": "{{container_label_com_docker_compose_service}}",
           "range": true,
           "refId": "A"
@@ -376,6 +376,6 @@
   },
   "timezone": "browser",
   "title": "PVADE Infrastructure",
-  "uid": "pxa-infrastructure",
+  "uid": "pvad-infrastructure",
   "version": 1
 }

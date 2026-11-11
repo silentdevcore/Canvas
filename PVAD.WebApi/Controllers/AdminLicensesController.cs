@@ -381,5 +381,4 @@ public sealed record ReplaceOfflineLicenseRequest(string Reason, string? Product
 public sealed record AdminLicenseValidationResponse(bool Valid, bool SignatureValid, string Status,
     DateTimeOffset ValidFrom, DateTimeOffset ValidUntil, string Code)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 }

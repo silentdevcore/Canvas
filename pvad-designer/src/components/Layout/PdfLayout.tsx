@@ -21,7 +21,7 @@ import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, m
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
-  const [collapsed, toggleCollapsed] = useSidebarCollapsed('pvad-designer:pdf-sidebar-collapsed', 'pxa-designer:pdf-sidebar-collapsed');
+  const [collapsed, toggleCollapsed] = useSidebarCollapsed('pvad-designer:pdf-sidebar-collapsed');
   const { features } = useProductExperience();
   const { user } = useDesignerAuth();
   const permissionRequired = t('permissions.sidebarRequired');

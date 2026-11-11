@@ -147,7 +147,7 @@ public sealed class PdfTrustPostProcessingPipeline(
                 cancellationToken).ConfigureAwait(false);
             if (!redactionResult.Verification.Passed)
                 throw new PdfTrustPipelineValidationException(
-                    "PXAPDFPIPELINE102",
+                    "PVADPDFPIPELINE102",
                     "Redaction verification failed, so the result cannot continue to signing.");
             bytes = redactionResult.Bytes;
             steps.Add(PdfTrustPipelineStep.Redaction);
@@ -198,18 +198,18 @@ public sealed class PdfTrustPostProcessingPipeline(
     private static void ValidatePlan(PdfTrustPostProcessingOptions options, PdfTrustPipelineContext context)
     {
         if (options.Redaction is { Regions.Count: 0 })
-            throw new PdfTrustPipelineValidationException("PXAPDFPIPELINE100", "At least one redaction region is required.");
+            throw new PdfTrustPipelineValidationException("PVADPDFPIPELINE100", "At least one redaction region is required.");
 
         if (options.Signing is not { } signing)
             return;
         if (context.DocumentSigningKey is null)
-            throw new PdfTrustPipelineValidationException("PXAPDFPIPELINE101", "A runtime document signing key is required.");
+            throw new PdfTrustPipelineValidationException("PVADPDFPIPELINE101", "A runtime document signing key is required.");
         if (signing.CertificateSource.Kind == PdfSigningCertificateSourceKind.OrganizationKeyProvider &&
             (string.IsNullOrWhiteSpace(signing.CertificateSource.ProviderId) ||
              string.IsNullOrWhiteSpace(signing.CertificateSource.KeyId)))
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE103",
+                "PVADPDFPIPELINE103",
                 "Organization signing requires stable provider and key identifiers.");
         }
 
@@ -217,13 +217,13 @@ public sealed class PdfTrustPostProcessingPipeline(
         if (signing.Timestamp.Required is { } timestampRequired && timestampRequired != requiresTimestamp)
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE104",
+                "PVADPDFPIPELINE104",
                 "The timestamp policy is incompatible with the selected PAdES profile.");
         }
         if (requiresTimestamp && context.DocumentTimestampAuthority is null)
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE105",
+                "PVADPDFPIPELINE105",
                 "PAdES Baseline T, LT, and LTA require a runtime timestamp authority.");
         }
 
@@ -233,13 +233,13 @@ public sealed class PdfTrustPostProcessingPipeline(
         if (requiresLongTermValidation && hasLongTermValidationMaterial == hasLongTermValidationProvider)
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE106",
+                "PVADPDFPIPELINE106",
                 "PAdES Baseline LT and LTA require exactly one runtime long-term validation source.");
         }
         if (!requiresLongTermValidation && (hasLongTermValidationMaterial || hasLongTermValidationProvider))
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE106",
+                "PVADPDFPIPELINE106",
                 "Runtime long-term validation material is valid only for PAdES Baseline LT and LTA.");
         }
 
@@ -247,7 +247,7 @@ public sealed class PdfTrustPostProcessingPipeline(
             (revocationData == PdfRevocationDataPolicy.EmbedForLongTermValidation) != requiresLongTermValidation)
         {
             throw new PdfTrustPipelineValidationException(
-                "PXAPDFPIPELINE107",
+                "PVADPDFPIPELINE107",
                 "The revocation-data policy is incompatible with the selected PAdES profile.");
         }
     }
@@ -255,16 +255,16 @@ public sealed class PdfTrustPostProcessingPipeline(
     private static void EnforceValidation(PdfTrustPipelineValidationPolicy policy, PdfTrustReport report)
     {
         if (policy.RequireValidStructure && report.StructureStatus != PdfTrustStatus.Valid)
-            Reject("PXAPDFPIPELINE200", "The final PDF structure is not valid.", report);
+            Reject("PVADPDFPIPELINE200", "The final PDF structure is not valid.", report);
         if (policy.RequirePdfA && report.PdfA.Status != PdfTrustStatus.Valid)
-            Reject("PXAPDFPIPELINE201", "The final PDF does not have a valid PDF/A claim.", report);
+            Reject("PVADPDFPIPELINE201", "The final PDF does not have a valid PDF/A claim.", report);
         if (policy.RequirePdfUa && report.PdfUa.Status != PdfTrustStatus.Valid)
-            Reject("PXAPDFPIPELINE202", "The final PDF does not have a valid PDF/UA claim.", report);
+            Reject("PVADPDFPIPELINE202", "The final PDF does not have a valid PDF/UA claim.", report);
         if (policy.RequireValidSignatures &&
             (report.Signatures.Count == 0 || report.Signatures.Any(signature => signature.Status != PdfTrustStatus.Valid)))
-            Reject("PXAPDFPIPELINE203", "The final PDF does not contain only valid signatures.", report);
+            Reject("PVADPDFPIPELINE203", "The final PDF does not contain only valid signatures.", report);
         if (policy.RejectRiskyContent && report.Risk?.HasRiskyContent == true)
-            Reject("PXAPDFPIPELINE204", "The final PDF contains active or embedded risky content.", report);
+            Reject("PVADPDFPIPELINE204", "The final PDF contains active or embedded risky content.", report);
     }
 
     private static void Reject(string code, string message, PdfTrustReport report) =>

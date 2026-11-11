@@ -17,7 +17,7 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
 
-#pragma warning disable PXA0002 // This suite intentionally verifies the low-level PVAD importer engine.
+#pragma warning disable PVAD0002 // This suite intentionally verifies the low-level PVAD importer engine.
 
 namespace PVAD.Importer.Tests;
 
@@ -3979,4 +3979,4 @@ public sealed class PdfImporterCoreTests
     }
 }
 
-#pragma warning restore PXA0002
+#pragma warning restore PVAD0002

@@ -73,7 +73,7 @@ const planFor = (testCase: ContractCase): InvoicePlan => planInvoicePages({
 
 describe('electronic invoice pagination contract', () => {
   it('is the version this projection implements', () => {
-    expect(contract.schema).toBe('pxa.e-invoice.pagination/1');
+    expect(contract.schema).toBe('pvad.e-invoice.pagination/1');
     expect(contract.cases.length).toBeGreaterThanOrEqual(12);
   });
 

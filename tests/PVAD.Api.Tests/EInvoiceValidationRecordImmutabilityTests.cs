@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PVAD.Domain.Entities;
@@ -87,7 +88,7 @@ public sealed class EInvoiceValidationRecordImmutabilityTests
         {
             await using var transaction = await retentionContext.Database.BeginTransactionAsync();
             await retentionContext.Database.ExecuteSqlRawAsync(
-                "SET LOCAL pxa.e_invoice_retention_purge = 'on'");
+                "SET LOCAL pvad.e_invoice_retention_purge = 'on'");
             var removed = await retentionContext.Database.ExecuteSqlInterpolatedAsync(
                 $"""
                 DELETE FROM administration.e_invoice_validation_records WHERE "Id" = {recordId}
@@ -98,6 +99,82 @@ public sealed class EInvoiceValidationRecordImmutabilityTests
 
         await using var finalContext = new PvadDbContext(options);
         Assert.Empty(await finalContext.EInvoiceValidationRecords.AsNoTracking().ToArrayAsync());
+    }
+
+    [PostgreSqlFact]
+    public async Task PostgreSql_upgrade_accepts_only_the_canonical_transaction_local_purge_setting_and_rolls_back()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<PvadDbContext>()
+            .UseNpgsql(postgres.GetConnectionString())
+            .Options;
+        Guid first, second, third;
+        await using (var setup = new PvadDbContext(options))
+        {
+            var migrator = setup.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+            await migrator.MigrateAsync("20261109201328_RetireFormerNameData");
+            var tenant = await SeedTenantAsync(setup);
+            (first, second, third) = (await SeedRecordAsync(setup, tenant), await SeedRecordAsync(setup, tenant), await SeedRecordAsync(setup, tenant));
+            await migrator.MigrateAsync();
+        }
+
+        await using (var context = new PvadDbContext(options))
+        {
+            // The former setting no longer opens the guard after the upgrade.
+            Assert.Equal(PostgresErrorCodes.ObjectNotInPrerequisiteState,
+                (await Assert.ThrowsAsync<PostgresException>(() => PurgeAsync(context, "pxa.e_invoice_retention_purge", first))).SqlState);
+            Assert.Equal(1, await PurgeAsync(context, "pvad.e_invoice_retention_purge", first));
+            // SET LOCAL ends with the transaction; a later unguarded delete is rejected.
+            Assert.Equal(PostgresErrorCodes.ObjectNotInPrerequisiteState,
+                (await Assert.ThrowsAsync<PostgresException>(() => context.Database.ExecuteSqlInterpolatedAsync(
+                    $"""DELETE FROM administration.e_invoice_validation_records WHERE "Id" = {second}"""))).SqlState);
+            Assert.Equal(PostgresErrorCodes.ObjectNotInPrerequisiteState,
+                (await Assert.ThrowsAsync<PostgresException>(() => context.Database.ExecuteSqlInterpolatedAsync(
+                    $"""UPDATE administration.e_invoice_validation_records SET "ConformanceStatus" = 'validated' WHERE "Id" = {second}"""))).SqlState);
+            Assert.Equal(2, await context.EInvoiceValidationRecords.AsNoTracking().CountAsync());
+        }
+
+        await using (var rollback = new PvadDbContext(options))
+        {
+            await rollback.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>()
+                .MigrateAsync("20261109201328_RetireFormerNameData");
+            Assert.Equal(PostgresErrorCodes.ObjectNotInPrerequisiteState,
+                (await Assert.ThrowsAsync<PostgresException>(() => PurgeAsync(rollback, "pvad.e_invoice_retention_purge", second))).SqlState);
+            Assert.Equal(1, await PurgeAsync(rollback, "pxa.e_invoice_retention_purge", second));
+            Assert.Equal(third, (await rollback.EInvoiceValidationRecords.AsNoTracking().SingleAsync()).Id);
+        }
+    }
+
+    private static async Task<int> PurgeAsync(PvadDbContext context, string setting, Guid id)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        await context.Database.ExecuteSqlRawAsync($"SET LOCAL {setting} = 'on'");
+        var removed = await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM administration.e_invoice_validation_records WHERE "Id" = {id}""");
+        await transaction.CommitAsync();
+        return removed;
+    }
+
+    private static async Task<Guid> SeedRecordAsync(PvadDbContext context, (Guid OrganizationId, Guid ActorUserId) tenant)
+    {
+        var (organizationId, actorUserId) = tenant;
+        var auditEvent = new AuditEvent
+        {
+            OrganizationId = organizationId, ActorUserId = actorUserId, Action = "pdf.e-invoice.validate",
+            TargetType = "e-invoice-validation-record", TargetId = "upgrade", Outcome = "succeeded",
+        };
+        var record = new EInvoiceValidationRecord
+        {
+            OrganizationId = organizationId, ActorUserId = actorUserId, AuditEventId = auditEvent.Id,
+            Operation = "validate", DocumentSha256 = new string('b', 64), Standard = "FacturX",
+            StandardVersion = "1.09.2", Profile = "BASIC", ConformanceStatus = "notEvaluated",
+            DiagnosticsJson = "[]", RetainUntil = DateTimeOffset.UtcNow.AddDays(-1),
+        };
+        context.AuditEvents.Add(auditEvent);
+        context.EInvoiceValidationRecords.Add(record);
+        await context.SaveChangesAsync();
+        return record.Id;
     }
 
     private static async Task<(Guid OrganizationId, Guid ActorUserId)> SeedTenantAsync(PvadDbContext dbContext)

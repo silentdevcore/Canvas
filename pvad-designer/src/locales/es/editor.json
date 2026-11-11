@@ -50,16 +50,16 @@
     "markdownImport": "Importación de Markdown",
     "importIssue": "Incidencia de importación",
     "markdownCodes": {
-      "PXA-MD-001": "Se eliminaron destinos de enlaces Markdown no seguros.",
-      "PXA-MD-002": "Se eliminó una imagen incrustada no válida o no compatible.",
-      "PXA-MD-003": "Las imágenes insertadas dentro del texto no son compatibles y se omitieron.",
-      "PXA-MD-004": "Se omitió un bloque Markdown no compatible.",
-      "PXA-MD-005": "Se simplificó el formato al dividir un párrafo demasiado grande.",
-      "PXA-MD-006": "Se ignoró un valor YAML front matter no válido.",
-      "PXA-MD-100": "El documento Markdown se dividió en varias páginas.",
-      "PXA-MD-201": "No se pudo resolver una imagen relativa sin una URL base de recursos.",
-      "PXA-MD-202": "Se rechazó una imagen porque solo se admiten recursos HTTP(S).",
-      "PXA-MD-203": "No se pudo descargar o validar una imagen remota."
+      "PVAD-MD-001": "Se eliminaron destinos de enlaces Markdown no seguros.",
+      "PVAD-MD-002": "Se eliminó una imagen incrustada no válida o no compatible.",
+      "PVAD-MD-003": "Las imágenes insertadas dentro del texto no son compatibles y se omitieron.",
+      "PVAD-MD-004": "Se omitió un bloque Markdown no compatible.",
+      "PVAD-MD-005": "Se simplificó el formato al dividir un párrafo demasiado grande.",
+      "PVAD-MD-006": "Se ignoró un valor YAML front matter no válido.",
+      "PVAD-MD-100": "El documento Markdown se dividió en varias páginas.",
+      "PVAD-MD-201": "No se pudo resolver una imagen relativa sin una URL base de recursos.",
+      "PVAD-MD-202": "Se rechazó una imagen porque solo se admiten recursos HTTP(S).",
+      "PVAD-MD-203": "No se pudo descargar o validar una imagen remota."
     }
   },
   "help": {
@@ -601,15 +601,15 @@
     "exportBlocked": "Corrija los errores PDF/UA antes de exportar.",
     "scopes": { "None": "Ninguno", "Row": "Fila", "Column": "Columna", "Both": "Fila y columna" },
     "diagnostics": {
-      "PXAPDFUA002": "Defina un título en los metadatos de exportación.", "PXAPDFUA003": "Seleccione un idioma del documento.",
-      "PXAPDFUA004": "El cifrado aún no es compatible con la exportación PDF/UA.", "PXAPDFUA005": "Asigne semántica o marque el elemento como decorativo.",
-      "PXAPDFUA007": "Añada un texto alternativo significativo.", "PXAPDFUA009": "Seleccione el ámbito de fila o columna del encabezado.",
-      "PXAPDFUA010": "Este enlace o campo de formulario no tiene una anotación PDF interactiva compatible.", "PXAPDFUA011": "No existe un ID de encabezado asociado.",
-      "PXAPDFUA013": "El elemento superior lógico ya no existe.", "PXAPDFUA014": "La jerarquía lógica contiene un ciclo.", "PXAPDFUA015": "Use una etiqueta de idioma BCP 47 válida.",
-      "PXAPDFUA016": "El orden de lectura no puede ser negativo.", "PXAPDFUA017": "Añada un texto de enlace significativo.",
-      "PXAPDFUA018": "Añada una etiqueta de formulario accesible.", "PXAPDFUA019": "Marque la primera fila como encabezado.",
-      "PXAPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PXAPDFUA021": "Seleccione un rol de estructura.", "PXAPDFUA022": "Un grupo de opciones necesita al menos dos opciones únicas y como máximo un valor seleccionado.", "PXAPDFUA023": "Defina un orden de lectura explícito para un foco de teclado predecible.", "PXAPDFUA024": "Esta posición de foco también está asignada a otro control interactivo.",
-      "PXAPDFUA025": "Use un rol personalizado distinto con letras, números, puntos, guiones o guiones bajos.", "PXAPDFUA026": "Este rol personalizado se asigna a roles estándar contradictorios.", "PXAPDFUA027": "Use una URI de espacio de nombres absoluta solo junto con un rol personalizado.", "PXAPDFUA028": "Este rol personalizado utiliza espacios de nombres de origen contradictorios."
+      "PVADPDFUA002": "Defina un título en los metadatos de exportación.", "PVADPDFUA003": "Seleccione un idioma del documento.",
+      "PVADPDFUA004": "El cifrado aún no es compatible con la exportación PDF/UA.", "PVADPDFUA005": "Asigne semántica o marque el elemento como decorativo.",
+      "PVADPDFUA007": "Añada un texto alternativo significativo.", "PVADPDFUA009": "Seleccione el ámbito de fila o columna del encabezado.",
+      "PVADPDFUA010": "Este enlace o campo de formulario no tiene una anotación PDF interactiva compatible.", "PVADPDFUA011": "No existe un ID de encabezado asociado.",
+      "PVADPDFUA013": "El elemento superior lógico ya no existe.", "PVADPDFUA014": "La jerarquía lógica contiene un ciclo.", "PVADPDFUA015": "Use una etiqueta de idioma BCP 47 válida.",
+      "PVADPDFUA016": "El orden de lectura no puede ser negativo.", "PVADPDFUA017": "Añada un texto de enlace significativo.",
+      "PVADPDFUA018": "Añada una etiqueta de formulario accesible.", "PVADPDFUA019": "Marque la primera fila como encabezado.",
+      "PVADPDFUA020": "La tabla requiere una estructura completa de filas y celdas.", "PVADPDFUA021": "Seleccione un rol de estructura.", "PVADPDFUA022": "Un grupo de opciones necesita al menos dos opciones únicas y como máximo un valor seleccionado.", "PVADPDFUA023": "Defina un orden de lectura explícito para un foco de teclado predecible.", "PVADPDFUA024": "Esta posición de foco también está asignada a otro control interactivo.",
+      "PVADPDFUA025": "Use un rol personalizado distinto con letras, números, puntos, guiones o guiones bajos.", "PVADPDFUA026": "Este rol personalizado se asigna a roles estándar contradictorios.", "PVADPDFUA027": "Use una URI de espacio de nombres absoluta solo junto con un rol personalizado.", "PVADPDFUA028": "Este rol personalizado utiliza espacios de nombres de origen contradictorios."
     }
   },
   "layers": {

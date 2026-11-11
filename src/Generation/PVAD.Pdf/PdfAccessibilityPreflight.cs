@@ -28,15 +28,15 @@ public static class PdfAccessibilityPreflight
             return new(profile, true, ValidatorName, diagnostics);
 
         if (profile != PdfAccessibilityProfile.PdfUa1)
-            Add("PXAPDFUA001", "The requested accessibility profile is not supported.");
+            Add("PVADPDFUA001", "The requested accessibility profile is not supported.");
         if (string.IsNullOrWhiteSpace(document.Info.Title))
-            Add("PXAPDFUA002", "PDF/UA-1 requires a document title.");
+            Add("PVADPDFUA002", "PDF/UA-1 requires a document title.");
         if (string.IsNullOrWhiteSpace(document.Language))
-            Add("PXAPDFUA003", "PDF/UA-1 requires a BCP 47 document language.");
+            Add("PVADPDFUA003", "PDF/UA-1 requires a BCP 47 document language.");
         else if (!LanguageTagPattern.IsMatch(document.Language))
-            Add("PXAPDFUA015", "The document language must be a valid BCP 47 language tag.");
+            Add("PVADPDFUA015", "The document language must be a valid BCP 47 language tag.");
         if (options.Encryption is not null || options.CertificateEncryption is not null)
-            Add("PXAPDFUA004", "Encrypted PDF/UA output is not supported by this writer milestone.");
+            Add("PVADPDFUA004", "Encrypted PDF/UA output is not supported by this writer milestone.");
 
         var ids = new Dictionary<string, PdfAccessibilityProperties>(StringComparer.Ordinal);
         var semanticPages = new Dictionary<PdfAccessibilityProperties, int>(ReferenceEqualityComparer.Instance);
@@ -50,12 +50,12 @@ public static class PdfAccessibilityPreflight
                 var semantic = element.Accessibility;
                 if (semantic is null)
                 {
-                    Add("PXAPDFUA005", "Visible content must be tagged or explicitly marked as an artifact.", pageIndex + 1);
+                    Add("PVADPDFUA005", "Visible content must be tagged or explicitly marked as an artifact.", pageIndex + 1);
                     continue;
                 }
 
                 if (element is TextElement text && text.EmbeddedFont is null)
-                    Add("PXAPDFUA006", "Text fonts must be embedded for reliable Unicode extraction.", pageIndex + 1, semantic.ElementId);
+                    Add("PVADPDFUA006", "Text fonts must be embedded for reliable Unicode extraction.", pageIndex + 1, semantic.ElementId);
             }
 
             foreach (var semantic in page.SemanticElements)
@@ -63,35 +63,35 @@ public static class PdfAccessibilityPreflight
                 if (!semanticPages.TryAdd(semantic, pageIndex + 1))
                     continue;
                 if (semantic.Role == PdfStructureRole.Figure && string.IsNullOrWhiteSpace(semantic.AlternateText))
-                    Add("PXAPDFUA007", "A meaningful Figure requires alternate text.", pageIndex + 1, semantic.ElementId);
+                    Add("PVADPDFUA007", "A meaningful Figure requires alternate text.", pageIndex + 1, semantic.ElementId);
                 if (semantic.ElementId is { Length: > 0 } id)
                 {
                     if (ids.TryGetValue(id, out var existing) && !ReferenceEquals(existing, semantic))
-                        Add("PXAPDFUA008", $"Semantic element ID '{id}' is duplicated.", pageIndex + 1, id);
+                        Add("PVADPDFUA008", $"Semantic element ID '{id}' is duplicated.", pageIndex + 1, id);
                     else
                         ids[id] = semantic;
                 }
                 if (semantic.Role == PdfStructureRole.TH && semantic.TableHeaderScope == PdfTableHeaderScope.None)
-                    Add("PXAPDFUA009", "A table header must define row or column scope.", pageIndex + 1, semantic.ElementId);
+                    Add("PVADPDFUA009", "A table header must define row or column scope.", pageIndex + 1, semantic.ElementId);
                 if (semantic.CustomRole is { Length: > 0 } customRole)
                 {
                     if (!CustomRolePattern.IsMatch(customRole) || StandardRoleNames.Contains(customRole))
-                        Add("PXAPDFUA025", "A custom structure role must be a distinct, portable PDF name.",
+                        Add("PVADPDFUA025", "A custom structure role must be a distinct, portable PDF name.",
                             pageIndex + 1, semantic.ElementId);
                     if (semantic.NamespaceUri is { Length: > 0 } namespaceUri
                         && (!Uri.TryCreate(namespaceUri, UriKind.Absolute, out _) || namespaceUri.Length > 2048))
-                        Add("PXAPDFUA027", "A structure namespace must be an absolute URI no longer than 2048 characters.",
+                        Add("PVADPDFUA027", "A structure namespace must be an absolute URI no longer than 2048 characters.",
                             pageIndex + 1, semantic.ElementId);
                 }
                 else if (!string.IsNullOrWhiteSpace(semantic.NamespaceUri))
                 {
-                    Add("PXAPDFUA027", "A structure namespace requires a custom structure role.",
+                    Add("PVADPDFUA027", "A structure namespace requires a custom structure role.",
                         pageIndex + 1, semantic.ElementId);
                 }
             }
 
             foreach (var link in page.LinkAnnotations)
-                ValidateAnnotation(link, PdfStructureRole.Link, "PXAPDFUA017", "A link requires meaningful accessible text.", pageIndex + 1);
+                ValidateAnnotation(link, PdfStructureRole.Link, "PVADPDFUA017", "A link requires meaningful accessible text.", pageIndex + 1);
             foreach (var field in page.ComboBoxAnnotations.Cast<IPdfAccessibleAnnotation>()
                          .Concat(page.MultilineTextFields)
                          .Concat(page.TextFields)
@@ -100,18 +100,18 @@ public static class PdfAccessibilityPreflight
                          .Concat(page.RadioButtonAnnotations)
                          .Concat(page.SignatureFieldAnnotations)
                          .Concat(page.PushButtonAnnotations))
-                ValidateAnnotation(field, PdfStructureRole.Form, "PXAPDFUA018", "A form control requires an accessible label.", pageIndex + 1);
+                ValidateAnnotation(field, PdfStructureRole.Form, "PVADPDFUA018", "A form control requires an accessible label.", pageIndex + 1);
             foreach (var group in page.RadioButtonAnnotations.GroupBy(radio => radio.FieldName, StringComparer.Ordinal))
             {
                 if (group.Count() < 2
                     || group.Select(radio => radio.OptionIndex).Distinct().Count() != group.Count()
                     || group.Select(radio => radio.ExportValue).Distinct(StringComparer.Ordinal).Count() != group.Count()
                     || group.Count(radio => radio.IsSelected) > 1)
-                    Add("PXAPDFUA022", "A radio group requires at least two uniquely identified options and at most one selected value.",
+                    Add("PVADPDFUA022", "A radio group requires at least two uniquely identified options and at most one selected value.",
                         pageIndex + 1, group.First().Accessibility?.ElementId);
             }
             if (page.ReviewAnnotations.Count > 0)
-                Add("PXAPDFUA010", "Review annotations require dedicated structure-parent support and are not yet accepted for PDF/UA-1 export.", pageIndex + 1);
+                Add("PVADPDFUA010", "Review annotations require dedicated structure-parent support and are not yet accepted for PDF/UA-1 export.", pageIndex + 1);
         }
 
         foreach (var item in semanticPages)
@@ -121,14 +121,14 @@ public static class PdfAccessibilityPreflight
             if (semantic?.ParentElementId is { Length: > 0 } parentId)
             {
                 if (semantic.ElementId == parentId)
-                    Add("PXAPDFUA012", "A semantic element cannot be its own parent.", page, semantic.ElementId);
+                    Add("PVADPDFUA012", "A semantic element cannot be its own parent.", page, semantic.ElementId);
                 else if (!ids.ContainsKey(parentId))
-                    Add("PXAPDFUA013", $"Semantic parent '{parentId}' does not identify an element.", page, semantic.ElementId);
+                    Add("PVADPDFUA013", $"Semantic parent '{parentId}' does not identify an element.", page, semantic.ElementId);
             }
             if (semantic?.TableHeaderIds is not { Count: > 0 })
                 continue;
             foreach (var headerId in semantic.TableHeaderIds.Where(headerId => !ids.ContainsKey(headerId)))
-                Add("PXAPDFUA011", $"Table header reference '{headerId}' does not identify a semantic element.", page, semantic.ElementId);
+                Add("PVADPDFUA011", $"Table header reference '{headerId}' does not identify a semantic element.", page, semantic.ElementId);
         }
 
         foreach (var mapping in semanticPages.Keys
@@ -136,9 +136,9 @@ public static class PdfAccessibilityPreflight
                      .GroupBy(semantic => semantic.CustomRole!, StringComparer.Ordinal))
         {
             if (mapping.Select(semantic => semantic.Role).Distinct().Count() > 1)
-                Add("PXAPDFUA026", $"Custom structure role '{mapping.Key}' maps to more than one standard role.");
+                Add("PVADPDFUA026", $"Custom structure role '{mapping.Key}' maps to more than one standard role.");
             if (mapping.Select(semantic => semantic.NamespaceUri ?? string.Empty).Distinct(StringComparer.Ordinal).Count() > 1)
-                Add("PXAPDFUA028", $"Custom structure role '{mapping.Key}' is used by more than one namespace in PDF/UA-1.");
+                Add("PVADPDFUA028", $"Custom structure role '{mapping.Key}' is used by more than one namespace in PDF/UA-1.");
         }
 
         var annotationSemantics = document.Pages
@@ -163,7 +163,7 @@ public static class PdfAccessibilityPreflight
                 .Distinct((IEqualityComparer<PdfAccessibilityProperties>)ReferenceEqualityComparer.Instance)
                 .ToList();
             foreach (var semantic in interactiveSemantics.Where(semantic => semantic.ReadingOrder is null))
-                AddWarning("PXAPDFUA023", "The interactive control uses implicit focus order; set an explicit reading order for deterministic keyboard navigation.",
+                AddWarning("PVADPDFUA023", "The interactive control uses implicit focus order; set an explicit reading order for deterministic keyboard navigation.",
                     pageIndex + 1, semantic.ElementId);
             foreach (var duplicateOrder in interactiveSemantics
                          .Where(semantic => semantic.ReadingOrder is not null)
@@ -171,7 +171,7 @@ public static class PdfAccessibilityPreflight
                          .Where(group => group.Count() > 1))
             {
                 foreach (var semantic in duplicateOrder)
-                    AddWarning("PXAPDFUA024", $"Reading order {duplicateOrder.Key} is shared by multiple interactive controls.",
+                    AddWarning("PVADPDFUA024", $"Reading order {duplicateOrder.Key} is shared by multiple interactive controls.",
                         pageIndex + 1, semantic.ElementId);
             }
         }
@@ -184,7 +184,7 @@ public static class PdfAccessibilityPreflight
             {
                 if (!visited.Add(parent))
                 {
-                    Add("PXAPDFUA014", "The semantic parent hierarchy contains a cycle.", element: semantic.ElementId);
+                    Add("PVADPDFUA014", "The semantic parent hierarchy contains a cycle.", element: semantic.ElementId);
                     break;
                 }
                 current = parent;
@@ -193,7 +193,7 @@ public static class PdfAccessibilityPreflight
             if (semantic.Role == PdfStructureRole.Table)
             {
                 if (string.IsNullOrWhiteSpace(semantic.ElementId))
-                    Add("PXAPDFUA020", "A table requires a stable semantic element ID.", semanticPages[semantic]);
+                    Add("PVADPDFUA020", "A table requires a stable semantic element ID.", semanticPages[semantic]);
                 else
                 {
                     var rows = semanticPages.Keys.Where(candidate =>
@@ -201,20 +201,20 @@ public static class PdfAccessibilityPreflight
                     if (rows.Count == 0 || rows.Any(row => string.IsNullOrWhiteSpace(row.ElementId)
                             || !semanticPages.Keys.Any(cell =>
                                 cell.ParentElementId == row.ElementId && cell.Role is PdfStructureRole.TH or PdfStructureRole.TD)))
-                        Add("PXAPDFUA020", "A table must contain TR rows with TH or TD cells.", semanticPages[semantic], semantic.ElementId);
+                        Add("PVADPDFUA020", "A table must contain TR rows with TH or TD cells.", semanticPages[semantic], semantic.ElementId);
                 }
             }
             if (semantic.Role is PdfStructureRole.Link or PdfStructureRole.Form
                 && !annotationSemantics.Contains(semantic))
-                Add("PXAPDFUA010", $"The {semantic.Role} structure element is not associated with an annotation.",
+                Add("PVADPDFUA010", $"The {semantic.Role} structure element is not associated with an annotation.",
                     semanticPages[semantic], semantic.ElementId);
         }
 
         if (diagnostics.Count == 0)
-            diagnostics.Add(new("PXAPDFUA000", PdfAccessibilityDiagnosticSeverity.Information,
+            diagnostics.Add(new("PVADPDFUA000", PdfAccessibilityDiagnosticSeverity.Information,
                 "The document satisfies the PVAD structural generator preflight for PDF/UA-1.",
-                LocalizationKey: "diagnostics.PXAPDFUA000",
-                LocalizationParameters: DiagnosticParameters("PXAPDFUA000", null, null)));
+                LocalizationKey: "diagnostics.PVADPDFUA000",
+                LocalizationParameters: DiagnosticParameters("PVADPDFUA000", null, null)));
 
         return new(profile, diagnostics.All(d => d.Severity != PdfAccessibilityDiagnosticSeverity.Error), ValidatorName, diagnostics);
 
@@ -236,7 +236,7 @@ public static class PdfAccessibilityPreflight
             var semantic = annotation.Accessibility;
             if (semantic is null || semantic.Role != expectedRole)
             {
-                Add("PXAPDFUA010", $"The annotation must be associated with a {expectedRole} structure element.", page,
+                Add("PVADPDFUA010", $"The annotation must be associated with a {expectedRole} structure element.", page,
                     semantic?.ElementId);
                 return;
             }

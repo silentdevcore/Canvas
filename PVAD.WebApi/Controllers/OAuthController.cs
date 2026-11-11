@@ -81,7 +81,7 @@ public sealed class OAuthController(
             return OAuthForbid(OpenIddictConstants.Errors.InvalidGrant, "The authorization code is invalid.");
 
         var principal = authentication.Principal;
-        if (!PvadClaimCompatibility.TryNormalize(principal))
+        if (!PvadClaimValidation.HasUnambiguousContext(principal))
             return OAuthForbid(OpenIddictConstants.Errors.InvalidGrant, "The authorization context is inconsistent.");
         if (!Guid.TryParse(principal.GetClaim(OpenIddictConstants.Claims.Subject), out var userId) ||
             !Guid.TryParse(principal.FindFirstValue(PvadClaimTypes.Organization), out var organizationId) ||
@@ -125,12 +125,12 @@ public sealed class OAuthController(
             return OAuthForbid(OpenIddictConstants.Errors.InvalidGrant, "The service account is unavailable.");
 
         var scopes = request.GetScopes();
-        if (!scopes.Any() || scopes.Any(scope => !PvadScopeCompatibility.IsReadOnly(scope)))
+        if (!scopes.Any() || scopes.Any(scope => !PvadOAuthScopes.IsReadOnly(scope)))
             return OAuthForbid(
                 OpenIddictConstants.Errors.InvalidScope,
                 "At least one supported read-only PVAD scope is required.");
 
-        if (PvadScopeCompatibility.Contains(scopes, PvadOAuthScopes.TemplatesRead))
+        if (scopes.Contains(PvadOAuthScopes.TemplatesRead, StringComparer.Ordinal))
         {
             var entitlement = await entitlementService.EvaluateAsync(
                 access.OrganizationId, "designer", cancellationToken: cancellationToken);
@@ -195,7 +195,7 @@ public sealed class OAuthController(
             return InteractiveAccess.Denied(OpenIddictConstants.Errors.AccessDenied,
                 "The Account session or organization is unavailable.");
 
-        if (PvadScopeCompatibility.Contains(scopes, PvadOAuthScopes.TemplatesRead))
+        if (scopes.Contains(PvadOAuthScopes.TemplatesRead, StringComparer.Ordinal))
         {
             var entitlement = await entitlementService.EvaluateAsync(
                 organizationId, "designer", cancellationToken: cancellationToken);

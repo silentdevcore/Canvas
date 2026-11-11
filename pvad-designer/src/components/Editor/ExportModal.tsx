@@ -9,7 +9,6 @@ import ExportService, { type ExportFormat } from '@/services/ExportService';
 import type { Template, Page, SimpleElement, PageSettings } from '@/types';
 import SignDocxModal from './SignDocxModal';
 import { validateDesignerAccessibility } from '@/accessibility/designerAccessibility';
-import { readMigratedStorage } from '@/utils/storageMigration';
 
 interface Props {
   template: Template;
@@ -59,7 +58,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState<Record<string, string>>({});
   const [lastUsed, setLastUsed] = useState<string>(
-    () => { try { return readMigratedStorage(localStorage, LAST_FORMAT_KEY, 'pxa_export_format') ?? ''; } catch { return ''; } }
+    () => { try { return localStorage.getItem(LAST_FORMAT_KEY) ?? ''; } catch { return ''; } }
   );
   const [signOpen, setSignOpen] = useState(false);
   const [formatsLoaded, setFormatsLoaded] = useState(false);

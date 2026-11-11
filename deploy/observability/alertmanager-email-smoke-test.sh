@@ -20,7 +20,7 @@ payload="$(
     annotations: {
       summary: ("PVAD operator notification delivery test pvad-alert-email-" + $test_id),
       description: "Synthetic technical alert used to verify independent Alertmanager SMTP delivery.",
-      dashboard_path: "/d/pxa-platform-overview/pxa-platform-overview",
+      dashboard_path: "/d/pvad-platform-overview/pvad-platform-overview",
       runbook_id: "PVAD-OBS-TEST"
     }
   }]'

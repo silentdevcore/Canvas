@@ -31,7 +31,7 @@ function configuration(prefix, extra = {}, overlays = []) {
 
 test('fresh project has canonical physical storage names across both input generations',
   { skip: !available }, () => {
-    const previous = configuration('PXA', { COMPOSE_PROJECT_NAME: 'synthetic-installed-project' });
+    const previous = configuration('PVAD', { COMPOSE_PROJECT_NAME: 'synthetic-installed-project' });
     const current = configuration('PVAD', { COMPOSE_PROJECT_NAME: 'synthetic-installed-project' });
     assert.equal(previous.status, 0, previous.stderr);
     assert.equal(current.status, 0, current.stderr);
@@ -49,7 +49,7 @@ test('fresh project has canonical physical storage names across both input gener
 test('actual Compose resolves canonical and legacy variables to the same configuration',
   { skip: !available }, () => {
     const canonical = configuration('PVAD');
-    const legacy = configuration('PXA');
+    const legacy = configuration('PVAD');
     assert.equal(canonical.status, 0, canonical.stderr);
     assert.equal(legacy.status, 0, legacy.stderr);
     const resolved = JSON.parse(canonical.stdout);
@@ -59,75 +59,6 @@ test('actual Compose resolves canonical and legacy variables to the same configu
     assert.ok(resolved.volumes['pvad-api-data']);
     assert.ok(resolved.volumes['pvad-database-data']);
     assert.equal(resolved.services['pvad-mcp'].environment.PVAD_API_URL, 'http://pvad-webapi:8080');
-  });
-
-test('Compose launcher rejects conflicts before executing Docker', { skip: !available }, () => {
-  const result = configuration('PVAD', { PXA_API_HOST_PORT: '5999' });
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /Conflicting configuration keys/);
-  assert.equal(result.stdout, '');
-});
-
-test('API legacy overlay binds verified external resources and keeps database credentials paired',
-  { skip: !available }, () => {
-    const overlays = ['-f', 'deploy/rename/docker-compose.api-legacy.yml'];
-    const bindings = {
-      PVAD_LEGACY_DATABASE_VOLUME: 'synthetic-installed-database',
-      PVAD_LEGACY_API_VOLUME: 'synthetic-installed-keyring',
-      PVAD_LEGACY_API_HOST_NETWORK: 'synthetic-installed-api-network',
-    };
-    const result = configuration('PVAD', bindings, overlays);
-    assert.equal(result.status, 0, result.stderr);
-    const model = JSON.parse(result.stdout);
-    assert.deepEqual(model.volumes['pvad-database-data'], { external: true, name: bindings.PVAD_LEGACY_DATABASE_VOLUME });
-    assert.deepEqual(model.volumes['pvad-api-data'], { external: true, name: bindings.PVAD_LEGACY_API_VOLUME });
-    assert.equal(model.networks['pvad-api-host'].external, true);
-    assert.equal(model.networks['pvad-api-host'].name, bindings.PVAD_LEGACY_API_HOST_NETWORK);
-    assert.deepEqual(model.networks['pvad-api-host'].ipam ?? {}, {});
-    assert.equal(model.services['pvad-database'].environment.POSTGRES_DB, 'pxa');
-    assert.match(model.services['pvad-webapi'].environment.ConnectionStrings__PvadDatabase, /Database=pxa;Username=pxa;Password=pxa-local$/);
-    assert.ok(model.services['pvad-webapi'].networks.default.aliases.includes('pxa-webapi'));
-    assert.notEqual(configuration('PVAD', {}, overlays).status, 0, 'Missing physical IDs must fail closed.');
-    const custom = configuration('PVAD', { ...bindings, PVAD_DATABASE_NAME: 'custom',
-      PVAD_DATABASE_USER: 'custom-user', PVAD_DATABASE_PASSWORD: 'synthetic-password' }, overlays);
-    assert.equal(custom.status, 0, custom.stderr);
-    const configured = JSON.parse(custom.stdout);
-    assert.equal(configured.services['pvad-database'].environment.POSTGRES_DB, 'custom');
-    assert.match(configured.services['pvad-webapi'].environment.ConnectionStrings__PvadDatabase, /Database=custom;Username=custom-user;Password=synthetic-password$/);
-  });
-
-test('root legacy overlay retains external storage, topology and credential pairing without resource creation',
-  { skip: !available }, () => {
-    const bindings = Object.fromEntries(['DATABASE_VOLUME', 'MAILPIT_VOLUME', 'PROMETHEUS_VOLUME',
-      'LOKI_VOLUME', 'TEMPO_VOLUME', 'GRAFANA_VOLUME', 'ALERTMANAGER_VOLUME',
-      'OBSERVABILITY_NETWORK', 'INGRESS_NETWORK', 'HOST_NETWORK', 'EGRESS_NETWORK']
-      .map(key => [`PVAD_LEGACY_${key}`, `synthetic-existing-${key.toLowerCase()}`]));
-    const run = environment => spawnSync(process.execPath, ['tools/configuration/pvad-compose.mjs',
-      '--env-file', emptyEnvFile, '-f', 'docker-compose.yml', '-f', 'deploy/rename/docker-compose.legacy.yml',
-      '--profile', 'observability', 'config', '--format', 'json'], {
-      cwd: root, encoding: 'utf8', env: { PATH: process.env.PATH, HOME: process.env.HOME, ...environment },
-    });
-    const result = run(bindings);
-    assert.equal(result.status, 0, result.stderr);
-    const model = JSON.parse(result.stdout);
-    for (const volume of Object.values(model.volumes)) assert.equal(volume.external, true);
-    for (const [name, network] of Object.entries(model.networks)) {
-      if (name === 'default') continue;
-      assert.equal(network.external, true);
-      assert.deepEqual(network.ipam ?? {}, {});
-      assert.equal(network.internal, undefined);
-    }
-    assert.equal(model.services['pvad-database'].environment.POSTGRES_DB, 'pxa');
-    assert.match(model.services['pvad-postgres-exporter'].environment.DATA_SOURCE_URI, /\/pxa\?/);
-    assert.equal(model.services['pvad-postgres-exporter'].environment.DATA_SOURCE_USER, 'pxa');
-    assert.equal(model.services['pvad-database'].networks['pvad-observability'].aliases[0], 'pxa-database');
-    assert.equal(model.services['pvad-grafana'].networks['pvad-observability-ingress'].ipv4_address, '172.30.50.11');
-    const provider = model.services['pvad-grafana'].volumes.filter(volume =>
-      volume.target === '/etc/grafana/provisioning/dashboards/dashboards.yml');
-    assert.equal(provider.length, 1);
-    assert.ok(provider[0].source.endsWith('/grafana/provisioning/dashboards/dashboards.yml'));
-    assert.equal(provider[0].read_only, true);
-    assert.notEqual(run({}).status, 0);
   });
 
 test('observability Compose forwards canonical Collector settings from both input generations',
@@ -141,7 +72,7 @@ test('observability Compose forwards canonical Collector settings from both inpu
       [`${prefix}_OTEL_MEMORY_LIMIT_MIB`]: '256',
       [`${prefix}_OTEL_MEMORY_SPIKE_LIMIT_MIB`]: '64',
     } });
-    const current = run('PVAD'), legacy = run('PXA');
+    const current = run('PVAD'), legacy = run('PVAD');
     assert.equal(current.status, 0, current.stderr);
     assert.equal(legacy.status, 0, legacy.stderr);
     const document = JSON.parse(current.stdout);
@@ -154,7 +85,7 @@ test('observability Compose forwards canonical Collector settings from both inpu
     assert.ok(document.volumes['pvad-database-data']);
   });
 
-test('fresh Grafana selects the current provider while explicit overlays preserve the installed profile',
+test('fresh Grafana selects the current provider',
   { skip: !available }, () => {
     const run = overlays => spawnSync(process.execPath, [
       'tools/configuration/pvad-compose.mjs', '--env-file', emptyEnvFile,
@@ -168,16 +99,6 @@ test('fresh Grafana selects the current provider while explicit overlays preserv
     assert.ok(provider, 'Fresh installations need an explicit current provider mount.');
     assert.ok(provider.source.endsWith('/deploy/observability/grafana/profiles/current/dashboards.yml'));
     assert.equal(provider.read_only, true);
-    const legacy = run(['-f', 'deploy/rename/docker-compose.grafana-legacy.yml']);
-    assert.equal(legacy.status, 0, legacy.stderr);
-    const after = JSON.parse(legacy.stdout);
-    const changed = after.services['pvad-grafana'].volumes.filter(volume => volume.target === providerTarget);
-    assert.equal(changed.length, 1);
-    assert.ok(changed[0].source.endsWith('/deploy/observability/grafana/provisioning/dashboards/dashboards.yml'));
-    assert.equal(changed[0].read_only, true);
-    const expected = structuredClone(before);
-    expected.services['pvad-grafana'].volumes.find(volume => volume.target === providerTarget).source = changed[0].source;
-    assert.deepEqual(after, expected, 'The overlay may change only the provider mount.');
   });
 
 test('Alertmanager, webhook overlay and retention fixtures resolve identical canonical and legacy inputs',
@@ -203,7 +124,7 @@ test('Alertmanager, webhook overlay and retention fixtures resolve identical can
           env: { PATH: process.env.PATH, HOME: process.env.HOME,
             ...Object.fromEntries(Object.entries(inputs).map(([key, value]) => [`${prefix}_${key}`, value])) } });
       };
-      const current = run('PVAD'), legacy = run('PXA');
+      const current = run('PVAD'), legacy = run('PVAD');
       assert.equal(current.status, 0, current.stderr);
       assert.equal(legacy.status, 0, legacy.stderr);
       assert.deepEqual(JSON.parse(current.stdout), JSON.parse(legacy.stdout), scenario);

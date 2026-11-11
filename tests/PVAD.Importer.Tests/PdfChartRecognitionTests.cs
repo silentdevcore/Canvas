@@ -17,7 +17,7 @@ public sealed class PdfChartRecognitionTests
         Assert.Equal("reviewRequired", chart.Chart!.Recognition!.Status);
         Assert.InRange(chart.Chart.Recognition.Confidence, 0.60, 0.849);
         Assert.Equal(3, chart.Chart.Series[0].Values.Count);
-        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PXA-PDF-CHART-102");
+        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PVAD-PDF-CHART-102");
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public sealed class PdfChartRecognitionTests
         var chart = Assert.Single(Assert.Single(design.Pages).Elements, element => element.Type == "chart");
         Assert.Equal("automatic", chart.Chart!.Recognition!.Status);
         Assert.True(chart.Chart.Recognition.Confidence >= 0.85);
-        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PXA-PDF-CHART-101");
+        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PVAD-PDF-CHART-101");
     }
 
     [Fact]
@@ -61,9 +61,9 @@ public sealed class PdfChartRecognitionTests
     [Fact]
     public async Task ReviewMode_DoesNotClassifyUniformTableCellsAsChart()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(400, 300);
         for (var index = 0; index < 5; index++)
             page.DrawRectangle(40 + index * 45, 100, 36, 24, fill: true, fillColor: PdfColor.FromRgb(240, 240, 240));
@@ -77,9 +77,9 @@ public sealed class PdfChartRecognitionTests
 
     private static MemoryStream CreateBarPdf(bool includeDataLabels)
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(400, 300);
         var heights = new[] { 40d, 85d, 62d };
         for (var index = 0; index < heights.Length; index++)

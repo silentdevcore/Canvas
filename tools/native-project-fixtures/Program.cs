@@ -54,6 +54,6 @@ var fixtures = new Dictionary<string, byte[]>(StringComparer.Ordinal)
 foreach (var fixture in fixtures)
     File.WriteAllBytes(Path.Combine(outputDirectory, fixture.Key), fixture.Value);
 
-var hashes = new[] { "minimal.pxap", "minimal.pxas", "minimal.pvadp", "minimal.pvads" }.Select(name =>
+var hashes = new[] { "minimal.pxap", "minimal.pxas", "minimal.pxap", "minimal.pxas" }.Select(name =>
     $"{Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(outputDirectory, name)))).ToLowerInvariant()}  {name}");
 File.WriteAllText(Path.Combine(outputDirectory, "SHA256SUMS"), string.Join('\n', hashes) + "\n");

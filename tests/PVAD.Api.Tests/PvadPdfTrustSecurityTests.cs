@@ -53,7 +53,7 @@ public sealed class PvadPdfTrustSecurityTests
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
         context.Response.Body.Position = 0;
         var response = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        Assert.Contains("PXAPDFTRUSTAPI901", response, StringComparison.Ordinal);
+        Assert.Contains("PVADPDFTRUSTAPI901", response, StringComparison.Ordinal);
         Assert.Contains("PVADPDFTRUSTAPI901", response, StringComparison.Ordinal);
         Assert.Equal("application/problem+json", context.Response.ContentType);
     }
@@ -118,7 +118,7 @@ public sealed class PvadPdfTrustSecurityTests
             new string('a', 64),
             new string('b', 64),
             "succeeded",
-            ["PXAPDFTEST001"],
+            ["PVADPDFTEST001"],
             "certificate-thumbprint"));
 
         var audit = Assert.Single(dbContext.AuditEvents.Local);

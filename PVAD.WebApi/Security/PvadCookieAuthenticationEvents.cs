@@ -26,9 +26,7 @@ public sealed class PvadCookieAuthenticationEvents : CookieAuthenticationEvents
 
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
-        var legacyTicket = PvadMigratingTicketDataFormat.ConsumeLegacyMarker(context.Properties);
-        var legacyClaims = PvadClaimCompatibility.HasLegacyClaims(context.Principal!);
-        if (!PvadClaimCompatibility.TryNormalize(context.Principal!))
+        if (!PvadClaimValidation.HasUnambiguousContext(context.Principal!))
         {
             context.RejectPrincipal();
             await context.HttpContext.SignOutAsync(context.Scheme.Name);
@@ -76,10 +74,6 @@ public sealed class PvadCookieAuthenticationEvents : CookieAuthenticationEvents
             session.LastSeenAt = now;
             await dbContext.SaveChangesAsync(context.HttpContext.RequestAborted);
         }
-
-        if (legacyTicket || legacyClaims || context.Options.Cookie.Name is { } cookieName &&
-            PvadMigratingCookieManager.WasLegacyRead(context.HttpContext, cookieName))
-            context.ShouldRenew = true;
 
         if (RemoveTransientClaims(context.Principal!)) context.ShouldRenew = true;
     }

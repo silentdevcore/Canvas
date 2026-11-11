@@ -391,7 +391,7 @@ const CreatePage: React.FC = () => {
           <input
             ref={projectInput}
             type="file"
-            accept=".pvadp,.pxap,application/vnd.pvad.pvadp+zip,application/vnd.powerdox.pxap+zip"
+            accept=".pvadp,application/vnd.pvad.pvadp+zip"
             hidden
             onChange={handleOpenProject}
           />

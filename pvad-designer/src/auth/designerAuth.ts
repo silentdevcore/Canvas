@@ -1,9 +1,7 @@
 import { readDesignerRuntimeConfig } from '@/config/runtimeConfig';
-import { normalizeSecurityHeaders } from './securityHeaders';
 
 const authBase = '/api/pvad/v1/auth';
 const transactionKey = 'pvad.designer.auth-transaction';
-const legacyTransactionKey = 'pxa.designer.auth-transaction';
 const nativeFetch = globalThis.fetch;
 const originalFetch: typeof fetch = nativeFetch
   ? nativeFetch.bind(globalThis)
@@ -51,14 +49,14 @@ export interface DesignerAccessPresentation {
 }
 
 const knownDesignerAuthCodes = new Set([
-  'PXA_DESIGNER_VERIFICATION_REQUIRED', 'PXAAPI010',
-  'PXA_DESIGNER_ACCOUNT_DISABLED', 'PXAAPI015', 'PXA_DESIGNER_ACCOUNT_LOCKED',
-  'PXA_DESIGNER_MEMBERSHIP_INACTIVE', 'PXA_ORGANIZATION_INACTIVE', 'PXAAPI016',
-  'PXA_SUBSCRIPTION_CANCELLED', 'PXA_SUBSCRIPTION_INACTIVE', 'PXA_TRIAL_EXPIRED',
-  'PXA_GRACE_PERIOD_EXPIRED', 'PXA_ENTITLEMENT_EXPIRED',
-  'PXA_ENTITLEMENT_MISSING', 'PXA_ENTITLEMENT_DENIED',
-  'PXA_DESIGNER_PERMISSION_REQUIRED', 'PXA_API_VERSION_INCOMPATIBLE',
-  'PXA_DESIGNER_SESSION_EXPIRED',
+  'PVAD_DESIGNER_VERIFICATION_REQUIRED', 'PVADAPI010',
+  'PVAD_DESIGNER_ACCOUNT_DISABLED', 'PVADAPI015', 'PVAD_DESIGNER_ACCOUNT_LOCKED',
+  'PVAD_DESIGNER_MEMBERSHIP_INACTIVE', 'PVAD_ORGANIZATION_INACTIVE', 'PVADAPI016',
+  'PVAD_SUBSCRIPTION_CANCELLED', 'PVAD_SUBSCRIPTION_INACTIVE', 'PVAD_TRIAL_EXPIRED',
+  'PVAD_GRACE_PERIOD_EXPIRED', 'PVAD_ENTITLEMENT_EXPIRED',
+  'PVAD_ENTITLEMENT_MISSING', 'PVAD_ENTITLEMENT_DENIED',
+  'PVAD_DESIGNER_PERMISSION_REQUIRED', 'PVAD_API_VERSION_INCOMPATIBLE',
+  'PVAD_DESIGNER_SESSION_EXPIRED',
 ]);
 
 export function isKnownDesignerAuthCode(code?: string): boolean {
@@ -76,72 +74,72 @@ export function describeDesignerAuthError(error: DesignerAuthError): DesignerAcc
   }
 
   switch (error.code) {
-    case 'PXA_DESIGNER_VERIFICATION_REQUIRED':
-    case 'PXAAPI010':
+    case 'PVAD_DESIGNER_VERIFICATION_REQUIRED':
+    case 'PVADAPI010':
       return {
         title: 'Email verification required',
         message: 'Verify your email address in PVADE Account before opening the Designer.',
         retry: true,
         openAccount: true,
       };
-    case 'PXA_DESIGNER_ACCOUNT_DISABLED':
-    case 'PXAAPI015':
+    case 'PVAD_DESIGNER_ACCOUNT_DISABLED':
+    case 'PVADAPI015':
       return {
         title: 'Account disabled',
         message: 'This account is disabled. Contact your organization administrator.',
         retry: false,
         openAccount: true,
       };
-    case 'PXA_DESIGNER_ACCOUNT_LOCKED':
+    case 'PVAD_DESIGNER_ACCOUNT_LOCKED':
       return {
         title: 'Account locked',
         message: 'This account is temporarily locked. Wait before trying again or reset the password in PVADE Account.',
         retry: false,
         openAccount: true,
       };
-    case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
-    case 'PXA_ORGANIZATION_INACTIVE':
-    case 'PXAAPI016':
+    case 'PVAD_DESIGNER_MEMBERSHIP_INACTIVE':
+    case 'PVAD_ORGANIZATION_INACTIVE':
+    case 'PVADAPI016':
       return {
         title: 'Organization unavailable',
         message: 'Your organization or membership is suspended. Contact an organization administrator.',
         retry: false,
         openAccount: true,
       };
-    case 'PXA_SUBSCRIPTION_CANCELLED':
-    case 'PXA_SUBSCRIPTION_INACTIVE':
-    case 'PXA_TRIAL_EXPIRED':
-    case 'PXA_GRACE_PERIOD_EXPIRED':
-    case 'PXA_ENTITLEMENT_EXPIRED':
+    case 'PVAD_SUBSCRIPTION_CANCELLED':
+    case 'PVAD_SUBSCRIPTION_INACTIVE':
+    case 'PVAD_TRIAL_EXPIRED':
+    case 'PVAD_GRACE_PERIOD_EXPIRED':
+    case 'PVAD_ENTITLEMENT_EXPIRED':
       return {
         title: 'Designer subscription expired',
         message: error.message,
         retry: false,
         openAccount: true,
       };
-    case 'PXA_ENTITLEMENT_MISSING':
-    case 'PXA_ENTITLEMENT_DENIED':
+    case 'PVAD_ENTITLEMENT_MISSING':
+    case 'PVAD_ENTITLEMENT_DENIED':
       return {
         title: 'Designer access not included',
         message: error.message,
         retry: false,
         openAccount: true,
       };
-    case 'PXA_DESIGNER_PERMISSION_REQUIRED':
+    case 'PVAD_DESIGNER_PERMISSION_REQUIRED':
       return {
         title: 'Designer permission required',
         message: 'Your organization role does not allow this Designer operation.',
         retry: false,
         openAccount: true,
       };
-    case 'PXA_API_VERSION_INCOMPATIBLE':
+    case 'PVAD_API_VERSION_INCOMPATIBLE':
       return {
         title: 'Designer update required',
         message: 'This Designer version is not compatible with the connected PVADE API.',
         retry: true,
         openAccount: false,
       };
-    case 'PXA_DESIGNER_SESSION_EXPIRED':
+    case 'PVAD_DESIGNER_SESSION_EXPIRED':
       return {
         title: 'Session expired',
         message: 'Your Account session expired before Designer sign-in completed. Sign in again.',
@@ -204,7 +202,6 @@ export function installDesignerApiFetch(): void {
     const method = (init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
     const headers = new Headers(input instanceof Request ? input.headers : undefined);
     new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    normalizeSecurityHeaders(headers);
     headers.set('X-PVAD-Application', 'designer');
     if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !headers.has('X-PVAD-CSRF')) {
       if (!csrfToken) {
@@ -282,8 +279,6 @@ export async function redirectToAccount(): Promise<never> {
   const returnPath = safeDesignerReturnPath();
   const transaction: AuthTransaction = { verifier, state, returnPath, createdAt: Date.now() };
   sessionStorage.setItem(transactionKey, JSON.stringify(transaction));
-  // A new transaction supersedes any unfinished pre-rename sign-in.
-  sessionStorage.removeItem(legacyTransactionKey);
 
   const parameters = new URLSearchParams({
     designerOrigin: location.origin,
@@ -301,9 +296,8 @@ export async function exchangeCallback(): Promise<string> {
   const state = parameters.get('state') ?? '';
   history.replaceState({}, '', '/auth/callback');
 
-  const rawTransaction = sessionStorage.getItem(transactionKey) ?? sessionStorage.getItem(legacyTransactionKey);
+  const rawTransaction = sessionStorage.getItem(transactionKey);
   sessionStorage.removeItem(transactionKey);
-  sessionStorage.removeItem(legacyTransactionKey);
   if (!rawTransaction)
     throw new DesignerAuthError('The Designer sign-in transaction is missing. Start again.');
 
@@ -340,7 +334,7 @@ export async function currentDesignerUser(): Promise<DesignerUser> {
     const error = new DesignerAuthError(
       `PVADE Designer requires API v1, but the server reported v${user.apiVersion || 'unknown'}.`);
     error.status = 409;
-    error.code = 'PXA_API_VERSION_INCOMPATIBLE';
+    error.code = 'PVAD_API_VERSION_INCOMPATIBLE';
     throw error;
   }
   return user;

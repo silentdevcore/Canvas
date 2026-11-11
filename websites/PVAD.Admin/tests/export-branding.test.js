@@ -28,10 +28,10 @@ test('Admin exports use current fallbacks and preserve server-provided customer 
   const legal = await exportAdminLegalAcceptance('synthetic-version', 'csv');
   assert.equal(legal.filename, 'pvad-legal-acceptance.csv');
 
-  disposition = 'attachment; filename="Customer-PXA-archive.json"';
-  assert.equal((await exportAdminAudit('json', {})).filename, 'Customer-PXA-archive.json');
+  disposition = 'attachment; filename="Customer-PVAD-archive.json"';
+  assert.equal((await exportAdminAudit('json', {})).filename, 'Customer-PVAD-archive.json');
   assert.equal((await exportAdminLegalAcceptance('synthetic-version', 'json')).filename,
-    'Customer-PXA-archive.json');
+    'Customer-PVAD-archive.json');
   for (const request of requests) {
     assert.match(request.url, /^\/api\/pvad\/v1\//);
     assert.equal(request.options.credentials, 'include');
@@ -48,7 +48,7 @@ for (const contentType of ['application/json', 'application/problem+json; charse
       if (previousWindow === undefined) delete globalThis.window;
       else globalThis.window = previousWindow;
     });
-    const problem = { code: 'PXAAPI018', canonicalCode: 'PVADAPI018', detail: 'PXAAPI018: Service unavailable.', traceId: 'synthetic-trace' };
+    const problem = { code: 'PVADAPI018', canonicalCode: 'PVADAPI018', detail: 'PVADAPI018: Service unavailable.', traceId: 'synthetic-trace' };
     context.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify(problem), {
       status: 503, headers: { 'Content-Type': contentType },
     }));

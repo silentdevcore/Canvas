@@ -19,17 +19,17 @@ public sealed class PvadProductAccessMiddleware
         ("/api/pvad/v1/pdf/trust", PvadPdfTrustCapabilities.Inspection),
         ("/api/pvad/v1/pdf/e-invoices", "generator"),
         ("/api/migration", "migration"),
-        ("/api/pxa/migration", "migration"),
+        ("/api/pvad/migration", "migration"),
         ("/api/spreadsheet", "spreadsheet"),
-        ("/api/pxa/spreadsheet", "spreadsheet"),
+        ("/api/pvad/spreadsheet", "spreadsheet"),
         ("/api/export", "generator"),
-        ("/api/pxa/export", "generator"),
+        ("/api/pvad/export", "generator"),
         ("/api/templates", "generator"),
-        ("/api/pxa/templates", "generator"),
+        ("/api/pvad/templates", "generator"),
         ("/api/document", "generator"),
-        ("/api/pxa/document", "generator"),
+        ("/api/pvad/document", "generator"),
         ("/api/pdf-viewer", "pdf-viewer"),
-        ("/api/pxa/pdf-viewer", "pdf-viewer"),
+        ("/api/pvad/pdf-viewer", "pdf-viewer"),
     ];
 
     private readonly RequestDelegate next;
@@ -56,13 +56,13 @@ public sealed class PvadProductAccessMiddleware
 
         if (context.User.Identity?.IsAuthenticated != true)
         {
-            await WriteProblem(context, StatusCodes.Status401Unauthorized, "PXA_AUTHENTICATION_REQUIRED",
+            await WriteProblem(context, StatusCodes.Status401Unauthorized, "PVAD_AUTHENTICATION_REQUIRED",
                 "Authentication is required for this product API.");
             return;
         }
         if (tenantContext.OrganizationId is not { } organizationId)
         {
-            await WriteProblem(context, StatusCodes.Status403Forbidden, "PXA_ORGANIZATION_REQUIRED",
+            await WriteProblem(context, StatusCodes.Status403Forbidden, "PVAD_ORGANIZATION_REQUIRED",
                 "An active organization is required for this product API.");
             return;
         }

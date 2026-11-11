@@ -1,5 +1,5 @@
 export interface DesignerRuntimeConfig { accountUrl?: string; }
-export interface RuntimeConfigGlobals { __PVAD_CONFIG__?: unknown; __PXA_CONFIG__?: unknown; }
+export interface RuntimeConfigGlobals { __PVAD_CONFIG__?: unknown; }
 
 export class RuntimeConfigurationError extends Error {
   constructor(key: string, conflict = false) {
@@ -29,8 +29,5 @@ function accountUrl(config: unknown, key: string): string | undefined {
 /** Runtime scripts must run before the application bundle; no values are logged. */
 export function readDesignerRuntimeConfig(globals: RuntimeConfigGlobals = globalThis as RuntimeConfigGlobals): Readonly<DesignerRuntimeConfig> {
   const current = accountUrl(globals.__PVAD_CONFIG__, '__PVAD_CONFIG__');
-  const legacy = accountUrl(globals.__PXA_CONFIG__, '__PXA_CONFIG__');
-  if (current !== undefined && legacy !== undefined && current !== legacy)
-    throw new RuntimeConfigurationError('__PVAD_CONFIG__.accountUrl and __PXA_CONFIG__.accountUrl', true);
-  return Object.freeze({ accountUrl: (current ?? legacy) || undefined });
+  return Object.freeze({ accountUrl: current || undefined });
 }

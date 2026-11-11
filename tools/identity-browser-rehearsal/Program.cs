@@ -36,7 +36,6 @@ try
     object result = request.Action switch
     {
         "seed" => await SeedAsync(provider, database, request.Password),
-        "legacy-ticket" => await LegacyTicketAsync(database, request),
         "create-protected-data" => await CreateProtectedDataAsync(request),
         "protected-data" => await ProtectedDataAsync(request),
         _ => throw new InvalidOperationException("Unknown synthetic control action."),
@@ -106,8 +105,7 @@ static async Task<object> SeedAsync(IServiceProvider services, PvadDbContext dat
     }
     await database.SaveChangesAsync();
     return new { userIds = users.Select(value => new { email = value.User.Email, id = value.User.Id, organizationId = value.Organization.Id }),
-        cookies = new { account = PvadCookieNames.Session(true), designer = PvadCookieNames.Designer(true), csrf = PvadCookieNames.Antiforgery(true),
-            oldAccount = PvadCookieNames.LegacySession(true), oldDesigner = PvadCookieNames.LegacyDesigner(true) } };
+        cookies = new { account = PvadCookieNames.Session(true), designer = PvadCookieNames.Designer(true), csrf = PvadCookieNames.Antiforgery(true) } };
 }
 
 static IDataProtectionProvider Keys(ControlRequest request)
@@ -118,36 +116,14 @@ static IDataProtectionProvider Keys(ControlRequest request)
     return DataProtectionProvider.Create(new DirectoryInfo(directory), options => options.SetApplicationName(PvadDataProtection.ApplicationName));
 }
 
-static async Task<object> LegacyTicketAsync(PvadDbContext database, ControlRequest request)
-{
-    var scheme = request.Surface == "account" ? IdentityConstants.ApplicationScheme
-        : request.Surface == "designer" ? PvadAuthenticationSchemes.DesignerCookie
-        : throw new InvalidOperationException("Unsupported ticket surface.");
-    var keys = Keys(request);
-    TicketDataFormat Format(string value) => new(keys.CreateProtector("Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationMiddleware", value, "v2"));
-    var ticket = Format(scheme).Unprotect(request.Cookie) ?? throw new FixtureFailureException("ticket-decode");
-    if (ticket.Properties.ExpiresUtc is not { } expiry || expiry <= DateTimeOffset.UtcNow)
-        throw new FixtureFailureException("ticket-expired");
-    var id = Guid.Parse(ticket.Principal.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    var sessionId = Guid.Parse(ticket.Principal.FindFirstValue(PvadClaimTypes.Session)!);
-    var user = await database.Users.SingleAsync(value => value.Id == id && value.IsActive && value.EmailConfirmed);
-    if (!await database.UserSessions.AnyAsync(value => value.Id == sessionId && value.UserId == id && value.RevokedAt == null && value.ExpiresAt > DateTimeOffset.UtcNow))
-        throw new FixtureFailureException("session-inactive");
-    if (ticket.Principal.FindFirstValue("AspNet.Identity.SecurityStamp") != user.SecurityStamp)
-        throw new FixtureFailureException("stamp-mismatch");
-    var oldScheme = request.Surface == "designer" ? PvadAuthenticationSchemes.LegacyDesignerCookie : scheme;
-    var old = Format(oldScheme).Protect(new AuthenticationTicket(ticket.Principal, ticket.Properties, oldScheme));
-    return new { name = request.Surface == "designer" ? PvadCookieNames.LegacyDesigner(true) : PvadCookieNames.LegacySession(true), value = old };
-}
-
 static async Task<object> CreateProtectedDataAsync(ControlRequest request)
 {
     var keys = Keys(request);
     const string value = "Synthetic protected consumer payload";
-    var oldMail = keys.CreateProtector(PvadDataProtection.LegacyMailPayloadPurpose).Protect(value);
-    var oldCache = keys.CreateProtector(PvadDataProtection.LegacyRevocationEvidencePurpose).Protect(value);
+    var mail = PvadDataProtection.MailPayload(keys).Protect(value);
+    var cache = PvadDataProtection.RevocationEvidence(keys).Protect(value);
     await File.WriteAllTextAsync(Path.Combine(request.WorkDirectory, "protected-consumers.json"),
-        JsonSerializer.Serialize(new ProtectedConsumers(oldMail, oldCache)));
+        JsonSerializer.Serialize(new ProtectedConsumers(mail, cache)));
     return new { savedBeforeBackup = true };
 }
 
@@ -158,8 +134,8 @@ static async Task<object> ProtectedDataAsync(ControlRequest request)
         await File.ReadAllTextAsync(Path.Combine(request.WorkDirectory, "protected-consumers.json")))!;
     const string value = "Synthetic protected consumer payload";
     if (PvadDataProtection.MailPayload(keys).Unprotect(payload.Mail) != value || PvadDataProtection.RevocationEvidence(keys).Unprotect(payload.Cache) != value)
-        throw new InvalidOperationException("Retained protected-data consumers failed.");
-    return new { mailLegacyReadable = true, cacheLegacyReadable = true };
+        throw new InvalidOperationException("Protected-data consumers failed after restore.");
+    return new { mailReadable = true, cacheReadable = true };
 }
 
 static void Ensure(IdentityResult result)

@@ -19,13 +19,14 @@ public sealed class PvadMcpDelegationCompatibilityTests
 
     [Theory]
     [InlineData("PVAD-MCP", "pvad-mcp-server", "pvad-api", "pvad.templates.read", true)]
-    [InlineData("PXA-MCP", "pxa-mcp-server", "pxa-api", "pxa.templates.read", true)]
-    [InlineData("PXA-MCP", "pvad-mcp-server", "pxa-api", "pxa.templates.read", true)]
-    [InlineData("PVAD-MCP", "pxa-mcp-server", "pxa-api", "pxa.templates.read", false)]
-    [InlineData("PXA-MCP", "pvad-mcp-server", "pvad-api", "pxa.templates.read", false)]
+    [InlineData("PXA-MCP", "pxa-mcp-server", "pxa-api", "pxa.templates.read", false)]
+    [InlineData("PXA-MCP", "pvad-mcp-server", "pvad-api", "pvad.templates.read", false)]
+    [InlineData("PVAD-MCP", "pxa-mcp-server", "pvad-api", "pvad.templates.read", false)]
+    [InlineData("PVAD-MCP", "pvad-mcp-server", "pxa-api", "pvad.templates.read", false)]
+    [InlineData("PVAD-MCP", "pvad-mcp-server", "pvad-api", "pxa.templates.read", false)]
     [InlineData("PVAD-MCP", "pvad-mcp-server", "pvad-api", "pvad.templates.write", false)]
     [InlineData("PVAD-MCP", "pvad-mcp-server", "pvad-api", "pvad.unknown", false)]
-    public async Task Signed_envelopes_accept_only_explicit_identity_generations_and_read_only_scopes(
+    public async Task Signed_envelopes_accept_only_the_canonical_identity_and_read_only_scopes(
         string prefix, string issuer, string audience, string scope, bool allowed)
     {
         using var host = await CreateHost();

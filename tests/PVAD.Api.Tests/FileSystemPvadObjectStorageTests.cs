@@ -12,12 +12,12 @@ public sealed class FileSystemPvadObjectStorageTests : IDisposable
     [Fact]
     public async Task Explicit_shared_mount_preserves_keys_and_bytes_across_renamed_application_roots()
     {
-        var mount = Path.Combine(root, "retained-pxa-mount");
-        const string key = "synthetic-tenant/pxa-retained-object";
-        var bytes = "Synthetic PXA customer content must remain unchanged."u8.ToArray();
+        var mount = Path.Combine(root, "retained-pvad-mount");
+        const string key = "synthetic-tenant/pvad-retained-object";
+        var bytes = "Synthetic PVAD customer content must remain unchanged."u8.ToArray();
         var before = new FileSystemPvadObjectStorage(
             Options.Create(new PvadStorageOptions { RootPath = mount }),
-            new TestWebHostEnvironment { ContentRootPath = Path.Combine(root, "PXA.WebApi") });
+            new TestWebHostEnvironment { ContentRootPath = Path.Combine(root, "PVAD.WebApi") });
         await using (var source = new MemoryStream(bytes))
             await before.PutAsync(key, source, CancellationToken.None);
 
@@ -31,10 +31,10 @@ public sealed class FileSystemPvadObjectStorageTests : IDisposable
             await content.CopyToAsync(result);
             Assert.Equal(bytes, result.ToArray());
         }
-        Assert.Equal(bytes, await File.ReadAllBytesAsync(Path.Combine(mount, "synthetic-tenant", "pxa-retained-object")));
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(Path.Combine(mount, "synthetic-tenant", "pvad-retained-object")));
         await using var duplicate = new MemoryStream("replacement"u8.ToArray());
         await Assert.ThrowsAsync<IOException>(() => after.PutAsync(key, duplicate, CancellationToken.None));
-        Assert.Equal(bytes, await File.ReadAllBytesAsync(Path.Combine(mount, "synthetic-tenant", "pxa-retained-object")));
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(Path.Combine(mount, "synthetic-tenant", "pvad-retained-object")));
         Assert.Empty(Directory.GetFiles(mount, "*.tmp", SearchOption.AllDirectories));
     }
 

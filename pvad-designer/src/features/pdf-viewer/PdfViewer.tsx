@@ -105,7 +105,6 @@ interface SearchResult {
 
 interface NavigablePdfDiagnostic {
   code: string;
-  canonicalCode?: string | null;
   severity: 0 | 1 | 2;
   message: string;
   objectNumber?: number | null;
@@ -943,7 +942,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const renderDiagnostic = useCallback((diagnostic: NavigablePdfDiagnostic) => (
     <>
-      <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code>
+      <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.code)}</code>
       <span>{diagnosticText(diagnostic)}</span>
       <span className="pdfv-diagnostic-targets">
         {diagnostic.pageNumber != null && (
@@ -2313,7 +2312,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                           <ul className="pdfv-trust-diagnostics">
                             {attachment.diagnostics.map((diagnostic, index) => (
                               <li key={`${attachment.fileName}-${diagnostic.code}-${index}`} data-severity={diagnostic.severity}>
-                                <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.canonicalCode ?? diagnostic.code)}</code> {displaySystemMessage(diagnostic.message)}
+                                <code title={displayDiagnosticCode(diagnostic.code)}>{displayDiagnosticCode(diagnostic.code)}</code> {displaySystemMessage(diagnostic.message)}
                               </li>
                             ))}
                           </ul>
@@ -2956,7 +2955,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                       <ul className="pdfv-redaction-findings">
                         {allFindings(effectiveRedactionPreflight).map((finding, index) => (
                           <li key={`${finding.code}-${index}`} data-code={finding.code}>
-                            <code title={displayDiagnosticCode(finding.code)}>{displayDiagnosticCode(finding.canonicalCode ?? finding.code)}</code>
+                            <code title={displayDiagnosticCode(finding.code)}>{displayDiagnosticCode(finding.code)}</code>
                             <span>{displaySystemMessage(finding.message)}</span>
                             {finding.pageNumber != null && (
                               <button

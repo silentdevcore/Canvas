@@ -26,7 +26,7 @@ public sealed class PvadDesignerFeatureGate(
     {
         var feature = metadata.FindFeature(featureId);
         if (feature is null)
-            return new(false, "PXA_DESIGNER_FEATURE_UNKNOWN", "The Designer feature is not registered.", null, null);
+            return new(false, "PVAD_DESIGNER_FEATURE_UNKNOWN", "The Designer feature is not registered.", null, null);
 
         var policy = await dbContext.DesignerFeaturePolicies.AsNoTracking()
             .SingleOrDefaultAsync(value =>
@@ -40,7 +40,7 @@ public sealed class PvadDesignerFeatureGate(
                 cancellationToken);
 
         if (policy?.EnabledOverride == false)
-            return new(false, "PXA_DESIGNER_FEATURE_DISABLED", "The feature is disabled for this organization.", feature, policy);
+            return new(false, "PVAD_DESIGNER_FEATURE_DISABLED", "The feature is disabled for this organization.", feature, policy);
 
         if (!string.IsNullOrWhiteSpace(feature.RequiredEntitlement))
         {
@@ -54,17 +54,17 @@ public sealed class PvadDesignerFeatureGate(
         if (maturity == "alpha")
         {
             if (policy?.AlphaOptInAllowed != true)
-                return new(false, "PXA_DESIGNER_ALPHA_NOT_ALLOWED", "Alpha access is not allowed by the organization.", feature, policy);
+                return new(false, "PVAD_DESIGNER_ALPHA_NOT_ALLOWED", "Alpha access is not allowed by the organization.", feature, policy);
             if (preference?.Enabled != true)
-                return new(false, "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED", "Enable this Alpha feature before use.", feature, policy);
+                return new(false, "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED", "Enable this Alpha feature before use.", feature, policy);
 
-            return new(true, "PXA_DESIGNER_FEATURE_ENABLED", "The Alpha feature is enabled for this user.", feature, policy);
+            return new(true, "PVAD_DESIGNER_FEATURE_ENABLED", "The Alpha feature is enabled for this user.", feature, policy);
         }
 
         var enabled = policy?.EnabledOverride ?? feature.DefaultEnabled;
         return enabled
-            ? new(true, "PXA_DESIGNER_FEATURE_ENABLED", "The feature is available.", feature, policy)
-            : new(false, "PXA_DESIGNER_FEATURE_DISABLED", "The feature is disabled.", feature, policy);
+            ? new(true, "PVAD_DESIGNER_FEATURE_ENABLED", "The feature is available.", feature, policy)
+            : new(false, "PVAD_DESIGNER_FEATURE_DISABLED", "The feature is disabled.", feature, policy);
     }
 }
 
@@ -75,5 +75,4 @@ public sealed record DesignerFeatureDecision(
     DesignerFeatureDefinition? Feature,
     PVAD.Domain.Entities.DesignerFeaturePolicy? Policy)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 }

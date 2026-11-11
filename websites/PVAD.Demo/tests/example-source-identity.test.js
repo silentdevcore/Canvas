@@ -22,7 +22,7 @@ test('all eight demo descriptors resolve to current downloadable examples', asyn
     const currentData = structuredClone({ output, result });
     if (demo.id === 'provider-migration-examples') {
       for (const value of Object.values(currentData)) {
-        assert.deepEqual(value.diagnostics.map(item => item.id), ['PXAMIG001', 'PXAMIG101']);
+        assert.deepEqual(value.diagnostics.map(item => item.id), ['PVADMIG001', 'PVADMIG101']);
         value.diagnostics.forEach(item => { delete item.id; });
       }
     }
@@ -31,11 +31,11 @@ test('all eight demo descriptors resolve to current downloadable examples', asyn
 });
 
 test('provider example keeps stable raw diagnostics and supplied namespace unchanged', () => {
-  const input = { provider: 'PXA customer provider', domain: 'pdf', kind: 'code', targetNamespace: 'PXA.Customer' };
+  const input = { provider: 'PVAD customer provider', domain: 'pdf', kind: 'code', targetNamespace: 'PVAD.Customer' };
   const result = migrateProviderCode(input);
   assert.equal(result.provider, input.provider);
   assert.equal(result.targetNamespace, input.targetNamespace);
-  assert.deepEqual(result.diagnostics.map(item => item.id), ['PXAMIG001', 'PXAMIG101']);
+  assert.deepEqual(result.diagnostics.map(item => item.id), ['PVADMIG001', 'PVADMIG101']);
   assert.equal(result.diagnostics[0].message, `Provider detected: ${input.provider} pdf code`);
   const output = JSON.parse(readFileSync(new URL(
     '../public/examples/provider-migration-examples/output.json', import.meta.url), 'utf8'));
@@ -52,17 +52,17 @@ test('downloadable illustrative JSON uses the same identities as executable demo
 });
 
 test('illustrative demo descriptors use current identities without rewriting supplied values', () => {
-  const file = importFile({ fileName: 'PXA-customer.pdf', requestedOutput: 'design' });
+  const file = importFile({ fileName: 'PVAD-customer.pdf', requestedOutput: 'design' });
   assert.equal(file.normalizedModel, 'PVAD.Core.Contracts.DesignExportDto');
-  assert.equal(file.fileName, 'PXA-customer.pdf');
-  const rows = [['PXA customer text']];
-  const sheet = importSpreadsheet({ sheet: 'PXA sheet', rows });
+  assert.equal(file.fileName, 'PVAD-customer.pdf');
+  const rows = [['PVAD customer text']];
+  const sheet = importSpreadsheet({ sheet: 'PVAD sheet', rows });
   assert.equal(sheet.normalizedModel, 'PVAD.Core.Contracts.SpreadsheetDto');
-  assert.equal(sheet.sheets[0].name, 'PXA sheet');
+  assert.equal(sheet.sheets[0].name, 'PVAD sheet');
   assert.equal(sheet.sheets[0].rows, rows);
-  const annotations = [{ text: 'PXA document note' }];
-  const viewer = createViewerSession({ document: 'PXA.pdf', formFields: [], annotations });
+  const annotations = [{ text: 'PVAD document note' }];
+  const viewer = createViewerSession({ document: 'PVAD.pdf', formFields: [], annotations });
   assert.equal(viewer.viewerState, 'PVADE PDF Viewer session');
   assert.equal(viewer.annotations, annotations);
-  assert.equal(viewer.document, 'PXA.pdf');
+  assert.equal(viewer.document, 'PVAD.pdf');
 });

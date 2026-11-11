@@ -10,7 +10,7 @@ namespace PVAD.Infrastructure.Persistence.Tests;
 public sealed class PvadDbContextModelTests
 {
     [Theory]
-    [InlineData("pxa-retained")]
+    [InlineData("pvad-retained")]
     [InlineData("pvad-new")]
     [InlineData("customer-owned")]
     public void Persistence_registration_preserves_explicit_database_and_login_names(string database)

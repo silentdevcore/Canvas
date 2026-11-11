@@ -279,7 +279,7 @@ function buildProjectedFixture(
  */
 function sidecarFor(invoice: EInvoiceDocument): Record<string, unknown> {
   return {
-    schema: 'pxa.e-invoice.parity-invoice/1',
+    schema: 'pvad.e-invoice.parity-invoice/1',
     standard: 'FacturX',
     profile: 'EN 16931',
     invoice,

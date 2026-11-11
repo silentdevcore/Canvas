@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import JsonEditorPane from './JsonEditorPane';
 import CodePreviewPane, { type ParsedDesign, type ValidationResult } from './CodePreviewPane';
-import { readMigratedStorage } from '@/utils/storageMigration';
 import { ExportService } from '@/services/ExportService';
 import {
   applyCodeDraft,
@@ -180,7 +179,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
   }, [language, targetLanguage]);
 
   useEffect(() => {
-    try { setLegacyDraft(readMigratedStorage(localStorage, LEGACY_STORAGE_KEY, 'pxa-code-editor-draft-v2')); } catch { /* storage unavailable */ }
+    try { setLegacyDraft(localStorage.getItem(LEGACY_STORAGE_KEY)); } catch { /* storage unavailable */ }
     if (!templateId) { setBusy(null); return; }
     const controller = new AbortController();
     setBusy('loading');
@@ -223,7 +222,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     if (language === 'json') {
       const parsed = parseAndValidate(value, t);
       setPreviewDesign(parsed.parsed);
-      setDiagnostics(parsed.validation.errors.map(message => ({ code: 'PXACODE-LOCAL', severity: 'error', message })));
+      setDiagnostics(parsed.validation.errors.map(message => ({ code: 'PVADCODE-LOCAL', severity: 'error', message })));
     } else {
       setPreviewProvenance(current => current?.language === language ? null : current);
       if (language === 'csharpPdf') { replacePdfUrl(null); setPdfSource(null); }
@@ -347,7 +346,7 @@ export default function LiveCodeEditor({ onBack, templateId, templateRevision = 
     setDrafts(current => ({ ...current, json: legacyDraft }));
     setStatuses(current => ({ ...current, json: 'Modified' }));
     setLanguage('json'); setLegacyDraft(null); setEditorKey(value => value + 1);
-    for (const key of [LEGACY_STORAGE_KEY, 'pxa-code-editor-draft-v2']) {
+    for (const key of [LEGACY_STORAGE_KEY]) {
       try {
         if (localStorage.getItem(key) === legacyDraft) localStorage.removeItem(key);
       } catch { /* Preserve different or concurrently updated recovery drafts. */ }

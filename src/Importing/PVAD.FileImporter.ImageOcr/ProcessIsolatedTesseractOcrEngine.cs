@@ -6,7 +6,6 @@ namespace PVAD.FileImporter.ImageOcr;
 public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
 {
     public const string ActivitySourceName = "PVAD.ImageOcr";
-    public const string LegacyActivitySourceName = "PXA.ImageOcr";
     private static readonly ActivitySource Activities = new(ActivitySourceName);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {

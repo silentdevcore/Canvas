@@ -55,11 +55,7 @@ _ = PVAD.Infrastructure.Persistence.Configuration.PvadEnvironment.Read("PVAD_BUI
 builder.AddPvadObservability();
 
 // Add services to the container.
-builder.Services.AddControllers(options => options.Filters.Add<PvadProblemDetailsResultFilter>())
-    .AddJsonOptions(options =>
-        PvadDiagnosticJsonContract.Configure(options.JsonSerializerOptions));
-builder.Services.ConfigureHttpJsonOptions(options =>
-    PvadDiagnosticJsonContract.Configure(options.SerializerOptions));
+builder.Services.AddControllers(options => options.Filters.Add<PvadProblemDetailsResultFilter>());
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
@@ -118,7 +114,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.Cookie.Name = PvadCookieNames.Session(requireSecureCookies);
         options.Cookie.Path = "/";
-        options.CookieManager = new PvadMigratingCookieManager(PvadCookieNames.LegacySession(requireSecureCookies));
+        options.CookieManager = new PvadStrictCookieManager();
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.SecurePolicy = requireSecureCookies
@@ -132,7 +128,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.Cookie.Name = PvadCookieNames.Designer(requireSecureCookies);
         options.Cookie.Path = "/";
-        options.CookieManager = new PvadMigratingCookieManager(PvadCookieNames.LegacyDesigner(requireSecureCookies));
+        options.CookieManager = new PvadStrictCookieManager();
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.SecurePolicy = requireSecureCookies
@@ -141,9 +137,9 @@ builder.Services.AddAuthentication(options =>
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
         options.EventsType = typeof(PvadCookieAuthenticationEvents);
-    })
-    .AddPvadAuthenticationCompatibility();
+    });
 builder.Services.AddScoped<PvadCookieAuthenticationEvents>();
+builder.Services.AddScoped<PvadProtectedDataReprotection>();
 builder.Services.AddScoped<IClaimsTransformation, PvadPermissionClaimsTransformation>();
 builder.Services.AddScoped<PVAD.Importer.Trust.IPdfTrustInspector, PVAD.Importer.Trust.PdfTrustInspector>();
 builder.Services.AddScoped<PVAD.Importer.Redaction.IPdfRedactionPreflight, PVAD.Importer.Redaction.PdfRedactionPreflight>();
@@ -438,11 +434,7 @@ builder.Services.AddSingleton<IPvadLicenseSigningService>(
 builder.Services.AddSingleton<IPvadLicenseSignatureVerifier>(
     services => services.GetRequiredService<PvadLicenseSigningService>());
 builder.Services.AddSingleton<PvadOfflineLicenseValidator>();
-var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"]
-    ?? Path.Combine("App_Data", "data-protection-keys");
-var dataProtectionKeysPath = Path.IsPathRooted(dataProtectionKeysDirectory)
-    ? dataProtectionKeysDirectory
-    : Path.Combine(builder.Environment.ContentRootPath, dataProtectionKeysDirectory);
+var dataProtectionKeysPath = PvadDataProtection.KeysPath(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(dataProtectionKeysPath);
 builder.Services.AddDataProtection()
     .SetApplicationName(PvadDataProtection.ApplicationName)
@@ -677,13 +669,24 @@ builder.Services.AddScoped<PVAD.Application.UseCases.CloneTemplateUseCase>();
 builder.Services.AddScoped<PVAD.Application.UseCases.ExtractPagesUseCase>();
 
 var app = builder.Build();
-PvadConfigurationAliases.Apply(builder.Configuration);
 
 // Resolve the optional audit signer during startup. An absent configuration is valid, but
 // an explicitly configured key must load successfully instead of downgrading redaction
 // audit records to unsigned output on the first request.
 _ = app.Services.GetRequiredService<PVAD.WebApi.Services.Pdf.IPvadRedactionAuditKeyProvider>();
 
+if (args.Contains("--reprotect-protected-data", StringComparer.Ordinal))
+{
+    // Offline maintenance: run with API traffic and mail delivery stopped, then exit.
+    await using var maintenance = app.Services.CreateAsyncScope();
+    var report = await maintenance.ServiceProvider.GetRequiredService<PvadProtectedDataReprotection>()
+        .RunAsync(dryRun: args.Contains("--dry-run", StringComparer.Ordinal));
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(report));
+    Environment.ExitCode = report.MailUnreadable + report.CacheUnreadable == 0 ? 0 : 2;
+    return;
+}
+if (!app.Environment.IsEnvironment("Testing"))
+    await PvadProtectedDataReprotection.EnsureActivationSafeAsync(app.Services);
 await PvadOAuthBootstrapper.InitializeAsync(app);
 await PvadDevelopmentIdentityBootstrapper.InitializeAsync(app);
 
@@ -695,12 +698,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
-app.UseMiddleware<PvadLegacyApiMiddleware>();
 app.UseRouting();
 app.UseCors();
 app.UseMiddleware<PvadOperationMetricsMiddleware>();
 app.UseMiddleware<PvadSecurityHeaderMiddleware>();
-app.UseMiddleware<PvadAntiforgeryCookieMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<PvadDesignerAccessMiddleware>();
 app.UseMiddleware<PvadDesignerFeatureGateMiddleware>();

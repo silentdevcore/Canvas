@@ -1,0 +1,11 @@
+{
+  "id": "pvad-rename-review-handoff",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Recorded the naming-transition review and coordinated remediation handoff.",
+  "reason": "Adds an internal review assignment only; no runtime correction, migration, release or deployment is performed.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

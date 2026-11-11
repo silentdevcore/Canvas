@@ -1,7 +1,7 @@
 # Integrated Monitoring And Operator Rehearsal
 
 This local test closes the gap between the separate authentication, Grafana
-cutover and telemetry rule checks. It is not a production rollout command.
+backup and telemetry rule checks. It is not a production rollout command.
 
 ## Run
 
@@ -76,32 +76,33 @@ payload digest. Restarting the Collector must restore the scrape target and
 deliver a signed resolved notification. Collector ingestion uses a fixed,
 validated loopback binding, which is checked again after restart; an automatically
 reassigned host port must not strand the API's OTLP exporter. Fresh API requests
-must reach the live metric datasource after cutover and after restore.
+must reach the live metric datasource after restart and after restore.
 
 No email, external webhook or customer notification is sent. The receiver exports
 only bounded synthetic delivery metadata; passwords, signing secrets, certificate
 private keys, cookies and raw message payloads are not report artifacts.
 
-## Protected Grafana Cutover And Restore
+## Protected Grafana Backup And Restore
 
-The same browser session inspects Grafana before rename, after rename and after
-restore through Nginx and real API authorization. Anonymous access remains denied.
-Each phase captures desktop and mobile folder screenshots with the five dashboards.
+The lab provisions the current PVAD provider; the former provider and its
+folder-rename cutover were removed on 2026-11-11. The same browser session inspects
+Grafana before the backup, after a restart and after restore, through Nginx and
+real API authorization. Anonymous access remains denied. Each phase captures
+desktop and mobile folder screenshots with the five dashboards.
 
 The runner stops its Grafana cleanly before copying the SQLite state. It creates a
 SHA-256-bound archive in a separately owned temporary volume and confirms that a
-corrupt copy fails checksum validation before extraction. The candidate changes
-only the provider/folder display labels and explicitly pins the original folder
-UID. Dashboard JSON, datasource UIDs and folder permission entries must remain
-equal, apart from normal Grafana serialization revisions. A live metric query
-must continue to work after rename.
+corrupt copy fails checksum validation before extraction. After a restart with the
+unchanged provider, dashboard JSON, datasource UIDs, folder identity and folder
+permission entries must remain equal, apart from normal Grafana serialization
+revisions. A live metric query must continue to work.
 
 A synthetic annotation written after the backup distinguishes true point-in-time
-recovery from merely reverting labels. Restore occurs only while Grafana is
-stopped and only into its owned disposable volume. Restored folder placement,
-content and permissions must equal the baseline; the post-backup annotation must
-be absent. Operator identity, browser access and the datasource query must work
-again. Post-backup writes are deliberately not replayed.
+recovery from a plain restart. Restore occurs only while Grafana is stopped and
+only into its owned disposable volume. Restored folder placement, content and
+permissions must equal the baseline; the post-backup annotation must be absent.
+Operator identity, browser access and the datasource query must work again.
+Post-backup writes are deliberately not replayed.
 
 ## Outputs And Cleanup
 
@@ -173,6 +174,8 @@ screenshots were archived without byte changes in ignored
 `artifacts/rename/monitoring-history/`, in the directory named by report SHA-256
 `ec0c66691d206cdc00a0dbd89dd346843b29e48c005f032ef2177f77ba08b559`.
 An archive receipt lists and verifies all 13 original file hashes.
+
+Historical results (before the 2026-11-11 removal of the folder-rename cutover):
 
 The full real integration test passed again on tracked-clean commit
 `09d68f22e1d6d02b006b3329305d7637fca0cf1b`. Its report SHA-256 is

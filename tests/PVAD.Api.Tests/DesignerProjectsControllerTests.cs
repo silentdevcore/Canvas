@@ -27,19 +27,17 @@ public sealed class DesignerProjectsControllerTests
             new TestTenantContext(userId, organizationId), auditWriter);
     }
 
-    [Theory]
-    [InlineData("minimal.pxap", true)]
-    [InlineData("minimal.pvadp", false)]
-    public async Task Legacy_import_requires_review_and_save_downloads_a_new_canonical_copy(string fileName, bool legacy)
+    [Fact]
+    public async Task Reference_project_opens_without_review_and_saves_a_canonical_copy()
     {
+        const string fileName = "minimal.pvadp";
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "PVAD.sln"))) root = root.Parent;
         Assert.NotNull(root);
         var path = Path.Combine(root.FullName, "docs", "fixtures", "native-projects", fileName);
         var original = await File.ReadAllBytesAsync(path);
         var opened = await OpenPdf(original, fileName);
-        Assert.Equal(legacy, opened.Compatibility.RequiresReview);
-        Assert.Equal(legacy, opened.Compatibility.Diagnostics.Any(item => item.Code == "PVADPROJECT_LEGACY_FORMAT"));
+        Assert.False(opened.Compatibility.RequiresReview);
         var exported = Assert.IsType<FileContentResult>(await controller.ExportPdf(opened.Document));
         Assert.EndsWith(".pvadp", exported.FileDownloadName, StringComparison.Ordinal);
         using var stream = new MemoryStream(exported.FileContents);
@@ -69,10 +67,8 @@ public sealed class DesignerProjectsControllerTests
 
     [Theory]
     [InlineData(".pvadp", PvadProjectKind.Pdf)]
-    [InlineData(".pxap", PvadProjectKind.Pdf)]
     [InlineData(".pvads", PvadProjectKind.Spreadsheet)]
-    [InlineData(".pxas", PvadProjectKind.Spreadsheet)]
-    public async Task Canonical_packages_remain_readable_with_current_and_legacy_extensions(
+    public async Task Canonical_packages_are_readable_with_their_extensions(
         string extension, PvadProjectKind kind)
     {
         if (kind == PvadProjectKind.Pdf)
@@ -182,16 +178,14 @@ public sealed class DesignerProjectsControllerTests
         Assert.True(opened.Compatibility.RequiresReview);
         Assert.Empty(opened.Compatibility.MissingFeatures);
         Assert.Contains(opened.Compatibility.Diagnostics,
-            diagnostic => diagnostic.Code == "PXAPROJECT_EXTERNAL_LINK");
-        Assert.Contains(opened.Compatibility.Diagnostics,
-            diagnostic => diagnostic.CanonicalCode == "PVADPROJECT_EXTERNAL_LINK");
+            diagnostic => diagnostic.Code == "PVADPROJECT_EXTERNAL_LINK");
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         using var manifest = JsonDocument.Parse(JsonSerializer.Serialize(opened.Manifest, options));
         Assert.All(manifest.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
             Assert.False(diagnostic.TryGetProperty("canonicalCode", out _)));
         using var compatibility = JsonDocument.Parse(JsonSerializer.Serialize(opened.Compatibility, options));
-        Assert.Contains(compatibility.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
-            diagnostic.GetProperty("canonicalCode").GetString() == "PVADPROJECT_EXTERNAL_LINK");
+        Assert.All(compatibility.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
+            Assert.False(diagnostic.TryGetProperty("canonicalCode", out _)));
     }
 
     [Fact]
@@ -328,10 +322,8 @@ public sealed class DesignerProjectsControllerTests
         var spreadsheetProblem = Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(await controller.ExportSpreadsheet(spreadsheet)).Value);
 
-        Assert.Equal("PXAPROJECT010", pdfProblem.Extensions["code"]);
-        Assert.Equal("PVADPROJECT010", pdfProblem.Extensions["canonicalCode"]);
-        Assert.Equal("PXAPROJECT010", spreadsheetProblem.Extensions["code"]);
-        Assert.Equal("PVADPROJECT010", spreadsheetProblem.Extensions["canonicalCode"]);
+        Assert.Equal("PVADPROJECT010", pdfProblem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT010", spreadsheetProblem.Extensions["code"]);
     }
 
     [Fact]
@@ -350,7 +342,7 @@ public sealed class DesignerProjectsControllerTests
 
         Assert.Equal(415, Assert.IsType<ObjectResult>(wrongExtension.Result).StatusCode);
         var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(confused.Result).Value);
-        Assert.Equal("PXAPROJECT002", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT002", problem.Extensions["code"]);
     }
 
     [Fact]
@@ -396,7 +388,7 @@ public sealed class DesignerProjectsControllerTests
         var problem = Assert.IsType<ProblemDetails>(result.Value);
 
         Assert.Equal(400, result.StatusCode);
-        Assert.Equal("PXAPROJECT014", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT014", problem.Extensions["code"]);
     }
 
     [Fact]
@@ -471,11 +463,11 @@ public sealed class DesignerProjectsControllerTests
         var audit = Assert.Single(auditWriter.Entries);
 
         Assert.Equal(400, result.StatusCode);
-        Assert.Equal("PXAPROJECT001", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT001", problem.Extensions["code"]);
         Assert.Equal(organizationId, audit.OrganizationId);
         Assert.Equal(userId, audit.UserId);
         Assert.Equal("failed", audit.Record.Outcome);
-        Assert.Equal("PXAPROJECT001", audit.Record.DiagnosticCode);
+        Assert.Equal("PVADPROJECT001", audit.Record.DiagnosticCode);
         Assert.DoesNotContain("truncated", JsonSerializer.Serialize(audit), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -512,10 +504,10 @@ public sealed class DesignerProjectsControllerTests
         });
         Assert.Equal(new[]
         {
-            "designer.projects.pxap.export", "designer.projects.pxap.inspect",
-            "designer.projects.pxap.open", "designer.projects.pxap.validate",
-            "designer.projects.pxas.export", "designer.projects.pxas.inspect",
-            "designer.projects.pxas.open", "designer.projects.pxas.validate",
+            "designer.projects.pvadp.export", "designer.projects.pvadp.inspect",
+            "designer.projects.pvadp.open", "designer.projects.pvadp.validate",
+            "designer.projects.pvads.export", "designer.projects.pvads.inspect",
+            "designer.projects.pvads.open", "designer.projects.pvads.validate",
         }, auditWriter.Entries.Select(entry => entry.Record.Action).Order().ToArray());
         var serializedAudit = JsonSerializer.Serialize(auditWriter.Entries);
         Assert.DoesNotContain(secret, serializedAudit);
@@ -539,8 +531,6 @@ public sealed class DesignerProjectsControllerTests
     }
 
     [Theory]
-    [InlineData("pxap", "pvadp")]
-    [InlineData("pxas", "pvads")]
     [InlineData("pvadp", "pvadp")]
     [InlineData("pvads", "pvads")]
     public async Task Project_audit_writer_persists_only_bounded_operational_metadata(string formatId, string canonicalFormatId)
@@ -553,8 +543,8 @@ public sealed class DesignerProjectsControllerTests
         var oldAudit = new PVAD.Domain.Entities.AuditEvent
         {
             OrganizationId = organizationId, ActorUserId = userId,
-            Action = "designer.projects.pxap.open", TargetType = "designer_project", TargetId = "historical-project",
-            Outcome = "succeeded", DetailsJson = "{\"formatId\":\"pxap\"}"
+            Action = "designer.projects.pvadp.open", TargetType = "designer_project", TargetId = "historical-project",
+            Outcome = "succeeded", DetailsJson = "{\"formatId\":\"pvadp\"}"
         };
         dbContext.AuditEvents.Add(oldAudit);
         await dbContext.SaveChangesAsync();
@@ -572,12 +562,13 @@ public sealed class DesignerProjectsControllerTests
         Assert.Equal("succeeded", audit.Outcome);
         using var details = JsonDocument.Parse(audit.DetailsJson!);
         Assert.Equal(formatId, details.RootElement.GetProperty("formatId").GetString());
-        Assert.Equal(canonicalFormatId, details.RootElement.GetProperty("canonicalFormatId").GetString());
+        Assert.Equal(canonicalFormatId, details.RootElement.GetProperty("formatId").GetString());
+        Assert.False(details.RootElement.TryGetProperty("canonicalFormatId", out _));
         Assert.Contains("\"packageBytes\":1234", audit.DetailsJson!);
         Assert.DoesNotContain("fileName", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("content", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
         await dbContext.Entry(oldAudit).ReloadAsync();
-        Assert.Equal("{\"formatId\":\"pxap\"}", oldAudit.DetailsJson);
+        Assert.Equal("{\"formatId\":\"pvadp\"}", oldAudit.DetailsJson);
     }
 
     private async Task<PvadProjectOpenResponse<DesignExportDto>> OpenPdf(byte[] bytes, string fileName) =>

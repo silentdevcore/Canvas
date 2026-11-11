@@ -45,7 +45,7 @@ export class DesignValidator {
       return {
         valid: false,
         diagnostics: [{
-          code: 'PXAMCP002',
+          code: 'PVADMCP002',
           severity: 'error',
           message: `Design JSON exceeds the ${MAX_DESIGN_BYTES} byte limit.`,
         }],
@@ -59,7 +59,7 @@ export class DesignValidator {
       return {
         valid: false,
         diagnostics: [{
-          code: 'PXAMCP001',
+          code: 'PVADMCP001',
           severity: 'error',
           message: `Invalid JSON: ${(error as Error).message}`,
         }],
@@ -80,7 +80,7 @@ function toDiagnostic(error: ErrorObject): PvadMcpDiagnostic {
     ? `/${String(error.params.missingProperty)}`
     : '';
   return {
-    code: 'PXAMCP003',
+    code: 'PVADMCP003',
     severity: 'error',
     message: error.message ?? 'The design does not satisfy the canonical schema.',
     path: `${error.instancePath}${property}` || '/',

@@ -521,7 +521,7 @@ upload, Designer/CSRF headers and visible imported content. Fixed the missing
 progress-upload headers and the StrictMode cancellation of Spreadsheet launches.
 The earlier release dry-run proposed 2.0.0 from 99 pending fragments; VERSION and the published
 manifest were verified unchanged. This is not a release or deployment approval.
-The repeatable [local validation bundle](../deploy/rename/LOCAL-VALIDATION.md)
+The repeatable local validation bundle (`deploy/rename/LOCAL-VALIDATION.md`, removed 2026-11-09)
 also covers relocated synthetic keyring restore, real PostgreSQL dump/restore,
 Nginx-hosted production assets and Chromium installability diagnostics. Public
 Designer CSP remains an internal predeployment gap, not a third-party dependency.

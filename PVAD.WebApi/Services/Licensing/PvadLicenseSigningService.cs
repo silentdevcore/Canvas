@@ -9,7 +9,7 @@ namespace PVAD.WebApi.Services.Licensing;
 
 public sealed class PvadLicensingOptions
 {
-    public string KeyId { get; set; } = "pxa-development-1";
+    public string KeyId { get; set; } = "pvad-development-1";
     public string PrivateKeyPath { get; set; } = "App_Data/licensing/private-key.pem";
     public string PublicKeyPath { get; set; } = "App_Data/licensing/public-key.pem";
     public int MetricsIntervalSeconds { get; set; } = 60;

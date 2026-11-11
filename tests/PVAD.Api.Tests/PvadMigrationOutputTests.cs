@@ -42,8 +42,7 @@ public sealed class PvadMigrationOutputTests
             foreach (var artifact in provider.Artifacts)
             {
                 if (artifact.Id == "design") continue;
-                Assert.StartsWith(legacy ? "pxa-" : "pvad-", artifact.Id);
-                Assert.StartsWith("pvad-", artifact.CanonicalId);
+                Assert.StartsWith(legacy ? "pvad-" : "pvad-", artifact.Id);
             }
         }
         Registry_writes_only_canonical_artifact_identities_for_every_provider();
@@ -93,11 +92,9 @@ public sealed class PvadMigrationOutputTests
         Assert.Equal(descriptor.Id, artifact.Id);
         Assert.Equal(descriptor.MediaType, artifact.MediaType);
         Assert.Equal(descriptor.FileExtension, artifact.FileExtension);
-        Assert.Equal("pvad-viewer-package", artifact.CanonicalId);
         var package = Assert.IsType<JsonObject>(artifact.Content);
-        Assert.Equal(legacy ? MigrationArtifactIdentities.LegacyViewerPackageKind : MigrationArtifactIdentities.ViewerPackageKind,
-            package["kind"]!.GetValue<string>());
-        Assert.Equal(MigrationArtifactIdentities.ViewerPackageKind, package["canonicalKind"]!.GetValue<string>());
+        Assert.Equal(MigrationArtifactIdentities.ViewerPackageKind, package["kind"]!.GetValue<string>());
+        Assert.False(package.ContainsKey("canonicalKind"));
         Assert.Equal(1, package["schemaVersion"]!.GetValue<int>());
 
         var current = Value<UnifiedMigrationResponse>(Controller(false).Convert("pdf", "viewer", "nutrient-viewer", request));
@@ -121,27 +118,14 @@ public sealed class PvadMigrationOutputTests
     }
 
     [Fact]
-    public async Task Rewritten_legacy_request_keeps_legacy_output_even_under_canonical_path()
-    {
-        var controller = Controller(true);
-        await new PvadLegacyApiMiddleware(context =>
-        {
-            Assert.StartsWith("/api/pvad/v1", context.Request.Path.Value);
-            var provider = Value<MigrationProviderResponse>(controller.GetProvider("pdf", "viewer", "nutrient-viewer"));
-            Assert.Equal("pxa-viewer-package", Assert.Single(provider.Artifacts).Id);
-            return Task.CompletedTask;
-        }).InvokeAsync(controller.HttpContext);
-        Assert.StartsWith("/api/pxa/v1", controller.Request.Path.Value);
-    }
-
-    [Fact]
     public void Json_response_serializes_current_primary_and_canonical_fields_consistently()
     {
         var response = Value<MigrationProviderResponse>(Controller(false).GetProvider("pdf", "viewer", "nutrient-viewer"));
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(response, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         var artifact = json.RootElement.GetProperty("artifacts")[0];
-        foreach (var (primary, canonical) in new[] { ("id", "canonicalId"), ("mediaType", "canonicalMediaType"), ("fileExtension", "canonicalFileExtension") })
-            Assert.Equal(artifact.GetProperty(primary).GetString(), artifact.GetProperty(canonical).GetString());
+        Assert.Equal("pvad-viewer-package", artifact.GetProperty("id").GetString());
+        foreach (var removed in new[] { "canonicalId", "canonicalMediaType", "canonicalFileExtension" })
+            Assert.False(artifact.TryGetProperty(removed, out _));
     }
 
     private static T Value<T>(IActionResult result) => Assert.IsType<T>(Assert.IsType<OkObjectResult>(result).Value);
@@ -152,7 +136,7 @@ public sealed class PvadMigrationOutputTests
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        controller.Request.Path = legacy ? "/api/pxa/v1/migrations/catalog" : "/api/pvad/v1/migrations/catalog";
+        controller.Request.Path = legacy ? "/api/pvad/v1/migrations/catalog" : "/api/pvad/v1/migrations/catalog";
         return controller;
     }
 }

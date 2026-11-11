@@ -15,18 +15,13 @@ const scripts = [
 ];
 for (const [filename, key] of scripts) {
   const path = new URL(`../../deploy/observability/${filename}`, import.meta.url);
-  test(`${filename} parses and rejects conflicting aliases before operational commands`, () => {
+  test(`${filename} parses and validates its canonical keys`, () => {
     const syntax = spawnSync('bash', ['-n', path.pathname], { encoding: 'utf8' });
     assert.equal(syntax.status, 0, syntax.stderr);
     const source = readFileSync(path, 'utf8');
     assert.match(source, /tools\/configuration\/environment\.sh/);
     assert.match(source, new RegExp(`pvad_environment_keys[^\n]*PVAD_${key}`));
-    const result = spawnSync('bash', [path.pathname], { encoding: 'utf8', timeout: 3000,
-      env: { PATH: process.env.PATH, [`PVAD_${key}`]: 'canonical-conflict-value', [`PXA_${key}`]: 'legacy-conflict-value' } });
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /Conflicting configuration keys/);
-    assert.doesNotMatch(result.stderr, /canonical-conflict-value|legacy-conflict-value/);
-    assert.equal(result.stdout, '');
+    assert.doesNotMatch(source, /PXA_/);
   });
 }
 
@@ -89,13 +84,13 @@ if (path.basename(process.argv[1]) === 'docker') {
     assert.match(current.stdout, /PVAD Alertmanager email smoke test passed/);
     const alert = JSON.parse(readFileSync(state))[0];
     assert.equal(alert.annotations.runbook_id, 'PVAD-OBS-TEST');
-    assert.equal(alert.annotations.dashboard_path, '/d/pxa-platform-overview/pxa-platform-overview');
+    assert.equal(alert.annotations.dashboard_path, '/d/pvad-platform-overview/pvad-platform-overview');
     writeFileSync(script, source.replaceAll('PVAD-OBS-TEST', 'PXA-OBS-TEST'));
     const regressed = spawnSync('bash', [script], { env, encoding: 'utf8', timeout: 10000 });
     assert.equal(regressed.status, 1, regressed.stderr);
     assert.match(regressed.stderr, /AssertionError/);
-    assert.match(regressed.stderr, /PXA-OBS-TEST/);
     assert.match(regressed.stderr, /PVAD-OBS-TEST/);
+    assert.match(regressed.stderr, /PXA-OBS-TEST/);
     assert.doesNotMatch(regressed.stdout, /smoke test passed/);
   } finally {
     rmSync(directory, { recursive: true, force: true });

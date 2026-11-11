@@ -72,7 +72,7 @@ public sealed class EInvoiceConformanceValidatorTests
         Assert.Equal("valid", report.ConformanceStatus);
         Assert.Equal("factur-x-1.09.2-en16931-test", report.ValidatorArtifactSetId);
         Assert.Matches("^[0-9a-f]{64}$", report.ValidatorArtifactSetSha256);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV019");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV019");
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public sealed class EInvoiceConformanceValidatorTests
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("invalid", report.ConformanceStatus);
         Assert.Contains(report.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAEINV024" && diagnostic.Message.Contains("Business rule failed."));
+            diagnostic.Code == "PVADEINV024" && diagnostic.Message.Contains("Business rule failed."));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV022");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV022");
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV026");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV026");
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV021");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV021");
     }
 
     private static PvadEInvoiceOptions Options() => new()

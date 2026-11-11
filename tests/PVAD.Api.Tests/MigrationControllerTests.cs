@@ -96,15 +96,13 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var artifact = Assert.Single(body.GetProperty("artifacts").EnumerateArray());
         Assert.Equal("pvad-viewer-package", artifact.GetProperty("id").GetString());
-        Assert.Equal("pvad-viewer-package", artifact.GetProperty("canonicalId").GetString());
-        Assert.Equal("application/vnd.pvad.viewer+json", artifact.GetProperty("canonicalMediaType").GetString());
-        Assert.Equal(".pvadviewer.json", artifact.GetProperty("canonicalFileExtension").GetString());
+        Assert.False(artifact.TryGetProperty("canonicalId", out _));
         Assert.Equal("application/vnd.pvad.viewer+json", artifact.GetProperty("mediaType").GetString());
         Assert.Equal(".pvadviewer.json", artifact.GetProperty("fileExtension").GetString());
         var package = artifact.GetProperty("content");
         Assert.Equal(1, package.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("pvad.pdf-viewer-package", package.GetProperty("kind").GetString());
-        Assert.Equal("pvad.pdf-viewer-package", package.GetProperty("canonicalKind").GetString());
+        Assert.False(package.TryGetProperty("canonicalKind", out _));
         Assert.Equal("nutrient", package.GetProperty("provider").GetString());
         Assert.Equal(595, package.GetProperty("pageGeometry")[0].GetProperty("width").GetDouble());
         Assert.Equal(JsonValueKind.Object, package.GetProperty("annotationSidecar").ValueKind);
@@ -114,9 +112,9 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
     [Fact]
     public async Task NutrientDesignerConvert_CombinesPdfAndInstantJsonIntoOneEditableDesign()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var sourcePdf = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         sourcePdf.AddPage().DrawText("Original PDF", 40, 780, 12);
         var pdfBytes = sourcePdf.ToBytes();
         var instantJson = """
@@ -209,8 +207,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status413PayloadTooLarge, problem.StatusCode);
-        Assert.Equal("PXAMIG010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
-        Assert.Equal("PVADMIG010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["canonicalCode"]);
+        Assert.Equal("PVADMIG010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -296,8 +293,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
-        Assert.Equal("PXAMIG011", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
-        Assert.Equal("PVADMIG011", Assert.IsType<ProblemDetails>(problem.Value).Extensions["canonicalCode"]);
+        Assert.Equal("PVADMIG011", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -431,7 +427,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("using PVAD.Pdf;", body.GetProperty("pvadCode").GetString());
-        Assert.Equal(body.GetProperty("pxaCode").GetString(), body.GetProperty("pvadCode").GetString());
+        Assert.Equal(body.GetProperty("pvadCode").GetString(), body.GetProperty("pvadCode").GetString());
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
             body.GetProperty("diagnostics").EnumerateArray(),
@@ -461,7 +457,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("using PVAD.Pdf;", body.GetProperty("pvadCode").GetString());
         Assert.Contains("var document = new PdfDocument();", body.GetProperty("pvadCode").GetString());
-        Assert.Equal(body.GetProperty("pvadCode").GetString(), body.GetProperty("pxaCode").GetString());
+        Assert.Equal(body.GetProperty("pvadCode").GetString(), body.GetProperty("pvadCode").GetString());
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
             body.GetProperty("diagnostics").EnumerateArray(),
@@ -492,7 +488,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("new PvadWorkbook()", generatedCode);
-        Assert.Equal(generatedCode, body.GetProperty("pxaCode").GetString());
+        Assert.Equal(generatedCode, body.GetProperty("pvadCode").GetString());
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", generatedCode);
         Assert.Contains("ws.Cell(0, 1).Value(10)", generatedCode);
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);

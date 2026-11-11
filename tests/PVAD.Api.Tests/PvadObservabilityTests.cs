@@ -490,10 +490,8 @@ public sealed class PvadObservabilityTests
             value => value?.Contains("must-not-appear", StringComparison.Ordinal) == true);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Json_console_log_contains_resource_and_trace_fields_without_secret_values(bool legacy)
+    [Fact]
+    public void Json_console_log_contains_resource_and_trace_fields_without_secret_values()
     {
         var settings = Options.Create(new PvadObservabilityOptions
             {
@@ -501,10 +499,8 @@ public sealed class PvadObservabilityTests
                 ServiceNamespace = "PVAD.Testing",
             });
         var environment = new TestHostEnvironment { EnvironmentName = Environments.Production };
-        PvadJsonConsoleFormatter formatter = legacy
-            ? new LegacyPvadJsonConsoleFormatter(settings, environment)
-            : new PvadJsonConsoleFormatter(settings, environment);
-        Assert.Equal(legacy ? "pxa-json" : "pvad-json", formatter.Name);
+        PvadJsonConsoleFormatter formatter = new PvadJsonConsoleFormatter(settings, environment);
+        Assert.Equal("pvad-json", formatter.Name);
         var attributes = new List<KeyValuePair<string, object?>>
         {
             new("{OriginalFormat}", "Operation completed with {Outcome}"),
@@ -853,7 +849,6 @@ public sealed class PvadObservabilityTests
     public void PostgreSql_metrics_use_a_safe_data_source_name()
     {
         Assert.Equal("pvad-database", PersistenceServiceCollectionExtensions.DataSourceName);
-        Assert.Equal("pxa-database", PersistenceServiceCollectionExtensions.LegacyDataSourceName);
         Assert.DoesNotContain(
             "Password",
             PersistenceServiceCollectionExtensions.DataSourceName,

@@ -3,18 +3,17 @@ import test from 'node:test';
 
 import { readRemoteMcpConfig } from './config.js';
 
-test('canonical PVAD environment matches legacy configuration and rejects conflicting aliases', () => {
+test('former environment keys are not read', () => {
   const canonical = {
     PVAD_MCP_RESOURCE_URI: 'https://mcp.example.test/mcp',
     PVAD_MCP_OAUTH_ISSUER: 'https://account.example.test',
     PVAD_MCP_JWKS_URI: 'https://account.example.test/.well-known/jwks.json',
     PVAD_API_KEY: 'synthetic-key',
   };
-  const legacy = Object.fromEntries(Object.entries(canonical).map(([key, value]) =>
+  const former = Object.fromEntries(Object.entries(canonical).map(([key, value]) =>
     [key.replace('PVAD_', 'PXA_'), value]));
-  assert.deepEqual(readRemoteMcpConfig(canonical), readRemoteMcpConfig(legacy));
-  assert.throws(() => readRemoteMcpConfig({ ...canonical, PXA_API_KEY: 'different-key' }),
-    /Conflicting configuration keys: PVAD_API_KEY and PXA_API_KEY/);
+  assert.doesNotThrow(() => readRemoteMcpConfig(canonical));
+  assert.throws(() => readRemoteMcpConfig(former));
 });
 
 test('remote configuration requires canonical OAuth and MCP URLs', () => {

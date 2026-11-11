@@ -1,5 +1,11 @@
 # PVAD Remaining Code Source Acceptance
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 ## Repository Closeout Review (2026-11-08)
 
 Repository-only source acceptance passes for the audited working tree under the
@@ -309,7 +315,7 @@ Earlier execution counts and approvals remain point-in-time evidence.
 | Browser and response aliases | Canonical new request/storage writers; explicit old readers and documented paired responses. One telemetry bridge serves both names without a second collector. | Shared storage/telemetry tests, Designer headers/configuration/tenant-state tests and API compatibility tests. |
 
 The direct guards in
-[current-writer-acceptance.test.mjs](../tools/configuration/current-writer-acceptance.test.mjs)
+current-writer-acceptance.test.mjs (`tools/configuration/current-writer-acceptance.test.mjs`, removed 2026-11-09)
 do not read the residual exception ledger. Reverting any of their eight writer
 boundaries must fail even if somebody refreshes a file hash. These source checks
 supplement the runtime tests; they do not replace execution or deployed checks.

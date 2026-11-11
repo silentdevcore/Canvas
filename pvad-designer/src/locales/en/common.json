@@ -70,11 +70,11 @@
     "changeCategories": { "added": "Added", "improved": "Improved", "fixed": "Fixed", "security": "Security", "deprecated": "Deprecated", "breaking": "Breaking" },
     "notificationCategories": { "System": "System", "Security": "Security", "Subscription": "Subscription", "ActionRequired": "Action required", "Legal": "Legal" },
     "decisions": {
-      "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "Your organization does not allow this Alpha feature.",
-      "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Enable this Alpha feature before use.",
-      "PXA_DESIGNER_FEATURE_DISABLED": "This feature is currently disabled.",
-      "PXA_DESIGNER_FEATURE_ENABLED": "The feature is available.",
-      "PXA_DESIGNER_FEATURE_UNKNOWN": "This feature is not available in this Designer version."
+      "PVAD_DESIGNER_ALPHA_NOT_ALLOWED": "Your organization does not allow this Alpha feature.",
+      "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Enable this Alpha feature before use.",
+      "PVAD_DESIGNER_FEATURE_DISABLED": "This feature is currently disabled.",
+      "PVAD_DESIGNER_FEATURE_ENABLED": "The feature is available.",
+      "PVAD_DESIGNER_FEATURE_UNKNOWN": "This feature is not available in this Designer version."
     }
   },
   "features": {

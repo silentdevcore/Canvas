@@ -114,5 +114,4 @@ public sealed record AccountLicenseResponse(
 public sealed record AccountLicenseValidationResponse(
     bool Valid, string Status, DateTimeOffset ValidFrom, DateTimeOffset ValidUntil, string Code)
 {
-    public string? CanonicalCode => PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(Code);
 }

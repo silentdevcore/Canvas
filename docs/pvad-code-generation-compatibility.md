@@ -22,8 +22,8 @@ use `pvad-code-`; request/response filenames remain neutral.
 The worker references PVAD.Core, PVAD.Generator and PVAD.Pdf assemblies and imports
 their current namespaces. Neutral request fields remain language, source, operation,
 timeoutSeconds, maximumPages and maximumElements. Language IDs, source-map IDs,
-page/element limits, timeout handling and legacy [compatibility entry `compat-6c8666add467`](reference/compatibility-identifiers.v1.json) diagnostic IDs are unchanged.
-Known diagnostic aliases and the existing dual element-marker reader remain active.
+page/element limits and timeout handling are unchanged. Diagnostics use `PVADCODE*`
+identifiers and generated elements carry only the `pvad-element-id:` marker (2026-11-09 hard cut).
 
 Deploy API and worker together. A protocol-field check is not proof that an old
 binary can compile code referring to newly renamed assemblies. Old first-party
@@ -84,6 +84,6 @@ Existing CANMIG diagnostic IDs and vendor names remain unchanged. Spreadsheet XM
 examples and current diagnostic wording use PVAD/PVADS names; historical stored
 reports and customer source are not rewritten.
 
-Compiler warning [compatibility entry `compat-cfbce1459608`](reference/compatibility-identifiers.v1.json) and CANMIG provider IDs retain their documented legacy
+The compiler warning `PVAD0001` and CANMIG provider IDs keep their documented
 contracts. Vendor identifiers and neutral PDF/Spreadsheet API concepts are not
 renamed as product branding.

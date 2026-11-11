@@ -28,7 +28,7 @@ public sealed class PvadPermissionClaimsTransformation : IClaimsTransformation
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        if (!PvadClaimCompatibility.TryNormalize(principal)) return new ClaimsPrincipal();
+        if (!PvadClaimValidation.HasUnambiguousContext(principal)) return new ClaimsPrincipal();
         if (principal.Identity is not ClaimsIdentity identity || !identity.IsAuthenticated ||
             identity.HasClaim(claim => claim.Type == ResolvedMarker))
         {

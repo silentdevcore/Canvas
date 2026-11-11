@@ -236,7 +236,7 @@ public sealed class AccountProfileControllerTests
         var staleResponse = await client.SendAsync(stale);
         Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
         Assert.Equal(
-            "PXAAPI017",
+            "PVADAPI017",
             (await staleResponse.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("code").GetString());
 

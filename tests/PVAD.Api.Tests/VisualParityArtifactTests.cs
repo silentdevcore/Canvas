@@ -104,7 +104,7 @@ public sealed class VisualParityArtifactTests
         if (!File.Exists(sidecarPath)) return;
 
         var sidecar = JsonDocument.Parse(await File.ReadAllTextAsync(sidecarPath)).RootElement;
-        Assert.Equal("pxa.e-invoice.parity-invoice/1", sidecar.GetProperty("schema").GetString());
+        Assert.Equal("pvad.e-invoice.parity-invoice/1", sidecar.GetProperty("schema").GetString());
         var invoice = sidecar.GetProperty("invoice");
 
         var created = EInvoice.CreatePdf(

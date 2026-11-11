@@ -27,7 +27,7 @@ namespace PVAD.Generator;
 public static class EInvoicePageLayout
 {
     /// <summary>The contract version both implementations are pinned to.</summary>
-    public const string ContractVersion = "pxa.e-invoice.pagination/1";
+    public const string ContractVersion = "pvad.e-invoice.pagination/1";
 
     public const double PageWidth = 595;
     public const double PageHeight = 842;

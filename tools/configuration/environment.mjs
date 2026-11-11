@@ -1,21 +1,10 @@
 export function readPvadEnvironment(name, environment = process.env) {
-  const legacy = name.replace('PVAD_', 'PXA_');
-  if (legacy === name) throw new Error(`Expected a PVAD environment key: ${name}`);
-  const current = environment[name];
-  const previous = environment[legacy];
-  if (current !== undefined && previous !== undefined && current !== previous)
-    throw new Error(`Conflicting configuration keys: ${name} and ${legacy}.`);
-  return current ?? previous;
+  if (!/^(?:VITE_)?PVAD_[A-Z0-9_]+$/.test(name)) throw new Error(`Expected a PVAD environment key: ${name}`);
+  return environment[name];
 }
 
 export function normalizePvadEnvironment(environment = process.env) {
-  const result = { ...environment };
-  for (const key of Object.keys(environment)) {
-    if (!/^(?:VITE_)?(?:PXA|PVAD)_/.test(key)) continue;
-    const canonical = key.replace('PXA_', 'PVAD_');
-    result[canonical] = readPvadEnvironment(canonical, environment);
-  }
-  return result;
+  return { ...environment };
 }
 
 export function resolvePvadDevApiTarget(environment = process.env) {

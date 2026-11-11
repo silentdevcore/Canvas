@@ -44,8 +44,6 @@ public sealed record PdfEInvoiceProviderCapability
     /// <summary>The PVAD API a detected marker maps onto, or null when there is no equivalent.</summary>
     public string? PvadEquivalent { get; init; }
 
-    [Obsolete("Use PvadEquivalent. The compatibility alias is retained for 2.x and scheduled for removal in 3.0.0.")]
-    public string? PxaEquivalent { get => PvadEquivalent; init => PvadEquivalent = value; }
 
     /// <summary>Why the disposition is what it is. Required, so no mapping is a silent TODO.</summary>
     public required string Rationale { get; init; }
@@ -90,8 +88,6 @@ public sealed record PdfEInvoiceMigrationFinding
 
     public string? PvadEquivalent { get; init; }
 
-    [Obsolete("Use PvadEquivalent. The compatibility alias is retained for 2.x and scheduled for removal in 3.0.0.")]
-    public string? PxaEquivalent { get => PvadEquivalent; init => PvadEquivalent = value; }
 
     public required string Rationale { get; init; }
 

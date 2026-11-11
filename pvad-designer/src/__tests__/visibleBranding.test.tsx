@@ -10,15 +10,11 @@ import InvoiceDiagnosticsPanel from '@/features/e-invoice/InvoiceDiagnosticsPane
 import { displayDiagnosticCode, displaySystemMessage, presentRelease } from '../../../websites/shared/diagnosticPresentation';
 import releaseManifest from '../../../product-metadata/pvad-releases.json';
 
-test('display aliases preserve technical codes, suffixes and unrelated customer strings', () => {
-  for (const code of ['PXAAPI010', 'PXACODE042', 'PXA-PDF-CHART-102', 'PXAPROJECT007']) {
-    expect(displayDiagnosticCode(code)).toBe(`PVAD${code.slice(3)}`);
-    expect(displayDiagnosticCode(displayDiagnosticCode(code))).toBe(displayDiagnosticCode(code));
-  }
-  expect(displayDiagnosticCode('CANMIG100')).toBe('CANMIG100');
-  expect(displayDiagnosticCode('customer-PXA-document')).toBe('customer-PXA-document');
-  expect(displaySystemMessage('Review PXAPDFTRUST203.')).toBe('Review PVADPDFTRUST203.');
-  expect(displaySystemMessage('Customer PXA Ltd.')).toBe('Customer PXA Ltd.');
+test('diagnostic codes and system messages are shown exactly as issued', () => {
+  for (const code of ['PVADAPI010', 'PVADCODE042', 'PVAD-PDF-CHART-102', 'CANMIG100', 'PXA-customer-document'])
+    expect(displayDiagnosticCode(code)).toBe(code);
+  expect(displayDiagnosticCode(null)).toBe('');
+  expect(displaySystemMessage('Customer file PXA-2024.pdf')).toBe('Customer file PXA-2024.pdf');
 });
 
 test('release presentation does not rewrite the historical manifest', () => {
@@ -38,13 +34,13 @@ test.each(['en', 'de', 'fr', 'es', 'it', 'ar'])('invoice findings show display a
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
-  const finding = { code: 'PXAEINV100', severity: 'error' as const, field: 'invoiceNumber', messageKey: 'validation.invoiceNumberRequired' };
+  const finding = { code: 'PVADEINV100', severity: 'error' as const, field: 'invoiceNumber', messageKey: 'validation.invoiceNumberRequired' };
   try {
     await act(async () => root.render(<InvoiceDiagnosticsPanel findings={[finding]} report={null} onFocusField={() => {}} />));
     expect(container.textContent).toContain('PVADEINV100');
     expect(container.textContent).not.toContain('PXA');
-    expect(container.querySelector('[data-code="PXAEINV100"]')).not.toBeNull();
-    expect(finding.code).toBe('PXAEINV100');
+    expect(container.querySelector('[data-code="PVADEINV100"]')).not.toBeNull();
+    expect(finding.code).toBe('PVADEINV100');
     expect(i18n.t('common:aboutPvaDe')).toContain('PVADE');
   } finally {
     await act(async () => root.unmount());
@@ -75,7 +71,7 @@ function functions(file: string, names: string[], globals: Record<string, unknow
 }
 
 const escapeHtml = functions(admin, ['escapeHtml']).escapeHtml;
-const message = 'PXAAPI018: Unavailable <img src=x onerror=alert(1)>';
+const message = 'PVADAPI018: Unavailable <img src=x onerror=alert(1)>';
 const shown = 'PVADAPI018: Unavailable <img src=x onerror=alert(1)>';
 const host = (html: string) => { const element = document.createElement('div'); element.innerHTML = html; return element; };
 
@@ -83,7 +79,7 @@ describe('Account diagnostic rendering', () => {
   test('shared auth notices project errors but leave informational customer text unchanged', () => {
     const page = functions(account, ['escapeHtml', 'message']);
     expect(host(page.message('error', message)).querySelector('[role="alert"]')?.textContent).toBe(shown);
-    expect(host(page.message('info', 'PXA Customer Ltd.')).textContent).toBe('PXA Customer Ltd.');
+    expect(host(page.message('info', 'PVAD Customer Ltd.')).textContent).toBe('PVAD Customer Ltd.');
   });
   test.each([
     ['licenses', 'licensesPage', ['licenseRow'], { licenses: [], validation: {} }],
@@ -101,7 +97,7 @@ describe('Account diagnostic rendering', () => {
 
   test('license validation errors are projected while license numbers and download URLs stay raw', () => {
     const state = { loaded: true, loading: false, error: null,
-      licenses: [{ id: 'license-1', licenseNumber: 'PXA-CUSTOMER-001', edition: 'Enterprise',
+      licenses: [{ id: 'license-1', licenseNumber: 'PVAD-CUSTOMER-001', edition: 'Enterprise',
         deploymentMode: 'OnPremise', status: 'Active', instanceLimit: 1,
         validFrom: '2026-01-01', validUntil: '2027-01-01' }], validation: { 'license-1': message } };
     const page = functions('websites/PVAD.Account/src/pages/licenses.ts', ['licenseRow', 'licensesPage'], {
@@ -109,12 +105,12 @@ describe('Account diagnostic rendering', () => {
     });
     const element = host(page.licensesPage());
     expect(element.querySelector('td:last-child div')?.textContent).toBe(shown);
-    expect(element.querySelector('td')?.textContent).toContain('PXA-CUSTOMER-001');
+    expect(element.querySelector('td')?.textContent).toContain('PVAD-CUSTOMER-001');
     expect(element.querySelector('a')?.getAttribute('href')).toBe('/api/pvad/v1/account/licenses/license-1/download');
     expect(state.validation['license-1']).toBe(message);
   });
 
-  test.each(['PXAAPI010', 'PXAAPI015', 'PXAAPI016', 'PXAAPI018'])('login handles %s with projected text and unchanged diagnostics', async code => {
+  test.each(['PVADAPI010', 'PVADAPI015', 'PVADAPI016', 'PVADAPI018'])('login handles %s with projected text and unchanged diagnostics', async code => {
     const form = document.createElement('form');
     form.innerHTML = '<input name="identifier" value="synthetic@example.test"><input name="password" type="password" value="synthetic"><div id="form-error" hidden></div><button type="submit">Sign in</button>';
     document.body.appendChild(form);
@@ -122,15 +118,15 @@ describe('Account diagnostic rendering', () => {
     const failure = Object.assign(new Error(`${code}: Access unavailable <img src=x>`), { code });
     const handlers = functions(account, ['escapeHtml', 'bindForm', 'formString'], {
       tr: (value: string) => value, companyPage: () => 'https://pvade.com/support',
-      PROBLEM_CODE_VERIFICATION_REQUIRED: 'PXAAPI010', PROBLEM_CODE_ACCOUNT_DISABLED: 'PXAAPI015',
-      PROBLEM_CODE_ORGANIZATION_SUSPENDED: 'PXAAPI016',
+      PROBLEM_CODE_VERIFICATION_REQUIRED: 'PVADAPI010', PROBLEM_CODE_ACCOUNT_DISABLED: 'PVADAPI015',
+      PROBLEM_CODE_ORGANIZATION_SUSPENDED: 'PVADAPI016',
     });
     try {
       handlers.bindForm('#login-test', async () => { throw failure; });
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       await new Promise(resolve => setTimeout(resolve, 0));
       const alert = form.querySelector<HTMLElement>('#form-error')!;
-      expect(alert.textContent).toContain(`PVAD${code.slice(3)}: Access unavailable <img src=x>`);
+      expect(alert.textContent).toContain(`${code}: Access unavailable <img src=x>`);
       expect(alert.hidden).toBe(false);
       expect(alert.querySelector('img')).toBeNull();
       expect(form.querySelector<HTMLInputElement>('input[type="password"]')?.value).toBe('');
@@ -184,10 +180,10 @@ describe('Admin diagnostic rendering', () => {
   });
 
   test('license rows and audit evidence retain signed and stored identifiers', () => {
-    const license = { id: 'license-1', licenseNumber: 'PXA-CUSTOMER-001', keyId: 'pxa-development-1',
-      organizationName: 'PXA Customer Ltd.', edition: 'Enterprise', deploymentMode: 'OnPremise',
+    const license = { id: 'license-1', licenseNumber: 'PVAD-CUSTOMER-001', keyId: 'pvad-development-1',
+      organizationName: 'PVAD Customer Ltd.', edition: 'Enterprise', deploymentMode: 'OnPremise',
       status: 'Active', validFrom: '2026-01-01', validUntil: '2027-01-01', instanceLimit: 1, algorithm: 'ES256' };
-    const audit = [{ action: 'pxap.export', actorName: 'PXA Customer Ltd.', outcome: 'succeeded' }];
+    const audit = [{ action: 'pvadp.export', actorName: 'PVAD Customer Ltd.', outcome: 'succeeded' }];
     const detail = { loading: false, saving: false, data: license, error: message, notice: 'PVAD_LICENSE_VALID', audit };
     const page = functions(admin, ['escapeHtml', 'licenseDetailPage'], {
       state: { licenseDetail: detail }, formatDate: (value: string) => value ?? '', isSystemAdministrator: () => false,
@@ -195,10 +191,10 @@ describe('Admin diagnostic rendering', () => {
     const original = JSON.stringify(detail);
     const element = host(page.licenseDetailPage());
     expect(element.querySelector('.admin-alert--error')?.textContent).toBe(shown);
-    expect(element.querySelector('h1')?.textContent).toBe('PXA-CUSTOMER-001');
-    expect(element.textContent).toContain('pxa-development-1');
-    expect(element.textContent).toContain('PXA Customer Ltd.');
-    expect(element.textContent).toContain('pxap.export');
+    expect(element.querySelector('h1')?.textContent).toBe('PVAD-CUSTOMER-001');
+    expect(element.textContent).toContain('pvad-development-1');
+    expect(element.textContent).toContain('PVAD Customer Ltd.');
+    expect(element.textContent).toContain('pvadp.export');
     expect(JSON.stringify(detail)).toBe(original);
   });
 

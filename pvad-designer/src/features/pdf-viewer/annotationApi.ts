@@ -128,7 +128,6 @@ export const applyRedactions = async (
       body.code ?? null,
       body.preflight ?? null,
       body.verification ?? null,
-      body.canonicalCode ?? null,
     );
   }
 

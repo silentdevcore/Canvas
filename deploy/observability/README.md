@@ -1,5 +1,11 @@
 # PVADE Local Observability
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 This optional Docker Compose profile provides the local and On-Premise evaluation stack for PVAD
 telemetry:
 
@@ -30,21 +36,13 @@ trace/log cross-links. Active datasources are updated in place, not deleted by
 the provisioning deletion list. That list retains only the obsolete historical
 Alertmanager datasource. Inspect provisioning logs and saved dashboard queries
 after deployment; name-based custom queries may need manual updates.
-Fresh installations use `grafana/profiles/current/dashboards.yml`, whose provider
+Every installation uses `grafana/profiles/current/dashboards.yml`, whose provider
 and folder are both PVAD. Compose mounts this provider file separately from the
-shared datasource directory. The original provider file under
-`grafana/provisioning/dashboards/` remains unchanged for existing installations,
-including services already bind-mounting the original provisioning directory.
-Use `deploy/rename/docker-compose.grafana-legacy.yml` to select only that original
-provider, or the complete legacy overlay when the existing stack also needs its
-verified storage and service bindings. Neither choice migrates database state,
-UIDs, credentials or folder permissions. The
-[provider profiles and cutover guide](../../docs/pvad-grafana-provider-cutover.md)
-distinguishes fresh defaults from a separately approved installed-state transition.
-See the [infrastructure mapping](../../docs/pvad-infrastructure-mapping.md) before
-an upgrade. Stop old writers first, preserve the installed project name and keys,
-and never run both generations on the same storage. Configuration checks are not
-runtime cutover tests. Scripts select that same project through
+shared datasource directory. Since the 2026-11-11 hard cut there is no second
+provider generation and no folder-rename transition. The
+[provider and backup guide](../../docs/pvad-grafana-provider-cutover.md) covers the
+offline inventory and the isolated backup/restore rehearsal.
+Scripts select that same project through
 `COMPOSE_PROJECT_NAME`; explicit container overrides remain available.
 
 ## Start

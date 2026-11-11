@@ -1,0 +1,8 @@
+{
+  "id": "pvad-former-name-retirement",
+  "impact": "major",
+  "components": ["account", "admin", "api", "designer", "documentation", "infrastructure", "migration", "observability", "sdk"],
+  "category": "breaking",
+  "summary": "PVAD now uses only PVAD names for routes, headers, cookies, scopes, diagnostics, configuration, schemas and project files. Sign in again and update integrations. Self-hosted upgrades must run the WebApi once with --reprotect-protected-data after a backup.",
+  "breaking": true
+}

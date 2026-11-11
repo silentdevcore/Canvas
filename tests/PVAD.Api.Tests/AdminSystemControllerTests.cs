@@ -200,9 +200,9 @@ public sealed class AdminSystemControllerTests
         using var operatorAccess = await systemClient.GetAsync(
             "/api/pvad/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
-        var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PXA-Operator"));
+        var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator"));
         Assert.Equal(operatorName, Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator")));
-        Assert.Matches("^pxa-[a-f0-9]{24}$", operatorName);
+        Assert.Matches("^pvad-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
 
         using var catalogResponse = await systemClient.GetAsync(

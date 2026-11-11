@@ -151,23 +151,6 @@ try {
   checked('csrf-pkce-replay-and-return-path-rejections');
   for (const value of [page, accountPage, adminPage, negative]) await value.close();
 
-  const legacyCookies = [];
-  const sessionsBeforeMigration = await control('session-count');
-  for (const [surface, cookie, base] of [['account', accountCookie, urls.account], ['designer', designerCookie, urls.designer]]) {
-    const converted = await control('legacy-ticket', { surface, cookie: cookie.value });
-    const old = { ...cookie, name: converted.name, value: converted.value };
-    const legacy = await context([old]);
-    const response = await expectStatus(legacy.request, base, auth + '/me', 200, surface === 'designer' ? designerHeaders : {});
-    const canonicalName = surface === 'designer' ? fixture.cookies.designer : fixture.cookies.account;
-    const headers = (await response.headersArray()).filter(value => value.name.toLowerCase() === 'set-cookie');
-    assert.ok(headers.some(value => value.value.startsWith(canonicalName + '=')));
-    assert.ok(headers.every(value => !/;\s*domain=/i.test(value.value)));
-    const renewed = (await legacy.cookies()).find(value => value.name === canonicalName);
-    assert.ok(renewed);
-    legacyCookies.push(old, renewed);
-  }
-  assert.deepEqual(await control('session-count'), sessionsBeforeMigration);
-  checked('real-validated-legacy-cookie-and-ticket-renewal');
   await control('restart');
   await probeCookies(customerCookies, urls.account, 200);
   await probeCookies(customerCookies, urls.designer, 200, true);
@@ -183,11 +166,10 @@ try {
   await control('backup');
   await control('mark-after-backup');
   const restored = await control('restore');
-  assert.ok(restored.consumers.mailLegacyReadable && restored.consumers.cacheLegacyReadable);
+  assert.ok(restored.consumers.mailReadable && restored.consumers.cacheReadable);
   await probeCookies(customerCookies, urls.account, 200);
   await probeCookies(customerCookies, urls.designer, 200, true);
   await probeCookies(operatorCookies, urls.admin, 200);
-  for (const cookie of legacyCookies) await probeCookies([cookie], cookie.domain === 'designer.pvad.test' ? urls.designer : urls.account, 200, cookie.domain === 'designer.pvad.test');
   checked('real-postgres-keyring-restore-and-protected-reader-compatibility');
 
   for (const [disable, enable] of [['disable-user', 'enable-user'], ['suspend-organization', 'resume-organization']]) {

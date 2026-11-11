@@ -42,7 +42,7 @@ public sealed class AccountEntitlementsControllerTests
 
         var allowed = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/entitlements/generator");
         Assert.True(allowed.GetProperty("allowed").GetBoolean());
-        Assert.Equal("PXA_ENTITLEMENT_ALLOWED", allowed.GetProperty("code").GetString());
+        Assert.Equal("PVAD_ENTITLEMENT_ALLOWED", allowed.GetProperty("code").GetString());
 
         await using (var scope = factory.Services.CreateAsyncScope())
         {
@@ -56,8 +56,7 @@ public sealed class AccountEntitlementsControllerTests
         // subscription's own state changed. A maximal role does not override it.
         var denied = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/entitlements/generator");
         Assert.False(denied.GetProperty("allowed").GetBoolean());
-        Assert.Equal("PXA_TRIAL_EXPIRED", denied.GetProperty("code").GetString());
-        Assert.Equal("PVAD_TRIAL_EXPIRED", denied.GetProperty("canonicalCode").GetString());
+        Assert.Equal("PVAD_TRIAL_EXPIRED", denied.GetProperty("code").GetString());
     }
 
     [PostgreSqlFact]
@@ -98,7 +97,7 @@ public sealed class AccountEntitlementsControllerTests
         // purely by the organization's subscription/entitlement rows.
         var response = await viewerClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/entitlements/generator");
         Assert.True(response.GetProperty("allowed").GetBoolean());
-        Assert.Equal("PXA_ENTITLEMENT_ALLOWED", response.GetProperty("code").GetString());
+        Assert.Equal("PVAD_ENTITLEMENT_ALLOWED", response.GetProperty("code").GetString());
     }
 
     private static async Task RegisterVerifiedCompanyAsync(

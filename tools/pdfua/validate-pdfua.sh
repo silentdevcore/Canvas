@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-. "$(dirname "$0")/../configuration/environment.sh"
-pvad_environment_alias PVAD_PDFUA_REPORT_DIR PXA_PDFUA_REPORT_DIR "${PVAD_PDFUA_REPORT_DIR+x}" "${PVAD_PDFUA_REPORT_DIR-}" "${PXA_PDFUA_REPORT_DIR+x}" "${PXA_PDFUA_REPORT_DIR-}"
-pvad_environment_alias PVAD_VERAPDF_IMAGE PXA_VERAPDF_IMAGE "${PVAD_VERAPDF_IMAGE+x}" "${PVAD_VERAPDF_IMAGE-}" "${PXA_VERAPDF_IMAGE+x}" "${PXA_VERAPDF_IMAGE-}"
 
 readonly IMAGE="${PVAD_VERAPDF_IMAGE:-ghcr.io/verapdf/cli:v1.31.166}"
 readonly REPORT_DIRECTORY="${PVAD_PDFUA_REPORT_DIR:-artifacts/pdfua}"

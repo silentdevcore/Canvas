@@ -68,16 +68,16 @@ public sealed class DesignerCodeWorkspacesController(
         Guid templateId, SaveCodeWorkspaceRequest request, CancellationToken cancellationToken)
     {
         if (!TryTenant(out var organizationId, out var userId)) return Unauthorized();
-        if (!PvadCodeLanguages.Supported.Contains(request.Language)) return BadRequest(Problem("PXACODE120", "Unsupported code language."));
+        if (!PvadCodeLanguages.Supported.Contains(request.Language)) return BadRequest(Problem("PVADCODE120", "Unsupported code language."));
         if (System.Text.Encoding.UTF8.GetByteCount(request.Source) > PvadCodeLimits.MaximumSourceBytes)
-            return BadRequest(Problem("PXACODE009", "Source exceeds the 32 MiB code-workspace limit."));
+            return BadRequest(Problem("PVADCODE009", "Source exceeds the 32 MiB code-workspace limit."));
         var template = await FindTemplate(templateId, organizationId, tracked: false, cancellationToken);
         if (template is null) return NotFound();
         var workspace = await dbContext.DesignerCodeWorkspaces
             .SingleOrDefaultAsync(value => value.TemplateId == templateId && value.OrganizationId == organizationId, cancellationToken);
         if (workspace is null)
         {
-            if (request.Revision is not (0 or 1)) return Conflict(Problem("PXACODE121", "The workspace was created by another session. Reload it."));
+            if (request.Revision is not (0 or 1)) return Conflict(Problem("PVADCODE121", "The workspace was created by another session. Reload it."));
             workspace = CreateWorkspace(template, userId);
             dbContext.DesignerCodeWorkspaces.Add(workspace);
         }
@@ -86,8 +86,7 @@ public sealed class DesignerCodeWorkspacesController(
             SetEtag(workspace.Revision);
             return Conflict(new
             {
-                code = "PXACODE122",
-                canonicalCode = PvadDiagnosticAliases.CanonicalCode("PXACODE122"),
+                code = "PVADCODE122",
                 current = ToDocument(workspace, persisted: true),
             });
         }
@@ -136,7 +135,7 @@ public sealed class DesignerCodeWorkspacesController(
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(Problem("PXACODE120", exception.Message));
+            return BadRequest(Problem("PVADCODE120", exception.Message));
         }
     }
 
@@ -181,7 +180,7 @@ public sealed class DesignerCodeWorkspacesController(
             durationMilliseconds = Math.Max(0, (job.CompletedAt.Value - started).TotalMilliseconds),
             diagnosticCodes = result.Diagnostics.Select(value => value.Code).Distinct().Take(32),
         }, JsonOptions);
-        job.FailureReason = result.Success ? null : result.Diagnostics.FirstOrDefault(value => value.Severity == "error")?.Code ?? "PXACODE_EXECUTION_FAILED";
+        job.FailureReason = result.Success ? null : result.Diagnostics.FirstOrDefault(value => value.Severity == "error")?.Code ?? "PVADCODE_EXECUTION_FAILED";
         AddAudit(organizationId, userId, templateId, "designer.code-workspace.executed",
             new { jobId = job.Id, request.Language, result.Success, result.Fidelity, diagnosticCodes = result.Diagnostics.Select(value => value.Code).Distinct() });
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -199,7 +198,7 @@ public sealed class DesignerCodeWorkspacesController(
             value.TemplateId == templateId && value.OrganizationId == organizationId, cancellationToken);
         if (template is null || workspace is null) return NotFound();
         if (workspace.Revision != request.WorkspaceRevision)
-            return Conflict(Problem("PXACODE122", "The code workspace changed. Preserve your drafts and reload before comparing."));
+            return Conflict(Problem("PVADCODE122", "The code workspace changed. Preserve your drafts and reload before comparing."));
 
         PvadCodeConversionResultDto conversion;
         try
@@ -208,7 +207,7 @@ public sealed class DesignerCodeWorkspacesController(
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(Problem("PXACODE120", exception.Message));
+            return BadRequest(Problem("PVADCODE120", exception.Message));
         }
         if (conversion.CanonicalDesign is null || conversion.Diagnostics.Any(value => value.Severity == "error"))
             return UnprocessableEntity(conversion);
@@ -230,7 +229,7 @@ public sealed class DesignerCodeWorkspacesController(
             value.TemplateId == templateId && value.OrganizationId == organizationId, cancellationToken);
         if (template is null || workspace is null) return NotFound();
         if (template.Revision != request.TemplateRevision || workspace.Revision != request.WorkspaceRevision)
-            return Conflict(Problem("PXACODE123", "Template or code workspace changed. Compare and retry."));
+            return Conflict(Problem("PVADCODE123", "Template or code workspace changed. Compare and retry."));
 
         PvadCodeConversionResultDto result;
         try
@@ -239,12 +238,12 @@ public sealed class DesignerCodeWorkspacesController(
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(Problem("PXACODE120", exception.Message));
+            return BadRequest(Problem("PVADCODE120", exception.Message));
         }
         if (result.CanonicalDesign is null || result.Diagnostics.Any(value => value.Severity == "error"))
             return UnprocessableEntity(result);
         if (request.ReviewedChecksum is not null && request.ReviewedChecksum != result.CanonicalChecksum)
-            return Conflict(Problem("PXACODE123", "The code result changed since comparison. Compare again before applying."));
+            return Conflict(Problem("PVADCODE123", "The code result changed since comparison. Compare again before applying."));
 
         var canonical = JsonSerializer.Serialize(result.CanonicalDesign, JsonOptions);
         var persistedDesign = ApplyCanonicalToStoredDesign(template.DraftJson, result.CanonicalDesign);
@@ -270,7 +269,7 @@ public sealed class DesignerCodeWorkspacesController(
         catch (DbUpdateConcurrencyException)
         {
             await transaction.RollbackAsync(cancellationToken);
-            return Conflict(Problem("PXACODE123", "Template or code workspace changed. Compare and retry."));
+            return Conflict(Problem("PVADCODE123", "Template or code workspace changed. Compare and retry."));
         }
         await transaction.CommitAsync(cancellationToken);
         SetEtag(workspace.Revision);
@@ -299,9 +298,9 @@ public sealed class DesignerCodeWorkspacesController(
             value.TemplateId == templateId && value.OrganizationId == organizationId, cancellationToken);
         if (workspace is null) return NotFound();
         if (workspace.Revision != request.Revision)
-            return Conflict(Problem("PXACODE122", "The workspace changed. Reload it before restoring."));
+            return Conflict(Problem("PVADCODE122", "The workspace changed. Reload it before restoring."));
         if (!PvadCodeLanguages.Supported.Contains(request.Language))
-            return BadRequest(Problem("PXACODE120", "Unsupported code language."));
+            return BadRequest(Problem("PVADCODE120", "Unsupported code language."));
         SetDraft(workspace, request.Language,
             request.Language == PvadCodeLanguages.Json ? workspace.CanonicalDesignJson : string.Empty);
         workspace.Revision++;

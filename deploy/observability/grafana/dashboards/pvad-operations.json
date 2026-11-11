@@ -8,7 +8,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -40,7 +40,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{__name__=~\"(pvad|pxa)_mail_queue_depth\"}",
+          "expr": "{__name__=~\"pvad_mail_queue_depth\"}",
           "legendFormat": "Queued mail",
           "range": true,
           "refId": "A"
@@ -52,7 +52,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -101,7 +101,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{__name__=~\"(pvad|pxa)_mail_queue_oldest_age_seconds\"}",
+          "expr": "{__name__=~\"pvad_mail_queue_oldest_age_seconds\"}",
           "legendFormat": "Oldest message",
           "range": true,
           "refId": "A"
@@ -113,7 +113,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -145,7 +145,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_mail_deliveries_total\",mail_outcome=\"dead_letter\"}[24h]))",
+          "expr": "sum(increase({__name__=~\"pvad_mail_deliveries_total\",mail_outcome=\"dead_letter\"}[24h]))",
           "legendFormat": "Dead letters",
           "range": true,
           "refId": "A"
@@ -157,7 +157,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -189,7 +189,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_ocr_operations_total\",ocr_outcome=~\"timeout|failed|dependency_unavailable\"}[24h]))",
+          "expr": "sum(increase({__name__=~\"pvad_ocr_operations_total\",ocr_outcome=~\"timeout|failed|dependency_unavailable\"}[24h]))",
           "legendFormat": "OCR failures",
           "range": true,
           "refId": "A"
@@ -201,7 +201,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -240,7 +240,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (mail_outcome) (rate({__name__=~\"(pvad|pxa)_mail_deliveries_total\"}[5m]))",
+          "expr": "sum by (mail_outcome) (rate({__name__=~\"pvad_mail_deliveries_total\"}[5m]))",
           "legendFormat": "{{mail_outcome}}",
           "range": true,
           "refId": "A"
@@ -252,7 +252,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -291,7 +291,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (ocr_outcome) (rate({__name__=~\"(pvad|pxa)_ocr_operations_total\"}[5m]))",
+          "expr": "sum by (ocr_outcome) (rate({__name__=~\"pvad_ocr_operations_total\"}[5m]))",
           "legendFormat": "{{ocr_outcome}}",
           "range": true,
           "refId": "A"
@@ -303,7 +303,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -342,7 +342,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, ocr_outcome) (rate({__name__=~\"(pvad|pxa)_ocr_duration_seconds_bucket\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, ocr_outcome) (rate({__name__=~\"pvad_ocr_duration_seconds_bucket\"}[5m])))",
           "legendFormat": "{{ocr_outcome}}",
           "range": true,
           "refId": "A"
@@ -354,7 +354,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -393,14 +393,14 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_ocr_timeouts_total\"}[1h]))",
+          "expr": "sum(increase({__name__=~\"pvad_ocr_timeouts_total\"}[1h]))",
           "legendFormat": "Timeouts",
           "range": true,
           "refId": "A"
         },
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_ocr_worker_terminations_total\"}[1h]))",
+          "expr": "sum(increase({__name__=~\"pvad_ocr_worker_terminations_total\"}[1h]))",
           "legendFormat": "Worker terminations",
           "range": true,
           "refId": "B"
@@ -426,6 +426,6 @@
   },
   "timezone": "browser",
   "title": "PVADE Mail and OCR Operations",
-  "uid": "pxa-operations",
+  "uid": "pvad-operations",
   "version": 1
 }

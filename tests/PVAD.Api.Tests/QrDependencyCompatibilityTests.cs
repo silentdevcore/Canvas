@@ -16,9 +16,9 @@ public sealed class QrDependencyCompatibilityTests
         var png = ScriptHelpers.GenerateQrPng("synthetic QR");
         Assert.Equal(8, png[24]);
         Assert.Equal(0, png[25]);
-#pragma warning disable PXA0001 // Test the same low-level image reader used by the API mapper.
+#pragma warning disable PVAD0001 // Test the same low-level image reader used by the API mapper.
         var document = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.AddPage().DrawImage(png, 0, 0, 100, 100);
         Assert.Contains("/Subtype /Image", Encoding.ASCII.GetString(document.ToBytes()));
     }

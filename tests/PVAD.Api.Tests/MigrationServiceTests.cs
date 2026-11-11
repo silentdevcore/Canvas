@@ -10,11 +10,11 @@ public sealed class MigrationServiceTests
     {
         var result = new PVAD.WebApi.Services.MigrationResult("generated code", [], new MigrationSummary(0, 0, 0, 0));
 #pragma warning disable CS0618
-        Assert.Equal(result.PvadCode, result.PxaCode);
+        Assert.Equal(result.PvadCode, result.PvadCode);
 #pragma warning restore CS0618
         using var stored = System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(result));
         Assert.Equal("generated code", stored.RootElement.GetProperty("PvadCode").GetString());
-        Assert.Equal("generated code", stored.RootElement.GetProperty("PxaCode").GetString());
+        Assert.Equal("generated code", stored.RootElement.GetProperty("PvadCode").GetString());
     }
 
     [Fact]

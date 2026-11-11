@@ -17,7 +17,7 @@ import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, m
 // the way image-to-PDF/OCR does for PDF.
 const SpreadsheetLayout: React.FC = () => {
   const { t } = useTranslation('common');
-  const [collapsed, toggleCollapsed] = useSidebarCollapsed('pvad-designer:spreadsheet-sidebar-collapsed', 'pxa-designer:spreadsheet-sidebar-collapsed');
+  const [collapsed, toggleCollapsed] = useSidebarCollapsed('pvad-designer:spreadsheet-sidebar-collapsed');
   const { features } = useProductExperience();
   const { user } = useDesignerAuth();
   const permissionRequired = t('permissions.sidebarRequired');

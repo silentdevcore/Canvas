@@ -169,9 +169,9 @@ Console.WriteLine($"Wrote {fixtures.Count} positive and 6 negative PVAD PAdES fi
 
 static byte[] CreatePdf(string id)
 {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
     var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
     document.Info.Title = $"PVAD PAdES interoperability fixture {id}";
     document.Info.Author = "PVAD synthetic interoperability corpus";
     document.Info.CreationDate = new DateTimeOffset(2026, 6, 15, 10, 0, 0, TimeSpan.Zero);

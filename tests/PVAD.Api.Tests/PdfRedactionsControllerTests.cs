@@ -42,7 +42,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         var response = await CreateController().Preflight(null, "[]", CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI001");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI001");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         var response = await CreateController().Preflight(CreateFile(out _), null, CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI004");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         var response = await CreateController().Preflight(CreateFile(out _), "{not json", CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI004");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
             """[{"pageNumber":1,"x":0,"y":0,"width":1e400,"height":10}]""",
             CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI004");
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
             """[{"pageNumber":0,"x":0,"y":0,"width":10,"height":10}]""",
             CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI004");
     }
 
     [Fact]
@@ -98,8 +98,8 @@ public sealed class PdfRedactionsControllerTests : IDisposable
         Assert.Equal("application/pdf", file.ContentType);
         Assert.NotEmpty(file.FileContents);
         Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
-        Assert.Equal(controller.Response.Headers["PXA-Redaction-Audit"], controller.Response.Headers["PVAD-Redaction-Audit"]);
-        Assert.Equal(controller.Response.Headers["PXA-Redaction-Audit-Location"], controller.Response.Headers["PVAD-Redaction-Audit-Location"]);
+        Assert.Equal(controller.Response.Headers["PVAD-Redaction-Audit"], controller.Response.Headers["PVAD-Redaction-Audit"]);
+        Assert.Equal(controller.Response.Headers["PVAD-Redaction-Audit-Location"], controller.Response.Headers["PVAD-Redaction-Audit-Location"]);
         Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Result-Sha256"].ToString().Length);
         Assert.StartsWith(
             "/api/pvad/v1/pdf/redactions/audits/",
@@ -171,7 +171,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
 
         var response = await otherTenant.GetAudit(recordHash, CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status404NotFound, "PXAPDFREDACTAPI010");
+        AssertProblem(response.Result, StatusCodes.Status404NotFound, "PVADPDFREDACTAPI010");
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         var response = await CreateController().GetAudit("not-a-sha256", CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI009");
+        AssertProblem(response.Result, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI009");
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
 
         var response = await controller.GetAudit(hash, CancellationToken.None);
 
-        AssertProblem(response.Result, StatusCodes.Status500InternalServerError, "PXAPDFREDACTAPI011");
+        AssertProblem(response.Result, StatusCodes.Status500InternalServerError, "PVADPDFREDACTAPI011");
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
             new string('x', 2_001),
             CancellationToken.None);
 
-        AssertProblem(response, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI004");
+        AssertProblem(response, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI004");
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
                 null,
                 CancellationToken.None);
 
-        AssertProblem(response, StatusCodes.Status503ServiceUnavailable, "PXAPDFREDACTAPI012");
+        AssertProblem(response, StatusCodes.Status503ServiceUnavailable, "PVADPDFREDACTAPI012");
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status409Conflict, problem.StatusCode);
         var details = Assert.IsAssignableFrom<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFREDACTAPI006", Assert.Contains("code", details.Extensions)?.ToString());
+        Assert.Equal("PVADPDFREDACTAPI006", Assert.Contains("code", details.Extensions)?.ToString());
         Assert.IsType<PdfRedactionPreflightReport>(Assert.Contains("preflight", details.Extensions));
     }
 
@@ -256,7 +256,7 @@ public sealed class PdfRedactionsControllerTests : IDisposable
     {
         var response = await CreateController().Apply(null, "[]", null, CancellationToken.None);
 
-        AssertProblem(response, StatusCodes.Status400BadRequest, "PXAPDFREDACTAPI001");
+        AssertProblem(response, StatusCodes.Status400BadRequest, "PVADPDFREDACTAPI001");
     }
 
     [Fact]

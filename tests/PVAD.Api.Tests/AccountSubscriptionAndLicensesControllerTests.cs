@@ -149,8 +149,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
 
         var validation = await ownerClient.GetFromJsonAsync<JsonElement>($"/api/pvad/v1/account/licenses/{licenseId}/validate");
         Assert.True(validation.GetProperty("valid").GetBoolean());
-        Assert.Equal("PXA_LICENSE_VALID", validation.GetProperty("code").GetString());
-        Assert.Equal("PVAD_LICENSE_VALID", validation.GetProperty("canonicalCode").GetString());
+        Assert.Equal("PVAD_LICENSE_VALID", validation.GetProperty("code").GetString());
 
         var download = await ownerClient.GetAsync($"/api/pvad/v1/account/licenses/{licenseId}/download");
         Assert.Equal(HttpStatusCode.OK, download.StatusCode);

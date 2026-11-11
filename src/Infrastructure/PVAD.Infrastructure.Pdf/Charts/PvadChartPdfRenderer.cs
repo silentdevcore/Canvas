@@ -39,7 +39,7 @@ public sealed class PvadChartPdfRenderer : IChartRenderer
         if (!HasData(chart))
         {
             DrawEmpty(page, x, y, width, height);
-            return new ChartRenderResult(ChartRenderMode.Empty, "PXACHART001: Chart contains no renderable data.");
+            return new ChartRenderResult(ChartRenderMode.Empty, "PVADCHART001: Chart contains no renderable data.");
         }
 
         try
@@ -53,7 +53,7 @@ public sealed class PvadChartPdfRenderer : IChartRenderer
                 Math.Max(180, (int)Math.Ceiling(height * 3)));
             page.DrawImage(png, x, y, width, height);
             return new ChartRenderResult(ChartRenderMode.RasterFallback,
-                $"PXACHART002: Vector rendering fell back to raster ({exception.GetType().Name}).");
+                $"PVADCHART002: Vector rendering fell back to raster ({exception.GetType().Name}).");
         }
     }
 

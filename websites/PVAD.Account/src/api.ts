@@ -291,7 +291,7 @@ async function request<T>(
     error.traceId = body?.traceId;
     if (response.status === 401)
       window.dispatchEvent(new CustomEvent('pvad:session-expired', { detail: error }));
-    else if (response.status === 403 && error.code !== 'PXAAPI010' &&
+    else if (response.status === 403 && error.code !== 'PVADAPI010' &&
       behavior.broadcastAccessDenied !== false)
       window.dispatchEvent(new CustomEvent('pvad:access-denied', { detail: error }));
     throw error;

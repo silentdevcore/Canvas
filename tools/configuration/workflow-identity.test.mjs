@@ -127,14 +127,10 @@ test('canonical workflow locks retain serialization and protected environment bi
   assert.equal(deployment.jobs['validate-environment'].environment.name, 'pxa-${{ inputs.environment }}');
   assert.match(read('deployment-validation'), /# Retained protected environment/);
   assert.match(mapping, /NuGet and npm publisher accounts\s+remain unselected\/unregistered/);
-  const cutover = read('job-binary-cutover');
-  assert.match(cutover, /# The pinned historical binary retains its original identity/);
-  assert.match(cutover, /name: Build pinned legacy and current workers and test process cutover/);
-  assert.doesNotMatch(cutover, /pxa/i);
 });
 
 test('both workflows use the selected GHCR namespace and reject foreign owners before registry operations', () => {
-  const targets = JSON.parse(readFileSync(resolve(root, 'deploy/rename/pvade-targets.candidate.json'), 'utf8'));
+  const targets = JSON.parse(readFileSync(resolve(root, 'deploy/pvade-targets.candidate.json'), 'utf8'));
   assert.equal(targets.publishers.container, 'ghcr.io/silentdevcore');
   assert.equal(targets.publishers.nuget, null);
   assert.equal(targets.publishers.npm, null);

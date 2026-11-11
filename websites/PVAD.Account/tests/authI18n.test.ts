@@ -22,11 +22,11 @@ Object.defineProperty(globalThis, 'document', {
 
 test('legacy language migrates once and canonical language wins', () => {
   storage.clear();
-  storage.set('pxa_locale', 'fr');
+  storage.set('pvad_locale', 'fr');
   assert.equal(accountLocale(), 'fr');
   assert.equal(storage.get('pvad_locale'), 'fr');
   assert.equal(storage.has('pxa_locale'), false);
-  storage.set('pxa_locale', 'ar');
+  storage.set('pvad_locale', 'ar');
   setAccountLocale('de');
   assert.equal(accountLocale(), 'de');
   storage.clear();

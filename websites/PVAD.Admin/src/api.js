@@ -22,7 +22,7 @@ async function request(path, options = {}) {
     });
   } catch (cause) {
     const error = new Error('PVADE Admin cannot reach the API. Previously loaded data may be stale.');
-    error.code = 'PXAUI001';
+    error.code = 'PVADUI001';
     error.isOffline = true;
     error.cause = cause;
     window.dispatchEvent(new CustomEvent('pvad:api-offline', { detail: error }));

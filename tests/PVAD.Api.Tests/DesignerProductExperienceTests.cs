@@ -29,7 +29,7 @@ public sealed class DesignerProductExperienceTests
         var blocked = await gate.EvaluateAsync(
             organizationId, userId, "designer.ai-layout-assistant");
         Assert.False(blocked.Enabled);
-        Assert.Equal("PXA_DESIGNER_ALPHA_NOT_ALLOWED", blocked.Code);
+        Assert.Equal("PVAD_DESIGNER_ALPHA_NOT_ALLOWED", blocked.Code);
 
         dbContext.DesignerFeaturePolicies.Add(new DesignerFeaturePolicy
         {
@@ -42,7 +42,7 @@ public sealed class DesignerProductExperienceTests
         var optInRequired = await gate.EvaluateAsync(
             organizationId, userId, "designer.ai-layout-assistant");
         Assert.False(optInRequired.Enabled);
-        Assert.Equal("PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED", optInRequired.Code);
+        Assert.Equal("PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED", optInRequired.Code);
 
         dbContext.DesignerFeaturePreferences.Add(new DesignerFeaturePreference
         {
@@ -84,7 +84,7 @@ public sealed class DesignerProductExperienceTests
         var disabled = await gate.EvaluateAsync(
             organizationId, userId, "designer.pdf-viewer");
         Assert.False(disabled.Enabled);
-        Assert.Equal("PXA_DESIGNER_FEATURE_DISABLED", disabled.Code);
+        Assert.Equal("PVAD_DESIGNER_FEATURE_DISABLED", disabled.Code);
 
         var entitlementGate = new PvadDesignerFeatureGate(
             dbContext,
@@ -93,7 +93,7 @@ public sealed class DesignerProductExperienceTests
         var spreadsheetDenied = await entitlementGate.EvaluateAsync(
             organizationId, userId, "designer.spreadsheet");
         Assert.False(spreadsheetDenied.Enabled);
-        Assert.Equal("PXA_ENTITLEMENT_DENIED", spreadsheetDenied.Code);
+        Assert.Equal("PVAD_ENTITLEMENT_DENIED", spreadsheetDenied.Code);
 
         var chartRecognition = await gate.EvaluateAsync(
             organizationId, userId, "designer.pdf-chart-recognition");
@@ -222,9 +222,9 @@ public sealed class DesignerProductExperienceTests
     [Theory]
     [InlineData("/api/pdf-viewer/forms")]
     [InlineData("/api/pvad/pdf-viewer/forms")]
-    [InlineData("/api/pxa/pdf-viewer/forms")]
+    [InlineData("/api/pvad/pdf-viewer/forms")]
     [InlineData("/api/pvad/spreadsheet/export")]
-    [InlineData("/api/pxa/spreadsheet/export")]
+    [InlineData("/api/pvad/spreadsheet/export")]
     public async Task Disabled_designer_feature_cannot_be_bypassed_through_product_api(string path)
     {
         var nextCalled = false;
@@ -251,9 +251,9 @@ public sealed class DesignerProductExperienceTests
     [Theory]
     [InlineData("/api/document/import-pdf-engine")]
     [InlineData("/api/pvad/document/import-pdf-engine")]
-    [InlineData("/api/pxa/document/import-pdf-engine")]
+    [InlineData("/api/pvad/document/import-pdf-engine")]
     [InlineData("/api/pvad/templates/csharp-code-to-pdf")]
-    [InlineData("/api/pxa/templates/csharp-code-to-pdf")]
+    [InlineData("/api/pvad/templates/csharp-code-to-pdf")]
     public async Task Pdf_chart_recognition_import_is_server_side_gated(string path)
     {
         var nextCalled = false;
@@ -351,7 +351,7 @@ public sealed class DesignerProductExperienceTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new PvadEntitlementDecision(
                 true,
-                "PXA_ENTITLEMENT_ALLOWED",
+                "PVAD_ENTITLEMENT_ALLOWED",
                 "Allowed for test.",
                 null,
                 null,
@@ -372,7 +372,7 @@ public sealed class DesignerProductExperienceTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new PvadEntitlementDecision(
                 false,
-                "PXA_ENTITLEMENT_DENIED",
+                "PVAD_ENTITLEMENT_DENIED",
                 "Denied for test.",
                 null,
                 null,
@@ -393,7 +393,7 @@ public sealed class DesignerProductExperienceTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new DesignerFeatureDecision(
                 false,
-                "PXA_DESIGNER_FEATURE_DISABLED",
+                "PVAD_DESIGNER_FEATURE_DISABLED",
                 "Disabled for test.",
                 null,
                 null));

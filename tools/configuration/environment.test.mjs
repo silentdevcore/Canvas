@@ -2,67 +2,40 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizePvadEnvironment, readPvadEnvironment, resolvePvadDevApiTarget } from './environment.mjs';
 
-test('canonical and legacy environment keys resolve without changing input', () => {
-  for (const environment of [
-    { PVAD_BUILD_COMMIT: 'example' },
-    { PXA_BUILD_COMMIT: 'example' },
-    { PVAD_BUILD_COMMIT: 'example', PXA_BUILD_COMMIT: 'example' },
-  ]) {
-    const before = { ...environment };
-    assert.equal(readPvadEnvironment('PVAD_BUILD_COMMIT', environment), 'example');
-    assert.deepEqual(environment, before);
-  }
+test('canonical environment keys resolve without changing input', () => {
+  const environment = { PVAD_BUILD_COMMIT: 'example' };
+  const before = { ...environment };
+  assert.equal(readPvadEnvironment('PVAD_BUILD_COMMIT', environment), 'example');
+  assert.deepEqual(environment, before);
   assert.equal(readPvadEnvironment('PVAD_BUILD_COMMIT', {}), undefined);
+  assert.equal(readPvadEnvironment('VITE_PVAD_COMPANY_URL', { VITE_PVAD_COMPANY_URL: 'https://pvade.com/' }), 'https://pvade.com/');
 });
 
-test('conflicting configuration fails without disclosing values', () => {
-  assert.throws(() => readPvadEnvironment('PVAD_API_KEY', {
-    PVAD_API_KEY: 'new-secret', PXA_API_KEY: 'old-secret',
-  }), error => {
-    assert.match(error.message, /PVAD_API_KEY and PXA_API_KEY/);
-    assert.doesNotMatch(error.message, /new-secret|old-secret/);
-    return true;
-  });
+test('former environment keys are never read', () => {
+  assert.equal(readPvadEnvironment('PVAD_API_KEY', { PXA_API_KEY: 'former-secret' }), undefined);
+  assert.equal(readPvadEnvironment('PVAD_RUN_LIVE_AUTH_TRUST', { PXA_RUN_LIVE_AUTH_TRUST: '1' }), undefined);
+  assert.throws(() => readPvadEnvironment('PXA_API_KEY', {}), /Expected a PVAD/);
 });
 
-test('live authenticated browser opt-ins accept either generation and reject conflicts', () => {
-  for (const suffix of ['RUN_LIVE_AUTH_EINVOICE', 'RUN_LIVE_AUTH_TRUST']) {
-    const key = `PVAD_${suffix}`;
-    const legacy = `PXA_${suffix}`;
-    assert.equal(readPvadEnvironment(key, {}), undefined);
-    for (const environment of [{ [key]: '1' }, { [legacy]: '1' }, { [key]: '1', [legacy]: '1' }])
-      assert.equal(readPvadEnvironment(key, environment), '1');
-    assert.equal(readPvadEnvironment(key, { [key]: '0' }), '0');
-    assert.equal(readPvadEnvironment(key, { [legacy]: '0' }), '0');
-    assert.throws(() => readPvadEnvironment(key, { [key]: '0', [legacy]: '1' }), /Conflicting configuration keys/);
-  }
-});
-
-test('explicit empty canonical settings cannot silently fall back', () => {
+test('explicit empty canonical settings are preserved', () => {
   assert.equal(readPvadEnvironment('PVAD_API_KEY', { PVAD_API_KEY: '' }), '');
-  assert.throws(() => readPvadEnvironment('PVAD_API_KEY', {
-    PVAD_API_KEY: '', PXA_API_KEY: 'old-secret',
-  }), /Conflicting/);
 });
 
-test('normalization supports browser-build aliases and preserves neutral keys', () => {
-  const source = { VITE_PXA_DOCUMENTATION_URL: 'https://docs.example.test', PORT: '8080' };
+test('normalization preserves canonical and neutral keys', () => {
+  const source = { VITE_PVAD_DOCUMENTATION_URL: 'https://docs.example.test', PORT: '8080' };
   const result = normalizePvadEnvironment(source);
-  assert.equal(result.VITE_PVAD_DOCUMENTATION_URL, source.VITE_PXA_DOCUMENTATION_URL);
-  assert.equal(result.PORT, '8080');
-  assert.equal(source.VITE_PVAD_DOCUMENTATION_URL, undefined);
+  assert.deepEqual(result, source);
+  assert.notEqual(result, source);
   assert.throws(() => readPvadEnvironment('PATH', source), /Expected a PVAD/);
 });
 
-test('development API origins support both names without allowing credentials or unsafe URLs', () => {
+test('development API origins reject credentials and unsafe URLs', () => {
   assert.equal(resolvePvadDevApiTarget({}), 'http://localhost:5086');
-  for (const key of ['PVAD_DEV_API_URL', 'PXA_DEV_API_URL']) {
-    assert.equal(resolvePvadDevApiTarget({ [key]: 'http://localhost:15086/' }), 'http://localhost:15086');
-    for (const value of ['', 'file:///private', 'https://user:secret@example.test',
-      'http://example.test/private', 'http://example.test/?secret=value', 'http://exam\nple.test']) {
-      assert.throws(() => resolvePvadDevApiTarget({ [key]: value }),
-        { message: 'Invalid configuration key: PVAD_DEV_API_URL.' });
-    }
+  assert.equal(resolvePvadDevApiTarget({ PVAD_DEV_API_URL: 'http://localhost:15086/' }), 'http://localhost:15086');
+  assert.equal(resolvePvadDevApiTarget({ PXA_DEV_API_URL: 'http://localhost:15086/' }), 'http://localhost:5086');
+  for (const value of ['', 'file:///private', 'https://user:secret@example.test',
+    'http://example.test/private', 'http://example.test/?secret=value', 'http://exam\nple.test']) {
+    assert.throws(() => resolvePvadDevApiTarget({ PVAD_DEV_API_URL: value }),
+      { message: 'Invalid configuration key: PVAD_DEV_API_URL.' });
   }
-  assert.throws(() => resolvePvadDevApiTarget({ PVAD_DEV_API_URL: 'http://new.test', PXA_DEV_API_URL: 'http://old.test' }), /Conflicting/);
 });

@@ -23,10 +23,8 @@ jobs:
         run: npm ci --prefix pvad-designer --ignore-scripts
       - name: Reject legacy names in every tracked Markdown file
         run: node tools/configuration/markdown-path-audit.mjs --all --check
-      - name: Validate exact JSON naming and compatibility boundaries
-        run: node tools/configuration/json-naming-audit.mjs --check
-      - name: Validate reviewed rename exceptions
-        run: node tools/configuration/rename-residual-review.mjs
+      - name: Reject former product names outside the reviewed allowlist
+        run: node tools/configuration/former-name-guard.mjs
 
       - name: Test version tooling
         run: |
@@ -39,7 +37,7 @@ jobs:
           node --test tools/deployment/pvad-deployment.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pvad-version.mjs check
-      - name: Validate canonical and legacy telemetry queries
+      - name: Validate canonical telemetry queries
         run: |
           node tools/configuration/pvad-telemetry-contract.mjs artifacts/rename-pvad/observability/dashboard-queries.json artifacts/rename-pvad/observability/identity-tests.json
           docker run --rm --network none --read-only \
@@ -69,6 +67,7 @@ jobs:
           node tools/pdf-trust/validate-standards-baseline.mjs
           node tools/pdf-trust/validate-external-evidence.mjs
           node --test tools/pdf-trust/*.test.mjs
+          node --test tools/pdf-trust-pades-interop/*.test.mjs
       - name: Validate document fidelity corpus and reviewed baseline
         run: |
           node tools/document-fidelity/fidelity.mjs validate
@@ -265,12 +264,12 @@ jobs:
           --no-build
           --filter "FullyQualifiedName~PVAD.Api.Tests.VersionControllerTests.|FullyQualifiedName~PVAD.Api.Tests.DesignerProductExperienceTests.|FullyQualifiedName~PVAD.Api.Tests.OperatorDocumentationContractTests."
           -p:SkipOcrWorkerPackaging=true
-      - name: Test canonical and legacy security headers
+      - name: Test canonical security headers and rejection of former names
         run: >
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PvadSecurityHeaderMiddlewareTests|FullyQualifiedName~PvadHeaderPipelineTests|FullyQualifiedName~PvadApiKeyHeaderIntegrationTests|FullyQualifiedName~PvadApiKeySchemeCompatibilityTests|FullyQualifiedName~PvadAuthorizationPathCompatibilityTests|FullyQualifiedName~PvadDataProtectionCompatibilityTests|FullyQualifiedName~PvadCookieCompatibilityTests|FullyQualifiedName~PvadCookieConfigurationTests|FullyQualifiedName~PvadAntiforgeryCookieCompatibilityTests|FullyQualifiedName~PvadClaimCompatibilityTests|FullyQualifiedName~PvadOAuthScopeCatalogTests|FullyQualifiedName~PvadOAuthScopeMigrationTests|FullyQualifiedName~PvadMcpDelegationCompatibilityTests|FullyQualifiedName~DesignerProductExperienceTests|FullyQualifiedName~PvadApiPrefixIntegrationTests"
+          --filter "FullyQualifiedName~PvadSecurityHeaderMiddlewareTests|FullyQualifiedName~PvadCookieSecurityTests|FullyQualifiedName~PvadClaimValidationTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~PvadHeaderPipelineTests|FullyQualifiedName~PvadApiKeyHeaderIntegrationTests|FullyQualifiedName~PvadApiKeySchemeCompatibilityTests|FullyQualifiedName~PvadAuthorizationPathCompatibilityTests|FullyQualifiedName~PvadCookieConfigurationTests|FullyQualifiedName~PvadOAuthScopeCatalogTests|FullyQualifiedName~PvadMcpDelegationCompatibilityTests|FullyQualifiedName~DesignerProductExperienceTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Test PostgreSQL legal deployment contract
         env:
@@ -288,16 +287,16 @@ jobs:
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once|FullyQualifiedName~PvadOAuthScopeMigrationTests.PostgreSql_store_preserves_credentials_and_grants"
+          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once"
           -p:SkipOcrWorkerPackaging=true
-      - name: Test retained licenses and background job compatibility
+      - name: Test licenses and background jobs
         env:
           PVAD_RUN_POSTGRES_TESTS: "1"
         run: >
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~PvadJobCutoverCompatibilityTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
+          --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Verify local EF tooling and unchanged database model
         env:

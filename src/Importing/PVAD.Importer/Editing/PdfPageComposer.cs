@@ -397,9 +397,9 @@ public sealed class PdfPageComposer
         foreach (var pageNumber in pageNumbers)
             ValidatePageNumber(pageNumber, sourceTree.Pages.Count, nameof(pageNumbers));
 
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var blank = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         blank.AddPage(1, 1);
         var target = blank.ToBytes();
         var targetGraph = ParseUnencrypted(target, options.Limits, "split target");

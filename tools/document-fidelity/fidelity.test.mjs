@@ -94,8 +94,8 @@ test('reports notMeasured rather than 100 percent for an empty official denomina
 test('legacy fixture labels are read without mutation and reports use canonical provider identities', async () => {
   const root = await fixtureRoot();
   const legacy = manifest([fixture({
-    sourceFormat: 'pxa-json', provider: 'pxa-pdf-importer',
-    provenance: 'pxa-synthetic', officiallySupported: false, realWorld: false,
+    sourceFormat: 'pvad-json', provider: 'pvad-pdf-importer',
+    provenance: 'pvad-synthetic', officiallySupported: false, realWorld: false,
   })]);
   const original = structuredClone(legacy);
   const normalized = validateManifest(legacy, root);

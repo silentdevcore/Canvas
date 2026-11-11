@@ -427,7 +427,7 @@ public sealed class AccountProfileController : ControllerBase
         detail: detail,
         extensions: new Dictionary<string, object?>
         {
-            ["code"] = "PXAAPI017",
+            ["code"] = "PVADAPI017",
         });
 
     private ObjectResult LegalPolicyUnavailable() => Problem(

@@ -28,7 +28,7 @@ public sealed class PdfAProfileRestrictionTests
         var report = await Preflight(source);
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.Findings, item => item.Code == "PXAPDFTRUST325" && item.Message.Contains(actionType, StringComparison.Ordinal));
+        Assert.Contains(report.Findings, item => item.Code == "PVADPDFTRUST325" && item.Message.Contains(actionType, StringComparison.Ordinal));
     }
 
     [Theory]
@@ -61,7 +61,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST324");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST324");
     }
 
     [Theory]
@@ -81,7 +81,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, item => item.Code == "PXAPDFTRUST316" && item.Message.Contains(subtype, StringComparison.Ordinal));
+        Assert.Contains(report.Findings, item => item.Code == "PVADPDFTRUST316" && item.Message.Contains(subtype, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class PdfAProfileRestrictionTests
             new MemoryStream(source, writable: false),
             new PdfA2bConversionOptions { Profile = PdfArchiveProfile.PdfA3b });
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST331");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST331");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST328");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST328");
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST328");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST328");
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public sealed class PdfAProfileRestrictionTests
     {
         var report = await Preflight(AppendObject(CreateBaseDocument(), Annotation("Text")));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST333");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST333");
     }
 
     [Theory]
@@ -166,7 +166,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST334");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST334");
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST334");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST334");
     }
 
     [Fact]
@@ -210,8 +210,8 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(AppendObjects(CreateBaseDocument(), unknown, toggleNoView));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST316");
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST328");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST316");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST328");
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST335");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST335");
     }
 
     [Fact]
@@ -242,12 +242,12 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(AppendObject(CreateBaseDocument(), annotation));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST335");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST335");
     }
 
     [Theory]
-    [InlineData("CustomIntent", "Normal", "PXAPDFTRUST340")]
-    [InlineData("RelativeColorimetric", "CustomBlend", "PXAPDFTRUST341")]
+    [InlineData("CustomIntent", "Normal", "PVADPDFTRUST340")]
+    [InlineData("RelativeColorimetric", "CustomBlend", "PVADPDFTRUST341")]
     public async Task Preflight_ShouldRejectUnknownRenderingIntentsAndBlendModes(
         string renderingIntent,
         string blendMode,
@@ -277,7 +277,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(AppendObject(CreateBaseDocument(), form));
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST340");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST340");
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public sealed class PdfAProfileRestrictionTests
         }));
 
         Assert.DoesNotContain(report.Findings, static item => item.Code is
-            "PXAPDFTRUST340" or "PXAPDFTRUST341" or "PXAPDFTRUST343");
+            "PVADPDFTRUST340" or "PVADPDFTRUST341" or "PVADPDFTRUST343");
     }
 
     [Fact]
@@ -339,9 +339,9 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST337");
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST338");
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST339");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST337");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST338");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST339");
     }
 
     [Fact]
@@ -369,7 +369,7 @@ public sealed class PdfAProfileRestrictionTests
         var report = await Preflight(source);
 
         Assert.DoesNotContain(report.Findings, static item => item.Code is
-            "PXAPDFTRUST336" or "PXAPDFTRUST337" or "PXAPDFTRUST338" or "PXAPDFTRUST339");
+            "PVADPDFTRUST336" or "PVADPDFTRUST337" or "PVADPDFTRUST338" or "PVADPDFTRUST339");
     }
 
     [Fact]
@@ -390,7 +390,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST325");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST325");
     }
 
     [Fact]
@@ -402,7 +402,7 @@ public sealed class PdfAProfileRestrictionTests
 
         var report = await Preflight(source);
 
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST327");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST327");
     }
 
     [Fact]
@@ -418,8 +418,8 @@ public sealed class PdfAProfileRestrictionTests
         var report = await new PdfTrustInspector().InspectAsync(new MemoryStream(source, writable: false));
 
         Assert.Equal(PdfTrustStatus.Invalid, report.PdfA.Status);
-        Assert.Contains(report.Diagnostics, static item => item.Code == "PXAPDFTRUST315");
-        Assert.Contains(report.Diagnostics, static item => item.Code == "PXAPDFTRUST325");
+        Assert.Contains(report.Diagnostics, static item => item.Code == "PVADPDFTRUST315");
+        Assert.Contains(report.Diagnostics, static item => item.Code == "PVADPDFTRUST325");
     }
 
     private static Task<PdfA2bConversionPreflightReport> Preflight(byte[] source) =>

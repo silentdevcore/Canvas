@@ -33,7 +33,6 @@ public sealed class PvadDesignerProjectAuditWriter(PvadDbContext dbContext) : IP
             DetailsJson = JsonSerializer.Serialize(new
                 {
                     record.FormatId,
-                    record.CanonicalFormatId,
                     record.Operation,
                     record.PackageBytes,
                     record.AssetCount,
@@ -55,12 +54,4 @@ public sealed record PvadDesignerProjectAuditRecord(
     long? PackageBytes = null,
     int? AssetCount = null,
     bool? RequiresReview = null,
-    string? DiagnosticCode = null)
-{
-    public string? CanonicalFormatId => FormatId switch
-    {
-        "pxap" or PvadProjectFormat.PvadpFormatId => PvadProjectFormat.PvadpFormatId,
-        "pxas" or PvadProjectFormat.PvadsFormatId => PvadProjectFormat.PvadsFormatId,
-        _ => null,
-    };
-}
+    string? DiagnosticCode = null);

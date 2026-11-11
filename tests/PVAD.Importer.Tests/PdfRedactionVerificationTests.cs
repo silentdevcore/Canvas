@@ -23,7 +23,7 @@ public sealed class PdfRedactionVerificationTests
             new PdfDictionary { ["Subtype"] = new PdfName("Image") },
             new byte[] { 1, 2, 3 })));
 
-        Assert.Contains(findings, f => f.Code == "PXAPDFREDACT305");
+        Assert.Contains(findings, f => f.Code == "PVADPDFREDACT305");
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class PdfRedactionVerificationTests
             ["OCGs"] = new PdfArray()
         }));
 
-        Assert.Contains(findings, f => f.Code == "PXAPDFREDACT306");
+        Assert.Contains(findings, f => f.Code == "PVADPDFREDACT306");
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class PdfRedactionVerificationTests
             }
         }));
 
-        Assert.Contains(findings, f => f.Code == "PXAPDFREDACT307");
+        Assert.Contains(findings, f => f.Code == "PVADPDFREDACT307");
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class PdfRedactionVerificationTests
     {
         var findings = await ScanAsync(WithCoveringImage(), coverWholePage: true);
 
-        Assert.Contains(findings, f => f.Code == "PXAPDFREDACT304");
+        Assert.Contains(findings, f => f.Code == "PVADPDFREDACT304");
     }
 
     [Fact]

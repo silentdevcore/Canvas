@@ -11,7 +11,6 @@ namespace PVAD.WebApi.Observability;
 internal class PvadJsonConsoleFormatter : ConsoleFormatter
 {
     public const string FormatterName = "pvad-json";
-    public const string LegacyFormatterName = "pxa-json";
 
     private readonly PvadObservabilityOptions settings;
     private readonly IHostEnvironment environment;
@@ -93,7 +92,3 @@ internal class PvadJsonConsoleFormatter : ConsoleFormatter
         Environment.GetEnvironmentVariable("HOSTNAME")
         ?? Environment.MachineName;
 }
-
-internal sealed class LegacyPvadJsonConsoleFormatter(
-    IOptions<PvadObservabilityOptions> settings,
-    IHostEnvironment environment) : PvadJsonConsoleFormatter(settings, environment, LegacyFormatterName);

@@ -6,7 +6,7 @@ public sealed class PvadCodeElementMarkerTests
 {
     [Theory]
     [InlineData("// pvad-element-id: text-1", "text-1")]
-    [InlineData("// pxa-element-id: legacy-1", "legacy-1")]
+    [InlineData("// pvad-element-id: legacy-1", "legacy-1")]
     [InlineData("  // PVAD-ELEMENT-ID: text-2  ", "text-2")]
     [InlineData("// pvad-element-id:", null)]
     [InlineData("// unrelated", null)]

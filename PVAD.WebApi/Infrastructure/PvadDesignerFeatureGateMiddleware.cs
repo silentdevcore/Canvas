@@ -12,17 +12,17 @@ public sealed class PvadDesignerFeatureGateMiddleware(RequestDelegate next)
         ("/api/templates/csharp-code-to-pdf", "designer.code-workspace"),
         ("/api/templates/csharp-code-to-json", "designer.code-workspace"),
         ("/api/templates/csharp-to-json", "designer.code-workspace"),
-        ("/api/pxa/templates/csharp-code-to-pdf", "designer.code-workspace"),
-        ("/api/pxa/templates/csharp-code-to-json", "designer.code-workspace"),
-        ("/api/pxa/templates/csharp-to-json", "designer.code-workspace"),
+        ("/api/pvad/templates/csharp-code-to-pdf", "designer.code-workspace"),
+        ("/api/pvad/templates/csharp-code-to-json", "designer.code-workspace"),
+        ("/api/pvad/templates/csharp-to-json", "designer.code-workspace"),
         ("/api/pvad/v1/designer/templates", "designer.code-workspace"),
         ("/api/document/import-pdf-engine", "designer.pdf-chart-recognition"),
-        ("/api/pxa/document/import-pdf-engine", "designer.pdf-chart-recognition"),
+        ("/api/pvad/document/import-pdf-engine", "designer.pdf-chart-recognition"),
         ("/api/pvad/v1/migrations/pdf/viewer", "designer.nutrient-viewer-migration"),
         ("/api/pdf-viewer", "designer.pdf-viewer"),
-        ("/api/pxa/pdf-viewer", "designer.pdf-viewer"),
+        ("/api/pvad/pdf-viewer", "designer.pdf-viewer"),
         ("/api/spreadsheet", "designer.spreadsheet"),
-        ("/api/pxa/spreadsheet", "designer.spreadsheet"),
+        ("/api/pvad/spreadsheet", "designer.spreadsheet"),
     ];
 
     public async Task InvokeAsync(
@@ -52,7 +52,7 @@ public sealed class PvadDesignerFeatureGateMiddleware(RequestDelegate next)
             await WriteProblemAsync(
                 context,
                 StatusCodes.Status403Forbidden,
-                "PXA_DESIGNER_FEATURE_CONTEXT_REQUIRED",
+                "PVAD_DESIGNER_FEATURE_CONTEXT_REQUIRED",
                 "An active organization and user are required to evaluate Designer features.");
             return;
         }

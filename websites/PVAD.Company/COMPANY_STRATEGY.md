@@ -5,7 +5,7 @@
 - The owner selected `pvade.com` and `support@pvade.com`. This does not establish
   domain, mailbox, sender or package-publisher registration.
 - Proposed deployment origins, all **unverified**, follow the
-  [candidate profile](../../deploy/rename/pvade-targets.candidate.json):
+  [candidate profile](../../deploy/pvade-targets.candidate.json):
   - `https://pvade.com` for Company
   - `https://docs.pvade.com` for Documentation
   - `https://demos.pvade.com` for Demo

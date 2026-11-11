@@ -1,5 +1,11 @@
 # PVADE Legal Backup, Restore, and Disaster Recovery
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 > Restricted operator runbook. Exclude this file from PVAD.Documentation, public website builds, and the PVAD.Admin handbook payload.
 
 Use canonical `PVAD_*` environment keys; the conflict-checked [compatibility entry `compat-9b6a1326dd22`](compatibility-identifiers.v1.json) aliases

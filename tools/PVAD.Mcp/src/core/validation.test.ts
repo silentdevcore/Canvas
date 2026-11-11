@@ -47,7 +47,7 @@ test('canonical and legacy schema fragments resolve offline without changing val
   }
 });
 
-test('native reader schema accepts each generation and rejects mixed identity tuples offline', () => {
+test('native reader schema accepts current identities and rejects former or mixed tuples offline', () => {
   const registry = createSchemaRegistry(content);
   const validate = registry.getSchema('https://pvade.com/schemas/pvad-project-manifest-reader.schema.json')!;
   const common = { envelopeVersion: '1.0', documentSchemaVersion: '1.0', documentId: 'synthetic',
@@ -57,14 +57,13 @@ test('native reader schema accepts each generation and rejects mixed identity tu
   for (const [magic, formatId, mediaType, versionKey] of [
     ['PVAD-PVADP-1', 'pvadp', 'application/vnd.pvad.pvadp+zip', 'minimumPvadVersion'],
     ['PVAD-PVADS-1', 'pvads', 'application/vnd.pvad.pvads+zip', 'minimumPvadVersion'],
-    ['PXA-PXAP-1', 'pxap', 'application/vnd.powerdox.pxap+zip', 'minimumPxaVersion'],
-    ['PXA-PXAS-1', 'pxas', 'application/vnd.powerdox.pxas+zip', 'minimumPxaVersion'],
   ]) {
     const manifest = { ...common, magic, formatId, mediaType, [versionKey]: '1.1.0' };
     assert.equal(validate(manifest), true, `${formatId}: ${JSON.stringify(validate.errors)}`);
     assert.equal(validate({ ...manifest, mediaType: 'application/vnd.pvad.pvads+zip', magic: 'PXA-PXAP-1' }), false);
     assert.equal(validate({ ...manifest, formatId: 'unknown' }), false);
     assert.equal(validate({ ...manifest, contentHash: 'invalid' }), false);
+    assert.equal(validate({ ...manifest, magic: 'PXA-PXAP-1', formatId: 'pxap', mediaType: 'application/vnd.powerdox.pxap+zip' }), false);
   }
 });
 
@@ -85,13 +84,13 @@ test('validates the complete canonical design schema', () => {
     pages: [{ id: 'page-1', elements: [{ id: 'bad', type: 'unknown' }] }],
   }));
   assert.equal(invalid.valid, false);
-  assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.code === 'PXAMCP003'));
+  assert.ok(invalid.diagnostics.some((diagnostic) => diagnostic.code === 'PVADMCP003'));
 });
 
 test('returns stable diagnostics for malformed and oversized JSON', () => {
-  assert.equal(validator.validateJson('{').diagnostics[0].code, 'PXAMCP001');
+  assert.equal(validator.validateJson('{').diagnostics[0].code, 'PVADMCP001');
   assert.equal(
     validator.validateJson(`"${'x'.repeat(10 * 1024 * 1024)}"`).diagnostics[0].code,
-    'PXAMCP002',
+    'PVADMCP002',
   );
 });

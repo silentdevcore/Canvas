@@ -23,38 +23,38 @@ public static class SandboxPolicy
         foreach (var diagnostic in tree.GetDiagnostics().Where(value => value.Severity == DiagnosticSeverity.Error))
         {
             var point = diagnostic.Location.GetLineSpan().StartLinePosition;
-            diagnostics.Add(New("PXACODE001", diagnostic.GetMessage(), point.Line + 1, point.Character + 1));
+            diagnostics.Add(New("PVADCODE001", diagnostic.GetMessage(), point.Line + 1, point.Character + 1));
         }
 
         var root = tree.GetRoot();
         foreach (var directive in root.DescendantTrivia().Where(value => value.IsDirective))
-            diagnostics.Add(At("PXACODE002", "Preprocessor directives are not allowed.", directive.GetLocation()));
+            diagnostics.Add(At("PVADCODE002", "Preprocessor directives are not allowed.", directive.GetLocation()));
         foreach (var node in root.DescendantNodes().Where(value =>
                      value is UnsafeStatementSyntax or PointerTypeSyntax or FunctionPointerTypeSyntax))
-            diagnostics.Add(At("PXACODE003", "Unsafe and pointer code is not allowed.", node.GetLocation()));
+            diagnostics.Add(At("PVADCODE003", "Unsafe and pointer code is not allowed.", node.GetLocation()));
         foreach (var node in root.DescendantNodes().OfType<IdentifierNameSyntax>()
                      .Where(value => value.Identifier.ValueText == "dynamic"))
-            diagnostics.Add(At("PXACODE004", "Dynamic dispatch is not allowed.", node.GetLocation()));
+            diagnostics.Add(At("PVADCODE004", "Dynamic dispatch is not allowed.", node.GetLocation()));
         foreach (var node in root.DescendantNodes().OfType<AttributeSyntax>()
                      .Where(value => value.Name.ToString().Contains("DllImport", StringComparison.OrdinalIgnoreCase)))
-            diagnostics.Add(At("PXACODE005", "Native interop is not allowed.", node.GetLocation()));
+            diagnostics.Add(At("PVADCODE005", "Native interop is not allowed.", node.GetLocation()));
         foreach (var node in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             var expression = node.Expression.ToString();
             if (ForbiddenFragments.Any(fragment => expression.Contains(fragment, StringComparison.OrdinalIgnoreCase)))
-                diagnostics.Add(At("PXACODE006", $"The API '{expression}' is not available in the PVAD sandbox.", node.GetLocation()));
+                diagnostics.Add(At("PVADCODE006", $"The API '{expression}' is not available in the PVAD sandbox.", node.GetLocation()));
             if (expression.EndsWith("DrawImage", StringComparison.Ordinal) &&
                 node.ArgumentList.Arguments.FirstOrDefault()?.Expression is LiteralExpressionSyntax literal &&
                 literal.IsKind(SyntaxKind.StringLiteralExpression))
-                diagnostics.Add(At("PXACODE007", "Image file paths are not allowed; use a tenant asset ID.", node.GetLocation()));
+                diagnostics.Add(At("PVADCODE007", "Image file paths are not allowed; use a tenant asset ID.", node.GetLocation()));
         }
         foreach (var fragment in ForbiddenFragments.Where(fragment => source.Contains(fragment, StringComparison.OrdinalIgnoreCase)))
         {
-            if (!diagnostics.Any(value => value.Code == "PXACODE008" && value.Message.Contains(fragment, StringComparison.Ordinal)))
-                diagnostics.Add(New("PXACODE008", $"Forbidden capability reference: {fragment}.", 1, 1));
+            if (!diagnostics.Any(value => value.Code == "PVADCODE008" && value.Message.Contains(fragment, StringComparison.Ordinal)))
+                diagnostics.Add(New("PVADCODE008", $"Forbidden capability reference: {fragment}.", 1, 1));
         }
         if (System.Text.Encoding.UTF8.GetByteCount(source) > PvadCodeLimits.MaximumSourceBytes)
-            diagnostics.Add(New("PXACODE009", "Source code exceeds the 32 MiB sandbox limit.", 1, 1));
+            diagnostics.Add(New("PVADCODE009", "Source code exceeds the 32 MiB sandbox limit.", 1, 1));
         return diagnostics.DistinctBy(value => (value.Code, value.Line, value.Column, value.Message)).ToList();
     }
 

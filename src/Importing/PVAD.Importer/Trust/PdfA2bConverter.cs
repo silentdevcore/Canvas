@@ -92,9 +92,9 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConformanceValidator.Validate(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics, profile);
         foreach (var diagnostic in validatorDiagnostics.Where(item =>
                      item.Severity == PdfTrustDiagnosticSeverity.Error &&
-                     item.Code is not ("PXAPDFTRUST312" or "PXAPDFTRUST313" or
-                         "PXAPDFTRUST318" or "PXAPDFTRUST319" or "PXAPDFTRUST320" or "PXAPDFTRUST322") &&
-                     !(parsed.SignatureCount > 0 && item.Code == "PXAPDFTRUST332")))
+                     item.Code is not ("PVADPDFTRUST312" or "PVADPDFTRUST313" or
+                         "PVADPDFTRUST318" or "PVADPDFTRUST319" or "PVADPDFTRUST320" or "PVADPDFTRUST322") &&
+                     !(parsed.SignatureCount > 0 && item.Code == "PVADPDFTRUST332")))
         {
             findings.Add(new PdfComplianceConversionFinding(
                 diagnostic.Code,
@@ -113,7 +113,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (color.ConvertibleOperatorCount > 0 && !color.IsBlocked)
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT004",
+                "PVADPDFACONVERT004",
                 PdfTrustDiagnosticSeverity.Info,
                 $"{color.ConvertibleOperatorCount} device-dependent colour operator(s) will be converted to sRGB deterministically."));
         }
@@ -121,7 +121,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (color.ConvertibleImageCount > 0 && !color.IsBlocked)
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT015",
+                "PVADPDFACONVERT015",
                 PdfTrustDiagnosticSeverity.Info,
                 $"{color.ConvertibleImageCount} losslessly decoded image XObject(s) will be converted to sRGB deterministically."));
         }
@@ -129,7 +129,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (HasUnsupportedInteractiveForm(parsed.Graph))
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT005",
+                "PVADPDFACONVERT005",
                 PdfTrustDiagnosticSeverity.Error,
                 "Interactive form fields are not supported by the initial PDF/A-2b conversion path."));
         }
@@ -139,11 +139,11 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         {
             findings.Add(profile == PdfArchiveProfile.PdfA3b
                 ? new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT013",
+                    "PVADPDFACONVERT013",
                     PdfTrustDiagnosticSeverity.Info,
                     $"{embeddedFileCount} embedded file specification(s) will be retained and given the /AFRelationship and /AF associations PDF/A-3 requires.")
                 : new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT006",
+                    "PVADPDFACONVERT006",
                     PdfTrustDiagnosticSeverity.Error,
                     "Embedded files are not permitted by PDF/A-2b. Target PDF/A-3b to retain them."));
         }
@@ -151,7 +151,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (HasUnsupportedInfoProperties(parsed.Graph))
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT008",
+                "PVADPDFACONVERT008",
                 PdfTrustDiagnosticSeverity.Error,
                 "The information dictionary contains custom or unsupported properties that cannot yet be synchronized with an XMP extension schema."));
         }
@@ -161,13 +161,13 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             if (HasVisibleSignatureAppearance(parsed.Graph))
             {
                 findings.Add(new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT009",
+                    "PVADPDFACONVERT009",
                     PdfTrustDiagnosticSeverity.Error,
                     "A signature field has a visible appearance. PVAD cannot remove it without changing visible content; flattening must be implemented before conversion."));
             }
 
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT007",
+                "PVADPDFACONVERT007",
                 PdfTrustDiagnosticSeverity.Warning,
                 $"A full rewrite will invalidate and remove {parsed.SignatureCount} existing signature object(s). Explicit approval is required."));
         }
@@ -175,7 +175,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         if (findings.All(static item => item.Severity != PdfTrustDiagnosticSeverity.Error))
         {
             findings.Add(new PdfComplianceConversionFinding(
-                "PXAPDFACONVERT000",
+                "PVADPDFACONVERT000",
                 PdfTrustDiagnosticSeverity.Info,
                 $"The source can be converted to {ProfileName(profile)} without discarding visible content. PVAD will replace PDF/A identification metadata and the output intent."));
         }
