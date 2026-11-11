@@ -178,7 +178,10 @@ public sealed class PdfViewerFormExtractionService
 
         var flags = ResolveInteger(current.Flags, resolver) ?? 0;
         var kind = ResolveKind(fieldType, flags, ResolveOptions(current.Options, resolver));
-        var updatedField = new PdfDictionary(new Dictionary<string, PdfObject>(field.Values, StringComparer.Ordinal));
+        var updatedValues = new Dictionary<string, PdfObject>(field.Values, StringComparer.Ordinal);
+        // A stored normal appearance represents the old value; let viewers rebuild it after editing.
+        if (kind is "dropdown" or "list") updatedValues.Remove("AP");
+        var updatedField = new PdfDictionary(updatedValues);
         ApplyValueUpdate(updatedField, kind, update.Value);
         appendedObjects.Add((objectId, updatedField));
 

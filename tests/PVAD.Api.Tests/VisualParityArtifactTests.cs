@@ -42,7 +42,7 @@ public sealed class VisualParityArtifactTests
             .Select(match => match.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
         Assert.Empty(fixtureTypes.Except(mapperTypes));
-        var fontLoader = new PVAD.Pdf.PdfFontLoader(Path.Combine(root, "assets", "fonts", "liberation"));
+        var fontLoader = new PVAD.Pdf.PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
 
         var qrCode = design.Pages.SelectMany(page => page.Elements).SingleOrDefault(element => element.Type == "qrcode");
         if (qrCode is not null)
@@ -63,6 +63,16 @@ public sealed class VisualParityArtifactTests
             .ToBytes(DesignJsonMapper.BuildSaveOptions(design));
         AssertPdf(backendPdf);
         await File.WriteAllBytesAsync(Path.Combine(outputDirectory, "backend.pdf"), backendPdf);
+        var parsed = await new PVAD.Importer.PdfImporter().LoadAsync(new MemoryStream(backendPdf));
+        var textMetrics = parsed.Pages.SelectMany((page, index) => page.TextObjects.Select(text => new
+        {
+            Page = index + 1, text.Text, X = text.Transform.E,
+            Baseline = (page.MediaBox?.Height ?? 842) - text.Transform.F,
+            Advance = text.Glyphs.Sum(glyph => glyph.Advance), text.FontSize,
+            FontHash = text.EmbeddedFontBytes.IsEmpty ? null
+                : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(text.EmbeddedFontBytes.Span)).ToLowerInvariant()
+        }));
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "text-metrics.json"), JsonSerializer.Serialize(textMetrics, JsonOptions));
 
         var service = CreatePackagedWorkerService(fontLoader);
         var conversion = await service.ConvertAsync(

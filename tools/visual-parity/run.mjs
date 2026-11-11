@@ -6,6 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
+import { comparePdfTextRun } from './text-metrics.mjs';
 import playwright from '../../pvad-designer/node_modules/@playwright/test/index.js';
 import { createServer } from '../../pvad-designer/node_modules/vite/dist/node/index.js';
 
@@ -58,11 +59,12 @@ async function renderBrowserSurfaces(fixture) {
     server: { host: '127.0.0.1', port: 4187, strictPort: true },
     logLevel: 'warn',
   });
+  let browser;
 
   try {
     await server.listen();
     await waitForServer();
-    let browser;
+    const pdfTextMetrics = JSON.parse(await readFile(path.join(raw, 'text-metrics.json'), 'utf8'));
     try {
       browser = await chromium.launch({ channel: 'chrome', headless: true });
     } catch {
@@ -129,12 +131,36 @@ async function renderBrowserSurfaces(fixture) {
         throw new Error(`Symbol images did not become ready: ${JSON.stringify(state)}`, { cause: error });
       }
       await page.evaluate(async () => { await document.fonts.ready; });
+      const clippedRtl = await page.evaluate(() => [...document.querySelectorAll('[data-element-id]')]
+        .flatMap(element => [...element.querySelectorAll('text[direction="rtl"]')].flatMap(text => {
+          const bounds = text.getBBox();
+          const view = text.ownerSVGElement?.viewBox.baseVal;
+          return !view || bounds.width <= 0 || bounds.x < -1 || bounds.x + bounds.width > view.width + 1
+            ? [element.getAttribute('data-element-id')] : [];
+        })));
+      if (clippedRtl.length) throw new Error(`RTL text is missing or clipped on ${surface}: ${clippedRtl.join(', ')}`);
       await page.waitForTimeout(300);
       geometry[surface] = {};
       const pages = page.locator('[data-parity-page]');
       for (let index = 0; index < await pages.count(); index += 1) {
         const pageNumber = index + 1;
         const pageLocator = pages.nth(index);
+        const clippedFootnotes = await pageLocator.evaluate(node => [...node.querySelectorAll('[data-footnote-body]')]
+          .flatMap(text => {
+            const box = text.getBoundingClientRect();
+            let parent = text.parentElement;
+            while (parent && node.contains(parent)) {
+              const style = getComputedStyle(parent);
+              const clip = parent.getBoundingClientRect();
+              if ((/hidden|clip/.test(style.overflowY) && (box.top < clip.top - 1 || box.bottom > clip.bottom + 1))
+                || (/hidden|clip/.test(style.overflowX) && (box.left < clip.left - 1 || box.right > clip.right + 1)))
+                return [text.textContent];
+              parent = parent.parentElement;
+            }
+            return box.width <= 0 || box.height <= 0 ? [text.textContent] : [];
+          }));
+        if (clippedFootnotes.length)
+          throw new Error(`Footnote text is missing or clipped on ${surface} page ${pageNumber}.`);
         await pageLocator.screenshot({ path: path.join(raw, `${surface}-page-${pageNumber}.png`) });
         const pageBox = await pageLocator.boundingBox();
         const elements = pageLocator.locator('[data-element-id]');
@@ -170,15 +196,29 @@ async function renderBrowserSurfaces(fixture) {
             width: layoutBox.width,
             height: layoutBox.height,
           };
+          const fixtureElement = fixture.pages[index].elements.find(item => item.id === id);
+          if (['text', 'link'].includes(fixtureElement?.type) && fixtureElement.textDirection !== 'rtl'
+            && (!fixtureElement.style?.textAlign || fixtureElement.style.textAlign === 'left')
+            && !fixtureElement.style?.rotation) {
+            const runs = await element.locator('svg text').evaluateAll(nodes => nodes.map(node => {
+              const position = new DOMPoint(node.x.baseVal.getItem(0).value, node.y.baseVal.getItem(0).value)
+                .matrixTransform(node.getScreenCTM());
+              return { text: node.textContent, x: position.x, baseline: position.y, advance: node.getComputedTextLength() };
+            }));
+            if (!runs.length && fixtureElement.content?.trim()) throw new Error(`Missing browser text metrics for ${id}.`);
+            const comparisons = runs.map(run => {
+              const actual = { ...run, x: run.x - pageBox.x, baseline: run.baseline - pageBox.y };
+              return comparePdfTextRun(actual, pdfTextMetrics, pageNumber, `${id} on ${surface}`);
+            });
+            geometry[surface][id].textRuns = comparisons;
+          }
         }
       }
     }
-    await browser.close();
-    await server.close();
     return geometry;
-  } catch (error) {
+  } finally {
+    await browser?.close();
     await server.close();
-    throw error;
   }
 }
 
@@ -454,6 +494,7 @@ ${pageCards}<h2>Per-element comparison</h2><table><thead><tr><th>Element</th><th
 
 async function main() {
   requireTool('pdftoppm');
+  requireTool('pdftotext');
   requireTool('magick');
   requireTool('compare');
   requireTool('pdfimages');
@@ -480,6 +521,17 @@ async function main() {
   process.stdout.write('Rasterizing backend PDFs (4x supersampled to 72 DPI)...\n');
   await rasterizePdf('backend');
   await rasterizePdf('csharp');
+  for (const pdf of ['backend', 'csharp']) {
+    const extracted = run('pdftotext', ['-enc', 'UTF-8', path.join(raw, `${pdf}.pdf`), '-']).stdout;
+    const normalized = extracted.replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '').replace(/\s+/g, ' ');
+    for (const element of fixture.pages.flatMap(page => page.elements)) {
+      if (element.type === 'text' && element.language?.startsWith('ar') && element.content) {
+        const words = element.content.trim().split(/\s+/);
+        if (!words.every(word => normalized.includes(word) || normalized.includes([...word].reverse().join(''))))
+          throw new Error(`Arabic text extraction lost content in ${pdf}: ${element.id}`);
+      }
+    }
+  }
   // Only the maintained electronic-invoice fixtures carry a canonical invoice, so only they have a
   // dedicated hybrid rendering to compare.
   const hasHybrid = existsSync(path.join(raw, 'hybrid.pdf'));

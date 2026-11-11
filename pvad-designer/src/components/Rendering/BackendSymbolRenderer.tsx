@@ -112,7 +112,7 @@ export default function BackendSymbolRenderer({
           height: '100%',
           display: 'block',
           objectFit: 'fill',
-          imageRendering: 'pixelated',
+          imageRendering: type === 'qrcode' ? 'auto' : 'pixelated',
         }} />
       ) : type === 'qrcode' ? (
         <QRCodeSVG

@@ -68,6 +68,13 @@ internal sealed class PdfWriter
             .Cast<PdfEmbeddedFont>()
             .ToList();
 
+        // Normal choice appearances use the same packaged face as the Designer, not viewer substitution.
+        PdfEmbeddedFont? choiceFont = null;
+        if (document.Pages.Any(page => page.ComboBoxAnnotations.Count > 0 || page.ListBoxAnnotations.Count > 0)
+            && document.FontLoader is not null && document.FontLoader.TryLoad("en", out choiceFont)
+            && !usedEmbeddedFonts.Contains(choiceFont!))
+            usedEmbeddedFonts.Add(choiceFont!);
+
         var imagesByKey = document.Pages
             .SelectMany(static page => page.Elements)
             .OfType<ImageElement>()
@@ -115,9 +122,8 @@ internal sealed class PdfWriter
 
         var usedOpacities = document.Pages
             .SelectMany(static page => page.Elements)
-            .OfType<ImageElement>()
-            .Select(static image => image.Opacity)
-            .Where(static opacity => opacity is > 0 and < 1)
+            .Select(static element => element switch { ImageElement image => image.Opacity, TextElement text => text.Opacity, _ => 1d })
+            .Where(static opacity => opacity is >= 0 and < 1)
             .Distinct()
             .OrderBy(static opacity => opacity)
             .ToList();
@@ -144,11 +150,17 @@ internal sealed class PdfWriter
         foreach (var (ef, ids) in embeddedFontObjects)
         {
             // Collect all code points used by this font across all pages
-            var usedCodePoints = document.Pages
+            var fontElements = document.Pages
                 .SelectMany(static p => p.Elements)
                 .OfType<TextElement>()
                 .Where(el => ReferenceEquals(el.EmbeddedFont, ef))
+                .ToList();
+            var usedCodePoints = fontElements
                 .SelectMany(static el => el.Text.EnumerateRunes().Select(static r => r.Value))
+                .Concat(ReferenceEquals(ef, choiceFont) ? document.Pages.SelectMany(page =>
+                    page.ComboBoxAnnotations.SelectMany(combo => combo.Options.Append(combo.SelectedValue ?? ""))
+                        .Concat(page.ListBoxAnnotations.SelectMany(list => list.Options)))
+                    .SelectMany(text => text.EnumerateRunes().Select(rune => rune.Value)) : [])
                 .Distinct()
                 .OrderBy(static cp => cp)
                 .ToList();
@@ -165,11 +177,13 @@ internal sealed class PdfWriter
                 $"/CapHeight 700 /StemV 80 /FontFile2 {ids.FontStreamId} 0 R >>\n"));
 
             // 3. ToUnicode CMap stream (maps TrueType glyph-ID CIDs back to Unicode for text extraction)
-            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(ef, usedCodePoints));
+            var shapedGlyphs = ef.IsRtlCapable
+                ? fontElements.SelectMany(element => ef.Shape(element.Text)).ToArray() : [];
+            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(ef, usedCodePoints, shapedGlyphs));
             objects.Add(new PdfIndirectObject(ids.ToUnicodeId, BuildContentStreamObject(cMapBytes, compressed: false)));
 
             // 4. CIDFont with /W widths array
-            var widthsArray = BuildCidFontWidthsArray(ef, usedCodePoints);
+            var widthsArray = BuildCidFontWidthsArray(ef, usedCodePoints, shapedGlyphs);
             objects.Add(new PdfIndirectObject(ids.CidFontId,
                 $"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /{ef.BaseFontName} " +
                 $"/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> " +
@@ -230,6 +244,8 @@ internal sealed class PdfWriter
         var allMultilineFieldObjectIds = new List<int>();
         var allTextFieldObjectIds = new List<int>();
         var allCheckBoxObjectIds = new List<int>();
+        var checkboxAppearanceIds = new Dictionary<int, (int Off, int On)>();
+        var choiceAppearanceIds = new Dictionary<int, int>();
         var allListBoxObjectIds = new List<int>();
         var allSignatureFieldObjectIds = new List<int>();
         var allPushButtonObjectIds = new List<int>();
@@ -258,6 +274,7 @@ internal sealed class PdfWriter
                 var comboId = nextObjectId++;
                 comboIds.Add(comboId);
                 allComboFieldObjectIds.Add(comboId);
+                choiceAppearanceIds[comboId] = nextObjectId++;
             }
 
             pageComboAnnotObjectIds[i] = comboIds;
@@ -288,6 +305,7 @@ internal sealed class PdfWriter
                 var cbId = nextObjectId++;
                 checkBoxIds.Add(cbId);
                 allCheckBoxObjectIds.Add(cbId);
+                checkboxAppearanceIds[cbId] = (nextObjectId++, nextObjectId++);
             }
 
             pageCheckBoxAnnotObjectIds[i] = checkBoxIds;
@@ -298,6 +316,7 @@ internal sealed class PdfWriter
                 var listBoxId = nextObjectId++;
                 listBoxIds.Add(listBoxId);
                 allListBoxObjectIds.Add(listBoxId);
+                choiceAppearanceIds[listBoxId] = nextObjectId++;
             }
             pageListBoxAnnotObjectIds[i] = listBoxIds;
 
@@ -449,9 +468,8 @@ internal sealed class PdfWriter
                 StringComparer.OrdinalIgnoreCase);
 
             var pageOpacities = page.Elements
-                .OfType<ImageElement>()
-                .Select(static image => image.Opacity)
-                .Where(static opacity => opacity is > 0 and < 1)
+                .Select(static element => element switch { ImageElement image => image.Opacity, TextElement text => text.Opacity, _ => 1d })
+                .Where(static opacity => opacity is >= 0 and < 1)
                 .Distinct()
                 .ToList();
 
@@ -548,6 +566,10 @@ internal sealed class PdfWriter
                     : (combo.Options.Count > 0 ? combo.Options[0] : string.Empty);
                 var comboStructure = BuildAnnotationStructureSegment(combo, accessibleAnnotationMap);
                 var comboDescription = OptionalHexEntry("TU", AccessibleDescription(combo.Accessibility, combo.FieldName));
+                var appearanceId = choiceAppearanceIds[comboObjectId];
+                objects.Add(new PdfIndirectObject(appearanceId, BuildChoiceAppearance(
+                    combo.Width, combo.Height, combo.FontSize, [selectedVal], [selectedVal], true,
+                    document.FontLoader, choiceFont, choiceFont is null ? acroFormHelvFontObjectId!.Value : embeddedFontObjects[choiceFont].Type0Id)));
 
                 var widgetObject =
                     $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 " +
@@ -559,7 +581,7 @@ internal sealed class PdfWriter
                     $"/DA (/Helv {FormatNumber(combo.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
                     $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
-                    $"/BS << /W 1 /S /S >>{comboDescription}{comboStructure} >>\n";
+                    $"/BS << /W 1 /S /S >> /F 4 /AP << /N {appearanceId} 0 R >>{comboDescription}{comboStructure} >>\n";
 
                 objects.Add(new PdfIndirectObject(comboObjectId, widgetObject));
             }
@@ -639,12 +661,16 @@ internal sealed class PdfWriter
                     FormatNumber(cb.Y + cb.Height));
 
                 var cbValue = cb.IsChecked ? "/Yes" : "/Off";
+                var appearance = checkboxAppearanceIds[cbObjectId];
+                objects.Add(new PdfIndirectObject(appearance.Off, BuildCheckBoxAppearance(cb, false)));
+                objects.Add(new PdfIndirectObject(appearance.On, BuildCheckBoxAppearance(cb, true)));
                 var checkBoxStructure = BuildAnnotationStructureSegment(cb, accessibleAnnotationMap);
                 var checkBoxDescription = OptionalHexEntry("TU", AccessibleDescription(cb.Accessibility, cb.FieldName));
                 var cbWidgetObject =
-                    $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 0 " +
+                    $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 0 /F 4 " +
                     $"/T ({EscapeLiteralString(cb.FieldName)}) " +
                     $"/V {cbValue} /AS {cbValue} " +
+                    $"/AP << /N << /Off {appearance.Off} 0 R /Yes {appearance.On} 0 R >> >> " +
                     $"/Rect {cbRect} " +
                     $"/P {pageObjectId} 0 R " +
                     $"/DA (/Helv 0 Tf 0 g) " +
@@ -672,11 +698,15 @@ internal sealed class PdfWriter
                 var flags = listBox.MultiSelect ? 2097152 : 0;
                 var structure = BuildAnnotationStructureSegment(listBox, accessibleAnnotationMap);
                 var description = OptionalHexEntry("TU", AccessibleDescription(listBox.Accessibility, listBox.FieldName));
+                var appearanceId = choiceAppearanceIds[objectId];
+                objects.Add(new PdfIndirectObject(appearanceId, BuildChoiceAppearance(
+                    listBox.Width, listBox.Height, listBox.FontSize, listBox.Options, values, false,
+                    document.FontLoader, choiceFont, choiceFont is null ? acroFormHelvFontObjectId!.Value : embeddedFontObjects[choiceFont].Type0Id)));
                 var widget = $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff {flags} /F 4 " +
                     $"/T ({EscapeLiteralString(listBox.FieldName)}) /Opt [{listOptions}]{valueSegment} " +
                     $"/Rect {rect} /P {pageObjectId} 0 R /DA (/Helv {FormatNumber(listBox.FontSize)} Tf 0 g) " +
                     $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
-                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> /BS << /W 1 /S /S >>{description}{structure} >>\n";
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> /BS << /W 1 /S /S >> /AP << /N {appearanceId} 0 R >>{description}{structure} >>\n";
                 objects.Add(new PdfIndirectObject(objectId, widget));
             }
 
@@ -1419,6 +1449,78 @@ internal sealed class PdfWriter
                 $"<< /Type /Annot /Subtype /Redact /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /IC {color}{opacitySegment}{appearanceSegment} >>\n",
             _ => throw new ArgumentOutOfRangeException(nameof(annotation), annotation.Type, "Unsupported review annotation type.")
         };
+    }
+
+    private static byte[] BuildChoiceAppearance(double width, double height, double fontSize,
+        IReadOnlyList<string> options, IReadOnlyList<string> selected, bool combo,
+        PdfFontLoader? loader, PdfEmbeddedFont? font, int fontObjectId)
+    {
+        var page = new PdfPage(width, height, PdfStandardFont.Helvetica, loader);
+        page.DrawRectangle(0.5, 0.5, Math.Max(0.01, width - 1), Math.Max(0.01, height - 1),
+            fill: true, strokeColor: PdfColor.Black, fillColor: PdfColor.White);
+        var frame = PdfPageContentRenderer.RenderPage(page, new Dictionary<PdfStandardFont, string>(), new Dictionary<string, string>());
+        var textPage = new PdfPage(width, height, PdfStandardFont.Helvetica, loader);
+        var lineHeight = fontSize * 1.1;
+        for (var index = 0; index < options.Count; index++)
+        {
+            var top = 2 + index * lineHeight;
+            if (!combo && top + fontSize > height) break;
+            var isSelected = !combo && selected.Contains(options[index], StringComparer.Ordinal);
+            if (isSelected)
+                textPage.DrawRectangle(1, height - top - lineHeight, Math.Max(0.01, width - 2), lineHeight,
+                    lineWidth: 0.01, fill: true, fillColor: PdfColor.Black);
+            var baseline = combo ? (height - fontSize) / 2 + fontSize * 0.2 : height - top - fontSize * 0.9;
+            textPage.DrawText(options[index], 2, baseline, new PdfDrawTextOptions
+            {
+                FontSize = fontSize, FillColor = isSelected ? PdfColor.White : PdfColor.Black
+            });
+        }
+        var embedded = font is null ? new Dictionary<PdfEmbeddedFont, string>()
+            : new Dictionary<PdfEmbeddedFont, string> { [font] = "ChoiceFont" };
+        var content = frame + $"q\n1 1 {FormatNumber(Math.Max(0, width - 2))} {FormatNumber(Math.Max(0, height - 2))} re W n\n"
+            + PdfPageContentRenderer.RenderPage(textPage, new Dictionary<PdfStandardFont, string> { [PdfStandardFont.Helvetica] = "ChoiceFont" },
+                new Dictionary<string, string>(), embeddedFontResourceNames: embedded) + "Q\n";
+        return BuildBinaryStreamObject(Encoding.ASCII.GetBytes(content),
+            $"/Type /XObject /Subtype /Form /BBox [0 0 {FormatNumber(width)} {FormatNumber(height)}] /Resources << /Font << /ChoiceFont {fontObjectId} 0 R >> >>");
+    }
+
+    private static byte[] BuildCheckBoxAppearance(PdfCheckBoxAnnotation annotation, bool selected)
+    {
+        var width = annotation.Width;
+        var height = annotation.Height;
+        var stroke = Math.Min(annotation.BorderWidth, Math.Min(width, height) / 2);
+        var page = new PdfPage(width, height, PdfStandardFont.Helvetica);
+        page.DrawRectangle(stroke / 2, stroke / 2, width - stroke, height - stroke,
+            lineWidth: stroke, fill: annotation.BackgroundColor.HasValue,
+            strokeColor: annotation.BorderColor, fillColor: annotation.BackgroundColor);
+        if (selected)
+        {
+            if (annotation.CheckStyle == "dot")
+                page.DrawCircle(width / 2, height / 2, Math.Min(width, height) * 3 / 14,
+                    lineWidth: 0.01, fill: true, strokeColor: annotation.BorderColor, fillColor: annotation.BorderColor);
+            else if (annotation.CheckStyle == "cross")
+            {
+                page.DrawLine(width * 3 / 14, height * 3 / 14, width * 11 / 14, height * 11 / 14,
+                    stroke, annotation.BorderColor);
+                page.DrawLine(width * 11 / 14, height * 3 / 14, width * 3 / 14, height * 11 / 14,
+                    stroke, annotation.BorderColor);
+            }
+            else
+            {
+                page.DrawLine(width * 2.5 / 14, height * 7.5 / 14, width * 5.5 / 14, height * 4 / 14,
+                    stroke, annotation.BorderColor);
+                page.DrawLine(width * 5.5 / 14, height * 4 / 14, width * 11.5 / 14, height * 11 / 14,
+                    stroke, annotation.BorderColor);
+            }
+        }
+        var content = PdfPageContentRenderer.RenderPage(page, new Dictionary<PdfStandardFont, string>(),
+            new Dictionary<string, string>());
+        var bytes = Encoding.ASCII.GetBytes(content);
+        using var memory = new MemoryStream();
+        memory.Write(Encoding.ASCII.GetBytes($"<< /Type /XObject /Subtype /Form /BBox [0 0 {FormatNumber(width)} {FormatNumber(height)}] /Resources << >> /Length {bytes.Length} >>\nstream\n"));
+        memory.Write(bytes);
+        memory.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        return memory.ToArray();
     }
 
     private static byte[] BuildReviewAnnotationAppearanceObject(PdfReviewAnnotation annotation, int? helvFontObjectId)
@@ -2202,10 +2304,12 @@ internal sealed class PdfWriter
         return memory.ToArray();
     }
 
-    private static string BuildToUnicodeCMap(PdfEmbeddedFont font, IReadOnlyList<int> codePoints)
+    private static string BuildToUnicodeCMap(PdfEmbeddedFont font, IReadOnlyList<int> codePoints,
+        IReadOnlyList<PdfEmbeddedFont.ShapedGlyph> shapedGlyphs)
     {
         var mappings = codePoints
-            .Select(codePoint => (CodePoint: codePoint, GlyphId: font.GetGlyphId(codePoint)))
+            .Select(codePoint => (Unicode: char.ConvertFromUtf32(codePoint), GlyphId: font.GetGlyphId(codePoint)))
+            .Concat(shapedGlyphs.Select(glyph => (glyph.Unicode, GlyphId: glyph.Id)))
             .Where(static mapping => mapping.GlyphId != 0)
             .GroupBy(static mapping => mapping.GlyphId)
             .Select(static group => group.First())
@@ -2230,10 +2334,7 @@ internal sealed class PdfWriter
             foreach (var mapping in chunk)
             {
                 var cidHex = mapping.GlyphId.ToString("X4", CultureInfo.InvariantCulture);
-                var unicodeHex = mapping.CodePoint <= 0xFFFF
-                    ? mapping.CodePoint.ToString("X4", CultureInfo.InvariantCulture)
-                    : string.Concat(char.ConvertFromUtf32(mapping.CodePoint)
-                        .Select(character => ((int)character).ToString("X4", CultureInfo.InvariantCulture)));
+                var unicodeHex = Convert.ToHexString(Encoding.BigEndianUnicode.GetBytes(mapping.Unicode));
                 sb.AppendLine($"<{cidHex}> <{unicodeHex}>");
             }
             sb.AppendLine("endbfchar");
@@ -2246,12 +2347,14 @@ internal sealed class PdfWriter
         return sb.ToString();
     }
 
-    private static string BuildCidFontWidthsArray(PdfEmbeddedFont font, IReadOnlyList<int> codePoints)
+    private static string BuildCidFontWidthsArray(PdfEmbeddedFont font, IReadOnlyList<int> codePoints,
+        IReadOnlyList<PdfEmbeddedFont.ShapedGlyph> shapedGlyphs)
     {
         if (codePoints.Count == 0) return "[]";
 
         var sb = new StringBuilder("[");
-        foreach (var glyphId in codePoints.Select(font.GetGlyphId).Where(static glyphId => glyphId != 0).Distinct().Order())
+        foreach (var glyphId in codePoints.Select(font.GetGlyphId).Concat(shapedGlyphs.Select(glyph => glyph.Id))
+            .Where(static glyphId => glyphId != 0).Distinct().Order())
         {
             var advance = font.GetGlyphAdvance(glyphId);
             var width = font.UnitsPerEm == 0 ? 500 : (int)Math.Round(advance / font.UnitsPerEm * 1000);

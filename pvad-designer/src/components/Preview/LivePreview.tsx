@@ -31,6 +31,9 @@ import {
   PdfSignatureRenderer,
 } from '@/components/Rendering/PdfControlRenderer';
 import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
+import { canRenderPdfTable, PdfTableRenderer } from '@/components/Rendering/PdfTableRenderer';
+import { PdfRadioRenderer } from '@/components/Rendering/PdfControlRenderer';
+import { PdfTableOfContentsRenderer, PdfWatermarkRenderer } from '@/components/Rendering/PdfDocumentRenderer';
 import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
@@ -39,6 +42,7 @@ import {
   PdfContentControlRenderer,
   PdfLayoutBoundaryRenderer,
   PdfNoteRenderer,
+  PdfFootnoteRenderer,
 } from '@/components/Rendering/PdfStructureRenderer';
 
 interface LivePreviewProps {
@@ -255,7 +259,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   const wrapperStyle = (el: SimpleElement): React.CSSProperties => {
     const s = el.style ?? {};
-    const rendersOwnBox = ['area', 'arrow', 'bookmark', 'checkbox', 'circle', 'comment', 'contentcontrol', 'draw', 'dropdown', 'field', 'highlight', 'line', 'note', 'pageboundary', 'rect', 'richtext', 'shape', 'subsection', 'table', 'text', 'textarea'].includes(el.type);
+    const rendersOwnBox = ['area', 'arrow', 'bookmark', 'button', 'checkbox', 'checkmark', 'circle', 'comment', 'contentcontrol', 'draw', 'dropdown', 'endnote', 'field', 'footnote', 'highlight', 'line', 'link', 'note', 'optionlist', 'pageboundary', 'radio', 'rect', 'richtext', 'shape', 'signature', 'subsection', 'table', 'text', 'textarea', 'toc', 'watermark'].includes(el.type);
 
     let bgColor: string | undefined;
     const rawBg = s.backgroundColor ?? s.fill;
@@ -279,7 +283,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       paddingBottom: !rendersOwnBox && s.paddingBottom ? s.paddingBottom * zoom : undefined,
       paddingLeft:   !rendersOwnBox && s.paddingLeft   ? s.paddingLeft   * zoom : undefined,
       boxSizing: 'border-box',
-      overflow: 'hidden',
+      overflow: ['contentcontrol', 'footnote', 'endnote', 'text', 'field', 'textarea', 'rect', 'shape', 'circle', 'note', 'table'].includes(el.type) ? 'visible' : 'hidden',
     };
   };
 
@@ -341,6 +345,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     if (element.type === 'line') {
       return <LineRenderer element={element} />;
     }
+
+    if (element.type === 'table' && canRenderPdfTable(element)) return <PdfTableRenderer element={element} />;
 
     if (element.type === 'table') {
       const s = element.style ?? {};
@@ -479,16 +485,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
 
     if (element.type === 'radio') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 4 }}>
-          {(element.options || []).map((opt, i) => (
-            <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: (element.style?.fontSize || 14) * zoom, color: element.style?.color || '#000' }}>
-              <input type="radio" name={element.id} defaultChecked={i === 0} readOnly />
-              {opt}
-            </label>
-          ))}
-        </div>
-      );
+      return <PdfRadioRenderer element={element} />;
     }
 
     if (element.type === 'chart') {
@@ -505,30 +502,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'watermark') {
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: element.style?.opacity ?? 0.18,
-          transform: `rotate(${element.style?.rotation ?? -24}deg) scale(${element.style?.scale ?? 1})`,
-          pointerEvents: 'none', overflow: 'hidden'
-        }}>
-          {element.watermarkMode === 'image' ? (
-            <img src={element.content || 'https://via.placeholder.com/260x80'} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          ) : (
-            <span style={{
-              color: element.style?.color || '#64748b',
-              fontSize: (element.style?.fontSize || 42) * zoom,
-              fontWeight: 'bold',
-              letterSpacing: 2,
-              whiteSpace: 'nowrap',
-              textTransform: 'uppercase'
-            }}>
-              {element.content || 'WATERMARK'}
-            </span>
-          )}
-        </div>
-      );
+      return <PdfWatermarkRenderer element={element} />;
     }
 
     if (element.type === 'note') {
@@ -572,15 +546,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'footnote' || element.type === 'endnote') {
-      const label = element.type === 'footnote' ? '†' : '‡';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12 * zoom, color: '#6366f1', borderLeft: `${3 * zoom}px solid #6366f1`, overflow: 'hidden' }}>
-          <span style={{ fontWeight: 700 }}>{label}</span>
-          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.footnoteText || `${element.type === 'footnote' ? 'Footnote' : 'Endnote'}…`}
-          </span>
-        </div>
-      );
+      return <PdfFootnoteRenderer element={element}
+        pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height} />;
     }
 
     if (element.type === 'bookmark') {
@@ -596,23 +563,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (element.type === 'toc') {
-      const fontSize = (element.style?.fontSize || 13) * zoom;
-      const color = element.style?.color || '#1f2937';
-      const entries = element.tocEntries ?? [];
-      return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: `${8 * zoom}px ${10 * zoom}px`, border: `${zoom}px dashed #94a3b8`, borderRadius: 4 * zoom, background: '#f8fafc' }}>
-          <div style={{ fontSize: 10 * zoom, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6 * zoom, textTransform: 'uppercase' }}>
-            {element.tocTitle || 'Table of Contents'}
-          </div>
-          {entries.map((entry, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'baseline', gap: 4 * zoom, marginBottom: 3 * zoom, paddingLeft: (entry.level - 1) * 12 * zoom, fontSize: entry.level === 1 ? fontSize : fontSize - zoom, fontWeight: entry.level === 1 ? 600 : 400, color }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.text}</span>
-              {element.tocShowLeaderDots !== false && <span style={{ flex: 1, borderBottom: '1px dotted #cbd5e1' }} />}
-              {element.tocShowPageNumbers !== false && <span>{entry.page}</span>}
-            </div>
-          ))}
-        </div>
-      );
+      return <PdfTableOfContentsRenderer element={element} />;
     }
 
     if (element.type === 'number') {

@@ -55,7 +55,7 @@ export function PdfOptionListRenderer({ element }: { element: SimpleElement }) {
         return (
           <g key={index}>
             {form && selected && <rect x="1" y={top} width={Math.max(0, element.width - 2)} height={lineHeight} fill="#000000" />}
-            <text x={form ? 2 : 0} y={top + fontSize * (form ? 0.8 : 0.72)}
+            <text x={form ? 2 : 0} y={top + fontSize * (form ? 0.9 : 0.72)}
               fontFamily={pdfFontFamily(form ? undefined : element.style?.fontFamily)} fontSize={fontSize}
               fill={form ? selected ? '#ffffff' : '#000000' : element.style?.color ?? '#101828'}>
               {form ? option : `${optionListMarker(listStyle, (element.startNumber ?? 1) + index)}${option}`}

@@ -87,8 +87,14 @@ public sealed class PdfViewerFormsControllerTests : IClassFixture<PvadApiTestFac
         Assert.Equal(HttpStatusCode.OK, fillResponse.StatusCode);
         Assert.Equal("application/pdf", fillResponse.Content.Headers.ContentType?.MediaType);
 
+        var filledBytes = await fillResponse.Content.ReadAsByteArrayAsync();
+        var imported = await new PdfImporter().LoadAsync(new MemoryStream(filledBytes));
+        var choices = imported.ObjectGraph.Objects.Values.Select(item => item.Value).OfType<PVAD.Importer.Objects.PdfDictionary>()
+            .Where(field => field["FT"] is PVAD.Importer.Objects.PdfName { Value: "Ch" });
+        Assert.Null(Assert.Single(choices)["AP"]);
+
         using var extractForm = new MultipartFormDataContent();
-        extractForm.Add(new ByteArrayContent(await fillResponse.Content.ReadAsByteArrayAsync())
+        extractForm.Add(new ByteArrayContent(filledBytes)
         {
             Headers =
             {

@@ -148,12 +148,17 @@ import {
   PdfSignatureRenderer,
 } from '@/components/Rendering/PdfControlRenderer';
 import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
+import { canRenderPdfTable, PdfTableRenderer } from '@/components/Rendering/PdfTableRenderer';
+import { resizeTable } from '@/utils/tableDimensions';
+import { PdfRadioRenderer } from '@/components/Rendering/PdfControlRenderer';
+import { PdfTableOfContentsRenderer, PdfWatermarkRenderer } from '@/components/Rendering/PdfDocumentRenderer';
 import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
 import {
   PdfCommentRenderer,
   PdfContentControlRenderer,
   PdfLayoutBoundaryRenderer,
   PdfNoteRenderer,
+  PdfFootnoteRenderer,
 } from '@/components/Rendering/PdfStructureRenderer';
 
 
@@ -1076,6 +1081,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         y: 556,
         width: 300,
         height: 140,
+        cellData: Array.from({ length: 3 }, () => ['', '', '']),
         style: {
           rows: 3,
           columns: 3,
@@ -2551,6 +2557,8 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
       return <PdfCircleRenderer element={element} />;
     }
 
+    if (element.type === 'table' && canRenderPdfTable(element)) return <PdfTableRenderer element={element} />;
+
     if (element.type === 'table') {
       const totalRows    = element.style?.rows ?? 3;
       const columns      = element.style?.columns ?? 3;
@@ -2719,20 +2727,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
 
     if (element.type === 'radio') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {(element.options || []).map((opt, index) => (
-            <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input type="radio" name={element.id} defaultChecked={index === 0} />
-              <span style={{
-                fontFamily: element.style?.fontFamily || 'sans-serif',
-                fontSize: element.style?.fontSize || 14,
-                color: element.style?.color || '#000000'
-              }}>{opt}</span>
-            </label>
-          ))}
-        </div>
-      );
+      return <PdfRadioRenderer element={element} />;
     }
 
     if (element.type === 'chart') {
@@ -2749,43 +2744,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     }
 
     if (element.type === 'watermark') {
-      const isImage = element.watermarkMode === 'image';
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            opacity: element.style?.opacity ?? 0.18,
-            transform: `rotate(${element.style?.rotation ?? -24}deg) scale(${element.style?.scale ?? 1})`,
-            pointerEvents: 'none'
-          }}
-        >
-          {isImage ? (
-            <img
-              src={element.content || 'https://via.placeholder.com/260x80'}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          ) : (
-            <span
-              style={{
-                color: element.style?.color || '#64748b',
-                fontSize: element.style?.fontSize || 42,
-                fontWeight: element.style?.fontWeight || 'bold',
-                letterSpacing: 2,
-                whiteSpace: 'nowrap',
-                textTransform: 'uppercase'
-              }}
-            >
-              {element.content || 'WATERMARK'}
-            </span>
-          )}
-        </div>
-      );
+      return <PdfWatermarkRenderer element={element} />;
     }
 
     if (element.type === 'note') {
@@ -2843,15 +2802,8 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     }
 
     if (element.type === 'footnote' || element.type === 'endnote') {
-      const label = element.type === 'footnote' ? '†' : '‡';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12, color: '#6366f1', borderLeft: '3px solid #6366f1', overflow: 'hidden' }}>
-          <span style={{ fontWeight: 700 }}>{label}</span>
-          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.footnoteText || `${element.type === 'footnote' ? 'Footnote' : 'Endnote'}…`}
-          </span>
-        </div>
-      );
+      return <PdfFootnoteRenderer element={element}
+        pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height} />;
     }
 
     if (element.type === 'bookmark') {
@@ -2875,31 +2827,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     }
 
     if (element.type === 'toc') {
-      const fontSize = element.style?.fontSize || 13;
-      const color = element.style?.color || '#1f2937';
-      const entries = element.tocEntries ?? [];
-      return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: '8px 10px', border: '1px dashed #94a3b8', borderRadius: 4, background: '#f8fafc' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6, textTransform: 'uppercase' }}>
-            Table of Contents
-          </div>
-          {entries.length === 0 ? (
-            <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
-              No headings found. Select a text element and set a Heading Level in the inspector.
-            </div>
-          ) : entries.map((e, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 3,
-              paddingLeft: (e.level - 1) * 12, fontSize: e.level === 1 ? fontSize : fontSize - 1,
-              fontWeight: e.level === 1 ? 600 : 400, color
-            }}>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.text}</span>
-              <span style={{ flexShrink: 0, borderBottom: '1px dotted #cbd5e1', flex: 1, alignSelf: 'center', margin: '0 4px' }} />
-              <span style={{ flexShrink: 0 }}>{e.page}</span>
-            </div>
-          ))}
-        </div>
-      );
+      return <PdfTableOfContentsRenderer element={element} />;
     }
 
     return (
@@ -6980,8 +6908,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
 
 
               {selectedElement.type === 'table' && (() => {
-                const cols = selectedElement.style?.columns ?? 3;
-                const rows = selectedElement.style?.rows ?? 3;
+                const cols = selectedElement.cellData?.[0]?.length || selectedElement.style?.columns || 3;
+                const rows = selectedElement.cellData?.length || selectedElement.style?.rows || 3;
+                const resize = (rowCount: number, columnCount: number) => {
+                  const update = resizeTable(selectedElement, rowCount, columnCount);
+                  if (update) updateSelectedElement(update);
+                };
                 const colAligns = selectedElement.columnAlignments ?? Array.from({ length: cols }, () => 'left' as const);
                 const colWidths = selectedElement.columnWidths ?? Array.from({ length: cols }, () => 0);
                 const selectedCellRow = Math.min(Math.max(Number(selectedElement.style?.selectedCellRow ?? 0), 0), rows - 1);
@@ -7012,12 +6944,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                     <label>
                       <span>{t('elementInspector.table.rows')}</span>
                       <input type="number" min="1" value={rows}
-                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, rows: Number(e.target.value) } })} />
+                        onChange={(e) => resize(Number(e.target.value), cols)} />
                     </label>
                     <label>
                       <span>{t('elementInspector.table.columns')}</span>
                       <input type="number" min="1" value={cols}
-                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, columns: Number(e.target.value) } })} />
+                        onChange={(e) => resize(rows, Number(e.target.value))} />
                     </label>
                     <label>
                       <span>{t('elementInspector.table.borderWidth')}</span>

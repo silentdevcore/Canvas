@@ -1,0 +1,10 @@
+{
+  "id": "designer-pdf-visual-rendering-fixes",
+  "impact": "patch",
+  "components": ["designer", "api", "generator"],
+  "category": "fixed",
+  "summary": "Improved Designer/PDF consistency for text, Arabic, forms, tables, footnotes, shapes, contents and watermarks, including reliable choice-field appearances, colored underlines and QR image scaling.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
