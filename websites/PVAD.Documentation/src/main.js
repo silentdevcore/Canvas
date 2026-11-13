@@ -305,6 +305,7 @@ const editorDocs = [
     related: [
       { label: 'Element Reference', href: '#element-reference' },
       { label: 'Text element', href: '#text-block-element' },
+      { label: 'Canvas and Live Preview guide', href: '../../docs/guides/PVAD.Designer-Preview.md' },
       { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Report migration guide', href: '#report-designer-migration' },

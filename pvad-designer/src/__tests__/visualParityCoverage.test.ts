@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ELEMENT_CATALOG } from '../docs/elementCatalog';
+import { DOCUMENT_RENDERED_ELEMENT_TYPES } from '../components/Rendering/DocumentElementRenderer';
+import { DOCUMENT_LOCALIZED_FIELDS } from '../components/Rendering/documentContent';
 
 type Fixture = { pages: Array<{ elements: Array<{ type: string }> }> };
 
@@ -19,13 +21,30 @@ describe('visual parity coverage contract', () => {
 
   test('fixture and Designer catalog contain the same element types', () => {
     expect([...fixtureTypes].sort()).toEqual([...catalogTypes].sort());
+    expect([...DOCUMENT_RENDERED_ELEMENT_TYPES].sort()).toEqual([...catalogTypes].sort());
+  });
+
+  test('Canvas and Preview delegate printable content to the exhaustive shared renderer', () => {
+    for (const source of [canvasSource, previewSource]) {
+      expect(source).toContain('<DocumentElementRenderer');
+      expect(source.includes('<PdfTextBlockRenderer')).toBe(false);
+      expect(source.includes('<PdfTableRenderer')).toBe(false);
+      expect(source.includes('const tdStyle')).toBe(false);
+      expect(source.includes('const tdSt')).toBe(false);
+      expect(source.includes('via.placeholder.com')).toBe(false);
+    }
+  });
+
+  test('localized display fields remain synchronized with the backend substitution contract', () => {
+    const backendFields = [...backendSource.matchAll(/el\.(\w+)\s*=\s*Substitute\(/g)]
+      .map(match => match[1][0].toLowerCase() + match[1].slice(1));
+    expect([...DOCUMENT_LOCALIZED_FIELDS].sort()).toEqual(backendFields.sort());
   });
 
   test.each([...catalogTypes].sort())('%s is represented by Canvas, Preview, and PDF renderers', type => {
-    const frontendToken = new RegExp(`element\\.type\\s*===\\s*['\"]${type}['\"]`);
     expect({
-      canvas: frontendToken.test(canvasSource),
-      preview: frontendToken.test(previewSource),
+      canvas: canvasSource.includes('<DocumentElementRenderer') && DOCUMENT_RENDERED_ELEMENT_TYPES.includes(type),
+      preview: previewSource.includes('<DocumentElementRenderer') && DOCUMENT_RENDERED_ELEMENT_TYPES.includes(type),
       backend: backendSource.includes(`case "${type}":`),
     }).toEqual({ canvas: true, preview: true, backend: true });
   });

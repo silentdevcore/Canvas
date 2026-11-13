@@ -5,6 +5,7 @@ export const publicGuidePaths = [
   'docs/csharp-cookbook.md', 'docs/native-designer-project-formats.md',
   'docs/charts.md', 'docs/code-designer-workspace.md',
   'docs/guides/PVAD.Styled-Table-Pagination.md',
+  'docs/guides/PVAD.Designer-Preview.md',
   'docs/guides/PVAD.EInvoicing.md', 'docs/guides/PVAD.Pdf-Trust-Generator-Examples.md',
   'docs/guides/PVAD.Pdf-Trust-Migration-Examples.md', 'docs/guides/PVAD.Unified-Migration-Provider-Coverage.md',
 ];

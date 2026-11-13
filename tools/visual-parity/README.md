@@ -3,6 +3,27 @@
 The visual parity tools use deterministic local fixtures and pinned rendering
 settings. `run.mjs` compares Designer surfaces with generated PDF output.
 
+Canvas and Live Preview delegate all 38 element types to
+`pvad-designer/src/components/Rendering/DocumentElementRenderer.tsx`. Surface
+placement and editor interaction controls stay separate from printable content.
+The coverage contract checks that both consumers use the shared dispatcher and
+that its types match the catalog, fixture pack and backend. Display-field
+localization is also checked against the backend substitution list; stable IDs,
+form names and binding paths are not localized.
+
+Run the additional localized pack with:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/shared-renderer.json node tools/visual-parity/run.mjs
+```
+
+The pack uses a French target language, synthetic properties, text/rich text,
+form and signature labels, a note, and a local contained image. It exercises
+normal PDF and real C# execution as well as both browser surfaces. Rendering
+must leave the canonical fixture and its checksum unchanged. This is scoped
+coverage, not certification of every image crop or arbitrary date format; see
+`docs/guides/PVAD.Designer-Preview.md` for remaining limits.
+
 The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
 network-loaded fonts. PDF and generated C# output retain Arabic logical text
 through shaped glyphs and ActualText. In addition to aggregate pixel metrics,
