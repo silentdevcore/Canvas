@@ -1,0 +1,10 @@
+{
+  "id": "designer-shared-document-renderer",
+  "impact": "patch",
+  "components": ["designer", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Canvas and Live Preview share element rendering, image behavior and localized content. Preview exports use the displayed language, and rendering no longer changes the source template.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

@@ -35,7 +35,7 @@ C# PDF execution.
 
 ## P1 - Element fidelity
 
-- [ ] Consolidate duplicated Canvas and Live Preview element rendering behind a shared frontend
+- [x] Consolidate duplicated Canvas and Live Preview element rendering behind a shared frontend
   document renderer while keeping editor interactions separate.
 - [x] Resolve typography, padding, borders, colors, rotation, and control-appearance findings.
 - [x] Use the same packaged font files in Chromium and backend PDF rendering.
@@ -368,3 +368,60 @@ Approved original PNG bytes remain hash-pinned. Repeat runs compare the exact
 decoded RGBA16 pixel hash including dimensions, so PNG timestamp/encoding
 metadata alone does not revoke approval. A changed pixel does. This is not a
 perceptual tolerance or an image-normalization exception.
+
+## Shared Document Renderer (2026-11-13)
+
+- [x] Route all 38 element types in Canvas and Live Preview through one typed
+  dispatcher; keep selection, drag controls and non-printing editor markers separate.
+- [x] Share localized display-field substitution, language visibility and effective
+  geometry without changing stable IDs, form names or binding paths.
+- [x] Preserve the displayed target language in Preview exports, including the
+  format modal, without mutating persisted page settings.
+- [x] Share image fitting, clipping, zero-valued focus coordinates and a local
+  missing-image placeholder; allow recovery when the source changes.
+- [x] Consolidate legacy table and date rendering and apply zoom once to all
+  printable content, including table fonts, padding and borders.
+- [x] Reject catalog/dispatcher coverage drift and localized-field drift against
+  the backend mapper in contract tests.
+- [x] Fix backend language substitution to render a private document copy;
+  repeated language exports preserve the original canonical JSON and checksum.
+- [x] Add a synthetic French-language fixture, compare both UI surfaces with
+  normal and real C# PDF output, and verify the canonical-model checksum.
+- [x] Check synthetic Canvas/Preview surfaces at desktop and mobile sizes.
+- [x] Publish the Preview workflow and limits in the Documentation guide and
+  add a customer-facing patch release fragment without bumping the product version.
+
+The localized fixture has six matches with no P0/P1/P2 findings. The repeated
+full-element pack has 39 matches and one existing P2 finding across 40 instances
+and 38 types. Styled tables have three matches; mixed-layout pages have two
+matches and one existing P2 finding. The normal and C# PDF paths remain
+pixel-identical. Existing Trust references and the two owner-approved bold-text
+comparisons are unchanged; no threshold or baseline was relaxed.
+
+Desktop (1280 x 900) and mobile (390 x 844) checks cover four synthetic document
+surfaces, with identical content/geometry and no browser page errors. They do
+not certify the full authenticated mobile editing workflow.
+
+Current validation: 909 Designer tests in 92 suites and one snapshot, TypeScript
+type-check, Designer production build, 68 Documentation tests and production
+build, 137 focused API tests (rendering, forms, exports, conversion and canonical
+content isolation), and 43 visual-tool/versioning tests pass. Production JS
+excludes the internal parity route and synthetic fixture markers. This is not a
+new full-Solution or full-API test run.
+
+Local reports: `artifacts/shared-renderer-validation/REPORT.md`,
+`artifacts/shared-renderer-validation/localized/visual-parity-report.html`, and
+`artifacts/shared-renderer-validation/browser/report.html`.
+Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer-Preview.md).
+
+### Remaining Variant Coverage
+
+- [ ] Extend backend image parity beyond the audited contained/stretched cases
+  to all cover/none cropping and focus-coordinate combinations.
+- [ ] Define and test the full supported cross-runtime date-format contract;
+  consolidating the existing formatter is not arbitrary .NET format support.
+- [ ] Complete native serif/monospace cross-platform raster review with the
+  intended font files; this consolidation does not approve new font baselines.
+
+No commit, push, deployment, product-version bump or published-release edit was
+performed for this consolidation. Unrelated pending work remains untouched.

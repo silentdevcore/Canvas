@@ -1,0 +1,24 @@
+{
+  "id": "shared-renderer",
+  "name": "Shared localized rendering",
+  "category": "visual-parity",
+  "description": "Synthetic localized display fields rendered by Canvas, Preview and both PDF paths.",
+  "pages": [{
+    "id": "page-1",
+    "elements": [
+      { "id": "localized-text", "type": "text", "x": 20, "y": 20, "width": 240, "height": 26, "content": "{{TITLE}}", "style": { "fontSize": 12 } },
+      { "id": "localized-richtext", "type": "richtext", "x": 20, "y": 60, "width": 280, "height": 40, "htmlContent": "<p>{{TITLE}}</p>", "style": { "fontSize": 12 } },
+      { "id": "localized-field", "type": "field", "x": 20, "y": 120, "width": 240, "height": 48, "fieldName": "customer", "fieldLabel": "{{TITLE}}" },
+      { "id": "localized-signature", "type": "signature", "x": 20, "y": 190, "width": 240, "height": 50, "signatureLabel": "{{TITLE}}" },
+      { "id": "localized-note", "type": "note", "x": 20, "y": 265, "width": 280, "height": 85, "noteTitle": "{{TITLE}}", "noteBody": "{{TITLE}}" },
+      { "id": "local-image", "type": "image", "x": 20, "y": 390, "width": 160, "height": 80,
+        "content": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "fitMode": "contain", "preserveAspectRatio": true }
+    ]
+  }],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 340, "height": 520, "orientation": "portrait", "backgroundColor": "#ffffff",
+    "systemLanguage": "en", "targetLanguage": "fr", "activeLanguages": ["en", "fr"],
+    "localizedProperties": [{ "key": "TITLE", "scope": "global", "localizedValues": { "en": "Hello", "fr": "Bonjour" } }]
+  }
+}

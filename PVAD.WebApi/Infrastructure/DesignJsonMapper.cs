@@ -1617,20 +1617,21 @@ public static class DesignJsonMapper
     }
 
     /// <summary>
-    /// Mutates element content in-place, replacing {{KEY}} placeholders with the resolved
-    /// property values for the target language. Operates on a cloned element list to avoid
-    /// modifying the caller's design object.
+    /// Resolves localized content on a private document copy so rendering never changes
+    /// the canonical template or the Code Worker's returned model and checksum.
     /// </summary>
     private static DesignExportDto ApplyPropertySubstitutions(
         DesignExportDto design,
         Dictionary<string, string> props)
     {
-        foreach (var page in design.Pages)
+        var renderedDesign = JsonSerializer.Deserialize<DesignExportDto>(JsonSerializer.SerializeToUtf8Bytes(design))
+            ?? throw new InvalidOperationException("Cannot copy the design for localized rendering.");
+        foreach (var page in renderedDesign.Pages)
             foreach (var el in page.Elements)
                 SubstituteElement(el, props);
-        foreach (var el in design.SharedElements)
+        foreach (var el in renderedDesign.SharedElements)
             SubstituteElement(el, props);
-        return design;
+        return renderedDesign;
     }
 
     private static Dictionary<string, string> BuildEvaluationProperties(
