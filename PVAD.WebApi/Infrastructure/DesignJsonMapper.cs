@@ -905,6 +905,20 @@ public static class DesignJsonMapper
                     AlternateRowFillColor = zebraColor,
                     ColumnAlignments = colAligns,
                     ColumnWidths = colWidths,
+                    CellStyles = el.CellStyles?.Where(cell => cell.Row >= 0 && cell.Row < rows.Length
+                        && cell.Col >= 0 && cell.Col < colCount).Select(cell => new PdfTableCellStyle
+                    {
+                        Row = cell.Row + matrixHeaders.Count, Column = cell.Col,
+                        BackgroundColor = cell.BackgroundColor is null ? null : ParseColor(cell.BackgroundColor),
+                        TextColor = cell.Color is null ? null : ParseColor(cell.Color),
+                        Alignment = cell.TextAlign switch { "left" => PdfTextAlignment.Left,
+                            "center" => PdfTextAlignment.Center, "right" => PdfTextAlignment.Right, _ => null },
+                        Padding = cell.Padding, FontSize = cell.FontSize,
+                        FontFamily = ParseFontFamily(cell.FontFamily), Bold = cell.Bold, Italic = cell.Italic,
+                        BorderColor = cell.BorderColor is null ? null : ParseColor(cell.BorderColor), BorderWidth = cell.BorderWidth,
+                        BorderTop = MapCellBorder(cell.BorderTop), BorderRight = MapCellBorder(cell.BorderRight),
+                        BorderBottom = MapCellBorder(cell.BorderBottom), BorderLeft = MapCellBorder(cell.BorderLeft)
+                    }).ToArray(),
                 });
                 break;
             }
@@ -1851,10 +1865,15 @@ public static class DesignJsonMapper
         return new PdfColor(r, g, b);
     }
 
+    private static PdfTableCellBorder? MapCellBorder(CellBorderSideDto? side) => side is null ? null : new()
+    {
+        Color = side.Color is null ? null : ParseColor(side.Color), Width = side.Width ?? 1
+    };
+
     private static PdfFontFamily? ParseFontFamily(string? family)
     {
         if (string.IsNullOrEmpty(family)) return null;
-        var lower = family.ToLowerInvariant();
+        var lower = family.ToLowerInvariant().Replace("sans-serif", "", StringComparison.Ordinal);
         if (lower.Contains("times") || lower.Contains("georgia") || lower.Contains("serif"))
             return PdfFontFamily.Times;
         if (lower.Contains("courier") || lower.Contains("mono") || lower.Contains("consolas") || lower.Contains("code"))

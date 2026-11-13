@@ -69,7 +69,9 @@ C# PDF execution.
 
 - [x] One command creates a complete visual report for every supported element.
 - [x] Every element can be inspected across Canvas, Live Preview, backend PDF, and C# PDF.
-- [ ] Canvas and Live Preview have no visible layout differences from backend PDF at 200%.
+- [x] Canvas and Live Preview meet the reviewed 200% layout contract for the
+  audited fixtures, including the owner's explicitly accepted residual bold-text
+  raster/subpixel differences recorded below. Literal pixel identity is not claimed.
 - [x] Normal backend export and C# PDF contain the same content and layout.
 - [x] Text Field and Text Area geometry and appearance match across all four outputs.
 - [x] A new element type cannot be added without a visual-parity fixture.
@@ -162,8 +164,10 @@ These ignored artifacts are not public documentation or release approvals.
 - [x] Render PDF underline and strikethrough strokes in the text color.
 - [x] Re-run both visual fixtures and all eight Trust visual comparisons without baseline changes.
 - [x] Run the current focused API tests, PDF infrastructure tests, Designer tests, typecheck and build.
-- [ ] Resolve or explicitly approve the six remaining P2 findings after individual image review.
-- [ ] Extend the standard-table parity guarantee to the advanced per-cell-style rendering path.
+- [x] Resolve or explicitly approve the six remaining P2 findings after individual
+  image review: four corrected; the final two explicitly approved on 2026-11-13.
+- [x] Extend the standard-table parity guarantee to the advanced per-cell-style rendering path
+  for canonical cell matrices; see the 2026-11-13 validation below.
 
 Results: all-elements has 0 P0, 0 P1, 5 P2 and 35 matches; mixed-layout has
 0 P0, 0 P1, 1 P2 and 2 matches. Across both packs, P2 findings decreased from
@@ -200,7 +204,8 @@ HTML reports and unchanged-threshold metrics are under its `final` directory.
 - [x] Inject a five-point baseline error in an isolated browser run; verify rejection and browser/server cleanup.
 - [x] Preserve all approved invoice hash pins and all eight Trust visual references.
 - [x] Run the final Designer, focused API, Generator, PDF infrastructure and tooling checks.
-- [ ] Obtain explicit visual acceptance for the two residual bold-text raster findings.
+- [x] Obtain explicit visual acceptance for the two residual bold-text raster
+  findings; the repository owner approved both 200% comparisons on 2026-11-13.
 
 Final results: all-elements has 0 P0, 0 P1, 1 P2 and 39 matches; mixed layout
 has 0 P0, 0 P1, 1 P2 and 2 matches. Four of the preceding six findings are
@@ -225,3 +230,141 @@ coverage and the strict 200% acceptance item remain separate open work.
 Current local report: `artifacts/visual-final-alignment-2026-11-11/REPORT.md`.
 Previous reports remain historical evidence. No commit, version bump or
 publication was performed.
+
+## Individual table cell styles (2026-11-13)
+
+The preceding rendering corrections were committed as `f5aec107`. This follow-up
+extends the shared Canvas/Live Preview table renderer and normal/C# PDF export
+to individual cell styles without changing the approved comparison thresholds.
+
+- [x] Map all 16 current cell-style properties into the PDF table renderer.
+- [x] Match cell backgrounds, text colors, fonts, explicit false bold/italic,
+  alignment, padding and automatic row heights.
+- [x] Paint each shared border once: explicit overrides beat defaults, wider
+  explicit borders win, and ties use the right/bottom cell. A zero-width
+  override suppresses an adjacent default edge.
+- [x] Preserve first-entry precedence for duplicate cell styles and ignore
+  out-of-range entries; account for inserted RDL matrix header rows.
+- [x] Keep font-family fallback within the requested PDF standard family rather
+  than silently replacing serif or monospace text with a sans-serif font.
+- [x] Add three styled-table visual fixtures and focused API/frontend tests,
+  including conflicting shared borders and invalid numeric style values.
+- [x] Document the Inspector workflow, relative column widths, sparse style
+  overrides, border precedence and editable JSON example in public Documentation.
+- [x] Reject per-cell styles in the flow-pagination API instead of silently
+  discarding them; explicit-page `PdfPage.DrawSimpleTable` supports them.
+- [x] Add per-cell-style support to flow-paginated tables; see the follow-up below.
+- [ ] Review native serif/monospace raster output across platforms, or bundle
+  approved matching font faces, before claiming the same visual guarantee for
+  those families. This fixture uses the bundled sans-serif faces only.
+
+The styled-table pack reports 3 matches and zero P0/P1/P2 findings. The existing
+all-elements pack remains at 39 matches and one P2; mixed layout remains at two
+matches and one P2. Normal and C# PDFs are pixel-identical across all eight
+pages. All four Trust corpus and four Trust operation comparisons pass their
+unchanged references. The two residual bold-text findings still require the
+explicit visual acceptance recorded above; no blanket 200% approval is implied.
+
+Validation: 855 Designer tests, 116 focused API tests (including 13 styled-table
+cases), 141 Generator tests, 57 PDF infrastructure tests and 65 Documentation
+tests passed. Designer typecheck, Designer and Documentation production builds,
+and the versioning/visual-tool checks passed. This is focused regression
+evidence, not a new full API or complete Solution certification. Published
+releases, product version and approved invoice/Trust evidence remain unchanged.
+
+Local review report: `artifacts/styled-table-parity-2026-11-13/REPORT.md`.
+The cell-style changes remain uncommitted; no push or deployment was performed.
+
+## Flow-paginated styled tables (2026-11-13)
+
+This follow-up supersedes the explicit-page-only restriction recorded above.
+Native C# flow tables now use the same measured cell layout as explicit-page
+tables. This does not change the Designer's explicitly positioned page model.
+
+- [x] Share row measurement and validation between `DrawSimpleTable` and flow.
+- [x] Plan all chunks before painting, using actual font/padding/wrapping heights
+  instead of dividing remaining space by a fixed row height.
+- [x] Map original cell-style indices, explicit heights and line heights into
+  each chunk; retain repeated header and repeated/final-only footer styles.
+- [x] Keep headers with data rows, account for partially occupied pages, and
+  reserve space for both continuation markers.
+- [x] Preserve alternating data-row fills across odd-sized page chunks.
+- [x] Render header/footer-only tables and report total actual painted height.
+- [x] Reject oversized or non-finite rows before painting any table chunk;
+  do not silently clip, split rows or create an unbounded sequence of pages.
+- [x] Add 20 flow regression cases and an independently grouped three-page
+  explicit-layout fixture; PDFs and page images match exactly.
+- [x] Publish the native C# guide, link it from the PDF SDK table topic and
+  include it in the public Documentation build.
+- [x] Extend the pending patch fragment without changing `VERSION` or published releases.
+- [x] Run Designer tests/typecheck/build, focused API, Generator, PDF
+  infrastructure, Documentation and visual/versioning regression checks.
+
+The dedicated `node tools/visual-parity/flow-tables.mjs` command writes
+`artifacts/flow-table-parity/report.html`, JSON, overlays and pixel diffs.
+All three pages have zero changed pixels at 72 DPI. Its synthetic automatic
+and independently planned explicit PDFs are also byte-identical.
+
+Validation: 855 Designer tests, 136 focused API tests (including the 20 flow
+cases), 141 Generator tests, 57 PDF infrastructure tests, 66 Documentation
+tests and 37 tooling tests passed. Designer typecheck and both frontend
+production builds passed. Full API and full Solution certification were not
+repeated. Existing invoice pins and Trust references remain unchanged.
+
+Rows intentionally remain indivisible. An over-height row requires smaller
+content/font/padding or a larger page and returns a clear layout error. The two
+residual bold-text visual findings and native serif/monospace cross-platform
+review remain open; this milestone does not silently approve them.
+
+Public guide: [Styled Table Pagination](../docs/guides/PVAD.Styled-Table-Pagination.md).
+No commit, push, deployment or product-version bump was performed.
+
+## Scoped bold-text visual approval (2026-11-13)
+
+- [x] Regenerate normal and C# PDFs for `text` and `custom-title` and capture
+  Canvas/Live Preview at two device pixels per PDF point.
+- [x] Rerasterize PDF vectors at 144 DPI after supersampling for actual 200%
+  comparisons rather than enlarging the existing 72-DPI images.
+- [x] Verify the loaded browser font and the embedded PDF font against the exact
+  packaged bold-face SHA-256; confirm matching font size, weight and style.
+- [x] Compare every Latin glyph offset and advance, not just total run width.
+- [x] Add negative tests for local drift, swapped/missing glyphs, substituted
+  font bytes, missing style metadata and changed review evidence.
+- [x] Obtain explicit owner approval for both displayed 200% comparisons.
+- [x] Preserve the approved images with fixture/font hashes and exact browser,
+  platform and scale scope; changed evidence requires a new approval.
+- [x] Keep P2 scores, the existing 0.1-point metric guard, invoice evidence and
+  all previously approved image thresholds unchanged.
+
+The owner confirmed: "Beide Vergleiche visuell freigeben". The record is
+`test-assets/visual-parity/approvals/2026-11-13-bold-text/approval.json`.
+It applies only to the two current plain Latin fixtures on macOS with the
+recorded lockfile-pinned Chromium version and packaged bold font. No independent
+reviewer, Linux approval or arbitrary font/script certification is implied.
+
+No further content, wrapping, font-family, style or position defect was found
+in these two cases. Maximum run-width drift is 0.02225 point; maximum local
+glyph drift is 0.035125 point. The remaining differences combine native
+rasterization and subpixel advance quantization; they are accepted residuals,
+not falsely reported as zero-pixel differences. Normal and C# PDF crops match
+exactly at 200%.
+
+Reproduce with `node tools/visual-parity/bold-text-review.mjs` after building
+the API test project. The local HTML/JSON report is under
+`artifacts/bold-text-review/`. The broader shared-renderer consolidation and
+native serif/monospace cross-platform review remain separate open work.
+
+No application rendering behavior, product version or published release was
+changed by this review. No commit or push was performed.
+
+Validation: both regenerated fixture PDFs and browser surfaces pass the
+per-glyph guard; all 43 visual-tool/versioning tests, version consistency,
+release-fragment validation and `git diff --check` pass. Review report:
+`artifacts/bold-text-review/REPORT.md`. Earlier complete Designer and focused
+API regression counts remain evidence from the preceding table/rendering pass,
+not a newly repeated full suite for this test-only review.
+
+Approved original PNG bytes remain hash-pinned. Repeat runs compare the exact
+decoded RGBA16 pixel hash including dimensions, so PNG timestamp/encoding
+metadata alone does not revoke approval. A changed pixel does. This is not a
+perceptual tolerance or an image-normalization exception.

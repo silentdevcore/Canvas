@@ -28,6 +28,11 @@ public sealed class PdfTableOptions
 
     public IReadOnlyList<double>? RowHeights { get; init; }
 
+    /// <summary>Sparse overrides indexed against the original table, including header and footer rows.</summary>
+    public IReadOnlyList<PdfTableCellStyle>? CellStyles { get; init; }
+
+    internal int DataRowOffset { get; init; }
+
     // Relative column weights. Example for 3 columns: [2,1,1]
     public IReadOnlyList<double>? ColumnWidths { get; init; }
 

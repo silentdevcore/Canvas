@@ -1,0 +1,10 @@
+{
+  "id": "designer-table-cell-style-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Tables retain individual cell colors, fonts, padding and borders in Designer previews and PDF exports. Automatic C# table pagination preserves cell styles and sizes page breaks from measured row heights.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Styled-Table-Pagination.md"],
+  "breaking": false
+}
