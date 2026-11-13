@@ -749,6 +749,47 @@ public sealed class PdfPage
             ClipHeight: clipHeight));
     }
 
+    /// <summary>
+    /// Fits an in-memory image inside a clipped box. Focus is a percentage of the remaining
+    /// space, measured from the left/top, matching browser object-position semantics.
+    /// Natural image pixels map to points when <see cref="PdfImageFitMode.None"/> is used.
+    /// </summary>
+    public PdfImageLayoutResult DrawImageFitted(byte[] imageBytes, double x, double y,
+        double width, double height, PdfImageFitMode fitMode = PdfImageFitMode.Contain,
+        double focalX = 50, double focalY = 50, double opacity = 1)
+    {
+        if (!double.IsFinite(x) || !double.IsFinite(y))
+            throw new ArgumentOutOfRangeException(nameof(x), "Image position must be finite.");
+        if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), "Image box dimensions must be finite and positive.");
+        if (!double.IsFinite(opacity) || opacity < 0 || opacity > 1)
+            throw new ArgumentOutOfRangeException(nameof(opacity), "Opacity must be between 0 and 1.");
+        if (!Enum.IsDefined(fitMode))
+            throw new ArgumentOutOfRangeException(nameof(fitMode));
+
+        var image = PdfImageReader.Read(imageBytes);
+        var scale = fitMode switch
+        {
+            PdfImageFitMode.Contain => Math.Min(width / image.Width, height / image.Height),
+            PdfImageFitMode.Cover => Math.Max(width / image.Width, height / image.Height),
+            _ => 1
+        };
+        var drawWidth = fitMode == PdfImageFitMode.Fill ? width : image.Width * scale;
+        var drawHeight = fitMode == PdfImageFitMode.Fill ? height : image.Height * scale;
+        var horizontal = double.IsFinite(focalX) ? Math.Clamp(focalX, 0, 100) / 100 : 0.5;
+        var vertical = double.IsFinite(focalY) ? Math.Clamp(focalY, 0, 100) / 100 : 0.5;
+        var drawX = x + (width - drawWidth) * horizontal;
+        // PDF coordinates start at the bottom; the focus percentage starts at the top.
+        var drawY = y + (height - drawHeight) * (1 - vertical);
+        if (!double.IsFinite(drawX) || !double.IsFinite(drawY) ||
+            !double.IsFinite(drawWidth) || !double.IsFinite(drawHeight))
+            throw new ArgumentOutOfRangeException(nameof(width), "Fitted image bounds exceed the supported numeric range.");
+        AddElement(new ImageElement(image, GetImageBytesCacheKey(imageBytes),
+            drawX, drawY, drawWidth, drawHeight, opacity, ClipToBounds: true,
+            ClipX: x, ClipY: y, ClipWidth: width, ClipHeight: height));
+        return new PdfImageLayoutResult { X = drawX, Y = drawY, Width = drawWidth, Height = drawHeight };
+    }
+
     public PdfImageLayoutResult DrawImageScaledToWidth(string imagePath, double x, double y, double width)
     {
         if (width <= 0)

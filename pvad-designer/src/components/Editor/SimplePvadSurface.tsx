@@ -6468,7 +6468,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                       <span>{t('elementInspector.image.focalX')}</span>
                       <input
                         type="number"
-                        value={selectedElement.focalX || 50}
+                        min={0}
+                        max={100}
+                        value={selectedElement.focalX ?? 50}
                         onChange={(event) => updateSelectedElement({ focalX: Number(event.target.value) })}
                       />
                     </label>
@@ -6476,7 +6478,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                       <span>{t('elementInspector.image.focalY')}</span>
                       <input
                         type="number"
-                        value={selectedElement.focalY || 50}
+                        min={0}
+                        max={100}
+                        value={selectedElement.focalY ?? 50}
                         onChange={(event) => updateSelectedElement({ focalY: Number(event.target.value) })}
                       />
                     </label>

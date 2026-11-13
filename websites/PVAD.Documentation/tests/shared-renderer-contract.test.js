@@ -19,3 +19,8 @@ test('preview guide distinguishes display content, immutable identities and unve
   assert.match(guide, /do not rewrite the saved template/);
   assert.match(guide, /not the PDF file itself/);
 });
+test('image fit contract explains real export geometry and keeps unsupported variants explicit', () => {
+  for (const phrase of ['`contain`', '`cover`', '`fill`', '`none`', 'one point per pixel',
+    'PNG alpha transparency', 'preserveAspectRatio: true', 'EXIF autorotation', 'temporary image files'])
+    assert.ok(guide.includes(phrase), phrase);
+});

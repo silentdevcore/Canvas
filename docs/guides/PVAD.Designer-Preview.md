@@ -41,6 +41,28 @@ unavailable images show a local placeholder; creating an empty image does not
 contact an external placeholder website. Replacing a failed image can recover
 without reopening the document.
 
+The same geometry is used by normal and generated C# PDF export for embedded
+PNG and JPEG images, including PNG alpha transparency:
+
+| Fit | Result |
+| --- | --- |
+| `contain` (default) | Preserve the aspect ratio and show the entire image; unused space remains transparent. |
+| `cover` | Preserve the aspect ratio and fill the box; clip the excess. |
+| `fill` | Stretch to the box dimensions without preserving the aspect ratio. |
+| `none` | Keep natural pixel dimensions at one point per pixel and clip only what exceeds the box. |
+
+Focus percentages align the remaining space: `0` selects left/top, `50` centers,
+and `100` selects right/bottom. The same rule positions a small image within a
+larger box or selects the visible part of an oversized image. Values outside
+0-100 are clamped; missing or non-finite values use 50. The legacy
+`preserveAspectRatio: true` option takes precedence and selects `contain`, even
+when another fit mode was saved. Language-specific image bounds use the same
+effective page coordinates as other elements.
+
+For example, an image with `fitMode: "cover"`, `focalX: 100`, `focalY: 0`, and
+`preserveAspectRatio: false` fills its box while retaining the right/top edge.
+Image data is embedded directly in the PDF without temporary image files.
+
 Complete table cell matrices use the PDF-aligned renderer. Older incomplete
 tables retain one shared compatibility renderer, including explicit false
 font-style overrides and zero padding. Header/footer-only compatibility tables
@@ -59,9 +81,12 @@ archival conformance and accessibility validation.
 
 The shared renderer prevents Canvas/Preview implementation drift; it is not a
 claim that every historical or invalid document is repaired automatically.
-The audited image cases cover contained and stretched output; full backend
-cropping/focal parity for every `cover`/`none` combination remains separate
-work. The existing date formatter behavior is consolidated, not replaced by
+The cropping/focal parity pack covers all four fit modes, wide and tall PNGs,
+small natural-size images, JPEGs and focus edges. It does not certify arbitrary
+remote image URLs, EXIF autorotation, rounded image masks or all decorative
+border/padding combinations. Use tenant-bound assets for production documents.
+Separate source-crop editing fields are not part of this image-box fit contract.
+The existing date formatter behavior is consolidated, not replaced by
 a complete implementation of arbitrary .NET date-format strings.
 
 Native serif/monospace raster output on different operating systems also

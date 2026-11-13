@@ -7,6 +7,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 import { comparePdfTextRun } from './text-metrics.mjs';
+import { expectedElementBounds } from './fixture-layout.mjs';
 import playwright from '../../pvad-designer/node_modules/@playwright/test/index.js';
 import { createServer } from '../../pvad-designer/node_modules/vite/dist/node/index.js';
 
@@ -81,6 +82,7 @@ async function renderBrowserSurfaces(fixture) {
       contentType: 'application/json',
       body: JSON.stringify({ token: 'visual-parity-csrf' }),
     }));
+    await page.route('**/api/pvad/v1/telemetry/browser', route => route.fulfill({ status: 204 }));
     await page.route('**/api/pvad/v1/designer/symbols/render', async route => {
       const request = route.request();
       let type;
@@ -130,6 +132,8 @@ async function renderBrowserSurfaces(fixture) {
         })));
         throw new Error(`Symbol images did not become ready: ${JSON.stringify(state)}`, { cause: error });
       }
+      await page.waitForFunction(() => [...document.querySelectorAll('[data-element-id] img')]
+        .every(image => image.complete && image.naturalWidth > 0));
       await page.evaluate(async () => { await document.fonts.ready; });
       const clippedRtl = await page.evaluate(() => [...document.querySelectorAll('[data-element-id]')]
         .flatMap(element => [...element.querySelectorAll('text[direction="rtl"]')].flatMap(text => {
@@ -312,8 +316,9 @@ async function cropPdfElements(fixture) {
     for (const element of page.elements) {
       const elementDir = path.join(raw, 'elements', element.id);
       await mkdir(elementDir, { recursive: true });
-      const geometry = `${Math.max(1, Math.round(element.width))}x${Math.max(1, Math.round(element.height))}` +
-        `+${Math.round(element.x)}+${Math.round(element.y)}`;
+      const bounds = expectedElementBounds(element, fixture.pageSettings);
+      const geometry = `${Math.max(1, Math.round(bounds.width))}x${Math.max(1, Math.round(bounds.height))}` +
+        `+${Math.round(bounds.x)}+${Math.round(bounds.y)}`;
       for (const pdf of ['backend', 'csharp']) {
         run('magick', [path.join(raw, `${pdf}-page-${pageIndex + 1}.png`), '-crop', geometry, '+repage',
           path.join(elementDir, `${pdf}.png`)]);
@@ -395,7 +400,7 @@ async function buildReport(fixture, geometry, symbolSources, enforceThresholds, 
     pages.push({ page: pageNumber, id: page.id, comparisons: pageComparisons });
 
     for (const element of page.elements) {
-      const expected = { x: element.x, y: element.y, width: element.width, height: element.height };
+      const expected = expectedElementBounds(element, fixture.pageSettings);
       const comparisons = {};
       let maxGeometryDrift = 0;
       for (const surface of ['canvas', 'preview']) {

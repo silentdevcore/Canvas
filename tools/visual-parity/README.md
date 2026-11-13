@@ -24,6 +24,25 @@ must leave the canonical fixture and its checksum unchanged. This is scoped
 coverage, not certification of every image crop or arbitrary date format; see
 `docs/guides/PVAD.Designer-Preview.md` for remaining limits.
 
+The dedicated image pack extends fitting coverage:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/image-fit.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+node --test tools/visual-parity/fixture-layout.test.mjs
+```
+
+It compares 34 PNG/JPEG cases on three pages: contain/cover/fill/none, wide/tall
+images, natural-size images smaller and larger than their boxes, focus edges,
+alpha transparency, the legacy preserve-aspect override and localized bounds.
+Expected PDF crops come from the fixture's exact/base language override, not
+measured browser geometry. Document images must finish decoding before capture.
+The optional internal `surface=editor&fixture=image-fit` view retains editor
+controls for Inspector smoke tests; it has the same build-time gate as the
+other parity views and is absent from production bundles.
+CI runs the image pack before the full catalog, archives its report separately
+even on failure, and uploads `pvad-image-fit-parity` evidence without replacing
+the catalog report consumed by the fidelity aggregator.
+
 The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
 network-loaded fonts. PDF and generated C# output retain Arabic logical text
 through shaped glyphs and ActualText. In addition to aggregate pixel metrics,

@@ -105,6 +105,24 @@ test('missing or failed images do not contact an external placeholder service an
   expect(container.querySelector('img')).toHaveAttribute('src', 'first.png');
 });
 
+test.each(['contain', 'cover', 'fill', 'none'] as const)('image fit %s keeps focus and intrinsic-size semantics', fitMode => {
+  const { container } = render(<DocumentImageRenderer label="Image" element={element({
+    type: 'image', content: 'local.png', fitMode, focalX: 100, focalY: 0,
+  })} />);
+  expect(container.querySelector('img')).toHaveStyle({ objectFit: fitMode, objectPosition: '100% 0%' });
+  expect(container.firstElementChild).toHaveStyle({ overflow: 'hidden', width: '100%', height: '100%' });
+});
+
+test('image focus clamps to edges and invalid values fall back to center', () => {
+  const { container, rerender } = render(<DocumentImageRenderer label="Image" element={element({
+    type: 'image', content: 'local.png', focalX: -10, focalY: 110,
+  })} />);
+  expect(container.querySelector('img')).toHaveStyle({ objectFit: 'contain', objectPosition: '0% 100%' });
+  rerender(<DocumentImageRenderer label="Image" element={element({ type: 'image', content: 'local.png',
+    focalX: Number.NaN, focalY: Number.POSITIVE_INFINITY })} />);
+  expect(container.querySelector('img')).toHaveStyle({ objectPosition: '50% 50%' });
+});
+
 test('legacy header/footer-only tables have no invented body and retain false/zero overrides', () => {
   const { container } = render(<DocumentElementRenderer {...context} element={element({
     type: 'table', content: undefined, headerRow: true, footerRow: true, style: { rows: 2, columns: 1 },

@@ -9,6 +9,7 @@ import allElementsFixture from '../../../test-assets/visual-parity/all-elements.
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
 import styledTablesFixture from '../../../test-assets/visual-parity/styled-tables.json';
 import sharedRendererFixture from '../../../test-assets/visual-parity/shared-renderer.json';
+import imageFitFixture from '../../../test-assets/visual-parity/image-fit.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
@@ -47,6 +48,7 @@ export default function VisualParityPage() {
     'mixed-layout': mixedLayoutFixture,
     'styled-tables': styledTablesFixture,
     'shared-renderer': sharedRendererFixture,
+    'image-fit': imageFitFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
     'e-invoice-long-description': eInvoiceLongDescriptionFixture,
@@ -79,7 +81,7 @@ export default function VisualParityPage() {
 
   if (!ready) return null;
 
-  if (surface === 'canvas') {
+  if (surface === 'canvas' || surface === 'editor') {
     return (
       <DesignerAuthContextProvider user={parityUser}>
       <SimplePvadSurface
@@ -103,7 +105,7 @@ export default function VisualParityPage() {
         onSharedElementUpdate={noop}
         onSharedElementDelete={noop}
         onTemplateRename={noop}
-        visualParityMode
+        visualParityMode={surface !== 'editor'}
       />
       </DesignerAuthContextProvider>
     );
