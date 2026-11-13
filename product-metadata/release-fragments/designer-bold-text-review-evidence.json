@@ -1,0 +1,11 @@
+{
+  "id": "designer-bold-text-review-evidence",
+  "impact": "none",
+  "components": ["designer", "api", "generator"],
+  "category": "improved",
+  "summary": "Added reproducible enlarged text comparisons and per-glyph font verification for rendering review.",
+  "reason": "Internal validation and scoped visual approval records only; document rendering and approved regression thresholds are unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

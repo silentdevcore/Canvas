@@ -15,10 +15,51 @@ uses the effective page height and the backend footer offset. The browser run
 also rejects footer text clipped by an element wrapper or another ancestor.
 Standard tables use the same cell matrix, relative column weights, paragraph
 wrapping, minimum row heights, text positioning and single grid as the PDF.
-Tables with individual cell-style overrides retain the existing advanced
-renderer; the standard-table correction does not certify that separate path.
+Tables with complete canonical cell matrices use this shared renderer for
+individual cell-style overrides as well. Sparse overrides preserve defaults;
+explicit false bold/italic and zero padding remain meaningful. A shared edge
+is painted once: explicit overrides beat defaults, wider explicit borders win,
+and equal widths use the right/bottom cell. An explicit zero width suppresses
+an adjacent default border. Incomplete legacy cell matrices retain their
+fallback rendering and are not covered by this table parity guarantee.
 Table dimension edits resize the cell matrix and preserve retained values,
 column settings and in-range cell overrides in the same update.
+
+Run the additional cell-style pack with:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/styled-tables.json node tools/visual-parity/run.mjs
+```
+
+The pack covers cell typography, fills, padding, automatic row heights,
+individual borders and inserted RDL matrix headers. It uses bundled sans-serif
+faces. Serif and monospace families no longer fall back silently to Sans;
+matching Liberation Serif/Mono files may be supplied, otherwise the PDF uses
+native standard fonts. Cross-platform raster equivalence for these native
+fonts is not certified by this pack. PDF/A font embedding also requires actual
+matching font files. Per-cell styles are supported on explicit pages through
+`PdfPage.DrawSimpleTable` and in automatic `PdfFlowContext.AddSimpleTable`
+pagination. Flow measures the original rows before planning page breaks, maps
+styles and row metrics into each chunk, repeats headers, and honors repeated
+or final-only footers. Continuation markers reserve their own space and
+alternating row fills retain their data-row parity. Rows stay whole; a row
+that cannot fit a fresh page with its required repeated content is rejected
+before any table chunk is painted.
+
+After building `PVAD.Api.Tests`, generate the dedicated three-page flow versus
+independently planned explicit-page comparison with:
+
+```bash
+node tools/visual-parity/flow-tables.mjs
+```
+
+This command runs the synthetic artifact test, rasterizes both PDFs at 72 DPI,
+and writes `artifacts/flow-table-parity/report.html` and JSON alongside overlays
+and pixel diffs. It requires exact zero changed pixels, not a relaxed threshold.
+The test also requires byte-identical PDFs for its fixed explicit-page fixture.
+The native C# workflow and limits are documented in
+`docs/guides/PVAD.Styled-Table-Pagination.md`; Designer tables remain explicitly
+positioned elements rather than acquiring implicit page creation.
 
 Normal widget appearances, stored radio selection, default-family bold/italic
 styles, TOC titles, and single-rotation watermark rendering have focused tests
@@ -28,6 +69,34 @@ footnote position, centered shape borders, dashed lines, table resizing and
 colored PDF text decorations. P2 findings remain visible in the reports;
 matching aggregate thresholds does not make different glyph shapes, widget
 baselines or underline extents automatically equivalent at 200% inspection.
+
+After building `PVAD.Api.Tests`, inspect the two residual Latin bold-text crops
+at a newly rendered 200% scale with:
+
+```bash
+node tools/visual-parity/bold-text-review.mjs
+node --test tools/visual-parity/text-metrics.test.mjs tools/visual-parity/bold-text-approval.test.mjs
+```
+
+The command writes `artifacts/bold-text-review/report.html` and JSON. Browser
+screenshots use two device pixels per PDF point; PDF vectors are rerasterized
+at 144 DPI after supersampling, not enlarged from the 72-DPI reports. It also
+checks the exact loaded font bytes, size/style, each glyph offset and advance,
+and the existing 0.1-point text-layout guard. This deliberately covers plain
+Latin text only, not shaped scripts or arbitrary ligature clusters.
+
+The repository owner explicitly approved both current comparisons on
+2026-11-13. The reviewed images and fixture/font hashes are stored in
+`test-assets/visual-parity/approvals/2026-11-13-bold-text/`. The review runner
+recognizes that approval only for the exact matching images, fixture hashes,
+font, platform, browser version and scale. Changed evidence remains pending;
+the runner never approves a new image or updates these pins. P2 measurements
+and normal CI image thresholds remain unchanged. This approval is not a
+cross-platform or universal-font rendering certification.
+The archived PNG byte hashes protect the original review evidence. Repeat-run
+approval uses exact decoded RGBA16 pixels plus dimensions, excluding only file
+encoding metadata such as timestamps. A one-pixel change requires renewed
+approval; there is no perceptual tolerance in that approval check.
 
 The artifact generator also reads `text-metrics.json` back from the real PDF.
 For unrotated, left-aligned non-RTL Text and Link runs, the browser comparison

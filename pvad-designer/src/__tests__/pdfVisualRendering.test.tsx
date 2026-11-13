@@ -10,7 +10,7 @@ import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
 import { PdfFootnoteRenderer, PdfNoteRenderer } from '@/components/Rendering/PdfStructureRenderer';
 import { PdfShapeRenderer, PdfCircleRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
 import LineRenderer from '@/components/Rendering/LineRenderer';
-import { canRenderPdfTable, layoutPdfTable, PdfTableRenderer } from '@/components/Rendering/PdfTableRenderer';
+import { canRenderPdfTable, layoutPdfTable, pdfTableEdges, PdfTableRenderer } from '@/components/Rendering/PdfTableRenderer';
 import { resizeTable } from '@/utils/tableDimensions';
 
 jest.mock('jsbarcode', () => jest.fn());
@@ -67,12 +67,50 @@ describe('visual rendering regressions', () => {
     } finally { global.fetch = original; }
   });
 
-  test('advanced and incomplete tables retain the legacy renderer instead of disappearing', () => {
+  test('styled tables use the shared renderer while incomplete tables retain the legacy fallback', () => {
     const table = element({ type: 'table', cellData: [['A', 'B']] });
     expect(canRenderPdfTable(table)).toBe(true);
     expect(canRenderPdfTable({ ...table, columnWidths: [80, 0] })).toBe(false);
     expect(canRenderPdfTable({ ...table, cellData: [[]] })).toBe(false);
-    expect(canRenderPdfTable({ ...table, cellStyles: [{ row: 0, col: 0, bold: true }] })).toBe(false);
+    expect(canRenderPdfTable({ ...table, cellStyles: [{ row: 0, col: 0, bold: true }] })).toBe(true);
+  });
+  test('individual cell typography, padding and fills override header defaults including explicit false', () => {
+    const table = element({ type: 'table', width: 200, height: 30, headerRow: true,
+      cellData: [['A long cell that wraps across many lines', 'B']],
+      cellStyles: [{ row: 0, col: 0, fontSize: 18, padding: 12, bold: false, italic: true, color: '#ff0000', backgroundColor: '#00ff00' }] });
+    const layout = layoutPdfTable(table)!;
+    expect(layout.heights[0]).toBeGreaterThan(60);
+    const { container } = render(<PdfTableRenderer element={table} />);
+    const cell = container.querySelector('[data-table-cell="0:0"]')!;
+    expect(cell.querySelector('rect')).toHaveAttribute('fill', '#00ff00');
+    expect(cell.querySelector('text')).toHaveAttribute('font-size', '18');
+    expect(cell.querySelector('text')).toHaveAttribute('font-weight', 'normal');
+    expect(cell.querySelector('text')).toHaveAttribute('font-style', 'italic');
+    expect(cell.querySelector('text')).toHaveAttribute('fill', '#ff0000');
+  });
+  test('explicit zero suppresses a shared border and each edge is painted once', () => {
+    const table = element({ type: 'table', width: 200, height: 40, cellData: [['A', 'B']],
+      cellStyles: [{ row: 0, col: 0, borderRight: { width: 0 } }] });
+    const edges = pdfTableEdges(table, layoutPdfTable(table)!);
+    expect(edges).toHaveLength(3);
+    expect(edges.some(edge => edge.x1 === 100 && edge.x2 === 100)).toBe(false);
+  });
+  test.each([2, 3])('shared borders use explicit width precedence for a %s point left border', leftWidth => {
+    const table = element({ type: 'table', width: 200, height: 40, cellData: [['A', 'B']],
+      cellStyles: [{ row: 0, col: 0, borderRight: { width: leftWidth, color: '#ff0000' } },
+        { row: 0, col: 1, borderLeft: { width: 2, color: '#0000ff' } }] });
+    const edges = pdfTableEdges(table, layoutPdfTable(table)!);
+    expect(edges).toEqual([{ x1: 100, x2: 100, y1: 0, y2: 40, width: leftWidth,
+      color: leftWidth > 2 ? '#ff0000' : '#0000ff' }]);
+  });
+  test('matrix headers do not shift sparse styles onto the wrong data row', () => {
+    const table = element({ type: 'table', cellData: [['A']],
+      style: { rdlTablixColumnHierarchy: [{ headerText: 'Header' }] },
+      cellStyles: [{ row: 0, col: 0, padding: 0 }, { row: 0, col: 0, padding: 99 }, { row: 8, col: 0, padding: 80 }] });
+    const layout = layoutPdfTable(table)!;
+    expect(layout.cells[0][0].padding).toBe(4);
+    expect(layout.cells[1][0].padding).toBe(0);
+    expect(layout.overrides.size).toBe(1);
   });
   test('table resizing preserves cells and column settings while changing the canonical matrix', () => {
     const table = element({ type: 'table', cellData: [['A', 'B'], ['C', 'D']],

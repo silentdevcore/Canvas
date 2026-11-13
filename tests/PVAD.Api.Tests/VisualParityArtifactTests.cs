@@ -68,7 +68,8 @@ public sealed class VisualParityArtifactTests
         {
             Page = index + 1, text.Text, X = text.Transform.E,
             Baseline = (page.MediaBox?.Height ?? 842) - text.Transform.F,
-            Advance = text.Glyphs.Sum(glyph => glyph.Advance), text.FontSize,
+            Advance = text.Glyphs.Sum(glyph => glyph.Advance), text.FontSize, text.FontName, text.Bold, text.Italic,
+            Glyphs = text.Glyphs.Select(glyph => new { glyph.Text, glyph.Offset, glyph.Advance }),
             FontHash = text.EmbeddedFontBytes.IsEmpty ? null
                 : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(text.EmbeddedFontBytes.Span)).ToLowerInvariant()
         }));

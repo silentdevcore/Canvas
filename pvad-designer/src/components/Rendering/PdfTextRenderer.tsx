@@ -13,8 +13,8 @@ type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
  */
 const pdfFontSlot = (value?: string): 'serif' | 'mono' | 'sans' => {
   const normalized = (value?.toLowerCase() ?? '').replace(/sans-serif/g, '');
-  if (normalized.includes('courier') || normalized.includes('mono')) return 'mono';
-  if (normalized.includes('times') || normalized.includes('serif')) return 'serif';
+  if (normalized.includes('courier') || normalized.includes('mono') || normalized.includes('consolas') || normalized.includes('code')) return 'mono';
+  if (normalized.includes('times') || normalized.includes('georgia') || normalized.includes('serif')) return 'serif';
   return 'sans';
 };
 

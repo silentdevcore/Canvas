@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvedAt": "2026-11-13",
+  "approvedBy": "repository-owner",
+  "approvalSource": "Explicit user confirmation after viewing both 200% comparisons.",
+  "scope": "Only the two current plain Latin bold-text crops on the recorded platform and browser. Minor rasterization and subpixel advance differences are accepted; P2 metrics and regression thresholds remain unchanged.",
+  "platform": "darwin",
+  "browserVersion": "156.0.8078.4",
+  "rasterPixelsPerPoint": 2,
+  "fontHash": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc",
+  "cases": [
+    {
+      "id": "text",
+      "fixture": "test-assets/visual-parity/all-elements.json",
+      "fixtureSha256": "84959bf9d1edbf4c1907e9427281d9f743ee8e54697da212ea88fd68aff46f93",
+      "comparisonImage": "text.png",
+      "comparisonSha256": "eb8cb9840ee822e99cab1c78ebffc183efe463cda1409d58dfb548bfa7297d89",
+      "comparisonPixelSha256": "7f07974c779c40e62c07df513898a8918988c45db247121dd9bbc3ae1b80ad27"
+    },
+    {
+      "id": "custom-title",
+      "fixture": "test-assets/page-layout/mixed-layout.json",
+      "fixtureSha256": "fbb994a4310efe6883694618edbb393922b0ec0803b917b091f9959efa93ad28",
+      "comparisonImage": "custom-title.png",
+      "comparisonSha256": "2e59470eace1c8b9f086e02cb579194e338ee989f49dcc9d7aa6f8192df6a60c",
+      "comparisonPixelSha256": "c85b06dc6f4cf53c3ca5aca960dfa0cd1956181e859fe5cbb366811eba2ff314"
+    }
+  ]
+}

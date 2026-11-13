@@ -7,6 +7,7 @@ import { DesignerAuthContextProvider } from '@/auth/DesignerAuthGate';
 import { designerPermissions } from '@/auth/designerPermissions';
 import allElementsFixture from '../../../test-assets/visual-parity/all-elements.json';
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
+import styledTablesFixture from '../../../test-assets/visual-parity/styled-tables.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
@@ -43,6 +44,7 @@ export default function VisualParityPage() {
   const fixtures: Record<string, unknown> = {
     'all-elements': allElementsFixture,
     'mixed-layout': mixedLayoutFixture,
+    'styled-tables': styledTablesFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
     'e-invoice-long-description': eInvoiceLongDescriptionFixture,
