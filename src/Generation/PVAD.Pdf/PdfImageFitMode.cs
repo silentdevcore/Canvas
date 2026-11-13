@@ -3,5 +3,7 @@ namespace PVAD.Pdf;
 public enum PdfImageFitMode
 {
     Contain,
-    Cover
+    Cover,
+    Fill,
+    None
 }

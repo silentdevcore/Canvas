@@ -5,6 +5,9 @@ import { pdfFontFamily } from './PdfTextRenderer';
 export default function DocumentImageRenderer({ element, label }: { element: SimpleElement; label: string }) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const source = element.content ?? '';
+  const fit = element.preserveAspectRatio || !['contain', 'cover', 'fill', 'none'].includes(element.fitMode ?? '')
+    ? 'contain' : element.fitMode;
+  const focus = (value?: number) => Number.isFinite(value) ? Math.max(0, Math.min(100, value!)) : 50;
   useEffect(() => { setFailedSource(null); }, [source]);
   if (!source || source === failedSource) return (
     <svg role="img" aria-label={label} data-image-placeholder="true" viewBox={`0 0 ${element.width} ${element.height}`}
@@ -18,8 +21,8 @@ export default function DocumentImageRenderer({ element, label }: { element: Sim
   return <div style={{ overflow: 'hidden', width: '100%', height: '100%', position: 'relative' }}>
     <img src={source} alt={label} draggable={false} onError={() => setFailedSource(source)} style={{
       display: 'block', width: '100%', height: '100%',
-      objectFit: element.preserveAspectRatio ? 'contain' : element.fitMode ?? 'contain',
-      objectPosition: `${element.focalX ?? 50}% ${element.focalY ?? 50}%`,
+      objectFit: fit,
+      objectPosition: `${focus(element.focalX)}% ${focus(element.focalY)}%`,
     }} />
   </div>;
 }

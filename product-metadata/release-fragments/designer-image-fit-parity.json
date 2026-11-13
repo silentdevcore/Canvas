@@ -1,0 +1,10 @@
+{
+  "id": "designer-image-fit-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "PDF exports now match Designer image fit, cropping and focus positions, including natural-size images, transparency and language-specific image bounds.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

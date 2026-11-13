@@ -1102,10 +1102,10 @@ public static class DesignJsonMapper
                 var content = el.Content ?? "";
                 if (content.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
                 {
-                    DrawDataUrlImage(page, el, pageH, content);
+                    DrawDataUrlImage(page, el, pageH, content, elX, elY, w, h);
                     break;
                 }
-                DrawPlaceholder(page, el, pageH, "[Image]");
+                DrawPlaceholder(page, el, pageH, "[Image]", elX, elY, w, h);
                 break;
             }
 
@@ -1352,38 +1352,25 @@ public static class DesignJsonMapper
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static void DrawDataUrlImage(PdfPage page, ElementDto el, double pageH, string dataUrl)
+    private static void DrawDataUrlImage(PdfPage page, ElementDto el, double pageH, string dataUrl,
+        double x, double top, double width, double height)
     {
         try
         {
             var commaIdx = dataUrl.IndexOf(',', StringComparison.Ordinal);
-            if (commaIdx < 0) return;
+            if (commaIdx < 0) throw new FormatException("Missing image data separator.");
             var bytes = Convert.FromBase64String(dataUrl[(commaIdx + 1)..]);
-            var ext = dataUrl.Contains("jpeg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
-            var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ext);
-            File.WriteAllBytes(tempPath, bytes);
-            try
+            var fit = el.PreserveAspectRatio == true ? PdfImageFitMode.Contain : el.FitMode switch
             {
-                var x = el.X;
-                var y = RectBottomY(pageH, el.Y, el.Height);
-                var w = el.Width;
-                var h = el.Height;
-                switch (el.FitMode)
-                {
-                    case "contain":
-                        page.DrawImageFitCenter(tempPath, x, y, w, h);
-                        break;
-                    case "none":
-                        page.DrawImageFit(tempPath, x, y, w, h);
-                        break;
-                    default:
-                        page.DrawImage(tempPath, x, y, w, h);
-                        break;
-                }
-            }
-            finally { TryDelete(tempPath); }
+                "cover" => PdfImageFitMode.Cover,
+                "fill" => PdfImageFitMode.Fill,
+                "none" => PdfImageFitMode.None,
+                _ => PdfImageFitMode.Contain
+            };
+            page.DrawImageFitted(bytes, x, RectBottomY(pageH, top, height), width, height,
+                fit, el.FocalX ?? 50, el.FocalY ?? 50);
         }
-        catch { DrawPlaceholder(page, el, pageH, "[Image]"); }
+        catch { DrawPlaceholder(page, el, pageH, "[Image]", x, top, width, height); }
     }
 
     private static object? GetProperty(object? source, string name)
@@ -1560,17 +1547,21 @@ public static class DesignJsonMapper
         return false;
     }
 
-    private static void DrawPlaceholder(PdfPage page, ElementDto el, double pageH, string label)
+    private static void DrawPlaceholder(PdfPage page, ElementDto el, double pageH, string label,
+        double? x = null, double? top = null, double? width = null, double? height = null)
     {
-        var boxY = RectBottomY(pageH, el.Y, el.Height);
+        var boxX = x ?? el.X;
+        var boxWidth = width ?? el.Width;
+        var boxHeight = height ?? el.Height;
+        var boxY = RectBottomY(pageH, top ?? el.Y, boxHeight);
         var dash = new PdfStrokeStyle { LineWidth = 0.5, DashArray = [3, 3] };
-        page.DrawRectangle(el.X, boxY, el.Width, el.Height, lineWidth: 0.5, fill: false,
+        page.DrawRectangle(boxX, boxY, boxWidth, boxHeight, lineWidth: 0.5, fill: false,
             strokeColor: ParseColor("#d1d5db"), strokeStyle: dash);
 
-        if (!string.IsNullOrEmpty(label) && el.Height > 14)
+        if (!string.IsNullOrEmpty(label) && boxHeight > 14)
         {
-            var fs = Math.Min(10.0, el.Height * 0.35);
-            page.DrawText(label, el.X + 4, boxY + el.Height / 2 - fs * 0.3,
+            var fs = Math.Min(10.0, boxHeight * 0.35);
+            page.DrawText(label, boxX + 4, boxY + boxHeight / 2 - fs * 0.3,
                 new PdfDrawTextOptions { FontSize = fs, FillColor = ParseColor("#9ca3af") });
         }
     }

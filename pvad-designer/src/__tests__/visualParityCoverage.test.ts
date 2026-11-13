@@ -41,6 +41,20 @@ describe('visual parity coverage contract', () => {
     expect([...DOCUMENT_LOCALIZED_FIELDS].sort()).toEqual(backendFields.sort());
   });
 
+  test('image parity pack retains fit modes, focal edges, small natural images and aspect-ratio override', () => {
+    const images = JSON.parse(fs.readFileSync(path.join(root, 'test-assets/visual-parity/image-fit.json'), 'utf8'))
+      .pages.flatMap((page: { elements: Array<Record<string, unknown>> }) => page.elements) as Array<Record<string, unknown>>;
+    expect(new Set(images.map(image => image.id)).size).toBe(images.length);
+    for (const fitMode of ['contain', 'cover', 'fill', 'none'])
+      expect(images.some(image => image.fitMode === fitMode)).toBe(true);
+    for (const focalX of [0, 50, 100]) for (const focalY of [0, 50, 100])
+      expect(images.some(image => image.fitMode === 'none' && image.focalX === focalX && image.focalY === focalY)).toBe(true);
+    expect(images.some(image => image.preserveAspectRatio === true && image.fitMode === 'cover')).toBe(true);
+    expect(images.filter(image => String(image.id).startsWith('none-small-'))).toHaveLength(3);
+    expect(images.every(image => /^data:image\/(png|jpeg);base64,/.test(String(image.content)))).toBe(true);
+    expect(images.filter(image => String(image.content).startsWith('data:image/jpeg;base64,'))).toHaveLength(4);
+  });
+
   test.each([...catalogTypes].sort())('%s is represented by Canvas, Preview, and PDF renderers', type => {
     expect({
       canvas: canvasSource.includes('<DocumentElementRenderer') && DOCUMENT_RENDERED_ELEMENT_TYPES.includes(type),

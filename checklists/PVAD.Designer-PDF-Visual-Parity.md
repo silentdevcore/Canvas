@@ -416,7 +416,7 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
 
 ### Remaining Variant Coverage
 
-- [ ] Extend backend image parity beyond the audited contained/stretched cases
+- [x] Extend backend image parity beyond the audited contained/stretched cases
   to all cover/none cropping and focus-coordinate combinations.
 - [ ] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
@@ -425,3 +425,53 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
 
 No commit, push, deployment, product-version bump or published-release edit was
 performed for this consolidation. Unrelated pending work remains untouched.
+
+## Image Fit And Focus Parity (2026-11-13)
+
+- [x] Render contain, cover, fill and natural-size none with browser-equivalent
+  focus percentages and a clipped PDF image box.
+- [x] Preserve the legacy aspect-ratio override, alpha transparency, natural
+  image dimensions, zero focus and normalized out-of-range focus values.
+- [x] Use effective language-specific image bounds, including placeholders.
+- [x] Embed PNG/JPEG bytes directly without temporary image files.
+- [x] Keep zero-valued focus coordinates visible in the actual image Inspector.
+- [x] Add independent backend geometry, clipping, alpha, JPEG, invalid input,
+  finite numeric range and source-immutability tests.
+- [x] Add a 34-case synthetic image fixture covering wide/tall sources, all four
+  fits, focus edges, small natural-size sources, PNG alpha, JPEG and localization.
+- [x] Correct expected PDF crops and geometry checks for canonical language
+  overrides, with independent tests; do not derive expected bounds from the DOM.
+- [x] Wait for document images to decode before browser captures.
+- [x] Enforce the image pack in CI and retain separate failure artifacts before
+  the catalog run and its fidelity aggregation.
+- [x] Validate all four outputs, repeat the complete catalog regression and
+  preserve existing image thresholds and approved baseline data.
+- [x] Document the contract and known limits and add a patch release fragment.
+
+The new image fixture has 34 matches across three pages, no P0/P1/P2 findings,
+and zero geometry drift. Normal and real C# PDF image crops are pixel-identical.
+The full catalog retains 39 matches and its one existing P2 finding across 40
+instances/38 types. All four PDF-Trust corpus references and four operation
+references remain unchanged and pass.
+
+Desktop and mobile checks cover four synthetic document surfaces with 34 loaded
+images each, matching fit/focus settings and no browser page errors. A separate
+desktop check uses the actual Inspector and confirms both focus inputs show 0.
+This is not a complete authenticated mobile editing or customer-database test.
+
+Validation: 915 Designer tests, 159 focused API tests (including 22 image tests),
+141 Generator tests, 57 PDF infrastructure tests, 69 Documentation tests and 46
+visual-tool/versioning tests pass. Type-check and Designer/Documentation builds
+pass. Known dependency, nullable and bundle warnings remain; none was suppressed.
+
+Report: `artifacts/image-fit-parity/visual-parity-report.html`.
+Desktop/mobile screenshots: `artifacts/image-fit-parity/browser/report.html`.
+Reproduce with the image-fit command in `tools/visual-parity/README.md`.
+
+The tested contract covers embedded PNG/JPEG image-box fitting and clipping,
+not arbitrary remote URLs, EXIF autorotation, source-crop editing fields,
+rounded masks or every decorative border/padding combination. Cross-runtime
+date formats and native serif/monospace platform validation remain open above.
+
+No commit, push, deployment, product-version bump or published-release change
+was performed for this image correction. Unrelated pending changes are preserved.
