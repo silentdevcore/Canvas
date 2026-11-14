@@ -36,7 +36,7 @@ function run(command, args, options = {}) {
 
 function requireTool(name) {
   if (name === 'magick') return requireImageMagick();
-  const result = spawnSync('sh', ['-c', `command -v ${name}`], { encoding: 'utf8' });
+  const result = spawnSync(name, ['-v'], { encoding: 'utf8', windowsHide: true });
   if (result.status !== 0) throw new Error(`Visual parity requires '${name}' on PATH.`);
 }
 
@@ -67,7 +67,8 @@ async function renderBrowserSurfaces(fixture) {
     await waitForServer();
     const pdfTextMetrics = JSON.parse(await readFile(path.join(raw, 'text-metrics.json'), 'utf8'));
     try {
-      browser = await chromium.launch({ channel: 'chrome', headless: true });
+      browser = await chromium.launch(process.argv.includes('--bundled-browser')
+        ? { headless: true } : { channel: 'chrome', headless: true });
     } catch {
       browser = await chromium.launch({ headless: true });
     }
@@ -291,7 +292,7 @@ function compareImages(actual, expected, prefix) {
     actual = normalized;
   }
   const diff = `${prefix}-diff.png`;
-  const comparison = spawnSync('compare', ['-metric', 'RMSE', '-highlight-color', '#ff0066',
+  const comparison = spawnImageMagick(['compare', '-metric', 'RMSE', '-highlight-color', '#ff0066',
     '-lowlight-color', '#ffffff', actual, expected, diff], { encoding: 'utf8' });
   if (![0, 1].includes(comparison.status)) {
     throw new Error(`Image comparison failed: ${comparison.stderr}`);
@@ -303,7 +304,7 @@ function compareImages(actual, expected, prefix) {
   const perceptualExpected = `${prefix}-perceptual-expected.png`;
   run('magick', [actual, '-blur', '0x1', perceptualActual]);
   run('magick', [expected, '-blur', '0x1', perceptualExpected]);
-  const perceptual = spawnSync('compare', ['-metric', 'RMSE', perceptualActual, perceptualExpected, '/dev/null'],
+  const perceptual = spawnImageMagick(['compare', '-metric', 'RMSE', perceptualActual, perceptualExpected, 'null:'],
     { encoding: 'utf8' });
   if (![0, 1].includes(perceptual.status)) {
     throw new Error(`Perceptual image comparison failed: ${perceptual.stderr}`);
@@ -362,7 +363,7 @@ async function verifyEmbeddedSymbolSources(fixture) {
 
       const normalizedSource = path.join(extractedDirectory, `${symbol}-source-gray.png`);
       run('magick', [source, '-colorspace', 'Gray', normalizedSource]);
-      const comparison = spawnSync('compare', ['-metric', 'AE', normalizedSource, candidates[0], '/dev/null'],
+      const comparison = spawnImageMagick(['compare', '-metric', 'AE', normalizedSource, candidates[0], 'null:'],
         { encoding: 'utf8' });
       if (![0, 1].includes(comparison.status))
         throw new Error(`Could not verify ${symbol} source in ${pdf}.pdf: ${comparison.stderr}`);
@@ -508,7 +509,6 @@ async function main() {
   requireTool('pdftoppm');
   requireTool('pdftotext');
   requireTool('magick');
-  requireTool('compare');
   requireTool('pdfimages');
   const reuseArtifacts = readPvadEnvironment('PVAD_VISUAL_PARITY_REUSE_ARTIFACTS') === 'true';
   const enforceThresholds = readPvadEnvironment('PVAD_VISUAL_PARITY_ENFORCE') === 'true';

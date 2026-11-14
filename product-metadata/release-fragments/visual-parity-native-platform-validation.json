@@ -1,0 +1,11 @@
+{
+  "id": "visual-parity-native-platform-validation",
+  "impact": "none",
+  "components": ["designer", "api", "documentation"],
+  "category": "improved",
+  "summary": "Added native Linux and Windows rendering comparisons with reproducible browser selection and separate platform evidence.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false,
+  "reason": "Internal cross-platform validation only. No rendering thresholds, production application behavior, product versions or published release entries are changed."
+}
