@@ -325,6 +325,7 @@ public sealed class PdfUaGenerationTests
     public void PdfUa1_WritesNativeRadioListSignatureAndPushButtonWidgets()
     {
         var document = CreateDocument();
+        document.FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
         var page = document.AddPage();
         using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
         {
@@ -378,6 +379,60 @@ public sealed class PdfUaGenerationTests
         Assert.Contains("/FT /Btn /Ff 65536", pdf);
         Assert.Contains("/S /ResetForm", pdf);
         Assert.Equal(5, Regex.Matches(pdf, "/Type /OBJR").Count);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void PdfUa1_ChoiceAppearancesReferenceEmbeddedFonts(bool combo)
+    {
+        var document = CreateDocument();
+        document.FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
+        var page = document.AddPage();
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form, ElementId = "choice", AlternateText = "Document format"
+        }))
+        {
+            if (combo) page.AddComboBox("format", 20, 650, 120, 24, ["PDF", "Spreadsheet"], "PDF");
+            else page.AddListBox("format", 20, 650, 120, 50, ["PDF", "Spreadsheet"], ["PDF"]);
+        }
+        var bytes = document.ToBytes(new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 });
+        WriteValidationArtifact(combo ? "pvad-pdfua1-combo-font.pdf" : "pvad-pdfua1-list-font.pdf", bytes);
+        var pdf = Encoding.Latin1.GetString(bytes);
+        var fonts = Regex.Matches(pdf, @"/ChoiceFont (\d+) 0 R");
+        Assert.NotEmpty(fonts);
+        foreach (Match font in fonts)
+            Assert.Matches($@"(?m)^{font.Groups[1].Value} 0 obj\n<< /Type /Font /Subtype /Type0", pdf);
+        Assert.Contains("/FontFile2", pdf);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void PdfUa1_RejectsChoiceAppearancesWithoutEmbeddableFonts(bool combo, bool missingLoader)
+    {
+        var document = CreateDocument();
+        if (!missingLoader)
+            document.FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "missing-fonts-" + Guid.NewGuid().ToString("N")));
+        var page = document.AddPage();
+        using (page.BeginAccessibilityElement(new PdfAccessibilityProperties
+        {
+            Role = PdfStructureRole.Form, ElementId = "choice", AlternateText = "Document format"
+        }))
+        {
+            if (combo) page.AddComboBox("format", 20, 650, 120, 24, ["PDF"], "PDF");
+            else page.AddListBox("format", 20, 650, 120, 50, ["PDF"], ["PDF"]);
+        }
+        var options = new PdfSaveOptions { AccessibilityProfile = PdfAccessibilityProfile.PdfUa1 };
+        var report = PdfAccessibilityPreflight.Validate(document, options);
+        Assert.False(report.IsValid);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA006" && diagnostic.PageNumber == 1);
+        Assert.Throws<PdfAccessibilityException>(() => document.ToBytes(options));
+        Assert.True(PdfAccessibilityPreflight.Validate(document, new PdfSaveOptions()).IsValid);
+        Assert.NotEmpty(document.ToBytes());
     }
 
     [Fact]

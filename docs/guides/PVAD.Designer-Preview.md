@@ -100,6 +100,9 @@ in their `fonts` directory. See the repository's font provenance record for
 exact upstream archive and face hashes. The pre-existing Sans faces are unchanged.
 
 SDK callers who omit the font loader can still use native PDF standard fonts.
+This fallback does not apply to PDF/UA choice-control appearances: combo boxes
+and list boxes require a configured embeddable font or fail accessibility
+preflight. The current PDF/A generator rejects interactive form widgets.
 Their viewer/platform substitutions are not covered by the packaged-font parity
 checks. This change does not certify arbitrary font files, scripts or every
 operating-system rasterizer. Form-widget normal appearances continue to use

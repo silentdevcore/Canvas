@@ -78,7 +78,11 @@ public static class PdfCompliancePreflight
             if (page.ComboBoxAnnotations.Count > 0
                 || page.MultilineTextFields.Count > 0
                 || page.TextFields.Count > 0
-                || page.CheckBoxAnnotations.Count > 0)
+                || page.CheckBoxAnnotations.Count > 0
+                || page.ListBoxAnnotations.Count > 0
+                || page.RadioButtonAnnotations.Count > 0
+                || page.SignatureFieldAnnotations.Count > 0
+                || page.PushButtonAnnotations.Count > 0)
             {
                 diagnostics.Add(new PdfComplianceDiagnostic(
                     "PVADPDFA004",

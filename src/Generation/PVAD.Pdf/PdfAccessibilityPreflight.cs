@@ -43,6 +43,9 @@ public static class PdfAccessibilityPreflight
         for (var pageIndex = 0; pageIndex < document.Pages.Count; pageIndex++)
         {
             var page = document.Pages[pageIndex];
+            if ((page.ComboBoxAnnotations.Count > 0 || page.ListBoxAnnotations.Count > 0)
+                && (document.FontLoader is null || !document.FontLoader.TryLoad("en", out _)))
+                Add("PVADPDFUA006", "Choice-control appearance fonts must be embedded. Configure PdfFontLoader with a packaged Latin font.", pageIndex + 1);
             foreach (var element in page.Elements)
             {
                 if (element.IsArtifact)
