@@ -29,6 +29,13 @@ public sealed class VisualParityArtifactTests
         Directory.CreateDirectory(outputDirectory);
 
         var source = await File.ReadAllTextAsync(fixturePath);
+        var clockPath = Path.ChangeExtension(fixturePath, null) + ".clock.json";
+        DateTimeOffset? renderInstant = null;
+        if (File.Exists(clockPath))
+        {
+            using var clock = JsonDocument.Parse(await File.ReadAllTextAsync(clockPath));
+            renderInstant = DateTimeOffset.Parse(clock.RootElement.GetProperty("instant").GetString()!, CultureInfo.InvariantCulture);
+        }
         var design = JsonSerializer.Deserialize<DesignExportDto>(source, JsonOptions);
         Assert.NotNull(design);
         var fixtureTypes = design.Pages.SelectMany(page => page.Elements).Select(element => element.Type)
@@ -59,7 +66,7 @@ public sealed class VisualParityArtifactTests
                     (int)Math.Max(barcode.Width, 1),
                     (int)Math.Max(barcode.Height * 0.7, 1)));
 
-        var backendPdf = DesignJsonMapper.MapToPdfDocument(design, fontLoader)
+        var backendPdf = DesignJsonMapper.MapToPdfDocument(design, fontLoader, renderInstant: renderInstant)
             .ToBytes(DesignJsonMapper.BuildSaveOptions(design));
         AssertPdf(backendPdf);
         await File.WriteAllBytesAsync(Path.Combine(outputDirectory, "backend.pdf"), backendPdf);
@@ -75,7 +82,7 @@ public sealed class VisualParityArtifactTests
         }));
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "text-metrics.json"), JsonSerializer.Serialize(textMetrics, JsonOptions));
 
-        var service = CreatePackagedWorkerService(fontLoader);
+        var service = CreatePackagedWorkerService(fontLoader, renderInstant);
         var conversion = await service.ConvertAsync(
             PvadCodeLanguages.Json, PvadCodeLanguages.CSharpPdf, source, default);
         Assert.DoesNotContain(conversion.Diagnostics, diagnostic => diagnostic.Severity == "error");
@@ -187,13 +194,18 @@ public sealed class VisualParityArtifactTests
         Assert.Equal("%PDF-", System.Text.Encoding.ASCII.GetString(bytes, 0, 5));
     }
 
-    private static PvadCodeConversionService CreatePackagedWorkerService(PVAD.Pdf.PdfFontLoader fontLoader)
+    private static PvadCodeConversionService CreatePackagedWorkerService(PVAD.Pdf.PdfFontLoader fontLoader, DateTimeOffset? instant = null)
     {
         var workerDirectory = Path.GetDirectoryName(typeof(SandboxPolicy).Assembly.Location)!;
         return new PvadCodeConversionService(new PvadCodeWorkerClient(
             new TestEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance), fontLoader);
+            NullLogger<PvadCodeWorkerClient>.Instance), fontLoader, instant is { } value ? new FixedClock(value) : null);
+    }
+
+    private sealed class FixedClock(DateTimeOffset instant) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => instant;
     }
 
     private static string FindRepositoryRoot()

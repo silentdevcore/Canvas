@@ -79,8 +79,10 @@ public static class DesignJsonMapper
     public static PdfDocument MapToPdfDocument(
         DesignExportDto design,
         PdfFontLoader? fontLoader = null,
-        string? targetLanguage = null)
+        string? targetLanguage = null,
+        DateTimeOffset? renderInstant = null)
     {
+        var instant = renderInstant ?? DateTimeOffset.UtcNow;
         // Query-param language > JSON body targetLanguage > systemLanguage
         targetLanguage ??= design.PageSettings?.TargetLanguage;
 
@@ -223,14 +225,14 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang,
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang, instant,
                     forceArtifact: sharedElementIds.Contains(el.Id));
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang, instant);
             }
 
             // Global watermark from page settings
@@ -298,18 +300,18 @@ public static class DesignJsonMapper
 
     private static void RenderAccessibleElement(
         PdfDocument document, PdfPage page, ElementDto element, double pageHeight,
-        int pageIndex, int totalPages, string? effectiveLanguage, bool forceArtifact = false)
+        int pageIndex, int totalPages, string? effectiveLanguage, DateTimeOffset instant, bool forceArtifact = false)
     {
         if (forceArtifact || element.Accessibility?.IsArtifact == true)
         {
             using var artifact = page.BeginArtifact();
-            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
             return;
         }
 
         if (element.Accessibility is not { } source)
         {
-            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
             return;
         }
 
@@ -343,14 +345,14 @@ public static class DesignJsonMapper
             TableHeaderScope = scope,
             TableHeaderIds = source.TableHeaderIds
         });
-        RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+        RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
     }
 
     private static void RenderElement(
         PdfDocument document,
         PdfPage page, ElementDto el, double pageH,
         int pageIndex, int totalPages,
-        string? effectiveLang = null)
+        string? effectiveLang, DateTimeOffset instant)
     {
         var w    = el.Width;
         var h    = el.Height;
@@ -430,25 +432,11 @@ public static class DesignJsonMapper
 
             case "date":
             {
-                string dateText;
-                if (el.DateMode == "render")
-                {
-                    var now = DateTime.UtcNow;
-                    if (!string.IsNullOrEmpty(el.Timezone))
-                    {
-                        try { now = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById(el.Timezone)); }
-                        catch { /* keep UTC */ }
-                    }
-                    var fmt = el.DateFormat ?? "dd.MM.yyyy";
-                    try { dateText = now.ToString(fmt, new CultureInfo(el.Locale ?? "en")); }
-                    catch { dateText = now.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture); }
-                }
-                else
-                {
-                    dateText = el.Content ?? el.FallbackText ?? "";
-                }
+                var dateText = PVAD.Core.Primitives.DesignerDateFormatter.Format(el.DateMode, el.Content,
+                    el.FallbackText, el.Binding, el.DateFormat, el.Locale, el.Timezone, instant).Text;
                 if (string.IsNullOrWhiteSpace(dateText)) return;
-                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
+                var arabicDate = Regex.IsMatch(dateText, @"[\u0600-\u06ff]", RegexOptions.None, TimeSpan.FromSeconds(1));
+                var opts = BuildParaOptions(style, arabicDate ? "ar" : el.Language, arabicDate ? "rtl" : el.TextDirection);
                 page.DrawParagraph(dateText, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
@@ -1816,6 +1804,8 @@ public static class DesignJsonMapper
         el.FootnoteText   = Substitute(el.FootnoteText,   props);
         el.Href           = Substitute(el.Href,           props);
         el.ButtonAction   = Substitute(el.ButtonAction,   props);
+        if (el.Type == "date" && el.DateMode == "binding" && !string.IsNullOrWhiteSpace(el.Binding)
+            && props.TryGetValue(el.Binding.Trim(), out var dateValue)) el.Content = dateValue;
     }
 
     private static string? Substitute(string? text, Dictionary<string, string> props)

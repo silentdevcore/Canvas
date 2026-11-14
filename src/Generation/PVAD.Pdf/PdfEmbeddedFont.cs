@@ -89,22 +89,34 @@ public sealed class PdfEmbeddedFont
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
         font.SetScale(_unitsPerEm, _unitsPerEm);
-        using var buffer = new HarfBuzzSharp.Buffer();
-        buffer.AddUtf16(text);
-        buffer.GuessSegmentProperties();
-        font.Shape(buffer);
-        var infos = buffer.GlyphInfos;
-        var positions = buffer.GlyphPositions;
-        var boundaries = infos.Select(info => (int)info.Cluster).Append(text.Length).Distinct().Order().ToArray();
-        var clusterEnds = boundaries.Zip(boundaries.Skip(1)).ToDictionary(pair => pair.First, pair => pair.Second);
-        return infos.Select((info, index) =>
+        // HarfBuzz shapes one directional run; UAX #9 must resolve mixed-script ordering first.
+        var bidi = Unicode.Bidi.BidiInfo.Create(text);
+        var result = new List<ShapedGlyph>();
+        foreach (var paragraph in bidi.Paragraphs)
         {
-            var start = (int)info.Cluster;
-            var end = clusterEnds[start];
-            var position = positions[index];
-            return new ShapedGlyph((ushort)info.Codepoint, position.XAdvance, position.XOffset,
-                position.YOffset, text[start..end]);
-        }).ToArray();
+            var (levels, runs) = bidi.VisualRuns(paragraph, paragraph.Range);
+            foreach (var run in runs)
+            {
+                var runText = text[run.Start..run.End];
+                using var buffer = new HarfBuzzSharp.Buffer();
+                buffer.AddUtf16(runText);
+                buffer.GuessSegmentProperties();
+                buffer.Direction = levels[run.Start].IsRtl() ? HarfBuzzSharp.Direction.RightToLeft : HarfBuzzSharp.Direction.LeftToRight;
+                font.Shape(buffer);
+                var infos = buffer.GlyphInfos;
+                var positions = buffer.GlyphPositions;
+                var boundaries = infos.Select(info => (int)info.Cluster).Append(runText.Length).Distinct().Order().ToArray();
+                var clusterEnds = boundaries.Zip(boundaries.Skip(1)).ToDictionary(pair => pair.First, pair => pair.Second);
+                result.AddRange(infos.Select((info, index) =>
+                {
+                    var start = (int)info.Cluster;
+                    var position = positions[index];
+                    return new ShapedGlyph((ushort)info.Codepoint, position.XAdvance, position.XOffset,
+                        position.YOffset, runText[start..clusterEnds[start]]);
+                }));
+            }
+        }
+        return result;
     }
 
     internal sealed record ShapedGlyph(ushort Id, double Advance, double OffsetX, double OffsetY, string Unicode);

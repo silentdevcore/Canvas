@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <EmbeddedResource Include="../../../product-metadata/designer-date-formatting.json" LogicalName="PVAD.DesignerDateFormatting.json" />
   </ItemGroup>
 
   <PropertyGroup>

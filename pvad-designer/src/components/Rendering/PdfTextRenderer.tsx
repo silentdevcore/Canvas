@@ -139,6 +139,8 @@ export function PdfSingleLineText({
       <text
         ref={textNode}
         x="0"
+        direction={element.textDirection === 'rtl' ? 'rtl' : undefined}
+        textAnchor={element.textDirection === 'rtl' ? 'end' : undefined}
         y={size * 0.72}
         fill={style.color ?? (kind === 'link' ? '#2563eb' : '#101828')}
         fontFamily={pdfFontFamily(style.fontFamily)}

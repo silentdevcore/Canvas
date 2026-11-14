@@ -19,7 +19,14 @@
   <ItemGroup>
     <PackageReference Include="HarfBuzzSharp" Version="14.4.0.100" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.4.0.100" />
+    <PackageReference Include="Unicode.Bidi" Version="0.4.0" GeneratePathProperty="true" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(PkgUnicode_Bidi)/THIRD-PARTY-NOTICES.md" Link="third-party/Unicode.Bidi/THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(PkgUnicode_Bidi)/UNICODE-LICENSE.txt" Link="third-party/Unicode.Bidi/UNICODE-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../../assets/licenses/Unicode.Bidi-LICENSE.txt" Link="third-party/Unicode.Bidi/LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

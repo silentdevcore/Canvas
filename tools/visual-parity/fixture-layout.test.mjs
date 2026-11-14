@@ -34,3 +34,16 @@ test('CI enforces the image fixture and archives it before the full catalog over
   assert.match(workflow.slice(archive, catalog), /if: always\(\)/);
   assert.match(workflow, /path: artifacts\/image-fit-parity/);
 });
+
+test('date fixture uses a test-only clock and keeps its CI evidence separate', () => {
+  const runner = readFileSync(new URL('./run.mjs', import.meta.url), 'utf8');
+  const generator = readFileSync(new URL('../../tests/PVAD.Api.Tests/VisualParityArtifactTests.cs', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  const clock = JSON.parse(readFileSync(new URL('../../test-assets/visual-parity/date-format.clock.json', import.meta.url), 'utf8'));
+  assert.ok(Number.isFinite(Date.parse(clock.instant)));
+  assert.match(runner, /page\.clock\.setFixedTime/);
+  assert.match(generator, /new FixedClock\(value\)/);
+  assert.match(workflow, /PVAD_VISUAL_PARITY_FIXTURE: test-assets\/visual-parity\/date-format.json/);
+  assert.match(workflow, /path: artifacts\/date-format-parity/);
+  assert.match(workflow, /steps\.image-parity\.outcome != 'skipped'/);
+});

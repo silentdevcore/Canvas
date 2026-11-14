@@ -10,6 +10,7 @@ import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.js
 import styledTablesFixture from '../../../test-assets/visual-parity/styled-tables.json';
 import sharedRendererFixture from '../../../test-assets/visual-parity/shared-renderer.json';
 import imageFitFixture from '../../../test-assets/visual-parity/image-fit.json';
+import dateFormatFixture from '../../../test-assets/visual-parity/date-format.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
@@ -49,6 +50,7 @@ export default function VisualParityPage() {
     'styled-tables': styledTablesFixture,
     'shared-renderer': sharedRendererFixture,
     'image-fit': imageFitFixture,
+    'date-format': dateFormatFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
     'e-invoice-long-description': eInvoiceLongDescriptionFixture,
@@ -56,6 +58,7 @@ export default function VisualParityPage() {
   };
   const selectedFixture = fixtures[search.get('fixture') ?? ''] ?? allElementsFixture;
   const design = selectedFixture as unknown as Fixture;
+  const editorPageIndex = Math.max(0, Math.min(design.pages.length - 1, Number.parseInt(search.get('page') ?? '0', 10) || 0));
   const template: Template = {
     id: design.id,
     name: design.name,
@@ -86,9 +89,9 @@ export default function VisualParityPage() {
       <DesignerAuthContextProvider user={parityUser}>
       <SimplePvadSurface
         template={template}
-        elements={design.pages[0]?.elements ?? []}
+        elements={design.pages[editorPageIndex]?.elements ?? []}
         pages={design.pages}
-        currentPageIndex={0}
+        currentPageIndex={editorPageIndex}
         sharedElements={design.sharedElements ?? []}
         onElementAdd={noop}
         onElementUpdate={noop}

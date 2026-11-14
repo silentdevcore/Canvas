@@ -27,6 +27,14 @@ coverage contract and real Canvas/Preview/PDF comparisons after changes.
 See [Designer Preview](docs/guides/PVAD.Designer-Preview.md) for user-facing
 behavior and explicit parity limits.
 
+Date output uses `product-metadata/designer-date-formatting.json`, embedded in
+Core and consumed by the shared frontend renderer. Extend formats only with
+shared Jest/.NET vectors and a frozen-clock PDF comparison. Arabic/numeric
+output requires directional runs before shaping, as explained by the
+[HarfBuzz integration boundary](https://harfbuzz.github.io/what-harfbuzz-doesnt-do.html).
+Keep logical ActualText, glyph-cluster mappings and the packaged third-party
+notices intact when changing this path.
+
 ### 1. Create or choose the infrastructure project
 
 Use an existing infrastructure project when the format belongs to an established adapter family:

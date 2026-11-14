@@ -45,8 +45,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const previewLanguage = documentPageSettings.targetLanguage || currentPreviewLanguage || documentPageSettings.systemLanguage || navigator.language;
   const resolveContent = React.useMemo(() => createDocumentContentResolver(
     documentPageSettings.localizedProperties ?? [], previewLanguage,
-    documentPageSettings.systemLanguage || navigator.language),
-    [documentPageSettings.localizedProperties, documentPageSettings.systemLanguage, previewLanguage]);
+    documentPageSettings.systemLanguage || navigator.language, documentPageSettings.customProperties),
+    [documentPageSettings.localizedProperties, documentPageSettings.customProperties, documentPageSettings.systemLanguage, previewLanguage]);
+  const renderInstant = React.useMemo(() => new Date(), [pages, sharedElements, documentPageSettings, previewLanguage]);
   const exportPageSettings = React.useMemo(() => ({ ...documentPageSettings, targetLanguage: previewLanguage }),
     [documentPageSettings, previewLanguage]);
   const pageLayouts = React.useMemo(
@@ -204,7 +205,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const renderElement = (element: SimpleElement, pageIndex = 0) => (
     <DocumentElementRenderer element={element} pageIndex={pageIndex} pageCount={pages.length}
       pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height}
-      resolveContent={resolveContent} zoom={zoom} />
+      resolveContent={resolveContent} zoom={zoom} now={renderInstant} />
   );
 
   const renderPage = (page: Page, pageIndex: number) => {

@@ -1,10 +1,12 @@
 import type { LocalizedProperty, SimpleElement } from '@/types';
+import { formatDocumentDate } from './documentDate';
 
 export type DocumentContentResolver = (value: string | undefined) => string | undefined;
 export const identityDocumentContent: DocumentContentResolver = value => value;
 export const baseDocumentLanguage = (value?: string) => value?.split('-')[0].toLowerCase() ?? '';
 
-export function createDocumentContentResolver(properties: LocalizedProperty[], language: string, systemLanguage: string): DocumentContentResolver {
+export function createDocumentContentResolver(properties: LocalizedProperty[], language: string, systemLanguage: string,
+  customProperties: Array<{ name: string; value: string }> = []): DocumentContentResolver {
   const target = baseDocumentLanguage(language || systemLanguage);
   const system = baseDocumentLanguage(systemLanguage);
   const values = new Map<string, string>();
@@ -15,6 +17,7 @@ export function createDocumentContentResolver(properties: LocalizedProperty[], l
       : property.localizedValues[target] || property.localizedValues[system] || '';
     values.set(property.key.toLowerCase(), value);
   }
+  for (const property of customProperties) if (property.name.trim()) values.set(property.name.toLowerCase(), property.value ?? '');
   return value => value?.replace(/\{\{([^{}]+)\}\}/g,
     (token, key: string) => values.get(key.toLowerCase()) ?? token);
 }
@@ -44,16 +47,6 @@ export function effectiveDocumentElement(element: SimpleElement, language: strin
 export const elementMatchesDocumentLanguage = (element: SimpleElement, language: string) =>
   !element.elementLanguage || baseDocumentLanguage(element.elementLanguage) === baseDocumentLanguage(language);
 
-export function documentDateText(element: SimpleElement, now = new Date()): string {
-  if (element.dateMode === 'static') return element.content ?? element.fallbackText ?? '';
-  if (element.dateMode === 'binding') return element.binding ? `{{ ${element.binding} }}` : element.fallbackText ?? '';
-  const format = (element.dateFormat ?? '').toLowerCase();
-  try {
-    return new Intl.DateTimeFormat(element.locale || 'de-DE', {
-      dateStyle: 'medium', ...(format.includes('time') ? { timeStyle: 'short' as const } : {}),
-      ...(element.timezone ? { timeZone: element.timezone } : {}),
-    }).format(now);
-  } catch {
-    return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(now);
-  }
+export function documentDateText(element: SimpleElement, now = new Date(), resolve?: (value: string) => string | undefined): string {
+  return formatDocumentDate(element, now, resolve).text;
 }
