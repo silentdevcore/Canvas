@@ -81,6 +81,11 @@ Mono. The browser aliases `PVADE Times` and `PVADE Courier` load the same local
 font bytes that the backend embeds in PDF output. Regular, bold, italic and
 bold-italic faces are included; no font download occurs during document rendering.
 
+Document text retains fractional character widths rather than rounding every
+character to a whole screen pixel. The same document-only typography scope is
+used in the interactive Canvas, shared elements and Live Preview; surrounding
+Designer controls retain their normal interface typography.
+
 This applies to text paragraphs, dates, numbers, links, Rich Text's base family
 and table-cell typography. Inline bold/italic in Rich Text retains that base
 family instead of reverting to Sans. Monospace Rich Text uses the same fixed

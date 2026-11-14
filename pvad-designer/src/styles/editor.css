@@ -3507,6 +3507,7 @@ html[data-visual-parity="true"] #root {
  */
 [data-element-id],
 [data-element-id] * {
+  text-rendering: geometricPrecision;
   font-kerning: none;
   font-variant-ligatures: none;
   font-feature-settings: 'kern' 0, 'liga' 0, 'clig' 0;

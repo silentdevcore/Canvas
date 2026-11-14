@@ -3012,6 +3012,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  data-element-id={element.id}
                   style={(() => { const ep = getEffectivePos(element); return {
                     left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x,
                     top: ep.y, width: ep.width, height: ep.height,
@@ -3061,6 +3062,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  data-element-id={element.id}
                   style={(() => { const ep = getEffectivePos(element); return { left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x, top: ep.y, width: ep.width, height: ep.height }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}

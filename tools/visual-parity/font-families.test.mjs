@@ -75,3 +75,13 @@ test('owner-approved Serif/Mono raster crops retain exact fixture, font and imag
   }
   assert.match(approval.scope, /P2 metrics and regression thresholds remain unchanged/);
 });
+
+test('production document scopes use fractional text metrics in normal, shared and parity elements', () => {
+  const css = readFileSync(new URL('pvad-designer/src/styles/editor.css', root), 'utf8');
+  const scope = css.match(/\[data-element-id\],\s*\[data-element-id\] \*\s*\{([^}]+)\}/)?.[1];
+  assert.ok(scope);
+  assert.match(scope, /text-rendering:\s*geometricPrecision/);
+  assert.match(scope, /font-kerning:\s*none/);
+  const editor = readFileSync(new URL('pvad-designer/src/components/Editor/SimplePvadSurface.tsx', root), 'utf8');
+  assert.equal([...editor.matchAll(/data-element-id=\{element\.id\}/g)].length, 3);
+});
