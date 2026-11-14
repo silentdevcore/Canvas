@@ -93,4 +93,26 @@ public sealed class DateFormattingParityTests
         while (path is not null && !File.Exists(Path.Combine(path.FullName, "PVAD.sln"))) path = path.Parent;
         return path?.FullName ?? throw new DirectoryNotFoundException();
     }
+
+    [Theory]
+    [InlineData("1973-01-01T00:00:00Z", "Asia/Kathmandu", "1973-01-01 05:30:00 +05:30")]
+    [InlineData("1985-12-31T18:29:59Z", "Asia/Kathmandu", "1985-12-31 23:59:59 +05:30")]
+    [InlineData("1985-12-31T18:30:00Z", "Asia/Kathmandu", "1986-01-01 00:15:00 +05:45")]
+    [InlineData("1973-01-01T00:00:00Z", "asia/kathmandu", "1973-01-01 05:30:00 +05:30")]
+    public void IanaRulesDoNotInheritTheWindowsRegistryHistory(string source, string timezone, string expected)
+    {
+        var result = DesignerDateFormatter.Format("render", null, null, null,
+            "yyyy-MM-dd HH:mm:ss zzz", "en", timezone, DateTimeOffset.Parse(source, CultureInfo.InvariantCulture));
+        Assert.Equal(expected, result.Text);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void TimezoneDataVersionAndRedistributionNoticesArePackaged()
+    {
+        using var metadata = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root(), "product-metadata", "designer-date-formatting.json")));
+        Assert.Equal(metadata.RootElement.GetProperty("backendTimeZoneVersion").GetString(), NodaTime.DateTimeZoneProviders.Tzdb.VersionId);
+        Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, "third-party", "NodaTime", "LICENSE.txt")));
+        Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, "third-party", "NodaTime", "NOTICE.txt")));
+    }
 }

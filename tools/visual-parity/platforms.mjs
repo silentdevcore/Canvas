@@ -30,6 +30,7 @@ export async function runPlatformValidation() {
     node: process.version, dotnetSdk: version('dotnet', ['--version']), browserVersion,
     playwright: JSON.parse(readFileSync(path.join(root, 'pvad-designer/node_modules/@playwright/test/package.json'))).version,
     poppler: version('pdftoppm', ['-v']), imageMagick: magick.stdout.trim(),
+    dateFormattingContract: JSON.parse(readFileSync(path.join(root, 'product-metadata/designer-date-formatting.json'))),
     fonts: ['liberation/LiberationSans-Regular.ttf', 'liberation/LiberationSans-Bold.ttf',
       'liberation/LiberationSans-Italic.ttf', 'liberation/LiberationSans-BoldItalic.ttf',
       'liberation/LiberationSerif-Regular.ttf', 'liberation/LiberationSerif-Bold.ttf',

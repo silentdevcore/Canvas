@@ -66,13 +66,16 @@ formatter vectors in `date-historical-cases.json`:
 PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-historical.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
 ```
 
-Contract version 2 limits non-UTC zone conversion to instants from
+Contract version 3 limits non-UTC zone conversion to instants from
 `1973-01-01T00:00:00Z`. Earlier timestamp dates render in UTC with a localized
 Inspector warning; static text, date-only bindings and UTC-forcing formats stay
 unchanged. Positive/negative source offsets test the absolute-instant boundary,
 not just the input year. This does not certify second-accurate local-mean time
 or different platform timezone-database versions. Keep the original date packs
 and owner approvals unchanged; archive this pack separately before another run.
+The backend uses Noda Time 3.3.7 with pinned TZDB data, not Windows registry
+history. The package's Apache license and NOTICE are copied into build/publish
+outputs; package/source/license hashes are in `assets/licenses/nodatime-provenance.json`.
 
 The separate paragraph-layout pack uses another test-only clock sidecar:
 

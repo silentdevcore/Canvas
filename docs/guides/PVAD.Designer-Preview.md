@@ -150,7 +150,9 @@ precision, not seven fractional digits. Patterns are limited to 256 characters.
 
 Timezone values use IANA IDs, such as `Europe/Berlin`, `America/New_York` and
 `Asia/Kathmandu`. UTC is independent of the browser and server host timezone.
-Daylight-saving and fractional-hour offsets use the platform timezone database.
+The backend uses the pinned Noda Time TZDB data, independently of Windows
+registry timezone history. The browser uses its Intl timezone data; compatible
+data versions must still be validated. There are no runtime timezone downloads.
 The shared aliases also recognize GMT, Etc/UTC and Windows identifiers
 W. Europe Standard Time, Eastern Standard Time and Pacific Standard Time.
 Other Windows identifiers fall back to UTC with a warning in the Inspector.
@@ -175,7 +177,8 @@ Static text, date-only bound values, explicit UTC and the listed UTC aliases
 remain usable before 1973 without this warning. UTC-forcing formats `u`, `U`
 and `r`/`R` also remain UTC. The saved source value, timezone setting and template
 JSON are not rewritten. Warnings appear in the Inspector, not in the PDF text.
-Keep browser/OS timezone data current; this boundary does not make different
+Keep browser timezone data and the pinned backend TZDB package current together;
+this boundary does not make different
 timezone-database versions equivalent or certify every historical transition.
 
 For Binding mode, use a plain property path such as `Invoice.Date`. Matching
