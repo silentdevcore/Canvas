@@ -133,6 +133,13 @@ stay unchanged. CI enforces the pack and preserves separate `font-family-parity`
 artifacts. Font substitution and text drift fail rather than relaxing thresholds.
 Native fonts without a loader and untested platforms remain separate validation.
 
+For an isolated Linux replay of the committed font and complete catalog packs,
+see [Linux validation](linux/README.md). It uses a read-only Git archive and
+temporary container build outputs; local macOS reports and open worktree changes
+are not reused as Linux evidence. Record the actual image, architecture, browser
+and source hashes. Local container execution is distinct from remote CI or
+Windows certification.
+
 After building `PVAD.Api.Tests`, generate the dedicated three-page flow versus
 independently planned explicit-page comparison with:
 

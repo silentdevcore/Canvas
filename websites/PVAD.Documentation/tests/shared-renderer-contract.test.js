@@ -42,6 +42,6 @@ test('date layout documentation explains paragraph geometry and visible overflow
 test('packaged font documentation states supported families, consumers, distribution and limits', () => {
   for (const phrase of ['Serif And Monospace Fonts', 'Liberation', 'bold-italic', 'same local',
     'Rich Text', 'table-cell', 'licenses/Liberation-2.1.5.LICENSE.txt', 'SDK callers',
-    'Form-widget', 'not certify arbitrary'])
+    'Form-widget', 'not certify arbitrary', 'fractional character widths', 'shared elements'])
     assert.ok(guide.includes(phrase), phrase);
 });

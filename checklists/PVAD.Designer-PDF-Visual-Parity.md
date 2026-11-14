@@ -420,9 +420,10 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
   to all cover/none cropping and focus-coordinate combinations.
 - [x] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
-- [ ] Complete Linux/Windows raster validation for the packaged Serif/Mono
-  faces and any intended native fallback. The macOS follow-up below does not
-  approve untested platforms or change earlier baseline pins.
+- [ ] Complete platform certification beyond the local Linux/ARM64 execution
+  recorded below: review Linux P2 crops, execute remote Linux/x64 CI and test
+  Windows plus any intended native fallback. Existing macOS approvals do not
+  approve other platforms or change earlier baseline pins.
 
 No commit, push, deployment, product-version bump or published-release edit was
 performed for this consolidation. Unrelated pending work remains untouched.
@@ -625,8 +626,11 @@ part of the paragraph-layout work.
 - [x] Record explicit owner approval of the three 200% raster comparisons;
   preserve exact fixture/font/image hashes without suppressing the P2 metrics.
 - [x] Extend Documentation and add a patch release fragment; keep VERSION unchanged.
-- [ ] Run the new CI pack on Linux and certify additional intended platforms
-  separately; local macOS screenshots are not Linux/Windows execution evidence.
+- [x] Execute both packs locally on Linux/ARM64 with actual backend and generated
+  C# PDFs, then repeat the browser comparison after the typography correction.
+  See Linux Fractional Text Metrics below for the two-phase evidence boundary.
+- [ ] Execute the new pack in remote Linux/x64 CI and certify Windows separately;
+  neither local macOS nor local Linux/ARM64 certifies these environments.
 
 The font pack reports 19 matches, three P2 and no P0/P1 findings. Normal and
 C# PDF crops are pixel-identical; geometry drift is zero, and the largest
@@ -650,3 +654,48 @@ Reports: `artifacts/font-family-parity/visual-parity-report.html`,
 not remotely executed by this local validation. Unembedded SDK native fallback,
 arbitrary scripts/custom font files and unrelated layout variants remain outside
 this scoped result. No published release, database or deployment was changed.
+
+## Linux Fractional Text Metrics (2026-11-14)
+
+- [x] Provide an isolated, non-root Linux runner for both enforced packs with
+  read-only source, bounded resources and separately retained failure evidence.
+- [x] Run a clean committed snapshot on Linux/ARM64 using Chromium 156.0.8078.80,
+  .NET 10.0.404, Poppler 24.02.0 and the unchanged comparison thresholds.
+- [x] Diagnose the genuine failure before accepting any raster results: Chromium
+  loads the correct custom font but rounds SVG advances with default rendering.
+  Serif measures 178 instead of 175.336 points; the catalog Sans line measures
+  227 instead of 219.366 points. The original failed evidence remains intact.
+- [x] Apply fractional text rendering to production document content, including
+  normal and shared interactive elements; leave surrounding UI typography alone.
+- [x] Replay both browser comparisons against the original real Linux backend
+  and C# PDFs with exactly the two production frontend files changed. This is
+  frontend-only candidate validation, not a second full committed-source build.
+- [x] Verify the actual interactive Linux editor uses fractional advances while
+  its surrounding controls retain their original typography.
+- [x] Repeat macOS font/catalog comparisons and confirm all twelve previously
+  approved font-crop pixel hashes remain unchanged.
+- [x] Pass 1,019 Designer tests, type-check and production build, 72 Documentation
+  tests and build, and 58 visual-tool/versioning tests. Validate release fragments
+  without changing VERSION or published releases.
+- [ ] Obtain explicit visual approval for the eight Linux font and five Linux
+  catalog P2 cases; macOS approval is not reused for different platform pixels.
+- [ ] Execute and inspect remote Linux/x64 CI and Windows results separately.
+
+Linux results: the font pack has 22 cases (14 matches, eight P2); the complete
+catalog has 40 cases across 38 types (35 matches, five P2). Neither pack has a
+P0/P1 finding, geometry drift is zero, and normal/C# PDF crops are pixel-identical.
+Maximum measured text drift is 0.05 points for fonts and 0.0255 for the catalog,
+below the unchanged 0.1-point guard. P2 metrics remain visible and are not waived.
+macOS retains 19 matches/three P2 for fonts and 39 matches/one P2 for the catalog.
+
+Evidence and environment/source hashes: `artifacts/font-linux/REPORT.md` and
+`artifacts/font-linux/candidate.json`. Review all Linux P2 crops at 200% in
+`artifacts/font-linux/raster-review.html`; complete reports are under
+`artifacts/font-linux/diagnostics/font-families/` and
+`artifacts/font-linux/diagnostics/all-elements/`. Reproduction instructions:
+[isolated Linux runner](../tools/visual-parity/linux/README.md).
+
+These synthetic rendering checks do not certify customer authentication,
+persistence, arbitrary fonts/scripts or all native fallback paths. No .NET
+runtime code was changed by the Linux correction; the real Linux PDF generation
+belongs to the initial committed snapshot. No database or deployment was changed.
