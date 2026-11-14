@@ -76,8 +76,8 @@ public sealed class StyledTableRenderingTests
     }
 
     [Theory]
-    [InlineData(PdfFontFamily.Times, "Times-Italic")]
-    [InlineData(PdfFontFamily.Courier, "Courier-Oblique")]
+    [InlineData(PdfFontFamily.Times, "LiberationSerifItalic")]
+    [InlineData(PdfFontFamily.Courier, "LiberationMonoItalic")]
     public void RequestedStandardFamily_IsNotSilentlyReplacedByThePackagedSansFont(PdfFontFamily family, string name)
     {
         var document = new PdfDocument { FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts")) };

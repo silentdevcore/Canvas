@@ -73,6 +73,33 @@ Zoom scales the complete document content once, including compatibility-table
 fonts, borders and padding. It does not apply separate, inconsistent scale
 factors to individual cell properties.
 
+## Serif And Monospace Fonts
+
+Times New Roman, Georgia and serif family requests use packaged Liberation
+Serif. Courier New, Consolas and monospace requests use packaged Liberation
+Mono. The browser aliases `PVADE Times` and `PVADE Courier` load the same local
+font bytes that the backend embeds in PDF output. Regular, bold, italic and
+bold-italic faces are included; no font download occurs during document rendering.
+
+This applies to text paragraphs, dates, numbers, links, Rich Text's base family
+and table-cell typography. Inline bold/italic in Rich Text retains that base
+family instead of reverting to Sans. Monospace Rich Text uses the same fixed
+character advance for regular, bold and italic runs, avoiding compressed word
+spacing at inline style changes. Legacy table-cell family overrides also
+resolve through the packaged family aliases. Other custom font names do not
+automatically load a customer font; use the supported font configuration.
+
+The Designer includes the original font license at
+`/licenses/Liberation-2.1.5.LICENSE.txt`; API deployments include the font license
+in their `fonts` directory. See the repository's font provenance record for
+exact upstream archive and face hashes. The pre-existing Sans faces are unchanged.
+
+SDK callers who omit the font loader can still use native PDF standard fonts.
+Their viewer/platform substitutions are not covered by the packaged-font parity
+checks. This change does not certify arbitrary font files, scripts or every
+operating-system rasterizer. Form-widget normal appearances continue to use
+their existing PDF appearance contract rather than arbitrary text-family styling.
+
 ## Dates, Timezones And Binding
 
 1. Insert a Date element and select it.
@@ -180,6 +207,8 @@ The portable date contract is not a complete implementation of arbitrary .NET da
 strings, calendars or every regional culture. Unsupported variants use the
 documented fallback and warning rather than host-specific formatting.
 
-Native serif/monospace raster output on different operating systems also
-requires separate font and platform validation. The scoped, owner-approved
-bold-text raster exceptions do not grant universal font parity.
+Native serif/monospace raster output without embedded matching fonts still
+requires separate font and platform validation. The packaged Serif/Mono pack
+removes host-font substitution from the scoped Designer/API path; it does not
+grant universal platform certification. Scoped, owner-approved raster exceptions
+apply only to their recorded cases and do not grant universal font parity.

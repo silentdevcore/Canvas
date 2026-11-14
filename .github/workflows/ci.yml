@@ -598,6 +598,20 @@ jobs:
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
       - name: Restore PDF Trust visual operation dependencies
         run: dotnet restore tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj
+      - name: Enforce packaged font family parity
+        id: font-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/font-families.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: |
+          node --test tools/visual-parity/font-families.test.mjs
+          node tools/visual-parity/run.mjs
+      - name: Preserve font family parity evidence
+        if: always() && steps.font-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/font-family-parity
+          fi
       - name: Enforce date formatting parity
         id: date-parity
         env:
@@ -671,6 +685,13 @@ jobs:
         with:
           name: pvad-date-format-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/date-format-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-font-family-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/font-family-parity
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

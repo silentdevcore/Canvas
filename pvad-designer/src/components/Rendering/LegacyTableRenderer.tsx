@@ -68,7 +68,7 @@ export default function LegacyTableRenderer({ element }: { element: SimpleElemen
       if (cs.backgroundColor) style.backgroundColor = cs.backgroundColor;
       if (cs.textAlign) style.textAlign = cs.textAlign;
       if (cs.padding != null) style.padding = cs.padding;
-      if (cs.fontFamily) style.fontFamily = cs.fontFamily;
+      if (cs.fontFamily) style.fontFamily = pdfFontFamily(cs.fontFamily);
       if (cs.fontSize != null) style.fontSize = cs.fontSize;
       if (cs.bold != null) style.fontWeight = cs.bold ? 700 : 400;
       if (cs.italic != null) style.fontStyle = cs.italic ? 'italic' : 'normal';

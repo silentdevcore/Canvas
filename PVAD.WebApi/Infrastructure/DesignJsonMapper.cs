@@ -407,7 +407,8 @@ public static class DesignJsonMapper
                     availW,
                     opts.FontSize,
                     baseColor,
-                    opts.LineHeight);
+                    opts.LineHeight,
+                    opts.FontFamily ?? PdfFontFamily.Helvetica);
                 break;
             }
 
@@ -1128,8 +1129,10 @@ public static class DesignJsonMapper
                 if (string.IsNullOrWhiteSpace(text)) break;
                 var fs       = GetDouble(style, "fontSize", 12);
                 var fgColor  = ParseColor(GetString(style, "color") ?? "#2563eb");
+                var fontOptions = BuildParaOptions(style);
                 page.DrawText(text, elX, TextY(pageH, elY, fs),
-                    new PdfDrawTextOptions { FontSize = fs, FillColor = fgColor, Underline = true });
+                    new PdfDrawTextOptions { FontSize = fs, FillColor = fgColor, Underline = true,
+                        FontFamily = fontOptions.FontFamily, Bold = fontOptions.Bold, Italic = fontOptions.Italic });
                 if (!string.IsNullOrWhiteSpace(href))
                     page.AddWebLink(elX, RectBottomY(pageH, elY, h), w, h, href);
                 break;

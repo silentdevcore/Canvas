@@ -47,7 +47,7 @@ public sealed class PdfFontLoader
 
     /// <summary>
     /// Tries to load a packaged font matching the requested language and style.
-    /// Script-specific Noto fonts take precedence; Latin text uses Liberation Sans.
+    /// Script-specific Noto fonts take precedence; Latin text uses the requested Liberation family.
     /// </summary>
     public bool TryLoad(string? language, bool bold, bool italic, out PdfEmbeddedFont? font)
         => TryLoad(language, bold, italic, PdfFontFamily.Helvetica, out font);

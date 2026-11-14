@@ -1,0 +1,10 @@
+{
+  "id": "designer-serif-monospace-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Serif and monospace text now use matching local font faces in Designer previews and PDF exports, including bold and italic text and table cells.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}
