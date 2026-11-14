@@ -7,5 +7,5 @@
   "featureIds": [],
   "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
   "breaking": false,
-  "reason": "Internal validation tooling only; the runner does not change shipped application behavior or release versions."
+  "reason": "Internal validation tooling and exact owner-approved Linux raster evidence only; no comparison thresholds, shipped application behavior or release versions are changed by this tooling."
 }

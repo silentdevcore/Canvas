@@ -85,3 +85,37 @@ test('production document scopes use fractional text metrics in normal, shared a
   const editor = readFileSync(new URL('pvad-designer/src/components/Editor/SimplePvadSurface.tsx', root), 'utf8');
   assert.equal([...editor.matchAll(/data-element-id=\{element\.id\}/g)].length, 3);
 });
+
+test('Linux owner approval pins thirteen platform-specific cases without waiving P2 metrics', () => {
+  const directory = new URL('test-assets/visual-parity/approvals/2026-11-14-linux-arm64/', root);
+  const approval = JSON.parse(readFileSync(new URL('approval.json', directory), 'utf8'));
+  assert.equal(approval.status, 'approved');
+  assert.equal(approval.confirmation, 'Alle 13 Vergleiche angesehen und freigegeben');
+  assert.equal(approval.environment.platform, 'linux');
+  assert.equal(approval.environment.architecture, 'arm64');
+  assert.equal(approval.environment.browserVersion, '156.0.8078.80');
+  assert.match(approval.scope, /P2 metrics and regression thresholds remain unchanged/);
+  assert.match(approval.scope, /No changed pixels, Linux\/x64 CI, Windows/);
+  assert.equal(approval.fixtures.length, 2);
+  for (const fixture of approval.fixtures)
+    assert.equal(hash(readFileSync(new URL(fixture.file, root))), fixture.sha256);
+  assert.equal(approval.faces.length, 12);
+  for (const face of approval.faces)
+    assert.equal(hash(readFileSync(new URL('assets/fonts/liberation/' + face.file, root))), face.sha256);
+  const expected = {
+    'font-families': ['serif-bold', 'serif-bold-italic', 'mono-regular', 'mono-bold', 'mono-italic', 'mono-bold-italic', 'mono-date', 'mono-number'],
+    'all-elements': ['text', 'date', 'number', 'field', 'link'],
+  };
+  assert.equal(approval.cases.length, 13);
+  assert.equal(new Set(approval.cases.map(entry => `${entry.fixture}/${entry.id}`)).size, 13);
+  for (const [fixture, ids] of Object.entries(expected))
+    assert.deepEqual(approval.cases.filter(entry => entry.fixture === fixture).map(entry => entry.id).sort(), ids.sort());
+  for (const entry of approval.cases) {
+    assert.equal(entry.severity, 'P2');
+    assert.deepEqual(entry.crops.map(crop => crop.surface).sort(), ['backend', 'canvas', 'csharp', 'preview']);
+    for (const crop of entry.crops) {
+      assert.equal(hash(readFileSync(new URL(crop.file, directory))), crop.sha256);
+      assert.match(crop.pixelSha256, /^[a-f0-9]{64}$/);
+    }
+  }
+});

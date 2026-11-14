@@ -677,8 +677,9 @@ this scoped result. No published release, database or deployment was changed.
 - [x] Pass 1,019 Designer tests, type-check and production build, 72 Documentation
   tests and build, and 58 visual-tool/versioning tests. Validate release fragments
   without changing VERSION or published releases.
-- [ ] Obtain explicit visual approval for the eight Linux font and five Linux
-  catalog P2 cases; macOS approval is not reused for different platform pixels.
+- [x] Obtain explicit visual approval for the eight Linux font and five Linux
+  catalog P2 cases; preserve 52 exact crops and their hashes separately from
+  macOS evidence. The owner explicitly approved all thirteen comparisons.
 - [ ] Execute and inspect remote Linux/x64 CI and Windows results separately.
 
 Linux results: the font pack has 22 cases (14 matches, eight P2); the complete
@@ -699,3 +700,16 @@ These synthetic rendering checks do not certify customer authentication,
 persistence, arbitrary fonts/scripts or all native fallback paths. No .NET
 runtime code was changed by the Linux correction; the real Linux PDF generation
 belongs to the initial committed snapshot. No database or deployment was changed.
+
+### Linux Owner Approval (2026-11-14)
+
+The owner confirmed viewing and approving all thirteen Linux comparisons.
+The approval is limited to the fixture, font, browser/platform and image hashes
+under `test-assets/visual-parity/approvals/2026-11-14-linux-arm64/`.
+The eight font and five catalog P2 metrics remain visible; no baseline,
+comparison threshold or future-platform approval changes. A contract test pins
+the thirteen cases, 52 images, two fixtures and twelve Liberation faces.
+
+The owner requested local commits only and deferred GitHub. Remote Linux/x64 CI
+and Windows validation therefore remain explicitly open; no push, pull request,
+merge, tag, deployment or product-version bump is authorized by this approval.
