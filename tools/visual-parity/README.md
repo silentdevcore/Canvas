@@ -155,6 +155,36 @@ are not reused as Linux evidence. Record the actual image, architecture, browser
 and source hashes. Local container execution is distinct from remote CI or
 Windows certification.
 
+## Native Linux And Windows
+
+The [platform workflow](../../.github/workflows/visual-parity-platforms.yml)
+uses native Ubuntu 24.04/x64 and Windows Server 2025/x64 runners. It runs font,
+date-format, historical-date, date-layout and full-catalog fixtures sequentially
+per platform, with fail-fast disabled between platforms. A failed pack retains
+its log and partial outputs; later packs still run. Local reproduction:
+
+```bash
+node tools/visual-parity/platforms.mjs
+```
+
+Install .NET 10, Node 22, the project Playwright Chromium, Poppler and ImageMagick
+first. Windows uses native tools, not WSL. The workflow installs Poppler 26.9.0;
+the actual runner image, tool versions, font hashes, source commit and browser
+version are captured in each platform's `environment.json`.
+
+The harness explicitly selects bundled Chromium with `--bundled-browser`, never
+the runner's independently updated Chrome. It generates fresh backend/C# PDFs
+and saves evidence under `artifacts/platform-parity/<platform>-<architecture>/`.
+`report.html` links every pack. Native image comparisons use the existing
+ImageMagick wrapper and `null:` output, preserving metrics and thresholds.
+
+An isolated `validation/platform-parity-*` branch can trigger this workflow
+without a merge or release. Source byte identities are preserved across Windows
+checkout. No deployment secrets or write-capable token are provided. Rendering
+success and human P2 approval remain separate: macOS/Linux ARM64 approvals do
+not automatically approve Windows or Linux/x64 output. CI artifacts are retained
+for 30 days and must be downloaded for durable review.
+
 After building `PVAD.Api.Tests`, generate the dedicated three-page flow versus
 independently planned explicit-page comparison with:
 
