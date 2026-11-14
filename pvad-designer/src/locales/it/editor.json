@@ -515,6 +515,7 @@
     "dateLocaleFallback": "Lingua della data non supportata; viene utilizzato l’inglese.",
     "dateTimezoneFallback": "Fuso orario della data sconosciuto; viene utilizzato UTC.",
     "dateBindingUnresolved": "L’associazione della data manca o non contiene una data ISO valida.",
+    "dateLayoutOverflow": "Il contenuto della data supera le dimensioni del campo. Aumentare la larghezza o l’altezza.",
     "drawPathNeeded": "L'elemento di disegno richiede dati di percorso SVG.",
     "opacityRange": "L'opacità dovrebbe essere compresa tra 0 e 1."
   },

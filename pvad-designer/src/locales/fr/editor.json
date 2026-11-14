@@ -515,6 +515,7 @@
     "dateLocaleFallback": "Langue de date non prise en charge ; l’anglais est utilisé.",
     "dateTimezoneFallback": "Fuseau horaire de date inconnu ; UTC est utilisé.",
     "dateBindingUnresolved": "La liaison de date est absente ou ne contient pas de date ISO valide.",
+    "dateLayoutOverflow": "Le contenu de la date dépasse la taille du champ. Augmentez sa largeur ou sa hauteur.",
     "drawPathNeeded": "L'élément de dessin nécessite des données de chemin SVG.",
     "opacityRange": "L'opacité doit être comprise entre 0 et 1."
   },

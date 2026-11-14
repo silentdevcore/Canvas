@@ -515,6 +515,7 @@
     "dateLocaleFallback": "Unsupported date locale; English is used.",
     "dateTimezoneFallback": "Unknown date timezone; UTC is used.",
     "dateBindingUnresolved": "The date binding is missing or is not a valid ISO date.",
+    "dateLayoutOverflow": "Date content exceeds the field size. Increase its width or height.",
     "drawPathNeeded": "Draw element needs SVG path data.",
     "opacityRange": "Opacity should be between 0 and 1."
   },

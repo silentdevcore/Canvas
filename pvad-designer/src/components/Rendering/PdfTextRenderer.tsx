@@ -184,28 +184,44 @@ export const wrapPdfText = (text: string, width: number, fontSize: number, famil
   return lines;
 };
 
-export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement; text: string }) {
+export function layoutPdfTextBlock(element: SimpleElement, text: string) {
   const style = element.style ?? {};
   const size = Number(style.fontSize ?? 12);
   const padding = Number(style.padding ?? 0);
   const left = Number(style.paddingLeft ?? padding);
   const right = Number(style.paddingRight ?? padding);
   const top = Number(style.paddingTop ?? padding);
-  const lineHeightValue = Number(style.lineHeight ?? 1.2);
+  const requestedLineHeight = Number(style.lineHeight ?? 1.2);
+  const lineHeightValue = requestedLineHeight > 0 ? requestedLineHeight : 1.2;
   const lineHeight = lineHeightValue < 8 ? lineHeightValue * size : lineHeightValue;
   const availableWidth = Math.max(1, element.width - left - right);
   const lines = wrapPdfText(text, availableWidth, size, style.fontFamily);
+  const hasContent = text.trim().length > 0;
+  const height = hasContent && lines.length ? top + (lines.length - 1) * lineHeight + size + Number(style.paddingBottom ?? padding) : 0;
+  return { size, left, right, top, lineHeight, availableWidth, lines, height,
+    overflows: hasContent && (height > element.height || lines.some(line => pdfTextWidth(line, size, style.fontFamily) > availableWidth)) };
+}
+
+export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement; text: string }) {
+  const style = element.style ?? {};
+  const { size, left, right, top, lineHeight, availableWidth, lines } = layoutPdfTextBlock(element, text);
   const alignment = style.textAlign ?? 'left';
-  const x = alignment === 'center' ? element.width / 2 : alignment === 'right' ? element.width - right : left;
+  const x = alignment === 'center' ? left + availableWidth / 2 : alignment === 'right' ? element.width - right : left;
   const rtl = element.textDirection === 'rtl';
   const anchor = alignment === 'center' ? 'middle' : (alignment === 'right') !== rtl ? 'end' : 'start';
   const weight = style.fontWeight === 'bold' || Number(style.fontWeight) >= 600 ? 700 : 400;
   const borderWidth = Number(style.borderWidth ?? 0);
-  const sideBorders = (['Top', 'Right', 'Bottom', 'Left'] as const)
+  const sides = ['Top', 'Right', 'Bottom', 'Left'] as const;
+  const hasSideBorders = sides.some(side => style[`border${side}Width`] != null);
+  const dashArray = (borderStyle: string | undefined, width: number) => borderStyle === 'dashed' ? '8 4'
+    : borderStyle === 'dotted' ? `${width} ${width * 2}` : undefined;
+  const radius = Math.max(0, Math.min(Number.parseFloat(String(style.borderRadius ?? 0)) || 0, element.width / 2, element.height / 2));
+  const sideBorders = sides
     .map(side => ({
       side,
       width: Number(style[`border${side}Width`] ?? 0),
       color: style[`border${side}Color`] ?? style.borderColor ?? '#000000',
+      dash: dashArray(style[`border${side}Style`] ?? style.borderStyle, Number(style[`border${side}Width`] ?? 0)),
     }))
     .filter(border => border.width > 0);
 
@@ -218,11 +234,12 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
       height="100%"
       style={{ display: 'block', overflow: 'visible' }}
       data-pdf-overflow="true"
+      data-date-paragraph={element.type === 'date' ? 'true' : undefined}
     >
       {style.backgroundColor && style.backgroundColor !== 'transparent' && (
         <rect width={element.width} height={element.height} fill={style.backgroundColor} />
       )}
-      {borderWidth > 0 && sideBorders.length === 0 && (
+      {borderWidth > 0 && !hasSideBorders && (
         <rect
           x={0}
           y={0}
@@ -231,6 +248,8 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
           fill="none"
           stroke={style.borderColor ?? '#000000'}
           strokeWidth={borderWidth}
+          rx={radius || undefined}
+          strokeDasharray={dashArray(style.borderStyle, borderWidth)}
         />
       )}
       {sideBorders.map(border => {
@@ -241,7 +260,7 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
             : border.side === 'Bottom'
               ? { x1: 0, y1: element.height, x2: element.width, y2: element.height }
               : { x1: 0, y1: 0, x2: 0, y2: element.height };
-        return <line key={border.side} {...coordinates} stroke={border.color} strokeWidth={border.width} />;
+        return <line key={border.side} {...coordinates} stroke={border.color} strokeWidth={border.width} strokeDasharray={border.dash} />;
       })}
       {lines.map((line, index) => line && (
         <text

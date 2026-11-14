@@ -144,6 +144,25 @@ the PDF. Arabic month/weekday output uses the packaged Arabic font; mixed
 Arabic and numeric text is reordered into directional runs before shaping,
 preserving digit order and logical PDF text. No source template is rewritten.
 
+### Date Layout
+
+Date fields use the same paragraph layout in Canvas, Live Preview, normal PDF
+export and C# PDF output. Text wraps at spaces inside the field's content width;
+explicit line breaks are retained. An unbroken date string is not split in the
+middle. Left, center and right alignment use the padded content box, including
+asymmetric padding. A positive line height below eight is a font-size multiplier;
+values of eight or more are points. Zero uses the default 1.2 multiplier.
+
+Backgrounds, uniform or per-side borders, explicit zero border widths, rounded
+uniform borders and dashed/dotted strokes follow the PDF paragraph contract.
+An empty date can still display its background and border.
+
+Changing the field width or height does not resize or move its text automatically.
+If formatted content exceeds the field, the selected element's Inspector shows
+an overflow warning. Increase the width or height, reduce the font size or use a
+shorter format. Overflow remains visible in the document surfaces, as in the PDF;
+text outside the physical page can still be clipped by the page boundary.
+
 ## Output And Limits
 
 Live Preview is a document-layout view, not the PDF file itself. Inspect the

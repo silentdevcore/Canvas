@@ -36,7 +36,7 @@ const renderers: Record<ElementType, (element: SimpleElement, context: Context) 
     const text = documentDateText(element, context.now, context.resolve);
     const printable = /[\u0600-\u06ff]/.test(text) || /^ar(?:-|$)/i.test(element.language ?? '') ? { ...element, textDirection: 'rtl' as const,
       style: { ...element.style, fontFamily: 'Noto Sans Arabic' } } : element;
-    return <PdfSingleLineText element={printable} kind="date" text={text} />;
+    return <PdfTextBlockRenderer element={printable} text={text} />;
   },
   number: element => <PdfSingleLineText element={element} kind="number"
     text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />,
@@ -81,7 +81,7 @@ const renderers: Record<ElementType, (element: SimpleElement, context: Context) 
 };
 
 export const DOCUMENT_RENDERED_ELEMENT_TYPES = Object.keys(renderers) as ElementType[];
-const framedTypes = new Set<ElementType>(['image', 'qrcode', 'barcode', 'chart', 'date', 'number', 'pagenumber']);
+const framedTypes = new Set<ElementType>(['image', 'qrcode', 'barcode', 'chart', 'number', 'pagenumber']);
 
 export function documentContentBoxStyle(element: SimpleElement): CSSProperties | undefined {
   if (!framedTypes.has(element.type)) return undefined;

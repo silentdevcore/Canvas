@@ -12,6 +12,7 @@ import EditorDocumentMarker from '@/components/Editor/EditorDocumentMarker';
 import LivePreview from '@/components/Preview/LivePreview';
 import { DEFAULT_PAGE_SETTINGS, useEditorStore } from '@/store';
 import ExportService from '@/services/ExportService';
+import { layoutPdfTextBlock } from '@/components/Rendering/PdfTextRenderer';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/auth/DesignerAuthGate', () => ({ useDesignerAuth: () => ({ user: { permissions: ['designer.pdf.export'] } }) }));
@@ -152,6 +153,70 @@ test('document frames do not duplicate SVG boxes and retain zero-valued padding'
   expect(documentContentBoxStyle(element({ style: { borderWidth: 2 } }))).toBeUndefined();
   expect(documentContentBoxStyle(element({ type: 'image', style: { borderWidth: 2, paddingLeft: 0 } })))
     .toMatchObject({ border: '2px solid #000', paddingLeft: 0, boxSizing: 'border-box' });
+});
+
+test('narrow dates use paragraph wrapping instead of a clipped single line', () => {
+  const date = element({ type: 'date', dateMode: 'static', content: 'Friday 13 November 2026', width: 120 });
+  const source = JSON.stringify(date);
+  const { container } = render(<DocumentElementRenderer {...context} element={date} />);
+  expect([...container.querySelectorAll('text')].map(node => node.textContent)).toEqual(['Friday 13 November', '2026']);
+  expect(container.querySelector('svg[data-date-paragraph]')).toHaveStyle({ overflow: 'visible' });
+  expect(documentContentBoxStyle(date)).toBeUndefined();
+  expect(JSON.stringify(date)).toBe(source);
+});
+
+test('date alignment centers within asymmetric padding exactly once', () => {
+  const { container } = render(<DocumentElementRenderer {...context} element={element({ type: 'date', width: 180,
+    content: 'Friday 13 November 2026', style: { fontSize: 12, paddingLeft: 24, paddingRight: 4, paddingTop: 10, textAlign: 'center' } })} />);
+  expect(container.querySelector('text')).toHaveAttribute('x', '100');
+  expect(container.querySelector('text')).toHaveAttribute('y', '18.64');
+  expect(container.querySelector('text')).toHaveAttribute('text-anchor', 'middle');
+});
+
+test('date right alignment and explicit zero padding override the uniform inset', () => {
+  const { container } = render(<DocumentElementRenderer {...context} element={element({ type: 'date', width: 180,
+    content: 'Friday', style: { padding: 9, paddingRight: 0, textAlign: 'right' } })} />);
+  expect(container.querySelector('text')).toHaveAttribute('x', '180');
+  expect(container.querySelector('text')).toHaveAttribute('text-anchor', 'end');
+});
+
+test('empty dates keep their frame and explicit zero-width sides suppress a uniform border', () => {
+  const { container, rerender } = render(<DocumentElementRenderer {...context} element={element({ type: 'date', content: '',
+    style: { backgroundColor: '#e0f2fe', borderWidth: 2, borderColor: '#2563eb', borderRadius: 8 } })} />);
+  expect(container.querySelectorAll('text')).toHaveLength(0);
+  expect(container.querySelectorAll('rect')).toHaveLength(2);
+  expect(container.querySelector('rect[stroke]')).toHaveAttribute('rx', '8');
+  rerender(<DocumentElementRenderer {...context} element={element({ type: 'date', content: '',
+    style: { borderWidth: 2, borderStyle: 'dotted' } })} />);
+  expect(container.querySelector('rect[stroke]')).toHaveAttribute('stroke-dasharray', '2 4');
+  rerender(<DocumentElementRenderer {...context} element={element({ type: 'date', content: '',
+    style: { borderBottomWidth: 2, borderBottomStyle: 'dashed' } })} />);
+  expect(container.querySelector('line')).toHaveAttribute('stroke-dasharray', '8 4');
+  rerender(<DocumentElementRenderer {...context} element={element({ type: 'date', content: '', style: { borderWidth: 4,
+    borderTopWidth: 0, borderRightWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0 } })} />);
+  expect(container.querySelectorAll('rect[stroke],line')).toHaveLength(0);
+});
+
+test('date paragraph diagnostics detect content overflow without resizing the document', () => {
+  const short = element({ type: 'date', width: 110, height: 12 });
+  expect(layoutPdfTextBlock(short, 'Friday 13 November 2026').overflows).toBe(true);
+  expect(layoutPdfTextBlock(short, '').overflows).toBe(false);
+  expect(layoutPdfTextBlock({ ...short, width: 40, height: 100 }, '2026-11-13T12:00:00Z').overflows).toBe(true);
+  expect(short.height).toBe(12);
+});
+
+test.each([0, 1.8, 22])('date line height %s follows the PDF paragraph rule', requested => {
+  const date = element({ type: 'date', width: 110, style: { fontSize: 12, lineHeight: requested } });
+  const layout = layoutPdfTextBlock(date, 'Friday 13 November 2026');
+  expect(layout.lineHeight).toBeCloseTo(requested === 0 ? 14.4 : requested < 8 ? requested * 12 : requested);
+});
+
+test('Live Preview leaves overflowing date content visible like backend PDF paragraphs', () => {
+  const { container } = render(<MemoryRouter><LivePreview template={{ id: 'date', name: 'Dates', category: '', description: '' }}
+    pages={[{ id: 'page', elements: [element({ type: 'date', width: 110, height: 12, content: 'Friday 13 November 2026' })] }]}
+    pageSettings={DEFAULT_PAGE_SETTINGS} visualParityMode onBack={() => {}} onExport={() => {}} /></MemoryRouter>);
+  expect(container.querySelector('[data-element-id]')).toHaveStyle({ height: '12px', overflow: 'visible' });
+  expect(container.querySelectorAll('[data-element-id] text').length).toBeGreaterThan(1);
 });
 
 test.each(['bookmark', 'pageboundary'] as const)('%s markers are editor-only, not printable content', type => {

@@ -30,3 +30,11 @@ test('date documentation defines modes, defaults, portable formats and explicit 
     'unknown', 'directional runs', 'no source template'])
     assert.ok(guide.toLowerCase().replace(/\s+/g, ' ').includes(phrase.toLowerCase()), phrase);
 });
+
+test('date layout documentation explains paragraph geometry and visible overflow without resizing', () => {
+  for (const phrase of ['Date Layout', 'asymmetric padding', 'line height', 'per-side borders',
+    'empty date', 'overflow warning', 'physical page'])
+    assert.ok(guide.toLowerCase().replace(/\s+/g, ' ').includes(phrase.toLowerCase()), phrase);
+  assert.match(guide, /does not resize or move/);
+  assert.match(guide, /unbroken date string is not split/);
+});

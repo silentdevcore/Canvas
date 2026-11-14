@@ -385,26 +385,7 @@ public static class DesignJsonMapper
             {
                 var text = el.Content ?? "";
                 if (string.IsNullOrWhiteSpace(text)) return;
-                var pad  = GetDouble(style, "padding", 0);
-                var padL = GetDouble(style, "paddingLeft",  pad);
-                var padT = GetDouble(style, "paddingTop",   pad);
-                var padR = GetDouble(style, "paddingRight", pad);
-                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
-
-                // Background fill behind text element
-                var bgStr = GetString(style, "backgroundColor");
-                if (!string.IsNullOrEmpty(bgStr) && bgStr != "transparent")
-                {
-                    var bgC = ParseColor(bgStr);
-                    page.DrawRectangle(elX, RectBottomY(pageH, elY, h), w, h,
-                        lineWidth: 0.01, fill: true, strokeColor: bgC, fillColor: bgC);
-                }
-
-                // Border around text element, including DevExpress-style per-side borders.
-                DrawElementBorder(page, style, elX, RectBottomY(pageH, elY, h), w, h);
-
-                var availW = Math.Max(w - padL - padR, 1);
-                page.DrawParagraph(text, elX + padL, TextY(pageH, elY + padT, opts.FontSize), availW, opts);
+                DrawTextBlock(page, text, style, pageH, elX, elY, w, h, el.Language, el.TextDirection);
                 break;
             }
 
@@ -434,10 +415,9 @@ public static class DesignJsonMapper
             {
                 var dateText = PVAD.Core.Primitives.DesignerDateFormatter.Format(el.DateMode, el.Content,
                     el.FallbackText, el.Binding, el.DateFormat, el.Locale, el.Timezone, instant).Text;
-                if (string.IsNullOrWhiteSpace(dateText)) return;
                 var arabicDate = Regex.IsMatch(dateText, @"[\u0600-\u06ff]", RegexOptions.None, TimeSpan.FromSeconds(1));
-                var opts = BuildParaOptions(style, arabicDate ? "ar" : el.Language, arabicDate ? "rtl" : el.TextDirection);
-                page.DrawParagraph(dateText, elX, TextY(pageH, elY, opts.FontSize), w, opts);
+                DrawTextBlock(page, dateText, style, pageH, elX, elY, w, h,
+                    arabicDate ? "ar" : el.Language, arabicDate ? "rtl" : el.TextDirection);
                 break;
             }
 
@@ -1339,6 +1319,27 @@ public static class DesignJsonMapper
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static void DrawTextBlock(PdfPage page, string text, Dictionary<string, object> style,
+        double pageH, double x, double top, double width, double height, string? language, string? direction)
+    {
+        var padding = GetDouble(style, "padding", 0);
+        var left = GetDouble(style, "paddingLeft", padding);
+        var right = GetDouble(style, "paddingRight", padding);
+        var paddingTop = GetDouble(style, "paddingTop", padding);
+        var background = GetString(style, "backgroundColor");
+        if (!string.IsNullOrEmpty(background) && background != "transparent")
+        {
+            var color = ParseColor(background);
+            page.DrawRectangle(x, RectBottomY(pageH, top, height), width, height,
+                lineWidth: 0.01, fill: true, strokeColor: color, fillColor: color);
+        }
+        DrawElementBorder(page, style, x, RectBottomY(pageH, top, height), width, height);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var options = BuildParaOptions(style, language, direction);
+        page.DrawParagraph(text, x + left, TextY(pageH, top + paddingTop, options.FontSize),
+            Math.Max(1, width - left - right), options);
+    }
 
     private static void DrawDataUrlImage(PdfPage page, ElementDto el, double pageH, string dataUrl,
         double x, double top, double width, double height)

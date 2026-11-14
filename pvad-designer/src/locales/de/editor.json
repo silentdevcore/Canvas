@@ -515,6 +515,7 @@
     "dateLocaleFallback": "Nicht unterstützte Datumssprache; Englisch wird verwendet.",
     "dateTimezoneFallback": "Unbekannte Datumszeitzone; UTC wird verwendet.",
     "dateBindingUnresolved": "Die Datumsbindung fehlt oder enthält kein gültiges ISO-Datum.",
+    "dateLayoutOverflow": "Der Datumsinhalt überschreitet die Feldgröße. Vergrößern Sie Breite oder Höhe.",
     "drawPathNeeded": "Das Zeichenelement benötigt SVG-Pfaddaten.",
     "opacityRange": "Die Deckkraft sollte zwischen 0 und 1 liegen."
   },

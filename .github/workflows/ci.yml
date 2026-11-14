@@ -610,6 +610,18 @@ jobs:
           if [ -d artifacts/visual-parity ]; then
             cp -R artifacts/visual-parity artifacts/date-format-parity
           fi
+      - name: Enforce date paragraph layout parity
+        id: date-layout-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-layout.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: node tools/visual-parity/run.mjs
+      - name: Preserve date layout parity evidence
+        if: always() && steps.date-layout-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-layout-parity
+          fi
       - name: Enforce image fit and focus parity
         id: image-parity
         env:
@@ -659,6 +671,13 @@ jobs:
         with:
           name: pvad-date-format-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/date-format-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-layout-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-layout-parity
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
