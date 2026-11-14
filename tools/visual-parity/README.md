@@ -59,6 +59,21 @@ saved template setting. Production render-time dates capture the actual clock
 once per PDF. `product-metadata/designer-date-formatting.json` is the shared,
 versioned format/default contract and is embedded in the Core assembly.
 
+Historical timezone boundaries have a separate 18-case visual pack and 32 shared
+formatter vectors in `date-historical-cases.json`:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-historical.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+Contract version 2 limits non-UTC zone conversion to instants from
+`1973-01-01T00:00:00Z`. Earlier timestamp dates render in UTC with a localized
+Inspector warning; static text, date-only bindings and UTC-forcing formats stay
+unchanged. Positive/negative source offsets test the absolute-instant boundary,
+not just the input year. This does not certify second-accurate local-mean time
+or different platform timezone-database versions. Keep the original date packs
+and owner approvals unchanged; archive this pack separately before another run.
+
 The separate paragraph-layout pack uses another test-only clock sidecar:
 
 ```bash

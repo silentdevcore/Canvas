@@ -514,6 +514,7 @@
     "dateFormatFallback": "Formato data non supportato; viene utilizzato il formato ISO.",
     "dateLocaleFallback": "Lingua della data non supportata; viene utilizzato l’inglese.",
     "dateTimezoneFallback": "Fuso orario della data sconosciuto; viene utilizzato UTC.",
+    "dateHistoricalTimezoneFallback": "Questa data storica non rientra nell'intervallo supportato per i fusi orari; viene usato UTC.",
     "dateBindingUnresolved": "L’associazione della data manca o non contiene una data ISO valida.",
     "dateLayoutOverflow": "Il contenuto della data supera le dimensioni del campo. Aumentare la larghezza o l’altezza.",
     "drawPathNeeded": "L'elemento di disegno richiede dati di percorso SVG.",

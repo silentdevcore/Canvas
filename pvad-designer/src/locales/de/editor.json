@@ -514,6 +514,7 @@
     "dateFormatFallback": "Nicht unterstütztes Datumsformat; das ISO-Datumsformat wird verwendet.",
     "dateLocaleFallback": "Nicht unterstützte Datumssprache; Englisch wird verwendet.",
     "dateTimezoneFallback": "Unbekannte Datumszeitzone; UTC wird verwendet.",
+    "dateHistoricalTimezoneFallback": "Dieses historische Datum liegt außerhalb des unterstützten Zeitzonenbereichs; UTC wird verwendet.",
     "dateBindingUnresolved": "Die Datumsbindung fehlt oder enthält kein gültiges ISO-Datum.",
     "dateLayoutOverflow": "Der Datumsinhalt überschreitet die Feldgröße. Vergrößern Sie Breite oder Höhe.",
     "drawPathNeeded": "Das Zeichenelement benötigt SVG-Pfaddaten.",

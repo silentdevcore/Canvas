@@ -10,9 +10,12 @@ public sealed class DateFormattingParityTests
 {
     public static IEnumerable<object[]> Cases()
     {
-        using var source = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root(), "test-assets", "visual-parity", "date-format-cases.json")));
-        foreach (var example in source.RootElement.GetProperty("cases").EnumerateArray())
-            yield return [example.GetProperty("id").GetString()!, example.GetRawText(), source.RootElement.GetProperty("instant").GetString()!];
+        foreach (var file in new[] { "date-format-cases.json", "date-historical-cases.json" })
+        {
+            using var source = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root(), "test-assets", "visual-parity", file)));
+            foreach (var example in source.RootElement.GetProperty("cases").EnumerateArray())
+                yield return [example.GetProperty("id").GetString()!, example.GetRawText(), source.RootElement.GetProperty("instant").GetString()!];
+        }
     }
 
     [Theory]
@@ -61,6 +64,27 @@ public sealed class DateFormattingParityTests
         var text = document.CreateDesignSnapshot().Pages[0].Elements.Select(element => element.Text);
         Assert.Contains("No date", text);
         Assert.DoesNotContain("2025-01-01", text);
+    }
+
+    [Theory]
+    [InlineData("1890-01-01T00:00:00Z", "1890-01-01 00:00:00 +00:00")]
+    [InlineData("1973-01-01T00:00:00Z", "1973-01-01 01:00:00 +01:00")]
+    public async Task HistoricalBindingUsesThePortableBoundaryWithoutRewritingSource(string source, string expected)
+    {
+        var design = new DesignExportDto
+        {
+            PageSettings = new() { CustomProperties = [new() { Name = "Archive.Date", Value = source }] },
+            Pages = [new() { Id = "page", Elements = [new() { Id = "historical", Type = "date", X = 20, Y = 20,
+                Width = 500, Height = 40, DateMode = "binding", Binding = "Archive.Date", Timezone = "Europe/Paris",
+                DateFormat = "yyyy-MM-dd HH:mm:ss zzz" }] }]
+        };
+        var before = JsonSerializer.Serialize(design);
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes();
+        var imported = await new PVAD.Importer.PdfImporter().LoadAsync(new MemoryStream(bytes));
+        var text = string.Join(" ", imported.Pages.SelectMany(page => page.TextObjects).Select(value => value.Text));
+        Assert.Contains(expected, text);
+        Assert.DoesNotContain("supported timezone", text);
+        Assert.Equal(before, JsonSerializer.Serialize(design));
     }
 
     private static string Root()

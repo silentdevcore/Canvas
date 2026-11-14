@@ -514,6 +514,7 @@
     "dateFormatFallback": "Format de date non pris en charge ; le format ISO est utilisé.",
     "dateLocaleFallback": "Langue de date non prise en charge ; l’anglais est utilisé.",
     "dateTimezoneFallback": "Fuseau horaire de date inconnu ; UTC est utilisé.",
+    "dateHistoricalTimezoneFallback": "Cette date historique est hors de la plage de conversion des fuseaux horaires ; UTC est utilisé.",
     "dateBindingUnresolved": "La liaison de date est absente ou ne contient pas de date ISO valide.",
     "dateLayoutOverflow": "Le contenu de la date dépasse la taille du champ. Augmentez sa largeur ou sa hauteur.",
     "drawPathNeeded": "L'élément de dessin nécessite des données de chemin SVG.",

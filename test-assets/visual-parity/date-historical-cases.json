@@ -1,0 +1,388 @@
+{
+  "version": 1,
+  "instant": "1890-01-01T00:00:00.120Z",
+  "cases": [
+    {
+      "id": "paris-render",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz"
+      },
+      "expected": "1890-01-01 00:00:00.120 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "berlin-bound",
+      "input": {
+        "dateMode": "binding",
+        "content": "1890-01-01T00:00:00Z",
+        "timezone": "Europe/Berlin",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "zurich-bound",
+      "input": {
+        "dateMode": "binding",
+        "content": "1850-01-01T00:00:00Z",
+        "timezone": "Europe/Zurich",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1850-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "kathmandu-bound",
+      "input": {
+        "dateMode": "binding",
+        "content": "1900-01-01T00:00:00Z",
+        "timezone": "Asia/Kathmandu",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1900-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "monrovia-negative-offset",
+      "instant": "1971-01-01T00:00:00.120Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Africa/Monrovia",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz"
+      },
+      "expected": "1971-01-01 00:00:00.120 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "new-york-negative-offset",
+      "instant": "1880-01-01T00:00:00Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "America/New_York",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1880-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "whole-minute-history",
+      "input": {
+        "dateMode": "binding",
+        "content": "1900-01-01T00:00:00Z",
+        "timezone": "Europe/Amsterdam",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1900-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "before-boundary",
+      "instant": "1972-12-31T23:59:59.999Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz"
+      },
+      "expected": "1972-12-31 23:59:59.999 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "at-boundary",
+      "instant": "1973-01-01T00:00:00Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1973-01-01 01:00:00 +01:00",
+      "warnings": []
+    },
+    {
+      "id": "positive-source-offset-before-boundary",
+      "input": {
+        "dateMode": "binding",
+        "content": "1973-01-01T00:30:00+01:00",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1972-12-31 23:30:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "negative-source-offset-after-boundary",
+      "input": {
+        "dateMode": "binding",
+        "content": "1972-12-31T23:30:00-01:00",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1973-01-01 01:30:00 +01:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-utc",
+      "input": {
+        "dateMode": "render",
+        "timezone": "UTC",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz"
+      },
+      "expected": "1890-01-01 00:00:00.120 +00:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-gmt-alias",
+      "input": {
+        "dateMode": "render",
+        "timezone": "GMT",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz"
+      },
+      "expected": "1890-01-01 00:00:00.120 +00:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-etc-utc-alias",
+      "input": {
+        "dateMode": "binding",
+        "content": "1850-01-01T00:00:00Z",
+        "timezone": "Etc/UTC",
+        "dateFormat": "O"
+      },
+      "expected": "1850-01-01T00:00:00.000+00:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-date-only",
+      "input": {
+        "dateMode": "binding",
+        "content": "1890-01-01",
+        "timezone": "America/New_York",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-static",
+      "input": {
+        "dateMode": "static",
+        "content": "01.01.1850",
+        "timezone": "Europe/Paris"
+      },
+      "expected": "01.01.1850",
+      "warnings": []
+    },
+    {
+      "id": "historical-forced-utc",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "u"
+      },
+      "expected": "1890-01-01 00:00:00Z",
+      "warnings": []
+    },
+    {
+      "id": "historical-rfc",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "r"
+      },
+      "expected": "Wed, 01 Jan 1890 00:00:00 GMT",
+      "warnings": []
+    },
+    {
+      "id": "historical-long-utc",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "U"
+      },
+      "expected": "Wednesday, January 1, 1890 12:00:00 AM",
+      "warnings": []
+    },
+    {
+      "id": "historical-invalid-zone",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Unknown/Invalid",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-invalid-pattern",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "dateFormat": "qq"
+      },
+      "expected": "1890-01-01",
+      "warnings": [
+        "dateFormatFallback",
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "minimum-year",
+      "input": {
+        "dateMode": "binding",
+        "content": "0001-01-01T00:00:00Z",
+        "timezone": "Europe/Paris",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "0001-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-de",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "locale": "de",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-fr",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "locale": "fr",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-es",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "locale": "es",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-it",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "locale": "it",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-ar",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Europe/Paris",
+        "locale": "ar",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "kathmandu-after-boundary",
+      "instant": "1973-01-01T00:00:00Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Asia/Kathmandu",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1973-01-01 05:30:00 +05:30",
+      "warnings": []
+    },
+    {
+      "id": "monrovia-after-boundary",
+      "instant": "1973-01-01T00:00:00Z",
+      "input": {
+        "dateMode": "render",
+        "timezone": "Africa/Monrovia",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1973-01-01 00:00:00 +00:00",
+      "warnings": []
+    },
+    {
+      "id": "historical-unresolved-binding",
+      "input": {
+        "dateMode": "binding",
+        "content": "not-an-iso-date",
+        "binding": "Missing.Date",
+        "timezone": "Europe/Paris"
+      },
+      "expected": "{{ Missing.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "trimmed-historical-zone",
+      "input": {
+        "dateMode": "render",
+        "timezone": " Europe/Paris ",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    },
+    {
+      "id": "historical-windows-alias",
+      "input": {
+        "dateMode": "render",
+        "timezone": "W. Europe Standard Time",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz"
+      },
+      "expected": "1890-01-01 00:00:00 +00:00",
+      "warnings": [
+        "dateHistoricalTimezoneFallback"
+      ]
+    }
+  ]
+}

@@ -535,8 +535,9 @@ Reports: `artifacts/date-format-parity/REPORT.md`,
   are not certified by the portable contract.
 - [x] Add and audit narrow, multi-line formatted-date and decorative-frame
   fixtures; scoped results and remaining raster review are recorded below.
-- [ ] Validate historical sub-minute timezone offsets separately from the tested
-  contemporary IANA rules; keep deployment timezone databases current.
+- [x] Audit historical sub-minute offsets separately and validate the explicit
+  portable UTC boundary documented below. Deployment timezone-database currency
+  remains an ongoing operator responsibility, not a certified historical engine.
 
 Native serif/monospace platform validation remains open. Published releases,
 databases and existing approvals are unchanged. No commit, push or deployment
@@ -753,3 +754,55 @@ This is a focused rendering test, not a full Solution/API-suite run, remote CI
 or an authenticated customer workflow. Existing Vite/CommonJS configuration
 warnings remain visible in the log. GitHub execution and Windows stay deferred;
 no application code, database, deployment, product version or release changed.
+
+## Historical Timezone Boundary (2026-11-14)
+
+- [x] Reproduce the real browser/backend mismatch before changing the formatters:
+  Paris in 1890 renders 00:09:21 in the browser and 00:10:00 in the backend.
+  The runtime timezone API represents offsets in whole minutes, unlike historical
+  local-mean-time rules that include seconds.
+- [x] Version the shared date-format contract independently of product VERSION.
+  Contract version 2 starts non-UTC zone conversion at 1973-01-01T00:00:00Z;
+  earlier timestamp instants use UTC with a dedicated warning in six languages.
+- [x] Check the absolute instant, not the input wall date or offset. Preserve
+  static text, date-only bindings, UTC/registered UTC aliases and UTC-forcing
+  formats without a new historical warning.
+- [x] Add 32 shared historical/boundary vectors to Jest and .NET without modifying
+  the original 81 vectors, approved fixtures, font files or raster thresholds.
+- [x] Cover positive and negative historical offsets, the exact boundary and its
+  previous millisecond, offset-bearing inputs across the boundary, year 0001,
+  all six locales, aliases, invalid input and warning precedence.
+- [x] Verify backend bound-property rendering and canonical source immutability
+  on both sides of the boundary; warnings must not become printed PDF content.
+- [x] Compare 18 new cases across Canvas, Preview, backend PDF and actual C# PDF;
+  all match with zero geometry drift and no P0/P1/P2 findings.
+- [x] Regress the original 18-date pack and complete 40-instance/38-type catalog.
+  Their results remain 18 matches and 39 matches/one existing P2 respectively.
+  Normal backend/C# crops are pixel-identical in all three packs.
+- [x] Check synthetic desktop/mobile values and geometry, plus the visible
+  desktop Inspector warning with the original saved timezone still present.
+- [x] Pass 1,051 Designer tests, 117 focused date/property API tests, 73
+  Documentation tests, 60 visual-tool/versioning tests, type-check and both
+  production builds. Production JS excludes internal parity and fixture markers.
+- [x] Prepare separate enforced CI fixture/evidence steps and a patch release
+  fragment; do not push or execute GitHub workflows while the owner defers them.
+- [x] Extend public documentation with the boundary, unchanged inputs, warnings,
+  timezone-data requirements and the platform-runtime reference.
+
+This is a conservative support boundary, not second-accurate historical timezone
+reconstruction. Earlier non-UTC settings remain in the source JSON, but their
+rendered timestamps intentionally use UTC rather than contradictory platform
+approximations. Date-only calendar values are not treated as historical instants.
+Arbitrary calendars/locales/tokens remain a separate future extension; remote
+Linux/x64 CI and Windows certification remain open above. No new dependency,
+database change, product-version bump, published-release edit or deployment occurs.
+
+Evidence: `artifacts/date-historical-parity/REPORT.md`,
+`artifacts/date-historical-parity/visual-parity-report.html` and
+`artifacts/date-historical-parity/browser/report.html`.
+Regressions: `artifacts/date-historical-regression/date-format/` and
+`artifacts/date-historical-regression/all-elements/`.
+These are synthetic rendering checks with mocked browser API/session responses,
+not a full authenticated customer workflow or a full API/Solution-suite run.
+Existing Vite/CommonJS, dependency/license and duplicate-font-option console
+warnings were not suppressed or silently treated as resolved.

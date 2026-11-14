@@ -1,0 +1,10 @@
+{
+  "id": "designer-historical-date-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Historical timestamps before 1973 now use UTC consistently in Designer and PDF exports, with a localized warning instead of inconsistent timezone conversions. Static text and date-only values are unchanged.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

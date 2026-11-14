@@ -624,6 +624,20 @@ jobs:
           if [ -d artifacts/visual-parity ]; then
             cp -R artifacts/visual-parity artifacts/date-format-parity
           fi
+      - name: Enforce historical date boundary parity
+        id: historical-date-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-historical.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: |
+          node --test tools/visual-parity/fixture-layout.test.mjs
+          node tools/visual-parity/run.mjs
+      - name: Preserve historical date parity evidence
+        if: always() && steps.historical-date-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-historical-parity
+          fi
       - name: Enforce date paragraph layout parity
         id: date-layout-parity
         env:
@@ -685,6 +699,13 @@ jobs:
         with:
           name: pvad-date-format-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/date-format-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-historical-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-historical-parity
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

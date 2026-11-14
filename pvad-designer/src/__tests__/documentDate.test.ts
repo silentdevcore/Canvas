@@ -1,13 +1,18 @@
 import cases from '../../../test-assets/visual-parity/date-format-cases.json';
+import historicalCases from '../../../test-assets/visual-parity/date-historical-cases.json';
 import { formatDocumentDate } from '../components/Rendering/documentDate';
 import { createDocumentContentResolver } from '../components/Rendering/documentContent';
 import type { SimpleElement } from '../types';
 import contract from '../../../product-metadata/designer-date-formatting.json';
 
-test.each(cases.cases)('$id follows the shared date contract', example => {
+const vectors = [cases, historicalCases].flatMap(group => group.cases.map(example => ({
+  ...example, instant: 'instant' in example ? example.instant! : group.instant,
+})));
+
+test.each(vectors)('$id follows the shared date contract', example => {
   const element = { id: 'date', type: 'date', x: 0, y: 0, width: 300, height: 30, ...example.input } as SimpleElement;
   const original = structuredClone(element);
-  expect(formatDocumentDate(element, new Date('instant' in example ? example.instant! : cases.instant)))
+  expect(formatDocumentDate(element, new Date(example.instant)))
     .toEqual({ text: example.expected, warnings: example.warnings });
   expect(element).toEqual(original);
 });
@@ -23,7 +28,7 @@ test('binding uses the same custom or localized property lookup without mutating
 test('date warnings are available in every supported Designer language', () => {
   for (const language of Object.keys(contract.locales)) {
     const { warnings } = require(`../locales/${language}/editor.json`);
-    for (const key of ['dateLocaleFallback', 'dateTimezoneFallback', 'dateFormatFallback', 'dateBindingUnresolved', 'dateLayoutOverflow'])
+    for (const key of ['dateLocaleFallback', 'dateTimezoneFallback', 'dateHistoricalTimezoneFallback', 'dateFormatFallback', 'dateBindingUnresolved', 'dateLayoutOverflow'])
       expect(typeof warnings[key]).toBe('string');
   }
 });
