@@ -1,0 +1,11 @@
+{
+  "id": "api-full-suite-diagnostics",
+  "impact": "none",
+  "components": ["api", "infrastructure"],
+  "category": "improved",
+  "summary": "Added reproducible full API validation with isolated test storage, serial diagnostics and complete result auditing.",
+  "reason": "Adds internal test configuration and validation instructions only; application behavior, permissions, timeouts, and product version remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
