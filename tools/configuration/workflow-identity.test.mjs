@@ -10,6 +10,37 @@ const read = name => readFileSync(new URL(`../../.github/workflows/${name}.yml`,
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { load } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
 
+function syntaxCheck(shell, source) {
+  const input = source.replace(/\$\{\{[\s\S]*?\}\}/g, 'pvad-ci-expression');
+  if (shell === 'bash' || shell === 'sh') return spawnSync(shell, ['-n'], { encoding: 'utf8', input });
+  assert.equal(shell, 'pwsh', 'Unrecognized workflow shell requires a syntax validator.');
+  return spawnSync('pwsh', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command',
+    '$tokens = $null; $errors = $null; [System.Management.Automation.Language.Parser]::ParseInput([Console]::In.ReadToEnd(), [ref]$tokens, [ref]$errors) | Out-Null; if ($errors.Count) { $errors | ForEach-Object { [Console]::Error.WriteLine($_.Message) }; exit 1 }'],
+  { encoding: 'utf8', input });
+}
+
+function workflowShells(workflow, job, step) {
+  const explicit = step.shell ?? job.defaults?.run?.shell ?? workflow.defaults?.run?.shell;
+  if (explicit) return [explicit];
+  const runners = JSON.stringify(job['runs-on'])?.includes('matrix.')
+    ? JSON.stringify(job.strategy?.matrix) : JSON.stringify(job['runs-on']);
+  return /windows/i.test(runners ?? '') ? /ubuntu|macos/i.test(runners ?? '') ? ['bash', 'pwsh'] : ['pwsh'] : ['bash'];
+}
+
+test('workflow shell selection respects explicit, inherited and native matrix defaults', () => {
+  assert.deepEqual(workflowShells({}, { 'runs-on': '${{ matrix.os }}', strategy: { matrix: { os: ['ubuntu-24.04', 'windows-2025'] } } }, {}), ['bash', 'pwsh']);
+  assert.deepEqual(workflowShells({}, { 'runs-on': 'windows-2025' }, {}), ['pwsh']);
+  assert.deepEqual(workflowShells({}, { 'runs-on': 'ubuntu-24.04' }, { shell: 'pwsh' }), ['pwsh']);
+  assert.deepEqual(workflowShells({ defaults: { run: { shell: 'sh' } } }, {}, {}), ['sh']);
+  assert.deepEqual(workflowShells({ defaults: { run: { shell: 'sh' } } }, { defaults: { run: { shell: 'bash' } } }, {}), ['bash']);
+});
+
+test('syntax validation parses PowerShell without executing commands and still rejects invalid scripts', () => {
+  assert.equal(syntaxCheck('pwsh', "if ($false) { throw 'must not execute' }; throw 'parser only'").status, 0);
+  assert.notEqual(syntaxCheck('pwsh', 'if (').status, 0);
+  assert.notEqual(syntaxCheck('bash', 'if then').status, 0);
+});
+
 test('all workflow YAML parses with valid job dependencies, existing working directories and shell syntax', () => {
   const workflow = load(read('ci'));
   assert.equal(workflow.name, 'PVADE CI');
@@ -29,9 +60,10 @@ test('all workflow YAML parses with valid job dependencies, existing working dir
         assert.ok(existsSync(directory), `${name}: missing working directory`);
         if (step.uses) assert.match(step.uses, /@[a-f0-9]{40}$/);
         if (!step.run) continue;
-        const syntax = spawnSync('bash', ['-n'], { encoding: 'utf8',
-          input: step.run.replace(/\$\{\{[\s\S]*?\}\}/g, 'pvad-ci-expression') });
-        assert.equal(syntax.status, 0, `${name}/${step.name}: ${syntax.stderr}`);
+        for (const shell of workflowShells(workflow, job, step)) {
+          const syntax = syntaxCheck(shell, step.run);
+          assert.equal(syntax.status, 0, `${name}/${step.name} (${shell}): ${syntax.stderr || syntax.error?.message}`);
+        }
         for (const match of step.run.matchAll(/\b(?:dotnet (?:restore|build|publish|test)) ([\w./-]+\.(?:csproj|sln))\b/g))
           assert.ok(existsSync(resolve(directory, match[1])), `${name}: missing ${match[1]}`);
       }

@@ -1,0 +1,11 @@
+{
+  "id": "workflow-shell-aware-validation",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "fixed",
+  "summary": "Validated Windows workflow scripts with their declared shell while retaining Bash syntax checks.",
+  "reason": "Corrects internal configuration validation for native platform jobs and adds API result-auditor contract tests to CI; no application or deployment behavior changes.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
