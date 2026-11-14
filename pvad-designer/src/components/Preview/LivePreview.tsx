@@ -199,7 +199,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     width: element.width * zoom, height: element.height * zoom,
     transform: element.style?.rotation ? `rotate(${element.style.rotation}deg)` : undefined,
     transformOrigin: 'center center', boxSizing: 'border-box',
-    overflow: ['contentcontrol', 'footnote', 'endnote', 'text', 'field', 'textarea', 'rect', 'shape', 'circle', 'note', 'table'].includes(element.type) ? 'visible' : 'hidden',
+    overflow: ['contentcontrol', 'footnote', 'endnote', 'text', 'date', 'field', 'textarea', 'rect', 'shape', 'circle', 'note', 'table'].includes(element.type) ? 'visible' : 'hidden',
   });
 
   const renderElement = (element: SimpleElement, pageIndex = 0) => (

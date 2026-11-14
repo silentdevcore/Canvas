@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "reviewedAt": "2026-11-11",
+  "reviewedAt": "2026-11-14",
   "decision": "checklists/PVAD.Legacy-Name-Retirement.md",
   "rule": "Every tracked or untracked non-ignored file containing the former short or expanded product name must be listed by exact path. Pinned reasons must keep their exact bytes.",
   "entries": [
@@ -21,6 +21,11 @@
     {
       "path": "PVAD.WebApi/Security/PvadProtectedDataReprotection.cs",
       "reason": "historical-record"
+    },
+    {
+      "path": "assets/fonts/noto-arabic/NotoSansArabic-Regular.ttf",
+      "reason": "third-party-bytes",
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
     },
     {
       "path": "checklists/PVAD.Company.md",

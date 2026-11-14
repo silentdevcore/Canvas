@@ -531,11 +531,70 @@ Reports: `artifacts/date-format-parity/REPORT.md`,
 - [ ] Extend locales/calendars/tokens only with shared vectors and a versioned
   metadata update; arbitrary .NET cultures and seven-digit fractional output
   are not certified by the portable contract.
-- [ ] Add narrow, multi-line formatted-date and decorative-frame fixtures before
-  claiming all Date element wrapping/style variants match the PDF layout.
+- [x] Add and audit narrow, multi-line formatted-date and decorative-frame
+  fixtures; scoped results and remaining raster review are recorded below.
 - [ ] Validate historical sub-minute timezone offsets separately from the tested
   contemporary IANA rules; keep deployment timezone databases current.
 
 Native serif/monospace platform validation remains open. Published releases,
 databases and existing approvals are unchanged. No commit, push or deployment
-was performed for this date-format correction.
+was performed at the time of the date-format validation record. The formatting
+work was subsequently committed as `dd32ea2c`.
+
+## Date Paragraph Layout (2026-11-14)
+
+- [x] Render Date through the shared paragraph renderer in Canvas and Live
+  Preview; wrap at spaces and preserve explicit line breaks like the backend.
+- [x] Share backend Text/Date painting for padding, alignment, background and
+  borders, without changing the existing paragraph wrapping algorithm.
+- [x] Align center/right text within the padded content box; preserve explicit
+  zero padding and border widths, rounded borders and dashed/dotted strokes.
+- [x] Keep empty Date frames visible without inserting placeholder content.
+- [x] Preserve overflow without silently resizing or moving elements; add an
+  Inspector warning in all six Designer languages.
+- [x] Add 20 deterministic cases on three pages and compare Canvas, Preview,
+  normal backend PDF and real C# PDF output with the same test-only clock.
+- [x] Extend the existing plain-Latin PDF text-position guard to Date paragraphs;
+  retain separate shaped-Arabic checks and unchanged image thresholds.
+- [x] Add focused frontend/backend tests and an enforced CI pack with separate
+  artifacts, without replacing formatting/image/catalog evidence.
+- [x] Verify synthetic desktop/mobile surfaces and the actual overflow warning.
+- [x] Extend the public guide and add a patch release fragment; keep VERSION unchanged.
+- [x] Obtain explicit owner review of the short-height raster-only P2 comparison;
+  the owner confirmed viewing and approving the 200% comparison on 2026-11-14.
+  Exact crops, fixture and font hashes are preserved in
+  `test-assets/visual-parity/approvals/2026-11-14-date-layout/approval.json`.
+
+Before correction, the layout pack reported 13 P1, five P2 and two matches.
+After correction it reports 19 matches, one P2 and no P0/P1 findings. Geometry
+drift is zero, and normal/C# PDF crops are pixel-identical for all 20 cases.
+The remaining P2 is the 110 x 12-point Spanish field: both lines remain visible,
+including the second line below the field height. Its text-position/advance
+drift is at most 0.03 points; the entire pack's maximum is 0.040125 points,
+within the existing 0.1-point text guard. No baseline or tolerance was changed
+to suppress this finding. The scoped owner approval accepts this raster
+difference but leaves its P2 measurement visible.
+
+Validation passed: 1,010 Designer tests in 93 suites, 252 focused API tests,
+62 PDF infrastructure tests and 71 Documentation tests. Type-check and both
+production builds pass; the production Designer excludes the test route and
+fixture. The original date-format pack retains all 18 matches; the full catalog
+retains 39 matches and its existing P2. Additional regression results are kept
+in the local report below rather than inferred from an earlier run.
+
+Desktop (1280 x 900) and mobile (390 x 844) checks cover 20 dates per synthetic
+surface, matching Canvas/Preview geometry, visible multiline overflow and no
+browser page errors. The desktop Inspector screenshot waits for loaded fonts
+and completed entry animations. These use mocked APIs and are not a claim of
+authenticated customer-data or mobile navigation coverage.
+
+The renamed-name guard pins the unchanged Noto Arabic font as third-party
+bytes: incidental byte sequences are not editable branding. Historical v1 JSON
+audit evidence remains unchanged; the active v2 CI guard is the current check.
+
+Reports: `artifacts/date-layout-parity/REPORT.md`,
+`artifacts/date-layout-parity/visual-parity-report.html` and
+`artifacts/date-layout-parity/browser/report.html`. Native serif/monospace,
+arbitrary cultures/calendars and untested Date style combinations remain outside
+this scoped result. No further commit, push, deployment or database change is
+part of the paragraph-layout work.

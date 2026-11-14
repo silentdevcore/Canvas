@@ -11,6 +11,7 @@ import styledTablesFixture from '../../../test-assets/visual-parity/styled-table
 import sharedRendererFixture from '../../../test-assets/visual-parity/shared-renderer.json';
 import imageFitFixture from '../../../test-assets/visual-parity/image-fit.json';
 import dateFormatFixture from '../../../test-assets/visual-parity/date-format.json';
+import dateLayoutFixture from '../../../test-assets/visual-parity/date-layout.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
@@ -51,6 +52,7 @@ export default function VisualParityPage() {
     'shared-renderer': sharedRendererFixture,
     'image-fit': imageFitFixture,
     'date-format': dateFormatFixture,
+    'date-layout': dateLayoutFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
     'e-invoice-long-description': eInvoiceLongDescriptionFixture,

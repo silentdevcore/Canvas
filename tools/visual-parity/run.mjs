@@ -206,7 +206,8 @@ async function renderBrowserSurfaces(fixture) {
             height: layoutBox.height,
           };
           const fixtureElement = fixture.pages[index].elements.find(item => item.id === id);
-          if (['text', 'link'].includes(fixtureElement?.type) && fixtureElement.textDirection !== 'rtl'
+          if (['text', 'link', 'date'].includes(fixtureElement?.type) && fixtureElement.textDirection !== 'rtl'
+            && !(fixtureElement?.type === 'date' && (fixtureElement.locale?.startsWith('ar') || fixtureElement.language?.startsWith('ar')))
             && (!fixtureElement.style?.textAlign || fixtureElement.style.textAlign === 'left')
             && !fixtureElement.style?.rotation) {
             const runs = await element.locator('svg text').evaluateAll(nodes => nodes.map(node => {
@@ -215,7 +216,8 @@ async function renderBrowserSurfaces(fixture) {
               return { text: node.textContent, x: position.x, baseline: position.y, advance: node.getComputedTextLength() };
             }));
             if (!runs.length && fixtureElement.content?.trim()) throw new Error(`Missing browser text metrics for ${id}.`);
-            const comparisons = runs.map(run => {
+            const metricRuns = fixtureElement.type === 'date' ? runs.filter(run => !/[\u0590-\u08ff]/.test(run.text)) : runs;
+            const comparisons = metricRuns.map(run => {
               const actual = { ...run, x: run.x - pageBox.x, baseline: run.baseline - pageBox.y };
               return comparePdfTextRun(actual, pdfTextMetrics, pageNumber, `${id} on ${surface}`);
             });

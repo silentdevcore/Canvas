@@ -23,7 +23,7 @@ test('binding uses the same custom or localized property lookup without mutating
 test('date warnings are available in every supported Designer language', () => {
   for (const language of Object.keys(contract.locales)) {
     const { warnings } = require(`../locales/${language}/editor.json`);
-    for (const key of ['dateLocaleFallback', 'dateTimezoneFallback', 'dateFormatFallback', 'dateBindingUnresolved'])
+    for (const key of ['dateLocaleFallback', 'dateTimezoneFallback', 'dateFormatFallback', 'dateBindingUnresolved', 'dateLayoutOverflow'])
       expect(typeof warnings[key]).toBe('string');
   }
 });

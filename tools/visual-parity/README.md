@@ -59,6 +59,22 @@ saved template setting. Production render-time dates capture the actual clock
 once per PDF. `product-metadata/designer-date-formatting.json` is the shared,
 versioned format/default contract and is embedded in the Core assembly.
 
+The separate paragraph-layout pack uses another test-only clock sidecar:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-layout.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+Its 20 cases on three pages cover narrow/multiline Latin and Arabic dates,
+asymmetric padding, left/center/right alignment, line-height variants, explicit
+breaks, empty fields, uniform/per-side/zero/rounded/dashed frames and overflow.
+The nonrotated left-aligned Latin text guard checks Date line positions and
+widths against extracted PDF text; shaped Arabic retains its separate guard.
+Fields are not automatically resized. The Inspector warns when content exceeds
+the box. CI preserves `date-layout-parity` artifacts separately from formatting,
+image and catalog reports. Existing thresholds and reviewed baseline pins apply
+unchanged; a small raster-only P2 finding must remain visible in the report.
+
 The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
 network-loaded fonts. PDF and generated C# output retain Arabic logical text
 through shaped glyphs and ActualText. In addition to aggregate pixel metrics,

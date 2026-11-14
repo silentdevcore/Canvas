@@ -1,0 +1,10 @@
+{
+  "id": "designer-date-layout-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Date fields now share text wrapping, padding, alignment and borders across Designer previews and PDF exports. The Inspector warns when formatted content exceeds the field size.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

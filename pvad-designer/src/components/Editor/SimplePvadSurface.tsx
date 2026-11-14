@@ -13,6 +13,7 @@ import { effectivePageSettings } from '@/utils/pageLayout';
 import { DocumentElementRenderer } from '@/components/Rendering/DocumentElementRenderer';
 import { createDocumentContentResolver, effectiveDocumentElement, elementMatchesDocumentLanguage } from '@/components/Rendering/documentContent';
 import { DESIGNER_DATE_DEFAULTS, formatDocumentDate } from '@/components/Rendering/documentDate';
+import { layoutPdfTextBlock } from '@/components/Rendering/PdfTextRenderer';
 import EditorDocumentMarker from './EditorDocumentMarker';
 import { assessPasswordStrength } from '@/utils/passwordStrength';
 import { designerAssetContentUrl } from '@/services/designerAssetApi';
@@ -2405,9 +2406,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     if (element.type === 'date' && element.dateMode === 'binding' && !element.binding?.trim()) {
       warnings.push(t('warnings.bindingPathNeeded'));
     }
-    if (element.type === 'date')
-      for (const warning of formatDocumentDate(element, renderInstant, resolveContent).warnings)
+    if (element.type === 'date') {
+      const formatted = formatDocumentDate(element, renderInstant, resolveContent);
+      for (const warning of formatted.warnings)
         warnings.push(t(`warnings.${warning}`));
+      if (layoutPdfTextBlock(element, formatted.text).overflows) warnings.push(t('warnings.dateLayoutOverflow'));
+    }
 
     if (element.type === 'draw' && !element.pathData?.trim()) {
       warnings.push(t('warnings.drawPathNeeded'));
