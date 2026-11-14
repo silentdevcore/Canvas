@@ -3,6 +3,14 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { gatewayProtocol } from './operator-gateway-rehearsal.mjs';
 
+export function assertOperatorIdentityHeaders(headers, legacyHeader) {
+  const identity = headers['x-pvad-operator'];
+  assert.match(identity ?? '', /^pvad-[a-f0-9]{24}$/, 'The canonical operator identity header must contain a bounded pseudonymous identity.');
+  assert.equal(headers[legacyHeader.toLowerCase()], undefined,
+    'The retired operator identity header must not be emitted after the hard cut.');
+  return identity;
+}
+
 export async function exerciseOperatorBrowser({ origin, password, operatorEmail, memberEmail, sql, expectedDashboards, output, stopApi, startApi, onOperatorReady, onCheck = () => {} }) {
   const { chromium } = await import('../../pvad-designer/node_modules/playwright/index.mjs');
   const browser = await chromium.launch({ headless: true });
@@ -90,8 +98,7 @@ export async function exerciseOperatorBrowser({ origin, password, operatorEmail,
     assert.ok(grafanaReady, 'Real Grafana startup timed out.');
     const user = await (await expectStatus(operator.request, '/operator/grafana/api/user', 200)).json();
     const identityResponse = await expectStatus(operator.request, '/api/pvad/v1/admin/operator/access', 204);
-    const identity = identityResponse.headers()['x-pvad-operator'];
-    assert.ok(identity && identity === identityResponse.headers()[protocol.legacyOperatorHeader.toLowerCase()]);
+    const identity = assertOperatorIdentityHeaders(identityResponse.headers(), protocol.legacyOperatorHeader);
     assert.equal(user.login, identity);
     assert.ok(identity.endsWith(createHash('sha256').update(me.id).digest('hex').slice(0, 24)));
     let dashboardUids = [], dashboardRecords = [];

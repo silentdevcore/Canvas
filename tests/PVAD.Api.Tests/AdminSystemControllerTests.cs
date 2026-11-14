@@ -201,7 +201,9 @@ public sealed class AdminSystemControllerTests
             "/api/pvad/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
         var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator"));
-        Assert.Equal(operatorName, Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator")));
+        var identityHeader = Assert.Single(operatorAccess.Headers.Where(header =>
+            header.Key.EndsWith("-Operator", StringComparison.OrdinalIgnoreCase)));
+        Assert.Equal("X-PVAD-Operator", identityHeader.Key, ignoreCase: true);
         Assert.Matches("^pvad-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
 

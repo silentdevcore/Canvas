@@ -1,0 +1,11 @@
+{
+  "id": "pvad-operator-browser-hard-cut-validation",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Aligned the operator browser rehearsal with the canonical identity-header contract.",
+  "reason": "Corrects an internal browser-test expectation after the approved naming transition; application behavior and authorization remain unchanged.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}
