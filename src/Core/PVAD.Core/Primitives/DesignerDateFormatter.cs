@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using NodaTime;
 
 namespace PVAD.Core.Primitives;
 
@@ -11,6 +12,8 @@ public static class DesignerDateFormatter
 {
     private static readonly JsonElement Contract = JsonDocument.Parse(typeof(DesignerDateFormatter).Assembly
         .GetManifestResourceStream("PVAD.DesignerDateFormatting.json")!).RootElement;
+    private static readonly Dictionary<string, string> ZoneIds = DateTimeZoneProviders.Tzdb.Ids
+        .ToDictionary(id => id, StringComparer.OrdinalIgnoreCase);
 
     public static DesignerDateResult Format(string? mode, string? content, string? fallback, string? binding,
         string? format, string? locale, string? timezone, DateTimeOffset instant)
@@ -40,17 +43,12 @@ public static class DesignerDateFormatter
 
         var zone = string.IsNullOrWhiteSpace(timezone) ? Contract.GetProperty("defaultTimeZone").GetString()! : timezone.Trim();
         if (Contract.GetProperty("timeZoneAliases").TryGetProperty(zone, out var alias)) zone = alias.GetString()!;
-        TimeZoneInfo timeZone;
-        try
-        {
-            // Unmapped Windows identifiers must not work on .NET but silently fail in browsers.
-            if (zone != "UTC" && !zone.Contains('/')) throw new TimeZoneNotFoundException();
-            timeZone = TimeZoneInfo.FindSystemTimeZoneById(zone);
-        }
-        catch (Exception error) when (error is TimeZoneNotFoundException or InvalidTimeZoneException)
+        var timeZone = (zone == "UTC" || zone.Contains('/')) && ZoneIds.TryGetValue(zone, out var zoneId)
+            ? DateTimeZoneProviders.Tzdb[zoneId] : null;
+        if (timeZone is null)
         {
             warnings.Add("dateTimezoneFallback");
-            timeZone = TimeZoneInfo.Utc;
+            timeZone = DateTimeZone.Utc;
         }
 
         var pattern = string.IsNullOrWhiteSpace(format) ? defaultFormat : format;
@@ -79,9 +77,11 @@ public static class DesignerDateFormatter
             && instant < DateTimeOffset.Parse(Contract.GetProperty("minimumZonedInstant").GetString()!, CultureInfo.InvariantCulture))
         {
             warnings.Add("dateHistoricalTimezoneFallback");
-            timeZone = TimeZoneInfo.Utc;
+            timeZone = DateTimeZone.Utc;
         }
-        var value = TimeZoneInfo.ConvertTime(instant, utc || dateOnly ? TimeZoneInfo.Utc : timeZone);
+        var offset = (utc || dateOnly ? DateTimeZone.Utc : timeZone).GetUtcOffset(Instant.FromDateTimeOffset(instant));
+        var effectiveZone = TimeZoneInfo.CreateCustomTimeZone(timeZone.Id, TimeSpan.FromSeconds(offset.Seconds), timeZone.Id, timeZone.Id);
+        var value = TimeZoneInfo.ConvertTime(instant, effectiveZone);
         return new(value.ToString(pattern, culture), warnings);
     }
 

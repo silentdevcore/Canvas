@@ -1,0 +1,10 @@
+{
+  "id": "designer-portable-iana-timezones",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "PDF date formatting now uses bundled IANA timezone rules on every operating system, correcting Windows historical offsets while preserving the documented pre-1973 UTC boundary.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

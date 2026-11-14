@@ -96,7 +96,7 @@ test('historical date coverage shares its boundary and vectors across rendering,
   const vectors = JSON.parse(read('test-assets/visual-parity/date-historical-cases.json'));
   const fixture = JSON.parse(read('test-assets/visual-parity/date-historical.json'));
   const clock = JSON.parse(read('test-assets/visual-parity/date-historical.clock.json'));
-  assert.equal(contract.version, 2);
+  assert.equal(contract.version, 3);
   assert.equal(contract.minimumZonedInstant, '1973-01-01T00:00:00Z');
   assert.equal(vectors.cases.length, 32);
   assert.equal(new Set(vectors.cases.map(entry => entry.id)).size, 32);
