@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-14T23:53:56.574Z",
+  "timeZone": "Europe/Berlin",
+  "scope": "Focused branch closeout, not merge, deployment, licensing or production approval.",
+  "fullApi": {
+    "status": "passed",
+    "sourceCommit": "ee68618c1f3d18aa60637d18e08c17a96ff854d5",
+    "workingTreeDiffSha256": "406d24ae6bc17bf99be8270b8945fa27d1394dcc2f65c1d79337a85faebe38ea",
+    "runnerSha256": "a6f2a970c45fab18b1f0a4f774ad503aa7c3db3165def97aefabc3cc8cbbc0c4",
+    "assemblySha256": "1b0dae894b9b7a2a2fa6169c3d50173d97e9636361641cb24d2cf4c8d4464da8",
+    "settingsSha256": "e29ac422f065d6dbdb3f4823366d9e9303cf52fdf26569aec1d9af51f3283737",
+    "startedAt": "2026-11-14T23:24:06.352Z",
+    "completedAt": "2026-11-14T23:41:37.056Z",
+    "discoveryEntries": 1426,
+    "concreteTestCases": 1429,
+    "counters": {
+      "total": 1429,
+      "executed": 1429,
+      "passed": 1429,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "lateEnumeration": {
+      "method": "PVAD.Api.Tests.PvadApplicationLifetimeTests.Other_failures_are_not_converted_to_a_retention_exit",
+      "exceptionTypes": [
+        "System.InvalidOperationException",
+        "System.IO.IOException",
+        "System.OperationCanceledException",
+        "System.AggregateException"
+      ]
+    },
+    "temporaryStorageRemoved": true,
+    "trx": {
+      "file": "artifacts/api-full-validation/2026-11-14T23-24-06.268Z-4e1ada58-98f5-4f78-b06a-a4c228192ec6/api-full.trx",
+      "sha256": "606044ab080a5333f74fa4186c6ebc8450f5f3928b771bd6cb0784e778701325",
+      "counters": {
+        "total": 1429,
+        "executed": 1429,
+        "passed": 1429,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      }
+    },
+    "auditFile": {
+      "file": "artifacts/api-full-validation/2026-11-14T23-24-06.268Z-4e1ada58-98f5-4f78-b06a-a4c228192ec6/verified-results.json",
+      "sha256": "61ee6604fa3675902d985c7c864719344f0927fb5d8dc879eb6009ce77780e57"
+    },
+    "boundary": "Executed before the subsequent narrow compliance correction; the original TRX and assembly hash are not rewritten."
+  },
+  "browser": {
+    "status": "passed",
+    "sourceCommit": "aede0f1a777c7455015003aa46d69c59819de4cc",
+    "apiMocking": false,
+    "checks": [
+      "anonymous-and-forged-header-denials",
+      "real-admin-browser-login-and-host-only-cookie",
+      "real-protected-runbook-content-desktop-and-mobile",
+      "real-grafana-proxy-identity-five-dashboards-and-browser-ui",
+      "real-organization-administrator-denied-operator-routes",
+      "api-outage-denies-and-restart-preserves-session",
+      "real-csrf-logout-persistent-revocation-and-cookie-replay-denied",
+      "database-expiry-denies-protected-content"
+    ],
+    "temporaryResourcesRemoved": true,
+    "report": {
+      "file": "artifacts/validation-closeout-2026-11-15/operator-browser/report.json",
+      "sha256": "d8d7b1377644cf6ebc24b22d9c20ff3576bed434f85842f6dbff4da6bcd9d308"
+    },
+    "screenshots": [
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/login-desktop.png",
+        "sha256": "3e887ca4f8d64c0155323d2a0b88eed00bdfc1fd17608d76c5233d6932d30978"
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/dashboard-desktop.png",
+        "sha256": "6b65143ef59bca0e5558dd6404449e31769d78cbeab52c6eefd45a212b52494c"
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/runbooks-desktop.png",
+        "sha256": "ac268afe7cef74f71d7c65382d36bdb629966b3df45ed3310c976a3ea851af95"
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/runbooks-mobile.png",
+        "sha256": "98f3261fef15da4ac0e4888328869e19f992d342276213094ae5e62035ccc1aa"
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/grafana-desktop.png",
+        "sha256": "0dff4c25a3d199c65fee334b886536ce83fac28938a83780db4063af82eebc48"
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/operator-browser/grafana-mobile.png",
+        "sha256": "3b693791dc7d463f6e5ad6fef4e1207de086a3f43bdbbde7f2bc40782b5d83a2"
+      }
+    ],
+    "limits": [
+      "local-http-development-cookies-not-production-tls",
+      "not-account-designer-pkce-browser-coverage",
+      "dashboard-provisioning-and-ui-not-live-datasource-queries",
+      "not-sso-or-production-approval",
+      "installed-provisioning-and-operator-identities-unchanged"
+    ]
+  },
+  "postCompliance": {
+    "api": {
+      "file": "artifacts/validation-closeout-2026-11-15/post-compliance-api/compliance-api.trx",
+      "sha256": "d0fa7d7f88a7f5d8b5610ea355301f9e7d1a819244ac9b3b7f430eeb9467ca95",
+      "counters": {
+        "total": 57,
+        "executed": 57,
+        "passed": 57,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      }
+    },
+    "assemblySha256": "fc94aae897140d13832e78be282d83c1dfbd10309bc577cc772f087b496f719a",
+    "pdfUa": {
+      "file": "artifacts/validation-closeout-2026-11-15/pdfua-regression/pdfua-current.trx",
+      "sha256": "feaf770f107847d0fe48afbb7c55213c3854f10a792edbd4ca0ee1c327679f26",
+      "counters": {
+        "total": 22,
+        "executed": 22,
+        "passed": 22,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      }
+    },
+    "pdfA": {
+      "file": "artifacts/validation-closeout-2026-11-15/pdfua-regression/archival-forms.trx",
+      "sha256": "05f74c69f8187b6b7095ce7636122dcbbde6d19b065f0cddcde94757e0d152ef",
+      "counters": {
+        "total": 12,
+        "executed": 12,
+        "passed": 12,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      }
+    },
+    "validator": "veraPDF 1.31.166",
+    "independentReports": [
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-combo-font-ua1-verapdf.xml",
+        "sha256": "6aca42b68562a79d81a4ab462242ea063da8339bffd32e8fdb3f65fb54aaec12",
+        "isCompliant": true
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-custom-role-ua1-verapdf.xml",
+        "sha256": "aa1cfe79f9edd55f52be226d95c072c63eb35a3380a60ebc0241b341dae1cba4",
+        "isCompliant": true
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-list-font-ua1-verapdf.xml",
+        "sha256": "386d8cc832ac913bdf7b13c9db26bef7b04b7e1f4996c1a7771a0a24b270af89",
+        "isCompliant": true
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-structure-ua1-verapdf.xml",
+        "sha256": "69961f838d385a1c5bd8772209003202752667ea9a481611a92fdcbf052f09f9",
+        "isCompliant": true
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-table-ua1-verapdf.xml",
+        "sha256": "2c99073c470a40804afee993a093231ad581e1008db9fb5453c073d311bbe90b",
+        "isCompliant": true
+      },
+      {
+        "file": "artifacts/validation-closeout-2026-11-15/corrected-pdfua/reports/pvad-pdfua1-widgets-ua1-verapdf.xml",
+        "sha256": "14195a7fc02c70559f137f54f99f9b302d9937e06869bb81db28fc955fa8a1b5",
+        "isCompliant": true
+      }
+    ]
+  },
+  "otherChecks": {
+    "configurationApiAuditorVersioningTests": 214,
+    "visualToolVersioningTests": 66,
+    "note": "Overlapping test groups, not an aggregate total.",
+    "documentationTests": 73,
+    "documentationBuild": "passed",
+    "namingGuard": "passed",
+    "markdownGuard": "passed",
+    "version": "1.1.0"
+  },
+  "integration": {
+    "pullRequest": "https://github.com/silentdevcore/Canvas/pull/216",
+    "draft": true,
+    "base": "develop",
+    "developCommit": "1ffd62ccfa905de9c3bf89d34c2e739ecfbe2109",
+    "originalCheckpoint": "a4e9c148",
+    "checkpointTreesIdentical": true,
+    "originalSource": "478e86f16176a0ff4a88cdeff4e248376b8bb4cf",
+    "replayedCommits": 37,
+    "initialCandidate": "aede0f1a777c7455015003aa46d69c59819de4cc",
+    "candidateTree": "d2d8fab9ed6f3a24dd547efe44c596ee4bce4885",
+    "firstNativeRun": {
+      "url": "https://github.com/silentdevcore/Canvas/actions/runs/43653601018",
+      "linux": "passed",
+      "windows": "passed"
+    },
+    "firstMainRun": {
+      "url": "https://github.com/silentdevcore/Canvas/actions/runs/43653601051",
+      "dotnet": "failed",
+      "supplyChain": "skipped",
+      "reason": "Independent PDF/UA validation found an unembedded choice appearance font.",
+      "report": {
+        "file": "artifacts/validation-closeout-2026-11-15/ci-pdfua-first/reports/pvad-pdfua1-widgets-ua1-verapdf.xml",
+        "sha256": "8972cd5e8a98d0f109e44ffdfbb3e1dbde21b8bd6f508cf60f4773d124ff0fa0"
+      }
+    },
+    "followUp": "The correction requires a new CI run; consult the live draft PR checks. No merge or release is authorized."
+  }
+}
