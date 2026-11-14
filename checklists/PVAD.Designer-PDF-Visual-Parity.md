@@ -254,9 +254,9 @@ to individual cell styles without changing the approved comparison thresholds.
 - [x] Reject per-cell styles in the flow-pagination API instead of silently
   discarding them; explicit-page `PdfPage.DrawSimpleTable` supports them.
 - [x] Add per-cell-style support to flow-paginated tables; see the follow-up below.
-- [ ] Review native serif/monospace raster output across platforms, or bundle
-  approved matching font faces, before claiming the same visual guarantee for
-  those families. This fixture uses the bundled sans-serif faces only.
+- [x] Bundle matching Serif/Mono font faces and audit them in a dedicated pack;
+  see Packaged Serif And Monospace below. This original table fixture uses
+  the bundled sans-serif faces only; native fallback remains uncertified.
 
 The styled-table pack reports 3 matches and zero P0/P1/P2 findings. The existing
 all-elements pack remains at 39 matches and one P2; mixed layout remains at two
@@ -420,8 +420,9 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
   to all cover/none cropping and focus-coordinate combinations.
 - [x] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
-- [ ] Complete native serif/monospace cross-platform raster review with the
-  intended font files; this consolidation does not approve new font baselines.
+- [ ] Complete Linux/Windows raster validation for the packaged Serif/Mono
+  faces and any intended native fallback. The macOS follow-up below does not
+  approve untested platforms or change earlier baseline pins.
 
 No commit, push, deployment, product-version bump or published-release edit was
 performed for this consolidation. Unrelated pending work remains untouched.
@@ -598,3 +599,54 @@ Reports: `artifacts/date-layout-parity/REPORT.md`,
 arbitrary cultures/calendars and untested Date style combinations remain outside
 this scoped result. No further commit, push, deployment or database change is
 part of the paragraph-layout work.
+
+## Packaged Serif And Monospace (2026-11-14)
+
+- [x] Audit the original host-font substitution with a deterministic fixture.
+  The original run fails its unchanged 0.1-point text guard: the first Serif
+  paragraph differs by 20.671875 points, so no complete before-report is claimed.
+- [x] Bundle eight unmodified Liberation 2.1.5 Serif/Mono faces, pin source and
+  file hashes, ship the original license and leave existing Sans bytes unchanged.
+- [x] Resolve browser family aliases to the exact files embedded in backend PDF;
+  match Serif/Mono and mixed fallback-list precedence with the backend resolver.
+- [x] Honor family/bold/italic on backend Links instead of silently using Sans.
+- [x] Preserve the Rich Text base family through inline bold/italic; retain the
+  original callable overload and its page-default-font behavior for SDK callers.
+- [x] Use fixed-pitch advance for Monospace Rich Text across inline style changes;
+  test that PDF runs do not overlap and browser run positions match.
+- [x] Normalize legacy table-cell font overrides through the same browser aliases.
+- [x] Compare 22 cases on three pages across Canvas, Preview, normal PDF and
+  actual generated C# PDF. Keep geometry/text guards and image thresholds unchanged.
+- [x] Test font loading, embedded-byte identity, styles, source immutability,
+  native fallback and the original Rich Text method signature.
+- [x] Verify desktop/mobile synthetic surfaces and all eight actual browser font
+  sources against the embedded PDF face hashes; confirm production assets/license.
+- [x] Configure an enforced CI pack with separately archived font evidence.
+- [x] Record explicit owner approval of the three 200% raster comparisons;
+  preserve exact fixture/font/image hashes without suppressing the P2 metrics.
+- [x] Extend Documentation and add a patch release fragment; keep VERSION unchanged.
+- [ ] Run the new CI pack on Linux and certify additional intended platforms
+  separately; local macOS screenshots are not Linux/Windows execution evidence.
+
+The font pack reports 19 matches, three P2 and no P0/P1 findings. Normal and
+C# PDF crops are pixel-identical; geometry drift is zero, and the largest
+plain-Latin text-position/advance drift is below 0.05 points. The owner explicitly
+approved `serif-bold`, `mono-bold` and `mono-bold-italic` after viewing their
+200% comparisons. This approval applies only to the preserved cases under
+`test-assets/visual-parity/approvals/2026-11-14-font-families/`.
+
+Passed: 1,019 Designer tests in 93 suites and 263 focused API tests, including
+11 font/compatibility cases for original-overload and run-overlap regressions.
+Documentation has 72 passing tests; Designer typecheck and both production
+builds pass. Browser smoke covers 22 elements per surface on desktop and mobile
+with matching Canvas/Preview geometry/content, eight loaded hash-matched faces
+and no page errors. APIs are mocked; customer authentication and persistence
+are not certified by this test. Final broader regression results are recorded
+in `artifacts/font-family-parity/REPORT.md`.
+
+Reports: `artifacts/font-family-parity/visual-parity-report.html`,
+`artifacts/font-family-parity/raster-review.html` and
+`artifacts/font-family-parity/browser/report.html`. Current CI is configured,
+not remotely executed by this local validation. Unembedded SDK native fallback,
+arbitrary scripts/custom font files and unrelated layout variants remain outside
+this scoped result. No published release, database or deployment was changed.

@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PdfDropdownRenderer, PdfRadioRenderer, PdfCheckboxRenderer } from '@/components/Rendering/PdfControlRenderer';
 import { PdfTableOfContentsRenderer, PdfWatermarkRenderer } from '@/components/Rendering/PdfDocumentRenderer';
-import { PdfSingleLineText, PdfTextBlockRenderer, pdfFontFamily } from '@/components/Rendering/PdfTextRenderer';
+import { PdfSingleLineText, PdfTextBlockRenderer, PdfRichTextRenderer, pdfFontFamily } from '@/components/Rendering/PdfTextRenderer';
 import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
 import type { SimpleElement } from '@/types';
 import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
@@ -12,6 +12,7 @@ import { PdfShapeRenderer, PdfCircleRenderer } from '@/components/Rendering/PdfG
 import LineRenderer from '@/components/Rendering/LineRenderer';
 import { canRenderPdfTable, layoutPdfTable, pdfTableEdges, PdfTableRenderer } from '@/components/Rendering/PdfTableRenderer';
 import { resizeTable } from '@/utils/tableDimensions';
+import LegacyTableRenderer from '@/components/Rendering/LegacyTableRenderer';
 
 jest.mock('jsbarcode', () => jest.fn());
 
@@ -20,6 +21,33 @@ const element = (overrides: Partial<SimpleElement>): SimpleElement => ({
 });
 
 describe('visual rendering regressions', () => {
+  test('monospaced rich text advances regular, bold and italic runs at the same fixed pitch', () => {
+    const { container } = render(<PdfRichTextRenderer element={element({ type: 'richtext',
+      htmlContent: 'mono regular <strong>bold</strong> <em>italic</em>',
+      style: { fontFamily: 'Courier New', fontSize: 14 } })} />);
+    const runs = Array.from(container.querySelectorAll('text'));
+    expect(runs.map(run => run.textContent)).toEqual(['mono', 'regular', 'bold', 'italic']);
+    [0, 42, 109.2, 151.2].forEach((x, index) => expect(Number(runs[index].getAttribute('x'))).toBeCloseTo(x, 6));
+  });
+
+  test.each([
+    ['Times New Roman', 'PVADE Times'], ['Georgia, serif', 'PVADE Times'],
+    ['Courier New, monospace', 'PVADE Courier'], ['Consolas', 'PVADE Courier'],
+    ['Arial, Helvetica, sans-serif', 'PVADE Helvetica'], ['Times New Roman, monospace', 'PVADE Times'],
+    ['Noto Sans Arabic', 'PVADE Arabic'],
+  ])('font list %s resolves to the packaged PDF family %s', (request, family) => {
+    expect(pdfFontFamily(request)).toContain(family);
+  });
+
+  test('legacy table cell overrides use the same packaged families as canonical cells', () => {
+    const { container } = render(<LegacyTableRenderer element={element({ type: 'table',
+      cellStyles: [{ row: 0, col: 0, fontFamily: 'Georgia' }, { row: 0, col: 1, fontFamily: 'Consolas' }],
+      style: { rows: 1, columns: 2 } })} />);
+    const cells = container.querySelectorAll('td');
+    expect(cells[0].style.fontFamily).toContain('PVADE Times');
+    expect(cells[1].style.fontFamily).toContain('PVADE Courier');
+  });
+
   test('dropdown defaults to the first option and clips the normal appearance to its inner box', () => {
     const { container } = render(<PdfDropdownRenderer element={element({
       type: 'dropdown', options: ['Sales', 'Finance'], fieldLabel: 'Department', style: { fontSize: 3 },

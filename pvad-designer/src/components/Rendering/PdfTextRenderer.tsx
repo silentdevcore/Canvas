@@ -13,16 +13,16 @@ type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
  */
 const pdfFontSlot = (value?: string): 'serif' | 'mono' | 'sans' => {
   const normalized = (value?.toLowerCase() ?? '').replace(/sans-serif/g, '');
-  if (normalized.includes('courier') || normalized.includes('mono') || normalized.includes('consolas') || normalized.includes('code')) return 'mono';
   if (normalized.includes('times') || normalized.includes('georgia') || normalized.includes('serif')) return 'serif';
+  if (normalized.includes('courier') || normalized.includes('mono') || normalized.includes('consolas') || normalized.includes('code')) return 'mono';
   return 'sans';
 };
 
 export const pdfFontFamily = (value?: string) => {
   if (/arabic/i.test(value ?? '')) return "'PVADE Arabic', sans-serif";
   switch (pdfFontSlot(value)) {
-    case 'serif': return 'Times New Roman, Times, serif';
-    case 'mono': return 'Courier New, Courier, monospace';
+    case 'serif': return "'PVADE Times', 'Times New Roman', Times, serif";
+    case 'mono': return "'PVADE Courier', 'Courier New', Courier, monospace";
     default: return "'PVADE Helvetica', Arial, Helvetica, sans-serif";
   }
 };
@@ -304,12 +304,12 @@ export function PdfRichTextRenderer({ element }: { element: SimpleElement }) {
     const lineHeight = configuredLineHeight > 0
       ? configuredLineHeight < 8 ? configuredLineHeight * baseSize : configuredLineHeight
       : maxSize * 1.35;
-    const lines = wrapRichTextRuns(paragraph, maxWidth);
+    const lines = wrapRichTextRuns(paragraph, maxWidth, style.fontFamily);
     lines.forEach(line => {
       let x = left;
       line.forEach(run => {
         if (run.text.trim()) positioned.push({ ...run, x, y: baseline });
-        x += richTextRunWidth(run);
+        x += richTextRunWidth(run, style.fontFamily);
       });
       baseline += lineHeight;
     });
@@ -434,9 +434,10 @@ export function parseRichTextRuns(html: string, baseSize: number, baseColor: str
   return paragraphs;
 }
 
-const richTextRunWidth = (run: RichTextRun) => run.text.length * run.size * (run.bold ? 0.57 : 0.52);
+const richTextRunWidth = (run: RichTextRun, family?: string) => run.text.length * run.size
+  * (pdfFontSlot(family) === 'mono' ? 0.6 : run.bold ? 0.57 : 0.52);
 
-function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number) {
+function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number, family?: string) {
   const lines: RichTextRun[][] = [];
   let line: RichTextRun[] = [];
   let width = 0;
@@ -446,12 +447,12 @@ function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number) {
       const part = index < words.length - 1 ? `${word} ` : word;
       if (!part) return;
       const partRun = { ...run, text: part };
-      const partWidth = richTextRunWidth(partRun);
+      const partWidth = richTextRunWidth(partRun, family);
       if (width + partWidth > maxWidth && line.length > 0 && part.trim()) {
         lines.push(line);
         const trimmed = part.trimStart();
         line = trimmed ? [{ ...run, text: trimmed }] : [];
-        width = trimmed ? richTextRunWidth({ ...run, text: trimmed }) : 0;
+        width = trimmed ? richTextRunWidth({ ...run, text: trimmed }, family) : 0;
       } else {
         line.push(partRun);
         width += partWidth;

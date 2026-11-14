@@ -105,11 +105,11 @@ PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/styled-tables.json node too
 
 The pack covers cell typography, fills, padding, automatic row heights,
 individual borders and inserted RDL matrix headers. It uses bundled sans-serif
-faces. Serif and monospace families no longer fall back silently to Sans;
-matching Liberation Serif/Mono files may be supplied, otherwise the PDF uses
-native standard fonts. Cross-platform raster equivalence for these native
-fonts is not certified by this pack. PDF/A font embedding also requires actual
-matching font files. Per-cell styles are supported on explicit pages through
+faces. The separate font-family pack supplies matching packaged Serif/Mono
+faces rather than relying on native viewer substitution. This table pack alone
+does not certify every font or platform. SDK native standard-font fallback
+without a loader remains outside that guarantee. PDF/A font embedding still
+requires actual matching font files. Per-cell styles are supported on explicit pages through
 `PdfPage.DrawSimpleTable` and in automatic `PdfFlowContext.AddSimpleTable`
 pagination. Flow measures the original rows before planning page breaks, maps
 styles and row metrics into each chunk, repeats headers, and honors repeated
@@ -117,6 +117,21 @@ or final-only footers. Continuation markers reserve their own space and
 alternating row fills retain their data-row parity. Rows stay whole; a row
 that cannot fit a fresh page with its required repeated content is rejected
 before any table chunk is painted.
+
+The dedicated family pack compares 22 cases on three pages:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/font-families.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+node --test tools/visual-parity/font-families.test.mjs
+```
+
+It covers Serif/Mono regular, bold, italic and bold-italic, wrapped/padded and
+aligned paragraphs, Rich Text, table cells, dates, links and numbers. The font
+provenance record pins eight unmodified upstream faces; the API and browser
+distributions include their license. Current Sans faces and approved references
+stay unchanged. CI enforces the pack and preserves separate `font-family-parity`
+artifacts. Font substitution and text drift fail rather than relaxing thresholds.
+Native fonts without a loader and untested platforms remain separate validation.
 
 After building `PVAD.Api.Tests`, generate the dedicated three-page flow versus
 independently planned explicit-page comparison with:

@@ -3388,6 +3388,70 @@ html[data-visual-parity="true"] #root {
 }
 .editor-heading-select:focus { border-color: #6366f1; }
 @font-face {
+  font-family: 'PVADE Times';
+  src: url('../../../assets/fonts/liberation/LiberationSerif-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Times';
+  src: url('../../../assets/fonts/liberation/LiberationSerif-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Times';
+  src: url('../../../assets/fonts/liberation/LiberationSerif-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Times';
+  src: url('../../../assets/fonts/liberation/LiberationSerif-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Courier';
+  src: url('../../../assets/fonts/liberation/LiberationMono-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Courier';
+  src: url('../../../assets/fonts/liberation/LiberationMono-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Courier';
+  src: url('../../../assets/fonts/liberation/LiberationMono-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PVADE Courier';
+  src: url('../../../assets/fonts/liberation/LiberationMono-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
   font-family: 'PVADE Arabic';
   src: url('../../../assets/fonts/noto-arabic/NotoSansArabic-Regular.ttf') format('truetype');
   font-style: normal;

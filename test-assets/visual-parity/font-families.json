@@ -1,0 +1,470 @@
+{
+  "id": "font-family-parity",
+  "name": "Serif and monospace font parity",
+  "category": "visual-parity",
+  "description": "Synthetic packaged serif/mono styles, text layout and consumer coverage.",
+  "pageSettings": {
+    "width": 620,
+    "height": 800,
+    "orientation": "portrait",
+    "backgroundColor": "#ffffff",
+    "margins": {
+      "top": 20,
+      "right": 20,
+      "bottom": 20,
+      "left": 20
+    }
+  },
+  "sharedElements": [],
+  "pages": [
+    {
+      "id": "font-page-1",
+      "elements": [
+        {
+          "id": "serif-regular",
+          "type": "text",
+          "x": 25,
+          "y": 30,
+          "width": 270,
+          "height": 110,
+          "content": "Serif regular: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "serif-bold",
+          "type": "text",
+          "x": 25,
+          "y": 210,
+          "width": 270,
+          "height": 110,
+          "content": "Serif bold: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "serif-italic",
+          "type": "text",
+          "x": 25,
+          "y": 390,
+          "width": 270,
+          "height": 110,
+          "content": "Serif italic: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "italic",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "serif-bold-italic",
+          "type": "text",
+          "x": 25,
+          "y": 570,
+          "width": 270,
+          "height": 110,
+          "content": "Serif bold-italic: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "italic",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "mono-regular",
+          "type": "text",
+          "x": 325,
+          "y": 30,
+          "width": 270,
+          "height": 110,
+          "content": "Mono regular: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "normal",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "mono-bold",
+          "type": "text",
+          "x": 325,
+          "y": 210,
+          "width": 270,
+          "height": 110,
+          "content": "Mono bold: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "normal",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "mono-italic",
+          "type": "text",
+          "x": 325,
+          "y": 390,
+          "width": 270,
+          "height": 110,
+          "content": "Mono italic: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 14,
+            "fontWeight": "normal",
+            "fontStyle": "italic",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "mono-bold-italic",
+          "type": "text",
+          "x": 325,
+          "y": 570,
+          "width": 270,
+          "height": 110,
+          "content": "Mono bold-italic: AVATAR Office 0123456789, Zürich, déjà vu. Text wraps within the same PDF content box.",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fontStyle": "italic",
+            "padding": 5,
+            "lineHeight": 1.25,
+            "color": "#172033"
+          }
+        }
+      ]
+    },
+    {
+      "id": "font-page-2",
+      "elements": [
+        {
+          "id": "serif-center",
+          "type": "text",
+          "x": 25,
+          "y": 30,
+          "width": 270,
+          "height": 95,
+          "content": "serif padded center text, 2026",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 15,
+            "textAlign": "center",
+            "paddingLeft": 21,
+            "paddingRight": 7,
+            "paddingTop": 9,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        },
+        {
+          "id": "serif-right",
+          "type": "text",
+          "x": 25,
+          "y": 170,
+          "width": 270,
+          "height": 95,
+          "content": "serif padded right text, 2026",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 15,
+            "textAlign": "right",
+            "paddingLeft": 21,
+            "paddingRight": 7,
+            "paddingTop": 9,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        },
+        {
+          "id": "serif-richtext",
+          "type": "richtext",
+          "x": 25,
+          "y": 325,
+          "width": 270,
+          "height": 100,
+          "htmlContent": "<p>serif regular <strong>bold</strong> <em>italic</em> <strong><em>both</em></strong></p><p>Zürich &amp; Office 0123456789</p>",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 14,
+            "padding": 5
+          }
+        },
+        {
+          "id": "serif-table",
+          "type": "table",
+          "x": 25,
+          "y": 490,
+          "width": 270,
+          "height": 150,
+          "cellData": [
+            [
+              "Regular",
+              "Bold"
+            ],
+            [
+              "Italic",
+              "Both"
+            ]
+          ],
+          "cellStyles": [
+            {
+              "row": 0,
+              "col": 1,
+              "bold": true
+            },
+            {
+              "row": 1,
+              "col": 0,
+              "italic": true
+            },
+            {
+              "row": 1,
+              "col": 1,
+              "bold": true,
+              "italic": true
+            }
+          ],
+          "headerRow": false,
+          "style": {
+            "cellFontFamily": "Times New Roman",
+            "cellFontSize": 14,
+            "cellPadding": 8,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        },
+        {
+          "id": "mono-center",
+          "type": "text",
+          "x": 325,
+          "y": 30,
+          "width": 270,
+          "height": 95,
+          "content": "mono padded center text, 2026",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 15,
+            "textAlign": "center",
+            "paddingLeft": 21,
+            "paddingRight": 7,
+            "paddingTop": 9,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        },
+        {
+          "id": "mono-right",
+          "type": "text",
+          "x": 325,
+          "y": 170,
+          "width": 270,
+          "height": 95,
+          "content": "mono padded right text, 2026",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 15,
+            "textAlign": "right",
+            "paddingLeft": 21,
+            "paddingRight": 7,
+            "paddingTop": 9,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        },
+        {
+          "id": "mono-richtext",
+          "type": "richtext",
+          "x": 325,
+          "y": 325,
+          "width": 270,
+          "height": 100,
+          "htmlContent": "<p>mono regular <strong>bold</strong> <em>italic</em> <strong><em>both</em></strong></p><p>Zürich &amp; Office 0123456789</p>",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 14,
+            "padding": 5
+          }
+        },
+        {
+          "id": "mono-table",
+          "type": "table",
+          "x": 325,
+          "y": 490,
+          "width": 270,
+          "height": 150,
+          "cellData": [
+            [
+              "Regular",
+              "Bold"
+            ],
+            [
+              "Italic",
+              "Both"
+            ]
+          ],
+          "cellStyles": [
+            {
+              "row": 0,
+              "col": 1,
+              "bold": true
+            },
+            {
+              "row": 1,
+              "col": 0,
+              "italic": true
+            },
+            {
+              "row": 1,
+              "col": 1,
+              "bold": true,
+              "italic": true
+            }
+          ],
+          "headerRow": false,
+          "style": {
+            "cellFontFamily": "Courier New",
+            "cellFontSize": 14,
+            "cellPadding": 8,
+            "borderWidth": 1,
+            "borderColor": "#64748b"
+          }
+        }
+      ]
+    },
+    {
+      "id": "font-page-3",
+      "elements": [
+        {
+          "id": "serif-date",
+          "type": "date",
+          "x": 25,
+          "y": 40,
+          "width": 270,
+          "height": 85,
+          "dateMode": "static",
+          "content": "Friday 13 November 2026",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 16,
+            "padding": 5,
+            "borderWidth": 1,
+            "borderColor": "#94a3b8"
+          }
+        },
+        {
+          "id": "serif-link",
+          "type": "link",
+          "x": 25,
+          "y": 190,
+          "width": 270,
+          "height": 45,
+          "content": "serif documentation",
+          "href": "https://pvade.com",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 16,
+            "color": "#2563eb"
+          }
+        },
+        {
+          "id": "serif-number",
+          "type": "number",
+          "x": 25,
+          "y": 310,
+          "width": 270,
+          "height": 45,
+          "numberValue": 123456.78,
+          "numberDecimals": 2,
+          "numberLocale": "en-US",
+          "style": {
+            "fontFamily": "Times New Roman",
+            "fontSize": 16,
+            "fontWeight": "bold",
+            "fontStyle": "italic"
+          }
+        },
+        {
+          "id": "mono-date",
+          "type": "date",
+          "x": 325,
+          "y": 40,
+          "width": 270,
+          "height": 85,
+          "dateMode": "static",
+          "content": "Friday 13 November 2026",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 16,
+            "padding": 5,
+            "borderWidth": 1,
+            "borderColor": "#94a3b8"
+          }
+        },
+        {
+          "id": "mono-link",
+          "type": "link",
+          "x": 325,
+          "y": 190,
+          "width": 270,
+          "height": 45,
+          "content": "mono documentation",
+          "href": "https://pvade.com",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 16,
+            "color": "#2563eb"
+          }
+        },
+        {
+          "id": "mono-number",
+          "type": "number",
+          "x": 325,
+          "y": 310,
+          "width": 270,
+          "height": 45,
+          "numberValue": 123456.78,
+          "numberDecimals": 2,
+          "numberLocale": "en-US",
+          "style": {
+            "fontFamily": "Courier New",
+            "fontSize": 16,
+            "fontWeight": "bold",
+            "fontStyle": "italic"
+          }
+        }
+      ]
+    }
+  ]
+}
