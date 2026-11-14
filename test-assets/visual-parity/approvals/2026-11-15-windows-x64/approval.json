@@ -1,0 +1,819 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvedAt": "2026-11-15",
+  "approvedBy": "repository-owner",
+  "confirmation": "Alle 22 Vergleiche angesehen und für Windows/x64 freigegeben",
+  "sourceCommit": "76ad71013788af674a7e5beb412926c3afd6fa4c",
+  "workflowRun": "https://github.com/silentdevcore/Canvas/actions/runs/43650032284",
+  "platform": "win32",
+  "architecture": "x64",
+  "browserVersion": "156.0.8078.4",
+  "environmentFile": "environment.json",
+  "environmentSha256": "8a39320e4720ecd215c732a9615fc9208788dda4d17bfaed12048e15d4752a3c",
+  "scope": "Only these twenty-two Windows Server 2025/x64 comparisons and their pinned crop, fixture, font and environment hashes. Native raster/ClearType differences are accepted, not erased. P2 measurements and thresholds remain unchanged. No changed pixels, other Windows/browser versions or production sandbox/customer-workflow certification is implied.",
+  "fixtures": [
+    {
+      "file": "test-assets/visual-parity/font-families.json",
+      "sha256": "bd30de85f9369efeef5041ba223ce9bacf20fe26a97029be1b4f2b672226c1c6"
+    },
+    {
+      "file": "test-assets/visual-parity/date-format.json",
+      "sha256": "82466f747fdb85bc23774d898f05d26884074ac4fa682e4bf6a1ed54948d293b"
+    },
+    {
+      "file": "test-assets/visual-parity/date-historical.json",
+      "sha256": "d85f22dec6413ede8a4c45845bfab07bed0b3f753028ab6888272cbf936e6c73"
+    },
+    {
+      "file": "test-assets/visual-parity/date-layout.json",
+      "sha256": "778e8052eb633a7413984d61b0fd0d8fbbbf052f7009da53c747606b9c211266"
+    },
+    {
+      "file": "test-assets/visual-parity/all-elements.json",
+      "sha256": "84959bf9d1edbf4c1907e9427281d9f743ee8e54697da212ea88fd68aff46f93"
+    }
+  ],
+  "fonts": [
+    {
+      "file": "liberation/LiberationSans-Regular.ttf",
+      "sha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f"
+    },
+    {
+      "file": "liberation/LiberationSans-Bold.ttf",
+      "sha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc"
+    },
+    {
+      "file": "liberation/LiberationSans-Italic.ttf",
+      "sha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512"
+    },
+    {
+      "file": "liberation/LiberationSans-BoldItalic.ttf",
+      "sha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d"
+    },
+    {
+      "file": "liberation/LiberationSerif-Regular.ttf",
+      "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74"
+    },
+    {
+      "file": "liberation/LiberationSerif-Bold.ttf",
+      "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+    },
+    {
+      "file": "liberation/LiberationSerif-Italic.ttf",
+      "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e"
+    },
+    {
+      "file": "liberation/LiberationSerif-BoldItalic.ttf",
+      "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7"
+    },
+    {
+      "file": "liberation/LiberationMono-Regular.ttf",
+      "sha256": "f2b83c763e8afd21709333370bed4774337fae82267937e2b5aea7e2fbd922c1"
+    },
+    {
+      "file": "liberation/LiberationMono-Bold.ttf",
+      "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb"
+    },
+    {
+      "file": "liberation/LiberationMono-Italic.ttf",
+      "sha256": "605c01c711b44480a7508d349dfbf3264e81fa43d69e61cfa7d10b86e764c4d1"
+    },
+    {
+      "file": "liberation/LiberationMono-BoldItalic.ttf",
+      "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130"
+    },
+    {
+      "file": "noto-arabic/NotoSansArabic-Regular.ttf",
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+    }
+  ],
+  "cases": [
+    {
+      "fixture": "font-families",
+      "id": "serif-regular",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-regular-backend.png",
+          "sha256": "c0ee6e87fcf78e19a021d01c2d0e9fe466882d89dcd8290b955f328b9e72f954",
+          "pixelSha256": "2289ce81e9f9cb46a8a7b9e27efbec969c7de653f01cb2e866a8e79b61a2f040"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-regular-canvas.png",
+          "sha256": "6f97c92de5676f182907639fe3f33561973c6154663924954b63656fd9dbfb0f",
+          "pixelSha256": "b804d1e41a7fb5e8b9be1c834ee9ac16dd80b5d1867684dac43db49aa4ec18ec"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-regular-preview.png",
+          "sha256": "6f97c92de5676f182907639fe3f33561973c6154663924954b63656fd9dbfb0f",
+          "pixelSha256": "b804d1e41a7fb5e8b9be1c834ee9ac16dd80b5d1867684dac43db49aa4ec18ec"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-regular-csharp.png",
+          "sha256": "bc9e3aca53091f2ab5dab0e74b75c13f182f60a06e33817dcb4f6d6283c5a40a",
+          "pixelSha256": "2289ce81e9f9cb46a8a7b9e27efbec969c7de653f01cb2e866a8e79b61a2f040"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-bold-backend.png",
+          "sha256": "f17fc9b585176fe49ae8261d4088a831edf829f3544b1b8bb87792a5fe7e4b36",
+          "pixelSha256": "d4acd9dedec952c770438d78f564e7e727402bd7ff41e6710571f052859c3e4a"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-bold-canvas.png",
+          "sha256": "53ce4ccfec566415216172ed2fffbb315046ddda1f1e7ba60b949bda0e224cf5",
+          "pixelSha256": "21233f3817beef99385e6fa3c3f0c450945dbb4190be0cd70f8c2e0a83ce3275"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-bold-preview.png",
+          "sha256": "53ce4ccfec566415216172ed2fffbb315046ddda1f1e7ba60b949bda0e224cf5",
+          "pixelSha256": "21233f3817beef99385e6fa3c3f0c450945dbb4190be0cd70f8c2e0a83ce3275"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-bold-csharp.png",
+          "sha256": "83bb6270365c0c16c354029140d16630483c7ffc443749d0bde78aa72c601a8e",
+          "pixelSha256": "d4acd9dedec952c770438d78f564e7e727402bd7ff41e6710571f052859c3e4a"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-italic-backend.png",
+          "sha256": "b898a186690c747fc254ffce35e415973c5d7df00a6dd472cc2562c36d73a945",
+          "pixelSha256": "76d73f04ac0ec2ee9a72e9f6dddb6c44cd276081f3ea67fb83fda28e28aed6c2"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-italic-canvas.png",
+          "sha256": "11e9226d70c250a83c4d1c5537764be195b71316810dc263adadd17541aa2b29",
+          "pixelSha256": "713cbe2bab85cdb37784a00de152ee99fab71a62bd298d1adb282abb1558f4c3"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-italic-preview.png",
+          "sha256": "11e9226d70c250a83c4d1c5537764be195b71316810dc263adadd17541aa2b29",
+          "pixelSha256": "713cbe2bab85cdb37784a00de152ee99fab71a62bd298d1adb282abb1558f4c3"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-italic-csharp.png",
+          "sha256": "4a6e1002f1f1adcc6e268d440b709882bd163f4478eb384cdc8f399982bc8097",
+          "pixelSha256": "76d73f04ac0ec2ee9a72e9f6dddb6c44cd276081f3ea67fb83fda28e28aed6c2"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-bold-italic-backend.png",
+          "sha256": "2c7851a975f5f97b70a5eabb5f0c4699e18d92270c4a6a0ccf11dd7fe946bd99",
+          "pixelSha256": "009677dbda676e348ee900816e0ac180febbcc2ca76d38e11e6048d1644d1c81"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-bold-italic-canvas.png",
+          "sha256": "a4d6193f7df832ae91353fd07ff187adda1fb72074024fffaeb41ede1560f4f2",
+          "pixelSha256": "126064eb5b4d1d311d8cbc82b5b6a065af75974fbc9da8c339e916c27dfa2181"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-bold-italic-preview.png",
+          "sha256": "a4d6193f7df832ae91353fd07ff187adda1fb72074024fffaeb41ede1560f4f2",
+          "pixelSha256": "126064eb5b4d1d311d8cbc82b5b6a065af75974fbc9da8c339e916c27dfa2181"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-bold-italic-csharp.png",
+          "sha256": "52d7eecf8d8bb9f2c5c3a9d272234ef3bb7a3c289669b1446d04a553719139ea",
+          "pixelSha256": "009677dbda676e348ee900816e0ac180febbcc2ca76d38e11e6048d1644d1c81"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-regular-backend.png",
+          "sha256": "2b92709246e3e912327e5851154be6f04ef1bd9b9d9fd7c4d62545e2f1ef2c5e",
+          "pixelSha256": "64ef239a6d05f74745a154ca6d086215282580544a82a77702c2849fe350258b"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-regular-canvas.png",
+          "sha256": "ce533b6a5b922fb74dfa07cb36c93095de2f0841153b517e3d3a6f135847dc4a",
+          "pixelSha256": "ce70a04d1580486fb31413d72a7e7df2368f648a9056d976a305fcb07d134b91"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-regular-preview.png",
+          "sha256": "ce533b6a5b922fb74dfa07cb36c93095de2f0841153b517e3d3a6f135847dc4a",
+          "pixelSha256": "ce70a04d1580486fb31413d72a7e7df2368f648a9056d976a305fcb07d134b91"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-regular-csharp.png",
+          "sha256": "0520f6c23ff02058963dcb66d0d525d984a344580cd3957efbe79c30427c0482",
+          "pixelSha256": "64ef239a6d05f74745a154ca6d086215282580544a82a77702c2849fe350258b"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-bold-backend.png",
+          "sha256": "a46bb9eb757abb223540f53de003baa9d2ea52c10abf8a9ea371b1f00bc6f1b2",
+          "pixelSha256": "9a05566c5aa21d1968df0a46dd93cff30908d4f4c5b77da38c3ba0af020c4572"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-bold-canvas.png",
+          "sha256": "03c12f0cd066e8d839f64bc5ae5614199ac62cade733a9846a6eed55908ecef1",
+          "pixelSha256": "c677b3292bd24fd71be3e0df2bf8c7bca86ced3ea4256b663e2ff30b8337a24b"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-bold-preview.png",
+          "sha256": "03c12f0cd066e8d839f64bc5ae5614199ac62cade733a9846a6eed55908ecef1",
+          "pixelSha256": "c677b3292bd24fd71be3e0df2bf8c7bca86ced3ea4256b663e2ff30b8337a24b"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-bold-csharp.png",
+          "sha256": "312d865ef07613aa0735a60e149dddde5eb1325cefd9806ca1196ff344bab066",
+          "pixelSha256": "9a05566c5aa21d1968df0a46dd93cff30908d4f4c5b77da38c3ba0af020c4572"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-italic-backend.png",
+          "sha256": "36d44cd858da0d083a97123f7b240c19a6979fe8c668c73bb9a2eaffd8d4c26f",
+          "pixelSha256": "19d7b9fc054539bdf64a1cba91d8551b5c8a4b1f5d9f3bdcc063887b8d2cee9d"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-italic-canvas.png",
+          "sha256": "917b2daba10cd6a6a19ff8cc26a336834c5c5240f91399b3f9812948a08ec1d4",
+          "pixelSha256": "c0a024bf1888da22e5d0b8bb13b7bb24f8dd21aec52ff2ee172baea4033a6d10"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-italic-preview.png",
+          "sha256": "917b2daba10cd6a6a19ff8cc26a336834c5c5240f91399b3f9812948a08ec1d4",
+          "pixelSha256": "c0a024bf1888da22e5d0b8bb13b7bb24f8dd21aec52ff2ee172baea4033a6d10"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-italic-csharp.png",
+          "sha256": "0b1c7877dd96314be1ad74c4a778cc5b6fd1830eef5857cc76cae42754a4eae8",
+          "pixelSha256": "19d7b9fc054539bdf64a1cba91d8551b5c8a4b1f5d9f3bdcc063887b8d2cee9d"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-bold-italic-backend.png",
+          "sha256": "ad3b8feeaa1b03ceedefe82f9115aee474ec323e92771f4ec5db08bf4c19e4e6",
+          "pixelSha256": "cde79356710e7799d053cbd1ab44933e783f75c56166a5427fd6e13b6667ef9a"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-bold-italic-canvas.png",
+          "sha256": "63f9bc09cad541b620cf1fc2e50dbb42acb402a1325449f6c0913c6a864ab5e0",
+          "pixelSha256": "e808d91d52884319fb7fe931838e52c621bf05c5f4c31518d43603bb6f03a220"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-bold-italic-preview.png",
+          "sha256": "63f9bc09cad541b620cf1fc2e50dbb42acb402a1325449f6c0913c6a864ab5e0",
+          "pixelSha256": "e808d91d52884319fb7fe931838e52c621bf05c5f4c31518d43603bb6f03a220"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-bold-italic-csharp.png",
+          "sha256": "a6d6bd920fc7773e8515ce720481ff1e9240259b68809c506f2c6396b341f8e9",
+          "pixelSha256": "cde79356710e7799d053cbd1ab44933e783f75c56166a5427fd6e13b6667ef9a"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-richtext",
+      "severity": "P2",
+      "width": 270,
+      "height": 100,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-richtext-backend.png",
+          "sha256": "b71418bf499e59595dad6bf122e1d99d545c8d90087cc13d9c1339000739bfd2",
+          "pixelSha256": "cb119b1e60679aebfc01991e9a220ad8ebafc726558db5f2fb9bff2e378feced"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-richtext-canvas.png",
+          "sha256": "71f6e4eb48e2ee1d0bceae2da62e6e497cc6df7850a2610a09ed765780287cdf",
+          "pixelSha256": "ee7090434d085430d314347ac8f7b82c46b453f21c3559be4eb650ce9f70ebf3"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-richtext-preview.png",
+          "sha256": "71f6e4eb48e2ee1d0bceae2da62e6e497cc6df7850a2610a09ed765780287cdf",
+          "pixelSha256": "ee7090434d085430d314347ac8f7b82c46b453f21c3559be4eb650ce9f70ebf3"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-richtext-csharp.png",
+          "sha256": "97bc9a2f50eb805c592586e9785e23fa7c8a92843e3d6934a3d21b2d099d9da9",
+          "pixelSha256": "cb119b1e60679aebfc01991e9a220ad8ebafc726558db5f2fb9bff2e378feced"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-richtext",
+      "severity": "P2",
+      "width": 270,
+      "height": 100,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-richtext-backend.png",
+          "sha256": "ab15ec1263d2fb94dc9c9aa1895f5fa2a152c07787e839f24c3294abbd6319c4",
+          "pixelSha256": "580455e5708c80c665d0fa946d75aa3c8bdc154eb88c13aefb5d92474ab0c196"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-richtext-canvas.png",
+          "sha256": "e2ed48421c8d2378771a2542f1f617236895d88ca5e86d5e3ce9cbffad0523a7",
+          "pixelSha256": "77ed4d84e8261a51c933a667a4b16c6eb6bbca6b7f4940c0e90592fed9981c2d"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-richtext-preview.png",
+          "sha256": "e2ed48421c8d2378771a2542f1f617236895d88ca5e86d5e3ce9cbffad0523a7",
+          "pixelSha256": "77ed4d84e8261a51c933a667a4b16c6eb6bbca6b7f4940c0e90592fed9981c2d"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-richtext-csharp.png",
+          "sha256": "63547b3934abedbe5aae0b5f5eea55cdbd5072b29800f5a632ee6b9b85038e57",
+          "pixelSha256": "580455e5708c80c665d0fa946d75aa3c8bdc154eb88c13aefb5d92474ab0c196"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "severity": "P2",
+      "width": 270,
+      "height": 45,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-number-backend.png",
+          "sha256": "b6ef6b13db4a09f2223877092d5bc54eb1a66a39321e1f2b8acd695b4758b174",
+          "pixelSha256": "eaa21a66799629bba3c9e0b7667617e44519dd36ee0dce844555b3a8b318c778"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-number-canvas.png",
+          "sha256": "1291a486dd192d064c134c52e798d2467a3bccdf2fb6505effd9d64c7a264872",
+          "pixelSha256": "8aa8ba1cbf6bc1aebca4849a65ee7a749ff5dc22c4e8399b73a1afb9e7b251fd"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-number-preview.png",
+          "sha256": "1291a486dd192d064c134c52e798d2467a3bccdf2fb6505effd9d64c7a264872",
+          "pixelSha256": "8aa8ba1cbf6bc1aebca4849a65ee7a749ff5dc22c4e8399b73a1afb9e7b251fd"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-number-csharp.png",
+          "sha256": "2ed9be9b2b874b2560e7db54745177dd30b479c6ec7f4faa3900472760263338",
+          "pixelSha256": "eaa21a66799629bba3c9e0b7667617e44519dd36ee0dce844555b3a8b318c778"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "narrow-fr",
+      "severity": "P2",
+      "width": 110,
+      "height": 72,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/narrow-fr-backend.png",
+          "sha256": "5d5745caa079ef1d29a3ff1c02153dbcccea3bd4f4615fe0d3c94e95fe7f75dc",
+          "pixelSha256": "3a93cf160452392d9121c922e43c3c09aa6d6cd716f3afca18e5cec0e33b9fdc"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/narrow-fr-canvas.png",
+          "sha256": "ab0550ac1c66396dd68dc3994e15e8321c214f8a96af82b6952fe48b488bcbd6",
+          "pixelSha256": "95efc6856e3746e2703d503f4ef04dc4f2b41f2fbe4a5261cadf720a0bb7b273"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/narrow-fr-preview.png",
+          "sha256": "ab0550ac1c66396dd68dc3994e15e8321c214f8a96af82b6952fe48b488bcbd6",
+          "pixelSha256": "95efc6856e3746e2703d503f4ef04dc4f2b41f2fbe4a5261cadf720a0bb7b273"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/narrow-fr-csharp.png",
+          "sha256": "d52f3a16219ae44b6f23a36db25971a46f4af3c94372fad5d1948ca90b80f8a2",
+          "pixelSha256": "3a93cf160452392d9121c922e43c3c09aa6d6cd716f3afca18e5cec0e33b9fdc"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "narrow-de",
+      "severity": "P2",
+      "width": 130,
+      "height": 72,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/narrow-de-backend.png",
+          "sha256": "4f070117fbcc1021d24bac7a3a0f1c510ce8900045ba0088c52be2931a30808b",
+          "pixelSha256": "9444e2aa6fc3a9bd05d56ae06ee3cb7a7d2aa49197126bfecc5d9da8bf06b9ef"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/narrow-de-canvas.png",
+          "sha256": "9d7fcb13f0372b2cd6c91f9877cdf15e45dbed314e59aec03177ca7138d3e185",
+          "pixelSha256": "c505fae8555075221b5fd1dc9990eb43e5adf8e81dfcb009805fcfde3895e913"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/narrow-de-preview.png",
+          "sha256": "9d7fcb13f0372b2cd6c91f9877cdf15e45dbed314e59aec03177ca7138d3e185",
+          "pixelSha256": "c505fae8555075221b5fd1dc9990eb43e5adf8e81dfcb009805fcfde3895e913"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/narrow-de-csharp.png",
+          "sha256": "d2f628c660acff486221aa02ed1b8a97c9e5360c0cc857e39b52d5072d771a3c",
+          "pixelSha256": "9444e2aa6fc3a9bd05d56ae06ee3cb7a7d2aa49197126bfecc5d9da8bf06b9ef"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "bold-italic",
+      "severity": "P2",
+      "width": 170,
+      "height": 80,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/bold-italic-backend.png",
+          "sha256": "9f14aebcce08c83f6ab495218dde283dcfb518ec16540d3c33241b505f422ad1",
+          "pixelSha256": "8a137e5229e6ae53a702ba8fbaf4c5839b3caa01a50d47ccf4448907426134c8"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/bold-italic-canvas.png",
+          "sha256": "0e321506d4ad7411f3e765f331a96b1df3f2a980b0ce5d676563009bfd9bfb07",
+          "pixelSha256": "9371f1193886d89c12d585016faae91cd4dbf0d98db31df43ff681debb5771d0"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/bold-italic-preview.png",
+          "sha256": "0e321506d4ad7411f3e765f331a96b1df3f2a980b0ce5d676563009bfd9bfb07",
+          "pixelSha256": "9371f1193886d89c12d585016faae91cd4dbf0d98db31df43ff681debb5771d0"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/bold-italic-csharp.png",
+          "sha256": "5c8a6c33e25da03c654edabee9afdb086db07ceeb6b21569a61384dada182266",
+          "pixelSha256": "8a137e5229e6ae53a702ba8fbaf4c5839b3caa01a50d47ccf4448907426134c8"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "line-height-factor",
+      "severity": "P2",
+      "width": 110,
+      "height": 80,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/line-height-factor-backend.png",
+          "sha256": "1febbd5a0e6e898c8c0655234970941eaf39e39847d82e3d06df25349708dbb6",
+          "pixelSha256": "9f55bc7d36667ed5b3e4b7921582e2c7358dddbd7dfd1b6d4c108cdc7cd90e5d"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/line-height-factor-canvas.png",
+          "sha256": "904793f0466ea5eeec531c5e8481a8509d1e02f2bff80551dc4ca3178a1c44fb",
+          "pixelSha256": "c0473f722ed5b7b5ec91431bd2021833e01795d68c8c7b19e1cc52b2b2bd95a8"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/line-height-factor-preview.png",
+          "sha256": "904793f0466ea5eeec531c5e8481a8509d1e02f2bff80551dc4ca3178a1c44fb",
+          "pixelSha256": "c0473f722ed5b7b5ec91431bd2021833e01795d68c8c7b19e1cc52b2b2bd95a8"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/line-height-factor-csharp.png",
+          "sha256": "14ab90f6398421a74138e2bcf15633229974fdd0db835799b1d3c01de2ce6e59",
+          "pixelSha256": "9f55bc7d36667ed5b3e4b7921582e2c7358dddbd7dfd1b6d4c108cdc7cd90e5d"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "short-height",
+      "severity": "P2",
+      "width": 110,
+      "height": 12,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/short-height-backend.png",
+          "sha256": "a0c7936be707af72d7b37ed85350b9bc300a75e71bc4cef3b7dfa66e19fd9624",
+          "pixelSha256": "b31300ad76d3bc957c467a2ac32189adb608b36c2971794bb42fb0152a6de31f"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/short-height-canvas.png",
+          "sha256": "7c1eb5a8910bd7c5623368caad5ab537e9e291370b6a13d78c70726ae4c527d7",
+          "pixelSha256": "453af25e21d7fd8e888451bd04c9bbad61f35f325cf3d0a1e9731aa48ce59281"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/short-height-preview.png",
+          "sha256": "7c1eb5a8910bd7c5623368caad5ab537e9e291370b6a13d78c70726ae4c527d7",
+          "pixelSha256": "453af25e21d7fd8e888451bd04c9bbad61f35f325cf3d0a1e9731aa48ce59281"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/short-height-csharp.png",
+          "sha256": "b609ab0436cfe4ba968e6ac7bdf4d55fbacf7f2768e205d679972c7b1d459e05",
+          "pixelSha256": "b31300ad76d3bc957c467a2ac32189adb608b36c2971794bb42fb0152a6de31f"
+        }
+      ]
+    },
+    {
+      "fixture": "date-layout",
+      "id": "unbroken-date",
+      "severity": "P2",
+      "width": 100,
+      "height": 35,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "date-layout/unbroken-date-backend.png",
+          "sha256": "bc5d6dd4802d5812a7aba65f59269ec5dc7a6c0f959656b7ca45ae28a4fcd97c",
+          "pixelSha256": "1d158df737134ba64bba02f8e8bf3ffda7a0a6a64908e14bda704d84e74ba962"
+        },
+        {
+          "surface": "canvas",
+          "file": "date-layout/unbroken-date-canvas.png",
+          "sha256": "06b0b413e470114cdbd4bd841f0f19fb762f0d21ac7cbae46c88535e79a28b5b",
+          "pixelSha256": "31d25ec7ca927d1215809fddbce6640bc9398d906f5acacd817bcc59475d0f80"
+        },
+        {
+          "surface": "preview",
+          "file": "date-layout/unbroken-date-preview.png",
+          "sha256": "06b0b413e470114cdbd4bd841f0f19fb762f0d21ac7cbae46c88535e79a28b5b",
+          "pixelSha256": "31d25ec7ca927d1215809fddbce6640bc9398d906f5acacd817bcc59475d0f80"
+        },
+        {
+          "surface": "csharp",
+          "file": "date-layout/unbroken-date-csharp.png",
+          "sha256": "d571e0acb5df7dbd2c233d26728d2bb64b3e1f47c29276c78a20ad8254223898",
+          "pixelSha256": "1d158df737134ba64bba02f8e8bf3ffda7a0a6a64908e14bda704d84e74ba962"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "severity": "P2",
+      "width": 250,
+      "height": 58,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/text-backend.png",
+          "sha256": "6109a3e3f6fd8e8164a9c1a1dd1e4849f5abe1d5e6dadd530439bfc21e5626be",
+          "pixelSha256": "924bdf1cfe30a4540fcf12e6ab5af44abcc2f18b6d6771592e040defde2e9c22"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/text-canvas.png",
+          "sha256": "2426b8e7e6a6056c15c7005e85fe1b5f27b7d88a8858549c68947b9f5401681f",
+          "pixelSha256": "8fff4ca4f1cbcfc94fadf21f01da71bc93ba2a45ab917a12642cae78fd60aa18"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/text-preview.png",
+          "sha256": "2426b8e7e6a6056c15c7005e85fe1b5f27b7d88a8858549c68947b9f5401681f",
+          "pixelSha256": "8fff4ca4f1cbcfc94fadf21f01da71bc93ba2a45ab917a12642cae78fd60aa18"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/text-csharp.png",
+          "sha256": "e28865e8ebdaf23f47a936a0e1a973cc1970f74be866128b31fc4ebb01a53ef4",
+          "pixelSha256": "924bdf1cfe30a4540fcf12e6ab5af44abcc2f18b6d6771592e040defde2e9c22"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "severity": "P2",
+      "width": 160,
+      "height": 28,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/number-backend.png",
+          "sha256": "abb310d8cda9049e32972841766c8846dd6d8bd6fc3980dd59fe9cddb4263713",
+          "pixelSha256": "921f0029f28ea96b4fbec4fe6dadef6047a3456e605e971931c5630cc82c7460"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/number-canvas.png",
+          "sha256": "1b3d501191a822d9f6d06fe6d658ef4d16a1d21246b701e8fdff8038f2c036d6",
+          "pixelSha256": "d79ed3c28567dc1e4d57601da8bb165a897a0bf8e97d45d1eb080b856766fbc6"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/number-preview.png",
+          "sha256": "1b3d501191a822d9f6d06fe6d658ef4d16a1d21246b701e8fdff8038f2c036d6",
+          "pixelSha256": "d79ed3c28567dc1e4d57601da8bb165a897a0bf8e97d45d1eb080b856766fbc6"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/number-csharp.png",
+          "sha256": "3e4046ae8266402dad9b37fedf5c1ef9d121e4d06151f8b61f43f366e08d57cd",
+          "pixelSha256": "921f0029f28ea96b4fbec4fe6dadef6047a3456e605e971931c5630cc82c7460"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "severity": "P2",
+      "width": 250,
+      "height": 58,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/field-backend.png",
+          "sha256": "e7c155fc26e24a3591a2f30df84cb1e0758de1c09f5a3a2c5735a1dab0dadf3b",
+          "pixelSha256": "990aa2b624067af8c5d9976e223f9004469e94f653962eb574d81b2cbcf97711"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/field-canvas.png",
+          "sha256": "81e4b46c83a2039274553da5bcec09e0ad65b7e8a24537851413eed384bdc500",
+          "pixelSha256": "bedd24af67b6481adb63d12a2639c26c8e43101d22d82ececbc694a431e37466"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/field-preview.png",
+          "sha256": "81e4b46c83a2039274553da5bcec09e0ad65b7e8a24537851413eed384bdc500",
+          "pixelSha256": "bedd24af67b6481adb63d12a2639c26c8e43101d22d82ececbc694a431e37466"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/field-csharp.png",
+          "sha256": "5dc7238a97640592759098fed408837f7fad173d03c2bb50c7c37c8ac5749b33",
+          "pixelSha256": "990aa2b624067af8c5d9976e223f9004469e94f653962eb574d81b2cbcf97711"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "optionlist",
+      "severity": "P2",
+      "width": 250,
+      "height": 116,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/optionlist-backend.png",
+          "sha256": "4d778a31783760a3d2fca37a4bd809c290da8721f91c16ac1ec5432ffe086f55",
+          "pixelSha256": "18e193982c7c1f46ac54cc1fe198ac4c397227de3a6da7df5b74642dea3c4661"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/optionlist-canvas.png",
+          "sha256": "a0a49fbf58a0d3ba0fb8bd4a561a933589fae956b1ce5940490e4a62bb7e5961",
+          "pixelSha256": "87ccc62dbc1ec81c9f44a99ee516a07b386157887f04fe411b45698cd1ad76de"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/optionlist-preview.png",
+          "sha256": "a0a49fbf58a0d3ba0fb8bd4a561a933589fae956b1ce5940490e4a62bb7e5961",
+          "pixelSha256": "87ccc62dbc1ec81c9f44a99ee516a07b386157887f04fe411b45698cd1ad76de"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/optionlist-csharp.png",
+          "sha256": "801d79fd9effa5f94de291cc127cfd458b5f9f4bf306a3f36fcf08c660b94371",
+          "pixelSha256": "18e193982c7c1f46ac54cc1fe198ac4c397227de3a6da7df5b74642dea3c4661"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "button",
+      "severity": "P2",
+      "width": 160,
+      "height": 38,
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/button-backend.png",
+          "sha256": "0cd53396f67785340d50e9c439c7d1c7d91fe4036f133c434bbbd8d230ecb438",
+          "pixelSha256": "796cfb823a5fb47c3d9e55b447e188811941a0120095f5f4929fef58e157727e"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/button-canvas.png",
+          "sha256": "a06b656565cba807626c885cfd52df45b832693922e912eeadd7bb705baebd92",
+          "pixelSha256": "25626e3d08df692527c576caf10a71862a92f1dd703eb92c01e518fc5775a928"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/button-preview.png",
+          "sha256": "a06b656565cba807626c885cfd52df45b832693922e912eeadd7bb705baebd92",
+          "pixelSha256": "25626e3d08df692527c576caf10a71862a92f1dd703eb92c01e518fc5775a928"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/button-csharp.png",
+          "sha256": "d24fa74e4eb6fe6deb28e33bab9a10b116e08b0b666fa3dd0e2828a71f5442ef",
+          "pixelSha256": "796cfb823a5fb47c3d9e55b447e188811941a0120095f5f4929fef58e157727e"
+        }
+      ]
+    }
+  ]
+}

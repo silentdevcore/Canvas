@@ -1,0 +1,489 @@
+{
+  "schemaVersion": 1,
+  "scope": "Pixel continuity only: preserves the original Linux/x64 approval and does not approve changed output or other platforms.",
+  "approvalFile": "approval.json",
+  "approvalSha256": "54fd7d5274dec07fd65f8b68cd4aee98f96a66dd5dc6f050ec6c725d32d1a115",
+  "originalSourceCommit": "cf36e2179d952997a3f2a2aa51d046e972ef3643",
+  "verifiedSourceCommit": "76ad71013788af674a7e5beb412926c3afd6fa4c",
+  "workflowRun": "https://github.com/silentdevcore/Canvas/actions/runs/43650032284",
+  "environmentSha256": "75e6d2f12bf08ca46207f445e082d2eb2d5c79c8ee7e03c2943d73482d97c623",
+  "verifiedCropCount": 68,
+  "crops": [
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "surface": "backend",
+      "pixelSha256": "5e406bf16cd4ea33baf26b56871127437b6b4f1843e7140598b0bb52768be9a4",
+      "currentSha256": "7a121ded5b79373fa5629c2accfe7ec4765d5b059af7efd7302e472764d0e41e"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "surface": "canvas",
+      "pixelSha256": "fcc1b4ef35d8d139a389a1939ea0e90eb4925d645f0017ea99e1d40d4899fe52",
+      "currentSha256": "83b074fbe1f4173d2736ee9160aaf6f7edb43af8fe497a0f13604b1df03e825c"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "surface": "preview",
+      "pixelSha256": "fcc1b4ef35d8d139a389a1939ea0e90eb4925d645f0017ea99e1d40d4899fe52",
+      "currentSha256": "83b074fbe1f4173d2736ee9160aaf6f7edb43af8fe497a0f13604b1df03e825c"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "surface": "csharp",
+      "pixelSha256": "5e406bf16cd4ea33baf26b56871127437b6b4f1843e7140598b0bb52768be9a4",
+      "currentSha256": "7a121ded5b79373fa5629c2accfe7ec4765d5b059af7efd7302e472764d0e41e"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "surface": "backend",
+      "pixelSha256": "5d7cf1b95315cdfa7dc3081165d45891d32d547bc90010f529dcf237734dab74",
+      "currentSha256": "7560da1e0d49d0dfb882b041534cc1c634d80f8a8b707d9d70f4f260592e8d3f"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "surface": "canvas",
+      "pixelSha256": "a5a8291d363a6e71a8094ba12773694253e7a42ae774c07f32a2f49d61dad68f",
+      "currentSha256": "f920da2c400f0463074c3854103bf55100ba857d0d6a25a607eca1c42a19c874"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "surface": "preview",
+      "pixelSha256": "a5a8291d363a6e71a8094ba12773694253e7a42ae774c07f32a2f49d61dad68f",
+      "currentSha256": "f920da2c400f0463074c3854103bf55100ba857d0d6a25a607eca1c42a19c874"
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "surface": "csharp",
+      "pixelSha256": "5d7cf1b95315cdfa7dc3081165d45891d32d547bc90010f529dcf237734dab74",
+      "currentSha256": "7560da1e0d49d0dfb882b041534cc1c634d80f8a8b707d9d70f4f260592e8d3f"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "surface": "backend",
+      "pixelSha256": "200adeabc53d1a43074e1b77ed134be75007055161cd9d426b3c608e7d29b5a4",
+      "currentSha256": "689bda0ad244c7f1f5fac9ed51496352d4b3b7cb14e455f24d763e38b1c13703"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "surface": "canvas",
+      "pixelSha256": "804e1e5eab2ce3dcb7249e3374fbe226677ed94bffbbabafd293cf6c0d285753",
+      "currentSha256": "2faddb3bb5c5d50d7f669b563ec04201a0bd8ffe98cece0c5c52356f4bd154f6"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "surface": "preview",
+      "pixelSha256": "804e1e5eab2ce3dcb7249e3374fbe226677ed94bffbbabafd293cf6c0d285753",
+      "currentSha256": "2faddb3bb5c5d50d7f669b563ec04201a0bd8ffe98cece0c5c52356f4bd154f6"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "surface": "csharp",
+      "pixelSha256": "200adeabc53d1a43074e1b77ed134be75007055161cd9d426b3c608e7d29b5a4",
+      "currentSha256": "689bda0ad244c7f1f5fac9ed51496352d4b3b7cb14e455f24d763e38b1c13703"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "surface": "backend",
+      "pixelSha256": "7e386c4e744b473180989b461b8c4103e1f7968e407a2a7635c78e7f698e1c15",
+      "currentSha256": "26a71adbb8a68a5326b955a7aae9e0e4cc5f475d4012365c2d260cd6904894c0"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "surface": "canvas",
+      "pixelSha256": "ddcd44695877e6c6ae77d6b59051ce7e0d3df26679e88edb7fdc7f6d8ff67850",
+      "currentSha256": "71c9e118d9f1732441de6c03e051fadb86c0f909e055e6f564a5108dc618dc60"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "surface": "preview",
+      "pixelSha256": "ddcd44695877e6c6ae77d6b59051ce7e0d3df26679e88edb7fdc7f6d8ff67850",
+      "currentSha256": "71c9e118d9f1732441de6c03e051fadb86c0f909e055e6f564a5108dc618dc60"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "surface": "csharp",
+      "pixelSha256": "7e386c4e744b473180989b461b8c4103e1f7968e407a2a7635c78e7f698e1c15",
+      "currentSha256": "26a71adbb8a68a5326b955a7aae9e0e4cc5f475d4012365c2d260cd6904894c0"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "surface": "backend",
+      "pixelSha256": "b3fcbee8954511d45541a18b5831fbb6b3eb8300a867965d653c6e0df3feb4a9",
+      "currentSha256": "f4fb61f18d680a6dc9ba51fbed93a97892d019f4d1f50c440528aa0e70e76f1b"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "surface": "canvas",
+      "pixelSha256": "83a3720f9c31447d1d947290fe76efb911ad88303f343a8d28e587b647da0b4b",
+      "currentSha256": "360cce4254f27efe1fa3981ba57a3589434c909078a3891afbb2c4c31582fd87"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "surface": "preview",
+      "pixelSha256": "83a3720f9c31447d1d947290fe76efb911ad88303f343a8d28e587b647da0b4b",
+      "currentSha256": "360cce4254f27efe1fa3981ba57a3589434c909078a3891afbb2c4c31582fd87"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "surface": "csharp",
+      "pixelSha256": "b3fcbee8954511d45541a18b5831fbb6b3eb8300a867965d653c6e0df3feb4a9",
+      "currentSha256": "f4fb61f18d680a6dc9ba51fbed93a97892d019f4d1f50c440528aa0e70e76f1b"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "surface": "backend",
+      "pixelSha256": "f0953070bdd4b01916508127dfc164dc696587be26bc763419885bbca2439e8d",
+      "currentSha256": "ae64d0977e029c36303bc0d03171aa112be90d15310fb7f6578e3732540b98d3"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "surface": "canvas",
+      "pixelSha256": "fa96e4ed46cd3c10c9347021e708a00e362ad2f04dbd7ccd65a5b641435af1af",
+      "currentSha256": "f72e0a63bb251a8257011b62ec284c81802c141375e9c9e241fd6a465b41506c"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "surface": "preview",
+      "pixelSha256": "fa96e4ed46cd3c10c9347021e708a00e362ad2f04dbd7ccd65a5b641435af1af",
+      "currentSha256": "f72e0a63bb251a8257011b62ec284c81802c141375e9c9e241fd6a465b41506c"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "surface": "csharp",
+      "pixelSha256": "f0953070bdd4b01916508127dfc164dc696587be26bc763419885bbca2439e8d",
+      "currentSha256": "ae64d0977e029c36303bc0d03171aa112be90d15310fb7f6578e3732540b98d3"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-date",
+      "surface": "backend",
+      "pixelSha256": "541ef55d913afda229443273d173b25c82d854d6acd710eb9dc13bb0e010f1e4",
+      "currentSha256": "d614457edfd34055470b47d368bb854aaae7dc4c6227b34218e2efa0fb6a06ef"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-date",
+      "surface": "canvas",
+      "pixelSha256": "adb48603b428a1b793a0bd841df22f38c11ca6078363e4f3ef0093505eacfcbf",
+      "currentSha256": "8b788c37d926efb8b58e0e9f88e2ed6238035c2130946597698cdd09fbca9e16"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-date",
+      "surface": "preview",
+      "pixelSha256": "adb48603b428a1b793a0bd841df22f38c11ca6078363e4f3ef0093505eacfcbf",
+      "currentSha256": "8b788c37d926efb8b58e0e9f88e2ed6238035c2130946597698cdd09fbca9e16"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-date",
+      "surface": "csharp",
+      "pixelSha256": "541ef55d913afda229443273d173b25c82d854d6acd710eb9dc13bb0e010f1e4",
+      "currentSha256": "d614457edfd34055470b47d368bb854aaae7dc4c6227b34218e2efa0fb6a06ef"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "surface": "backend",
+      "pixelSha256": "0f956b394cee983a071de6b9e4c4a7b96af0309af176e8c55ea5e0c3ad5ab704",
+      "currentSha256": "3f71b6bb0ac53591b3c2fd90c93635a44000212be60d60a43ccf1d3946c7d70c"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "surface": "canvas",
+      "pixelSha256": "e407ae66607f8ea941eb0a31239f6dc6e981d02830c8d5ee6644d7de94f20689",
+      "currentSha256": "5521636ead8160aab6e2b1532d3d840beba820d584b9cc60da419fb5a1425150"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "surface": "preview",
+      "pixelSha256": "e407ae66607f8ea941eb0a31239f6dc6e981d02830c8d5ee6644d7de94f20689",
+      "currentSha256": "5521636ead8160aab6e2b1532d3d840beba820d584b9cc60da419fb5a1425150"
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "surface": "csharp",
+      "pixelSha256": "0f956b394cee983a071de6b9e4c4a7b96af0309af176e8c55ea5e0c3ad5ab704",
+      "currentSha256": "3f71b6bb0ac53591b3c2fd90c93635a44000212be60d60a43ccf1d3946c7d70c"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "line-height-points",
+      "surface": "backend",
+      "pixelSha256": "9a0ea805218382818b8734132a146467234472c00bba2b859ac5b92c22907529",
+      "currentSha256": "04c735030b940526e26f6ff2a2dbf5a5db7b52d8c4c865953727d13b11d34456"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "line-height-points",
+      "surface": "canvas",
+      "pixelSha256": "f5ff4aed3569f80c80fc2f09433bca37adc03189bbe12f7d23ed220d0d1f2674",
+      "currentSha256": "af205d96c05f73e969faf46ab0eebb4fc06de37f83230aabdcf311e0e9650978"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "line-height-points",
+      "surface": "preview",
+      "pixelSha256": "f5ff4aed3569f80c80fc2f09433bca37adc03189bbe12f7d23ed220d0d1f2674",
+      "currentSha256": "af205d96c05f73e969faf46ab0eebb4fc06de37f83230aabdcf311e0e9650978"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "line-height-points",
+      "surface": "csharp",
+      "pixelSha256": "9a0ea805218382818b8734132a146467234472c00bba2b859ac5b92c22907529",
+      "currentSha256": "04c735030b940526e26f6ff2a2dbf5a5db7b52d8c4c865953727d13b11d34456"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "short-height",
+      "surface": "backend",
+      "pixelSha256": "439984cd3a3104ab781c7ab30d97a1a4381fd05eb83ee160a4c9ac317d70f3da",
+      "currentSha256": "6d8af367c92726bc19b77a185a3699d2fb3b10b432eeb0894e37eb5e6f4e4678"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "short-height",
+      "surface": "canvas",
+      "pixelSha256": "3a8df4dc67a642d53981ffb3185bd12f1e5098ae0fc71053fd147e98fa7a2d83",
+      "currentSha256": "79644a844b71435943cf785c810bfb6527f3ae1eb6d4fdb3487e6e45eb6f64a2"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "short-height",
+      "surface": "preview",
+      "pixelSha256": "3a8df4dc67a642d53981ffb3185bd12f1e5098ae0fc71053fd147e98fa7a2d83",
+      "currentSha256": "79644a844b71435943cf785c810bfb6527f3ae1eb6d4fdb3487e6e45eb6f64a2"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "short-height",
+      "surface": "csharp",
+      "pixelSha256": "439984cd3a3104ab781c7ab30d97a1a4381fd05eb83ee160a4c9ac317d70f3da",
+      "currentSha256": "6d8af367c92726bc19b77a185a3699d2fb3b10b432eeb0894e37eb5e6f4e4678"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "unbroken-date",
+      "surface": "backend",
+      "pixelSha256": "153edb15562f06afbd2a38d9b84328e7671afe32269c336542ac957a0c51f9b7",
+      "currentSha256": "fe18b4e257705e6a854d0ee8dc0b3ff65f54190b8ebe0bd320f7774beacd0514"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "unbroken-date",
+      "surface": "canvas",
+      "pixelSha256": "42597f5ccb9cd5e42774abe4025bf371405032537bcd3b2d52ec63d10a47e637",
+      "currentSha256": "03d765a4993750e71952f7a84e24dce09e755397e00d7e290b912879bc978987"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "unbroken-date",
+      "surface": "preview",
+      "pixelSha256": "42597f5ccb9cd5e42774abe4025bf371405032537bcd3b2d52ec63d10a47e637",
+      "currentSha256": "03d765a4993750e71952f7a84e24dce09e755397e00d7e290b912879bc978987"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "unbroken-date",
+      "surface": "csharp",
+      "pixelSha256": "153edb15562f06afbd2a38d9b84328e7671afe32269c336542ac957a0c51f9b7",
+      "currentSha256": "fe18b4e257705e6a854d0ee8dc0b3ff65f54190b8ebe0bd320f7774beacd0514"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "right-narrow",
+      "surface": "backend",
+      "pixelSha256": "011c25aa482de9ca16050533d7ef2621aadaba210024f0c5313c1f460e9f012c",
+      "currentSha256": "a8fda50739533ac2b782f71b0dd5ebbfa3258889980f9b7117458dc2a84693ee"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "right-narrow",
+      "surface": "canvas",
+      "pixelSha256": "f77791f407b963a7cacc995cfe119c051c31a811cdf6c547a7488a52231b0443",
+      "currentSha256": "ec50395ed55a204a960067ccd8e9fdf8f2f0a6369c1a85885c7ed7d9e79e9736"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "right-narrow",
+      "surface": "preview",
+      "pixelSha256": "f77791f407b963a7cacc995cfe119c051c31a811cdf6c547a7488a52231b0443",
+      "currentSha256": "ec50395ed55a204a960067ccd8e9fdf8f2f0a6369c1a85885c7ed7d9e79e9736"
+    },
+    {
+      "fixture": "date-layout",
+      "id": "right-narrow",
+      "surface": "csharp",
+      "pixelSha256": "011c25aa482de9ca16050533d7ef2621aadaba210024f0c5313c1f460e9f012c",
+      "currentSha256": "a8fda50739533ac2b782f71b0dd5ebbfa3258889980f9b7117458dc2a84693ee"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "surface": "backend",
+      "pixelSha256": "8d9ca2d8d2a56be5df0a4de86e2e7aa61bbdb15dfd5fb1b91502ccc1a9f8ad3e",
+      "currentSha256": "0518e6750ea7356603da1b687f409cbcfba5d6795d07ea5feee5a0f2578a4f24"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "surface": "canvas",
+      "pixelSha256": "76d7be96fc3a382d1eeedb43b3aa2bb5bdbfaf35cef74f5f2c9e5a841b6a6d20",
+      "currentSha256": "0e0ab3186f00e1ee214a636b8d8ce6695f34bde3e08ffde2b1691def1e4fc434"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "surface": "preview",
+      "pixelSha256": "76d7be96fc3a382d1eeedb43b3aa2bb5bdbfaf35cef74f5f2c9e5a841b6a6d20",
+      "currentSha256": "0e0ab3186f00e1ee214a636b8d8ce6695f34bde3e08ffde2b1691def1e4fc434"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "surface": "csharp",
+      "pixelSha256": "8d9ca2d8d2a56be5df0a4de86e2e7aa61bbdb15dfd5fb1b91502ccc1a9f8ad3e",
+      "currentSha256": "0518e6750ea7356603da1b687f409cbcfba5d6795d07ea5feee5a0f2578a4f24"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "date",
+      "surface": "backend",
+      "pixelSha256": "93407bc22b0cf10ce0deb8d2b61ed21048c2f80b805472874f1c68f358820b82",
+      "currentSha256": "35fcedf43ffe7c6d560114d7059bcbabb7ee2c44fd1906e8aeeb4e988dc29610"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "date",
+      "surface": "canvas",
+      "pixelSha256": "65951c9ab14e7a792f3444f3f4d84ab2d6aa2bd45c80de1e3f7580ba3f8b1ba5",
+      "currentSha256": "df467a107417185e1869bea18f5f02f1602dede43486e220498057b459b59543"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "date",
+      "surface": "preview",
+      "pixelSha256": "65951c9ab14e7a792f3444f3f4d84ab2d6aa2bd45c80de1e3f7580ba3f8b1ba5",
+      "currentSha256": "df467a107417185e1869bea18f5f02f1602dede43486e220498057b459b59543"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "date",
+      "surface": "csharp",
+      "pixelSha256": "93407bc22b0cf10ce0deb8d2b61ed21048c2f80b805472874f1c68f358820b82",
+      "currentSha256": "35fcedf43ffe7c6d560114d7059bcbabb7ee2c44fd1906e8aeeb4e988dc29610"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "surface": "backend",
+      "pixelSha256": "f39a53e9f0029e20f02a1fdd6140524109dfe60df4dfdd1fda69b3c3c642386c",
+      "currentSha256": "d4000be408cbe57e3bfff7f45d4e24c1701b2b28b37af722edf8b27c2cf22a56"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "surface": "canvas",
+      "pixelSha256": "f36876260cc52eaf8ed42faeaf75d87e6528b273d4ae39946ffd955d2a876b05",
+      "currentSha256": "8b0ea228fbf35d26f9f92acb6d6fa99d908a94e9f2e182771947dc53192abe8c"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "surface": "preview",
+      "pixelSha256": "f36876260cc52eaf8ed42faeaf75d87e6528b273d4ae39946ffd955d2a876b05",
+      "currentSha256": "8b0ea228fbf35d26f9f92acb6d6fa99d908a94e9f2e182771947dc53192abe8c"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "surface": "csharp",
+      "pixelSha256": "f39a53e9f0029e20f02a1fdd6140524109dfe60df4dfdd1fda69b3c3c642386c",
+      "currentSha256": "d4000be408cbe57e3bfff7f45d4e24c1701b2b28b37af722edf8b27c2cf22a56"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "surface": "backend",
+      "pixelSha256": "d1505c82352750fa8767e6589e69375474d106fc9654672dac4a2ca4657c78f2",
+      "currentSha256": "c97592756b24540dc3dc819da2323ed76b1359ad1c18af90ab959e9562bf68d1"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "surface": "canvas",
+      "pixelSha256": "720b6847b026558a6417ec25c6c49e9dd3372ff9bbae8d4d11dbc12aa0660bf4",
+      "currentSha256": "745c6882b4562b8c42c6b441ad20e1fd35b1b55961120140d61ab9f6da5125b3"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "surface": "preview",
+      "pixelSha256": "720b6847b026558a6417ec25c6c49e9dd3372ff9bbae8d4d11dbc12aa0660bf4",
+      "currentSha256": "745c6882b4562b8c42c6b441ad20e1fd35b1b55961120140d61ab9f6da5125b3"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "surface": "csharp",
+      "pixelSha256": "d1505c82352750fa8767e6589e69375474d106fc9654672dac4a2ca4657c78f2",
+      "currentSha256": "c97592756b24540dc3dc819da2323ed76b1359ad1c18af90ab959e9562bf68d1"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "link",
+      "surface": "backend",
+      "pixelSha256": "b9285067fe7107067b5628d7108a85d706393e5a1f0e32b38fd1bbecbbe164cf",
+      "currentSha256": "373a46b8236945dc9e829f4fdfe9274a644303229d21b6c4ad083bda7d4509e4"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "link",
+      "surface": "canvas",
+      "pixelSha256": "634bfe1cec7dac343155eb6e1aac051face7cd7412c551e2908801384952b7d5",
+      "currentSha256": "60ba538c14591fdfd0dcca51f4c72193358ee7a471ed7bb16fad8b456db71ad4"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "link",
+      "surface": "preview",
+      "pixelSha256": "634bfe1cec7dac343155eb6e1aac051face7cd7412c551e2908801384952b7d5",
+      "currentSha256": "60ba538c14591fdfd0dcca51f4c72193358ee7a471ed7bb16fad8b456db71ad4"
+    },
+    {
+      "fixture": "all-elements",
+      "id": "link",
+      "surface": "csharp",
+      "pixelSha256": "b9285067fe7107067b5628d7108a85d706393e5a1f0e32b38fd1bbecbbe164cf",
+      "currentSha256": "373a46b8236945dc9e829f4fdfe9274a644303229d21b6c4ad083bda7d4509e4"
+    }
+  ]
+}

@@ -420,10 +420,9 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
   to all cover/none cropping and focus-coordinate combinations.
 - [x] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
-- [ ] Complete platform certification beyond the local Linux/ARM64 execution
-  and owner review recorded below: execute remote Linux/x64 CI and test Windows
-  plus any intended native fallback. Existing scoped approvals do not approve
-  untested platforms or change earlier baseline pins.
+- [x] Complete native Linux/x64 CI and Windows/x64 validation for the five
+  recorded packs; see Native Platform Results below. Approvals remain scoped
+  to the pinned bundled fonts, browser and pixels, not arbitrary native fallbacks.
 
 No commit, push, deployment, product-version bump or published-release edit was
 performed for this consolidation. Unrelated pending work remains untouched.
@@ -630,8 +629,8 @@ part of the paragraph-layout work.
 - [x] Execute both packs locally on Linux/ARM64 with actual backend and generated
   C# PDFs, then repeat the browser comparison after the typography correction.
   See Linux Fractional Text Metrics below for the two-phase evidence boundary.
-- [ ] Execute the new pack in remote Linux/x64 CI and certify Windows separately;
-  neither local macOS nor local Linux/ARM64 certifies these environments.
+- [x] Execute the new pack in remote Linux/x64 CI and Windows/x64 separately;
+  both native results and their distinct owner approvals are recorded below.
 
 The font pack reports 19 matches, three P2 and no P0/P1 findings. Normal and
 C# PDF crops are pixel-identical; geometry drift is zero, and the largest
@@ -681,7 +680,8 @@ this scoped result. No published release, database or deployment was changed.
 - [x] Obtain explicit visual approval for the eight Linux font and five Linux
   catalog P2 cases; preserve 52 exact crops and their hashes separately from
   macOS evidence. The owner explicitly approved all thirteen comparisons.
-- [ ] Execute and inspect remote Linux/x64 CI and Windows results separately.
+- [x] Execute and inspect remote Linux/x64 CI and Windows results separately;
+  see Native Platform Results for the successful run and scoped approvals.
 
 Linux results: the font pack has 22 cases (14 matches, eight P2); the complete
 catalog has 40 cases across 38 types (35 matches, five P2). Neither pack has a
@@ -730,8 +730,9 @@ merge, tag, deployment or product-version bump is authorized by this approval.
 - [x] Preserve invocation/archive/image hashes, full log, four new PDF hashes,
   screenshots, overlays, differences and machine-readable verification.
 - [x] Remove the temporary container after successful completion.
-- [ ] Execute remote Linux/x64 CI when the owner resumes GitHub work.
-- [ ] Validate Windows and any intended native fallback separately.
+- [x] Execute remote Linux/x64 CI after the owner resumes GitHub work.
+- [x] Validate Windows/x64 separately with the pinned bundled fonts and browser.
+  Other native font fallbacks remain outside the certified fixture contract.
 
 The fresh run passes from one committed snapshot: fonts have 14 matches/eight P2
 across 22 cases, and the catalog has 35 matches/five P2 across 40 cases/38 types.
@@ -806,3 +807,90 @@ These are synthetic rendering checks with mocked browser API/session responses,
 not a full authenticated customer workflow or a full API/Solution-suite run.
 Existing Vite/CommonJS, dependency/license and duplicate-font-option console
 warnings were not suppressed or silently treated as resolved.
+
+## Native Platform Validation (Started 2026-11-14)
+
+The owner resumed GitHub validation after the local historical-date work.
+The earlier deferral records remain historical. No merge, release or deployment
+is authorized by this validation request.
+
+- [x] Make the comparison harness independent of Unix shell discovery, direct
+  legacy ImageMagick commands and Unix-only null paths; keep metrics unchanged.
+- [x] Select bundled Chromium explicitly and record platform, architecture,
+  runner image, tool/browser versions, source commit and thirteen font hashes.
+- [x] Configure native Ubuntu 24.04/x64 and Windows Server 2025/x64 jobs, with
+  five sequential packs per host and independent failure evidence. Windows
+  uses native executables, not WSL. Preserve source byte identities at checkout.
+- [x] Pass 63 local visual-tool/versioning tests and a native comparison-tool
+  smoke check; the local catalog replay retains 39 matches/one existing P2.
+- [x] Commit the harness as cf36e217 and push an isolated validation branch;
+  do not integrate the older branch history into develop or main.
+- [x] Start [GitHub run 43648579404](https://github.com/silentdevcore/Canvas/actions/runs/43648579404)
+  on `validation/platform-parity-20261114`.
+- [x] Complete and inspect native Linux/x64 results for all five packs.
+- [x] Complete and inspect native Windows/x64 results for all five packs.
+- [x] Download durable evidence and compare backend/C# output and measured P2
+  cases without relaxing thresholds or reusing another platform's approval.
+- [x] Obtain explicit visual approval for all seventeen Linux/x64 and twenty-two
+  Windows/x64 P2 comparisons; retain the exact confirmations and evidence pins.
+
+The five packs are font families (22 cases), date formatting (18), historical
+dates (18), date layout (20), and the complete catalog (40): 118 cases per host.
+The workflow has read-only repository permission, no deployment credentials and
+no automatic baseline update. Rendering success and human visual approval remain
+separate acceptance conditions. Unrelated working-tree changes remain untouched.
+
+## Native Platform Results (2026-11-15)
+
+- [x] Preserve the initial Windows failure in
+  [run 43648579404](https://github.com/silentdevcore/Canvas/actions/runs/43648579404):
+  the 1973 Kathmandu vector expected 05:30 but Windows registry history produced
+  05:45. Linux passed; this first workflow is not recorded as wholly successful.
+- [x] Fix the backend timezone provider using NodaTime 3.3.7 and its embedded
+  TZDB 2026f data. Ship the original Apache license and NOTICE with provenance
+  hashes. Date contract version 3 pins the provider independently of VERSION.
+  Preserve the pre-1973 UTC boundary and all existing vectors and thresholds.
+- [x] Pass 122 focused backend date/property/notice tests on each native host.
+- [x] Complete both native jobs in
+  [run 43650032284](https://github.com/silentdevcore/Canvas/actions/runs/43650032284)
+  from source `76ad71013788af674a7e5beb412926c3afd6fa4c`.
+- [x] Verify all 118 backend/C# crop pairs are pixel-identical on each host.
+- [x] Verify all 68 previously approved Linux/x64 crop pixel hashes remain
+  identical in the corrected run; retain the original approval provenance.
+- [x] Preserve 17 Linux/x64 comparisons (68 crops) and 22 Windows/x64 comparisons
+  (88 crops), their fixture/font/environment hashes and explicit owner approval
+  in the versioned approval directories linked below. Measured P2 results remain
+  P2; neither approval changes metrics, thresholds or another platform's scope.
+- [x] Pass 66 local visual-tool/versioning tests, 1,051 Designer tests, 73
+  Documentation tests, Designer type-check and both production builds.
+
+| Pack | Cases per host | Linux match / P2 | Windows match / P2 |
+| --- | ---: | ---: | ---: |
+| Font families | 22 | 14 / 8 | 11 / 11 |
+| Date formatting | 18 | 18 / 0 | 18 / 0 |
+| Historical dates | 18 | 18 / 0 | 18 / 0 |
+| Date layout | 20 | 16 / 4 | 14 / 6 |
+| Complete catalog (38 types) | 40 | 35 / 5 | 35 / 5 |
+| Total | 118 | 101 / 17 | 96 / 22 |
+
+There are no P0/P1 findings on either platform. The native environments are
+Ubuntu 24.04/x64 and Windows Server 2025/x64 with bundled Chromium 156.0.8078.4.
+Windows executes native tools, not WSL. Small native raster/ClearType differences
+are retained and approved only for the exact reviewed images.
+
+Durable owner approvals:
+[Linux/x64](../test-assets/visual-parity/approvals/2026-11-14-linux-x64/README.md)
+and [Windows/x64](../test-assets/visual-parity/approvals/2026-11-15-windows-x64/README.md).
+The complete local artifact report is
+`artifacts/platform-parity-runs/43650032284/REPORT.md`, with machine-readable
+verification in the adjacent `verification.json`. The review pages remain
+`artifacts/platform-parity-runs/43648579404/linux-x64-review.html` and
+`artifacts/platform-parity-runs/43650032284/windows-x64-review.html`.
+
+This closes the requested native platform rendering validation, not general
+production certification. Customer authentication/persistence, native print
+dialogs, other OS/browser versions, unbundled native font fallbacks and a Windows
+production execution sandbox are not certified by these synthetic checks.
+Additional calendars/locales/tokens remain the separately scoped extension above.
+Existing dependency/license warnings are not silently cleared. No merge, release,
+deployment, database change or product-version bump is part of this completion.
