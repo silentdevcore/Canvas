@@ -598,7 +598,20 @@ jobs:
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
       - name: Restore PDF Trust visual operation dependencies
         run: dotnet restore tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj
+      - name: Enforce date formatting parity
+        id: date-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-format.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: node tools/visual-parity/run.mjs
+      - name: Preserve date parity evidence
+        if: always() && steps.date-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-format-parity
+          fi
       - name: Enforce image fit and focus parity
+        id: image-parity
         env:
           PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/image-fit.json
           PVAD_VISUAL_PARITY_ENFORCE: true
@@ -606,7 +619,7 @@ jobs:
           node --test tools/visual-parity/fixture-layout.test.mjs
           node tools/visual-parity/run.mjs
       - name: Preserve image parity evidence before the catalog run
-        if: always()
+        if: always() && steps.image-parity.outcome != 'skipped'
         run: |
           if [ -d artifacts/visual-parity ]; then
             cp -R artifacts/visual-parity artifacts/image-fit-parity
@@ -639,6 +652,13 @@ jobs:
         with:
           name: pvad-image-fit-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/image-fit-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-format-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-format-parity
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -26,12 +26,18 @@ interface Context {
   imageLabel: string;
   chartLabel: string;
   now?: Date;
+  resolve: (value: string) => string | undefined;
 }
 
 const renderers: Record<ElementType, (element: SimpleElement, context: Context) => ReactNode> = {
   text: element => <PdfTextBlockRenderer element={element} text={element.content ?? ''} />,
   richtext: element => <PdfRichTextRenderer element={element} />,
-  date: (element, context) => <PdfSingleLineText element={element} kind="date" text={documentDateText(element, context.now)} />,
+  date: (element, context) => {
+    const text = documentDateText(element, context.now, context.resolve);
+    const printable = /[\u0600-\u06ff]/.test(text) || /^ar(?:-|$)/i.test(element.language ?? '') ? { ...element, textDirection: 'rtl' as const,
+      style: { ...element.style, fontFamily: 'Noto Sans Arabic' } } : element;
+    return <PdfSingleLineText element={printable} kind="date" text={text} />;
+  },
   number: element => <PdfSingleLineText element={element} kind="number"
     text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />,
   field: element => <FormFieldRenderer element={element} />,
@@ -114,7 +120,7 @@ export function DocumentElementRenderer({ element, pageIndex, pageCount, pageHei
   const resolved = resolveDocumentElement(element, resolveContent);
   const render = Object.prototype.hasOwnProperty.call(renderers, resolved.type) ? renderers[resolved.type] : undefined;
   let content = render ? render(resolved, { pageIndex, pageCount, pageHeight, now,
-    imageLabel: t('placeholders.image'), chartLabel: t('diagnostics.chart') }) : (
+    imageLabel: t('placeholders.image'), chartLabel: t('diagnostics.chart'), resolve: resolveContent }) : (
     <div className="editor-placeholder" data-unsupported-element={resolved.type}>
       <FiBox className="editor-placeholder-icon" /><span>{resolved.type}</span>
     </div>

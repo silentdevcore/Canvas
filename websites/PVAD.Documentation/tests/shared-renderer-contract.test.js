@@ -24,3 +24,9 @@ test('image fit contract explains real export geometry and keeps unsupported var
     'PNG alpha transparency', 'preserveAspectRatio: true', 'EXIF autorotation', 'temporary image files'])
     assert.ok(guide.includes(phrase), phrase);
 });
+test('date documentation defines modes, defaults, portable formats and explicit limits', () => {
+  for (const phrase of ['Dates, Timezones And Binding', 'yyyy-MM-dd', 'Gregorian calendar',
+    'date-only', 'millisecond', 'seven fractional digits', '256 characters', 'not a live ticking clock',
+    'unknown', 'directional runs', 'no source template'])
+    assert.ok(guide.toLowerCase().replace(/\s+/g, ' ').includes(phrase.toLowerCase()), phrase);
+});

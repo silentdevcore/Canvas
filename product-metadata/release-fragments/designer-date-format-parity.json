@@ -1,0 +1,10 @@
+{
+  "id": "designer-date-format-parity",
+  "impact": "patch",
+  "components": ["designer", "api", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Designer previews and PDF exports now share date formats, timezone rules and bound-date handling. Arabic dates retain the correct digit order, and invalid settings show localized warnings.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

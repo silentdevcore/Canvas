@@ -77,6 +77,11 @@ async function renderBrowserSurfaces(fixture) {
       locale: 'en-US',
       timezoneId: 'UTC',
     });
+    const clockPath = fixturePath.replace(/\.json$/, '.clock.json');
+    if (existsSync(clockPath)) {
+      const clock = JSON.parse(await readFile(clockPath, 'utf8'));
+      await page.clock.setFixedTime(new Date(clock.instant));
+    }
     await page.route('**/api/pvad/v1/auth/csrf', route => route.fulfill({
       status: 200,
       contentType: 'application/json',

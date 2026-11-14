@@ -78,7 +78,17 @@ test('static and binding dates do not insert the current date or an unexplained 
   expect(documentDateText(element({ dateMode: 'static', content: '' }))).toBe('');
   expect(documentDateText(element({ dateMode: 'binding', binding: 'Invoice.Date' }))).toBe('{{ Invoice.Date }}');
   expect(documentDateText(element({ dateMode: 'render', locale: 'invalid_locale', timezone: 'invalid/timezone' }),
-    new Date('2026-11-13T12:00:00Z'))).toBe('Nov 13, 2026');
+    new Date('2026-11-13T12:00:00Z'))).toBe('2026-11-13');
+});
+
+test('Arabic date content and explicitly Arabic numeric dates use the packaged script font', () => {
+  const { container, rerender } = render(<DocumentElementRenderer {...context} now={new Date('2026-11-13T12:00:00Z')}
+    element={element({ type: 'date', dateMode: 'render', dateFormat: 'D', locale: 'ar-EG' })} />);
+  expect(container.querySelector('text')).toHaveAttribute('direction', 'rtl');
+  expect(container.querySelector('text')?.getAttribute('font-family')).toContain('PVADE Arabic');
+  expect(container.textContent).toContain('2026');
+  rerender(<DocumentElementRenderer {...context} element={element({ type: 'date', dateMode: 'static', content: '2026-11-13', language: 'ar' })} />);
+  expect(container.querySelector('text')?.getAttribute('font-family')).toContain('PVADE Arabic');
 });
 
 test('image aspect ratio, clipping and zero focal coordinates have one shared behavior', () => {

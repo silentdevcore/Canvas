@@ -17,7 +17,8 @@ public interface IPvadCodeConversionService
 
 public sealed class PvadCodeConversionService(
     IPvadCodeWorkerClient worker,
-    PVAD.Pdf.PdfFontLoader? fontLoader = null) : IPvadCodeConversionService
+    PVAD.Pdf.PdfFontLoader? fontLoader = null,
+    TimeProvider? timeProvider = null) : IPvadCodeConversionService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private static readonly IReadOnlyDictionary<string, RepresentationCodec> Codecs = new RepresentationCodec[]
@@ -85,7 +86,8 @@ public sealed class PvadCodeConversionService(
         }
         if (language == PvadCodeLanguages.CSharpPdf && result.Success && result.PdfBytes is null && result.CanonicalDesign is not null)
         {
-            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign, fontLoader);
+            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign, fontLoader,
+                renderInstant: (timeProvider ?? TimeProvider.System).GetUtcNow());
             result.PdfBytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(result.CanonicalDesign));
         }
         PvadTelemetry.RecordCodeOperation("execute", language, result.Success ? "succeeded" : "rejected",

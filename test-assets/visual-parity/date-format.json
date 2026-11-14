@@ -1,0 +1,324 @@
+{
+  "id": "date-format",
+  "name": "Portable date formatting",
+  "category": "visual-parity",
+  "description": "Synthetic date formats, timezones, locale names and bindings under a fixed test clock.",
+  "pages": [
+    {
+      "id": "date-page-1",
+      "elements": [
+        {
+          "id": "default-render",
+          "type": "date",
+          "name": "default-render",
+          "x": 20,
+          "y": 20,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "berlin",
+          "type": "date",
+          "name": "berlin",
+          "x": 20,
+          "y": 75,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "timezone": "Europe/Berlin",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "new-york",
+          "type": "date",
+          "name": "new-york",
+          "x": 20,
+          "y": 130,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "timezone": "America/New_York",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "quarter-offset",
+          "type": "date",
+          "name": "quarter-offset",
+          "x": 20,
+          "y": 185,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "timezone": "Asia/Kathmandu",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "next-day",
+          "type": "date",
+          "name": "next-day",
+          "x": 20,
+          "y": 240,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "timezone": "Pacific/Kiritimati",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-en-US",
+          "type": "date",
+          "name": "long-en-US",
+          "x": 20,
+          "y": 295,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "en-US",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-de-DE",
+          "type": "date",
+          "name": "long-de-DE",
+          "x": 20,
+          "y": 350,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "de-DE",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-fr-FR",
+          "type": "date",
+          "name": "long-fr-FR",
+          "x": 20,
+          "y": 405,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "fr-FR",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-es-ES",
+          "type": "date",
+          "name": "long-es-ES",
+          "x": 20,
+          "y": 460,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "es-ES",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-it-IT",
+          "type": "date",
+          "name": "long-it-IT",
+          "x": 20,
+          "y": 515,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "it-IT",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "long-ar-EG",
+          "type": "date",
+          "name": "long-ar-EG",
+          "x": 20,
+          "y": 570,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "D",
+          "locale": "ar-EG",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          },
+          "language": "ar",
+          "textDirection": "rtl"
+        },
+        {
+          "id": "roundtrip",
+          "type": "date",
+          "name": "roundtrip",
+          "x": 20,
+          "y": 625,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "O",
+          "timezone": "Europe/Berlin",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        }
+      ]
+    },
+    {
+      "id": "date-page-2",
+      "elements": [
+        {
+          "id": "rfc",
+          "type": "date",
+          "name": "rfc",
+          "x": 20,
+          "y": 20,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "R",
+          "timezone": "Europe/Berlin",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "fraction",
+          "type": "date",
+          "name": "fraction",
+          "x": 20,
+          "y": 75,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "HH:mm:ss.FFF",
+          "timezone": "Europe/Berlin",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "binding-fallback",
+          "type": "date",
+          "name": "binding-fallback",
+          "x": 20,
+          "y": 130,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+        "binding": "Missing.Date",
+          "fallbackText": "No date",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "invalid-format",
+          "type": "date",
+          "name": "invalid-format",
+          "x": 20,
+          "y": 185,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "MMMMM",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "invalid-timezone",
+          "type": "date",
+          "name": "invalid-timezone",
+          "x": 20,
+          "y": 240,
+          "width": 560,
+          "height": 40,
+          "dateMode": "render",
+          "dateFormat": "HH:mm",
+          "timezone": "invalid/zone",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "property-binding",
+          "type": "date",
+          "name": "Property binding",
+          "x": 20,
+          "y": 295,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "binding": "Invoice.Date",
+          "dateFormat": "dd.MM.yyyy HH:mm",
+          "timezone": "Europe/Berlin",
+          "style": {
+            "fontSize": 12
+          }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 600,
+    "height": 720,
+    "orientation": "portrait",
+    "backgroundColor": "#ffffff",
+    "systemLanguage": "en",
+    "targetLanguage": "en",
+    "activeLanguages": [
+      "en"
+    ],
+    "customProperties": [
+      {
+        "name": "Invoice.Date",
+        "value": "2026-11-13T12:00:00Z",
+        "type": "date"
+      }
+    ]
+  }
+}

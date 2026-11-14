@@ -511,6 +511,10 @@
   "warnings": {
     "pageRangeNeeded": "Der ausgewählte Bereich benötigt einen Seitenbereichswert.",
     "bindingPathNeeded": "Der Bindungsmodus benötigt einen Datenbindungspfad.",
+    "dateFormatFallback": "Nicht unterstütztes Datumsformat; das ISO-Datumsformat wird verwendet.",
+    "dateLocaleFallback": "Nicht unterstützte Datumssprache; Englisch wird verwendet.",
+    "dateTimezoneFallback": "Unbekannte Datumszeitzone; UTC wird verwendet.",
+    "dateBindingUnresolved": "Die Datumsbindung fehlt oder enthält kein gültiges ISO-Datum.",
     "drawPathNeeded": "Das Zeichenelement benötigt SVG-Pfaddaten.",
     "opacityRange": "Die Deckkraft sollte zwischen 0 und 1 liegen."
   },

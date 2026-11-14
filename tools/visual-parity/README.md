@@ -43,6 +43,22 @@ CI runs the image pack before the full catalog, archives its report separately
 even on failure, and uploads `pvad-image-fit-parity` evidence without replacing
 the catalog report consumed by the fidelity aggregator.
 
+The date pack freezes browser and normal/C# backend rendering to one shared
+synthetic instant from `date-format.clock.json`:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-format.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+It covers 18 outputs: six locale families including shaped Arabic with Latin
+digits, timezone offsets, formats, fallbacks and property binding. The shared
+`date-format-cases.json` separately exercises DST changes, calendar validation,
+fractional offsets, tokens and standard formats in Jest and .NET. Frozen time
+is test-only sidecar data; it is not a design property, API query option or
+saved template setting. Production render-time dates capture the actual clock
+once per PDF. `product-metadata/designer-date-formatting.json` is the shared,
+versioned format/default contract and is embedded in the Core assembly.
+
 The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
 network-loaded fonts. PDF and generated C# output retain Arabic logical text
 through shaped glyphs and ActualText. In addition to aggregate pixel metrics,

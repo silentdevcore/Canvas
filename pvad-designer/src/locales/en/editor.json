@@ -511,6 +511,10 @@
   "warnings": {
     "pageRangeNeeded": "Selected range needs a page range value.",
     "bindingPathNeeded": "Binding mode needs a data binding path.",
+    "dateFormatFallback": "Unsupported date format; the ISO date format is used.",
+    "dateLocaleFallback": "Unsupported date locale; English is used.",
+    "dateTimezoneFallback": "Unknown date timezone; UTC is used.",
+    "dateBindingUnresolved": "The date binding is missing or is not a valid ISO date.",
     "drawPathNeeded": "Draw element needs SVG path data.",
     "opacityRange": "Opacity should be between 0 and 1."
   },

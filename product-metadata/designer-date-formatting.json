@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "defaultFormat": "yyyy-MM-dd",
+  "defaultLocale": "en-US",
+  "defaultTimeZone": "UTC",
+  "maximumFormatLength": 256,
+  "literalLetters": [
+    "T",
+    "Z"
+  ],
+  "tokens": {
+    "y": 4,
+    "M": 4,
+    "d": 4,
+    "H": 2,
+    "h": 2,
+    "m": 2,
+    "s": 2,
+    "f": 3,
+    "F": 3,
+    "t": 2,
+    "z": 3,
+    "K": 1
+  },
+  "timeZoneAliases": {
+    "GMT": "UTC",
+    "Etc/UTC": "UTC",
+    "W. Europe Standard Time": "Europe/Berlin",
+    "Eastern Standard Time": "America/New_York",
+    "Pacific Standard Time": "America/Los_Angeles"
+  },
+  "locales": {
+    "en": {
+      "culture": "en-US",
+      "dateSeparator": "/",
+      "shortDate": "M/d/yyyy",
+      "longDate": "dddd, MMMM d, yyyy",
+      "shortTime": "h:mm tt",
+      "longTime": "h:mm:ss tt",
+      "monthDay": "MMMM d",
+      "yearMonth": "MMMM yyyy",
+      "am": "AM",
+      "pm": "PM"
+    },
+    "de": {
+      "culture": "de-DE",
+      "dateSeparator": ".",
+      "shortDate": "dd.MM.yyyy",
+      "longDate": "dddd, d. MMMM yyyy",
+      "shortTime": "HH:mm",
+      "longTime": "HH:mm:ss",
+      "monthDay": "d. MMMM",
+      "yearMonth": "MMMM yyyy",
+      "am": "AM",
+      "pm": "PM"
+    },
+    "fr": {
+      "culture": "fr-FR",
+      "dateSeparator": "/",
+      "shortDate": "dd/MM/yyyy",
+      "longDate": "dddd d MMMM yyyy",
+      "shortTime": "HH:mm",
+      "longTime": "HH:mm:ss",
+      "monthDay": "d MMMM",
+      "yearMonth": "MMMM yyyy",
+      "am": "AM",
+      "pm": "PM"
+    },
+    "es": {
+      "culture": "es-ES",
+      "dateSeparator": "/",
+      "shortDate": "dd/MM/yyyy",
+      "longDate": "dddd, d 'de' MMMM 'de' yyyy",
+      "shortTime": "H:mm",
+      "longTime": "H:mm:ss",
+      "monthDay": "d 'de' MMMM",
+      "yearMonth": "MMMM 'de' yyyy",
+      "am": "a. m.",
+      "pm": "p. m."
+    },
+    "it": {
+      "culture": "it-IT",
+      "dateSeparator": "/",
+      "shortDate": "dd/MM/yyyy",
+      "longDate": "dddd d MMMM yyyy",
+      "shortTime": "HH:mm",
+      "longTime": "HH:mm:ss",
+      "monthDay": "d MMMM",
+      "yearMonth": "MMMM yyyy",
+      "am": "AM",
+      "pm": "PM"
+    },
+    "ar": {
+      "culture": "ar-EG",
+      "dateSeparator": "/",
+      "shortDate": "dd/MM/yyyy",
+      "longDate": "dddd، d MMMM yyyy",
+      "shortTime": "h:mm tt",
+      "longTime": "h:mm:ss tt",
+      "monthDay": "d MMMM",
+      "yearMonth": "MMMM yyyy",
+      "am": "ص",
+      "pm": "م"
+    }
+  },
+  "standardFormats": {
+    "s": "yyyy-MM-dd'T'HH:mm:ss",
+    "o": "yyyy-MM-dd'T'HH:mm:ss.fffzzz",
+    "O": "yyyy-MM-dd'T'HH:mm:ss.fffzzz",
+    "u": "yyyy-MM-dd HH:mm:ss'Z'",
+    "r": "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+    "R": "ddd, dd MMM yyyy HH:mm:ss 'GMT'"
+  }
+}

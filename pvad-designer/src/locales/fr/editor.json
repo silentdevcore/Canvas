@@ -511,6 +511,10 @@
   "warnings": {
     "pageRangeNeeded": "La plage sélectionnée nécessite une valeur de plage de pages.",
     "bindingPathNeeded": "Le mode de liaison nécessite un chemin de liaison de données.",
+    "dateFormatFallback": "Format de date non pris en charge ; le format ISO est utilisé.",
+    "dateLocaleFallback": "Langue de date non prise en charge ; l’anglais est utilisé.",
+    "dateTimezoneFallback": "Fuseau horaire de date inconnu ; UTC est utilisé.",
+    "dateBindingUnresolved": "La liaison de date est absente ou ne contient pas de date ISO valide.",
     "drawPathNeeded": "L'élément de dessin nécessite des données de chemin SVG.",
     "opacityRange": "L'opacité doit être comprise entre 0 et 1."
   },

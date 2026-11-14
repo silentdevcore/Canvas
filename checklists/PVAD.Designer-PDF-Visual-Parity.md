@@ -418,7 +418,7 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
 
 - [x] Extend backend image parity beyond the audited contained/stretched cases
   to all cover/none cropping and focus-coordinate combinations.
-- [ ] Define and test the full supported cross-runtime date-format contract;
+- [x] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
 - [ ] Complete native serif/monospace cross-platform raster review with the
   intended font files; this consolidation does not approve new font baselines.
@@ -475,3 +475,67 @@ date formats and native serif/monospace platform validation remain open above.
 
 No commit, push, deployment, product-version bump or published-release change
 was performed for this image correction. Unrelated pending changes are preserved.
+
+## Portable Date Formatting (2026-11-14)
+
+- [x] Share a versioned format/default contract between Core and Designer: ISO
+  date, English, UTC, Gregorian calendar and Latin digits.
+- [x] Support the documented tokens, standard formats and six locale families
+  with explicit precision and regional-format boundaries.
+- [x] Resolve IANA zones, listed Windows aliases, fractional offsets and DST
+  without inheriting the browser/server host timezone.
+- [x] Preserve static text and empty values; format unambiguous bound ISO dates,
+  keep date-only calendar days unchanged and expose unresolved bindings safely.
+- [x] Let explicitly empty bound properties override stale element content.
+- [x] Capture one instant per PDF and per logical frontend document render.
+- [x] Preserve canonical JSON/checksums when resolving date properties; reuse the
+  same contract for real C# PDF output.
+- [x] Localize invalid format/locale/timezone/binding warnings in six languages.
+- [x] Correct Arabic/numeric ordering with Unicode directional runs before
+  HarfBuzz shaping; retain logical PDF ActualText and packaged Arabic fonts.
+- [x] Pin the managed Unicode.Bidi dependency and ship MIT/Unicode notices;
+  keep the unrelated NPOI legal decision unchanged.
+- [x] Compare 81 shared format vectors in Jest and .NET, including both Berlin
+  DST boundaries, leap day, year changes and invalid calendar values.
+- [x] Compare 18 outputs across Canvas, Preview, normal PDF and real C# PDF
+  using a test-only clock sidecar, never a persisted design field.
+- [x] Verify synthetic desktop/mobile surfaces and actual Inspector defaults/warning.
+- [x] Enforce date comparisons in CI with separate failure evidence, preserving
+  image/catalog artifacts and the fidelity aggregator's original input.
+- [x] Expand the public guide and add a patch release fragment without bumping VERSION.
+
+The date pack has 18 matches, zero geometry drift and no P0/P1/P2 findings.
+Normal and C# PDF crops are pixel-identical. The full catalog retains 39 matches
+and its existing P2 finding across 40 instances/38 types. The incorrectly
+reversed Arabic year/day was corrected, not accepted through a tolerance change.
+No approved image threshold or baseline was relaxed.
+
+Passed evidence: 1,001 Designer tests in 93 suites and one snapshot; 242 focused
+API tests, including 83 date-format/property tests; 62 PDF infrastructure tests,
+including five mixed-direction shaping cases; 70 Documentation tests; and 47
+visual-tool/versioning tests. Type-check and Designer/Documentation builds pass.
+Further final checks are recorded in `artifacts/date-format-parity/REPORT.md`.
+
+Desktop (1280 x 900) and mobile (390 x 844) checks cover four synthetic document
+surfaces with 18 dates each and a non-UTC browser host zone. Strings and geometry
+match with no browser page errors. The actual desktop Inspector confirms
+English/UTC defaults and a localized invalid-format warning. This is not a full
+authenticated mobile/customer-database test.
+
+Reports: `artifacts/date-format-parity/REPORT.md`,
+`artifacts/date-format-parity/visual-parity-report.html` and
+`artifacts/date-format-parity/browser/report.html`.
+
+### Date Coverage Limits
+
+- [ ] Extend locales/calendars/tokens only with shared vectors and a versioned
+  metadata update; arbitrary .NET cultures and seven-digit fractional output
+  are not certified by the portable contract.
+- [ ] Add narrow, multi-line formatted-date and decorative-frame fixtures before
+  claiming all Date element wrapping/style variants match the PDF layout.
+- [ ] Validate historical sub-minute timezone offsets separately from the tested
+  contemporary IANA rules; keep deployment timezone databases current.
+
+Native serif/monospace platform validation remains open. Published releases,
+databases and existing approvals are unchanged. No commit, push or deployment
+was performed for this date-format correction.

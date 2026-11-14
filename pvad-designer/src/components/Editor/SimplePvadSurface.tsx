@@ -12,6 +12,7 @@ import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 import { effectivePageSettings } from '@/utils/pageLayout';
 import { DocumentElementRenderer } from '@/components/Rendering/DocumentElementRenderer';
 import { createDocumentContentResolver, effectiveDocumentElement, elementMatchesDocumentLanguage } from '@/components/Rendering/documentContent';
+import { DESIGNER_DATE_DEFAULTS, formatDocumentDate } from '@/components/Rendering/documentDate';
 import EditorDocumentMarker from './EditorDocumentMarker';
 import { assessPasswordStrength } from '@/utils/passwordStrength';
 import { designerAssetContentUrl } from '@/services/designerAssetApi';
@@ -790,8 +791,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
   // Resolve {{KEY}} in content using localized property values for the current preview language.
   const resolveContent = useMemo(() => createDocumentContentResolver(
     pageSettings.localizedProperties ?? [], currentPreviewLanguage,
-    pageSettings.systemLanguage || navigator.language),
-    [pageSettings.localizedProperties, pageSettings.systemLanguage, currentPreviewLanguage]);
+    pageSettings.systemLanguage || navigator.language, pageSettings.customProperties),
+    [pageSettings.localizedProperties, pageSettings.customProperties, pageSettings.systemLanguage, currentPreviewLanguage]);
+  const renderInstant = useMemo(() => new Date(), [pages, sharedElements, documentPageSettings, currentPreviewLanguage]);
 
   const updateMargin = (side: keyof PageSettings['margins'], displayVal: number) => {
     const px = fromDisplay(displayVal, pageSettings.unit);
@@ -1294,9 +1296,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         height: 40,
         content: new Date().toISOString().slice(0, 10),
         dateMode: 'static',
-        dateFormat: 'yyyy-MM-dd',
-        locale: 'de-DE',
-        timezone: 'Europe/Berlin',
+        dateFormat: DESIGNER_DATE_DEFAULTS.format,
+        locale: DESIGNER_DATE_DEFAULTS.locale,
+        timezone: DESIGNER_DATE_DEFAULTS.timezone,
         fallbackText: '-',
         style: { color: '#111827', fontSize: 14 }
       })
@@ -2093,9 +2095,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         height: elHeight,
         content: new Date().toISOString().slice(0, 10),
         dateMode: 'static',
-        dateFormat: 'yyyy-MM-dd',
-        locale: 'de-DE',
-        timezone: 'Europe/Berlin',
+        dateFormat: DESIGNER_DATE_DEFAULTS.format,
+        locale: DESIGNER_DATE_DEFAULTS.locale,
+        timezone: DESIGNER_DATE_DEFAULTS.timezone,
         fallbackText: '-',
         style: { fontSize: 11, color: '#374151' }
       };
@@ -2403,6 +2405,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     if (element.type === 'date' && element.dateMode === 'binding' && !element.binding?.trim()) {
       warnings.push(t('warnings.bindingPathNeeded'));
     }
+    if (element.type === 'date')
+      for (const warning of formatDocumentDate(element, renderInstant, resolveContent).warnings)
+        warnings.push(t(`warnings.${warning}`));
 
     if (element.type === 'draw' && !element.pathData?.trim()) {
       warnings.push(t('warnings.drawPathNeeded'));
@@ -2421,7 +2426,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     if (!visualParityMode && (effective.type === 'bookmark' || effective.type === 'pageboundary'))
       return <EditorDocumentMarker element={effective} />;
     return <DocumentElementRenderer element={effective} pageIndex={pageIndex} pageCount={pages.length}
-      pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height} resolveContent={resolveContent} />;
+      pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height} resolveContent={resolveContent} now={renderInstant} />;
   };
 
   if (visualParityMode) {
@@ -5892,15 +5897,15 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                   <div className="editor-form-grid">
                     <label>
                       <span>{t('elementInspector.date.locale')}</span>
-                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
+                      <input type="text" value={selectedElement.locale ?? DESIGNER_DATE_DEFAULTS.locale} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.timezone')}</span>
-                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
+                      <input type="text" value={selectedElement.timezone ?? DESIGNER_DATE_DEFAULTS.timezone} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.format')}</span>
-                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
+                      <input type="text" value={selectedElement.dateFormat ?? DESIGNER_DATE_DEFAULTS.format} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.color')}</span>
