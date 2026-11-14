@@ -421,9 +421,9 @@ Public workflow: [Designer Canvas and Live Preview](../docs/guides/PVAD.Designer
 - [x] Define and test the full supported cross-runtime date-format contract;
   consolidating the existing formatter is not arbitrary .NET format support.
 - [ ] Complete platform certification beyond the local Linux/ARM64 execution
-  recorded below: review Linux P2 crops, execute remote Linux/x64 CI and test
-  Windows plus any intended native fallback. Existing macOS approvals do not
-  approve other platforms or change earlier baseline pins.
+  and owner review recorded below: execute remote Linux/x64 CI and test Windows
+  plus any intended native fallback. Existing scoped approvals do not approve
+  untested platforms or change earlier baseline pins.
 
 No commit, push, deployment, product-version bump or published-release edit was
 performed for this consolidation. Unrelated pending work remains untouched.
@@ -713,3 +713,43 @@ the thirteen cases, 52 images, two fixtures and twelve Liberation faces.
 The owner requested local commits only and deferred GitHub. Remote Linux/x64 CI
 and Windows validation therefore remain explicitly open; no push, pull request,
 merge, tag, deployment or product-version bump is authorized by this approval.
+
+## Clean Committed-Source Linux Run (2026-11-14)
+
+- [x] Export committed source `9d0eda263281ce058aef8fba69ac2256bb920474` into a
+  fresh read-only archive; leave the host's unrelated uncommitted work untouched.
+- [x] Restore dependencies and build the backend artifact-test path in a new
+  non-root Linux/ARM64 container using the same exact validation image.
+- [x] Generate new normal backend and actual generated C# PDFs for both packs;
+  do not mount or reuse prior rendering artifacts or host package/build caches.
+- [x] Pass all 13 container-side contract tests and both enforced rendering packs.
+- [x] Compare 62 backend/C# crop pairs using decoded-pixel hashes; all match.
+- [x] Match all 52 approved Linux crop pixel hashes, both fixtures, twelve font
+  faces, production inputs and the recorded browser/platform environment.
+- [x] Preserve invocation/archive/image hashes, full log, four new PDF hashes,
+  screenshots, overlays, differences and machine-readable verification.
+- [x] Remove the temporary container after successful completion.
+- [ ] Execute remote Linux/x64 CI when the owner resumes GitHub work.
+- [ ] Validate Windows and any intended native fallback separately.
+
+The fresh run passes from one committed snapshot: fonts have 14 matches/eight P2
+across 22 cases, and the catalog has 35 matches/five P2 across 40 cases/38 types.
+Both have zero P0/P1 findings and zero geometry drift. Maximum measured text
+drift remains 0.05 and 0.0255 points respectively. All thirteen approved P2 cases
+retain exactly the same pixels; approval is not extrapolated to changed output.
+The host's 59 visual-tool/versioning tests also pass.
+
+This removes the earlier frontend-only replay limitation for the recorded
+committed source, without rewriting its historical evidence. PDF serialization
+bytes may differ; exact PDF file hashes are provenance, not a byte-equality
+requirement. No thresholds, baselines or approval records were changed.
+
+Complete local evidence: `artifacts/font-linux-clean-9d0eda26/report.html`,
+`artifacts/font-linux-clean-9d0eda26/verification.json` and
+`artifacts/font-linux-clean-9d0eda26/evidence/run.log`. The source archive SHA256
+is `9d7fb8b9939bb9e3e876ae8adcfaba9b8db5351a7b28346ff5b5fb3d478beda3`.
+
+This is a focused rendering test, not a full Solution/API-suite run, remote CI
+or an authenticated customer workflow. Existing Vite/CommonJS configuration
+warnings remain visible in the log. GitHub execution and Windows stay deferred;
+no application code, database, deployment, product version or release changed.
