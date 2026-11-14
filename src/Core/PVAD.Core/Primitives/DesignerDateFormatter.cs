@@ -75,6 +75,12 @@ public static class DesignerDateFormatter
             utc = false;
         }
         var dateOnly = mode == "binding" && content?.Length == 10;
+        if (!utc && !dateOnly && timeZone.Id != "UTC"
+            && instant < DateTimeOffset.Parse(Contract.GetProperty("minimumZonedInstant").GetString()!, CultureInfo.InvariantCulture))
+        {
+            warnings.Add("dateHistoricalTimezoneFallback");
+            timeZone = TimeZoneInfo.Utc;
+        }
         var value = TimeZoneInfo.ConvertTime(instant, utc || dateOnly ? TimeZoneInfo.Utc : timeZone);
         return new(value.ToString(pattern, culture), warnings);
     }

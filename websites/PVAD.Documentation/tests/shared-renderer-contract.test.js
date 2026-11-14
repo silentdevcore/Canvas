@@ -31,6 +31,13 @@ test('date documentation defines modes, defaults, portable formats and explicit 
     assert.ok(guide.toLowerCase().replace(/\s+/g, ' ').includes(phrase.toLowerCase()), phrase);
 });
 
+test('historical dates document the shared UTC boundary without claiming exact local-mean time', () => {
+  for (const phrase of ['Historical Timezone Boundary', '1973-01-01T00:00:00Z',
+    'absolute instant', 'not a claim of second-accurate historical', 'date-only bound values',
+    'not rewritten', 'timezone-database versions'])
+    assert.ok(guide.includes(phrase), phrase);
+});
+
 test('date layout documentation explains paragraph geometry and visible overflow without resizing', () => {
   for (const phrase of ['Date Layout', 'asymmetric padding', 'line height', 'per-side borders',
     'empty date', 'overflow warning', 'physical page'])

@@ -1,7 +1,7 @@
 import contract from '../../../../product-metadata/designer-date-formatting.json';
 import type { SimpleElement } from '@/types';
 
-export type DateWarning = 'dateLocaleFallback' | 'dateTimezoneFallback' | 'dateFormatFallback' | 'dateBindingUnresolved';
+export type DateWarning = 'dateLocaleFallback' | 'dateTimezoneFallback' | 'dateHistoricalTimezoneFallback' | 'dateFormatFallback' | 'dateBindingUnresolved';
 type Part = { token: string } | { literal: string };
 export const DESIGNER_DATE_DEFAULTS = { format: contract.defaultFormat, locale: contract.defaultLocale, timezone: contract.defaultTimeZone };
 
@@ -95,6 +95,10 @@ export function formatDocumentDate(element: SimpleElement, now = new Date(), res
   let parts = parsePattern(pattern);
   if (!parts) { parts = parsePattern(contract.defaultFormat)!; utc = false; warnings.push('dateFormatFallback'); }
   if (utc || dateOnly) timezone = 'UTC';
+  if (timezone !== 'UTC' && instant.getTime() < Date.parse(contract.minimumZonedInstant)) {
+    warnings.push('dateHistoricalTimezoneFallback');
+    timezone = 'UTC';
+  }
 
   const fields = new Intl.DateTimeFormat('en-US', { calendar: 'gregory', numberingSystem: 'latn', timeZone: timezone,
     year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',

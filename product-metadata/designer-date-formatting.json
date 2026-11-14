@@ -1,8 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "defaultFormat": "yyyy-MM-dd",
   "defaultLocale": "en-US",
   "defaultTimeZone": "UTC",
+  "minimumZonedInstant": "1973-01-01T00:00:00Z",
   "maximumFormatLength": 256,
   "literalLetters": [
     "T",

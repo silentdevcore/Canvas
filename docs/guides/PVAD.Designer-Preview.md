@@ -155,6 +155,29 @@ The shared aliases also recognize GMT, Etc/UTC and Windows identifiers
 W. Europe Standard Time, Eastern Standard Time and Pacific Standard Time.
 Other Windows identifiers fall back to UTC with a warning in the Inspector.
 
+### Historical Timezone Boundary
+
+Portable non-UTC timezone conversion starts at `1973-01-01T00:00:00Z`.
+For earlier instants, Render and timestamp Binding modes use UTC and show a
+historical-timezone warning in the Inspector, localized in all six languages.
+The boundary is checked against the absolute instant, not the calendar date
+written in an input offset. At the boundary, normal zone conversion resumes.
+
+This is an explicit support limit, not a claim of second-accurate historical
+local time. For example, local-mean-time offsets in Paris in 1890 include
+seconds, while the .NET timezone API represents offsets in whole minutes.
+Browser and backend timezone databases may also differ in older regional rules.
+The conservative UTC fallback avoids silently printing contradictory local times.
+The runtime limitation is documented in the
+[.NET timezone implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Unix.cs).
+
+Static text, date-only bound values, explicit UTC and the listed UTC aliases
+remain usable before 1973 without this warning. UTC-forcing formats `u`, `U`
+and `r`/`R` also remain UTC. The saved source value, timezone setting and template
+JSON are not rewritten. Warnings appear in the Inspector, not in the PDF text.
+Keep browser/OS timezone data current; this boundary does not make different
+timezone-database versions equivalent or certify every historical transition.
+
 For Binding mode, use a plain property path such as `Invoice.Date`. Matching
 custom properties and localized property keys are case-insensitive. For example,
 a custom property named `Invoice.Date` with value `2026-11-13T12:00:00Z`, format

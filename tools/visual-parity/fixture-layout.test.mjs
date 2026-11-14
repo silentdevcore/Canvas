@@ -88,3 +88,41 @@ test('the scoped Date owner approval preserves the exact reviewed crops, fixture
   for (const crop of approval.crops) assert.equal(hash(new URL(crop.file, directory)), crop.sha256);
   assert.match(approval.scope, /P2 metrics and regression thresholds remain unchanged/);
 });
+
+test('historical date coverage shares its boundary and vectors across rendering, formatters and CI', () => {
+  const root = new URL('../../', import.meta.url);
+  const read = file => readFileSync(new URL(file, root), 'utf8');
+  const contract = JSON.parse(read('product-metadata/designer-date-formatting.json'));
+  const vectors = JSON.parse(read('test-assets/visual-parity/date-historical-cases.json'));
+  const fixture = JSON.parse(read('test-assets/visual-parity/date-historical.json'));
+  const clock = JSON.parse(read('test-assets/visual-parity/date-historical.clock.json'));
+  assert.equal(contract.version, 2);
+  assert.equal(contract.minimumZonedInstant, '1973-01-01T00:00:00Z');
+  assert.equal(vectors.cases.length, 32);
+  assert.equal(new Set(vectors.cases.map(entry => entry.id)).size, 32);
+  assert.equal(clock.instant, vectors.instant);
+  const elements = fixture.pages.flatMap(page => page.elements);
+  assert.equal(elements.length, 18);
+  assert.equal(new Set(elements.map(element => element.id)).size, 18);
+  for (const element of elements) {
+    const vector = vectors.cases.find(entry => entry.id === element.id);
+    assert.ok(vector, element.id);
+    assert.equal(element.type, 'date');
+    assert.equal(element.timezone, vector.input.timezone);
+    assert.equal(element.dateFormat, vector.input.dateFormat);
+    assert.equal(element.dateMode, vector.input.dateMode === 'render' ? 'binding' : vector.input.dateMode);
+    assert.equal(element.content, vector.input.dateMode === 'render' ? vector.instant ?? vectors.instant : vector.input.content);
+  }
+  assert.match(read('pvad-designer/src/components/Rendering/documentDate.ts'), /contract\.minimumZonedInstant/);
+  assert.match(read('src\/Core/PVAD.Core/Primitives/DesignerDateFormatter.cs'), /GetProperty\("minimumZonedInstant"\)/);
+  assert.match(read('pvad-designer/src/pages/VisualParityPage.tsx'), /'date-historical': historicalDateFixture/);
+  const workflow = read('.github/workflows/ci.yml');
+  const run = workflow.indexOf('- name: Enforce historical date boundary parity');
+  const archive = workflow.indexOf('- name: Preserve historical date parity evidence');
+  const next = workflow.indexOf('- name: Enforce date paragraph layout parity');
+  assert.ok(run > 0 && run < archive && archive < next);
+  assert.match(workflow.slice(run, archive), /PVAD_VISUAL_PARITY_FIXTURE: test-assets\/visual-parity\/date-historical.json/);
+  assert.match(workflow.slice(run, archive), /PVAD_VISUAL_PARITY_ENFORCE: true/);
+  assert.match(workflow.slice(archive, next), /if: always\(\) && steps\.historical-date-parity\.outcome != 'skipped'/);
+  assert.match(workflow, /path: artifacts\/date-historical-parity/);
+});
