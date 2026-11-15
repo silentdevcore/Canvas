@@ -7,12 +7,7 @@ public sealed class PvadRetentionStartupGate(
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (environment.IsProduction() && !catalog.IsProductionReady)
-        {
-            logger.LogCritical(new EventId(1001, "RetentionApprovalRequired"),
-                "PVADSTART001: Production startup is blocked because retention policies or their legal approvals are incomplete.");
-            throw new PvadRetentionApprovalRequiredException();
-        }
+        EnsureProductionApproval();
 
         if (!catalog.IsProductionReady)
         {
@@ -21,6 +16,16 @@ public sealed class PvadRetentionStartupGate(
         }
 
         return Task.CompletedTask;
+    }
+
+    public void EnsureProductionApproval()
+    {
+        if (environment.IsProduction() && !catalog.IsProductionReady)
+        {
+            logger.LogCritical(new EventId(1001, "RetentionApprovalRequired"),
+                "PVADSTART001: Production startup is blocked because retention policies or their legal approvals are incomplete.");
+            throw new PvadRetentionApprovalRequiredException();
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

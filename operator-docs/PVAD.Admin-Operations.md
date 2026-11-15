@@ -98,6 +98,12 @@ This guide prepares a separately protected operator documentation deployment. It
 
 - Review retention governance in PVAD.Admin System status before enabling a production deployment.
   Production startup fails closed while the inventory or any category remains unapproved.
+  This refusal is checked before protected-data activation and identity bootstrap,
+  before database reads or background consumers, and returns configuration exit
+  code `78` with diagnostic `PVADSTART001`. It does not depend on database
+  availability. Unrelated initialization failures remain failures and must not
+  be reported as a retention refusal. Offline reprotection maintenance remains
+  separate from normal server startup and does not start a listener.
 - Use `POST /api/pvad/v1/admin/system/retention/dry-run` to inspect candidates and Legal Hold
   effects. A dry run never changes records and Admin intentionally exposes no cleanup execution endpoint.
 - Create a global or organization-scoped Legal Hold only for an authorized preservation requirement.

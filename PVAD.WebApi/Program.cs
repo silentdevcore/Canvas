@@ -487,7 +487,9 @@ builder.Services.AddScoped<PvadPaidCheckoutReadinessGate>();
 builder.Services.AddSingleton<PVAD.WebApi.Application.Retention.PvadRetentionPolicyCatalog>();
 builder.Services.AddScoped<PVAD.WebApi.Application.Retention.PvadRetentionLegalHoldService>();
 builder.Services.AddScoped<PVAD.WebApi.Application.Retention.PvadRetentionGovernanceService>();
-builder.Services.AddHostedService<PVAD.WebApi.Application.Retention.PvadRetentionStartupGate>();
+builder.Services.AddSingleton<PVAD.WebApi.Application.Retention.PvadRetentionStartupGate>();
+builder.Services.AddHostedService(services =>
+    services.GetRequiredService<PVAD.WebApi.Application.Retention.PvadRetentionStartupGate>());
 builder.Services.AddScoped<IPvadMailQueue, PvadMailQueue>();
 builder.Services.AddScoped<PvadMailProcessor>();
 builder.Services.AddScoped<PvadMailRetentionService>();
@@ -685,10 +687,6 @@ if (args.Contains("--reprotect-protected-data", StringComparer.Ordinal))
     Environment.ExitCode = report.MailUnreadable + report.CacheUnreadable == 0 ? 0 : 2;
     return;
 }
-if (!app.Environment.IsEnvironment("Testing"))
-    await PvadProtectedDataReprotection.EnsureActivationSafeAsync(app.Services);
-await PvadOAuthBootstrapper.InitializeAsync(app);
-await PvadDevelopmentIdentityBootstrapper.InitializeAsync(app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -740,6 +738,14 @@ static void AddStepUpPolicy(AuthorizationOptions options, string policyName, str
     });
 }
 
-Environment.ExitCode = await PvadApplicationLifetime.RunAsync(app);
+Environment.ExitCode = await PvadApplicationLifetime.RunAsync(app, initialize: async cancellationToken =>
+{
+    app.Services.GetRequiredService<PVAD.WebApi.Application.Retention.PvadRetentionStartupGate>()
+        .EnsureProductionApproval();
+    if (!app.Environment.IsEnvironment("Testing"))
+        await PvadProtectedDataReprotection.EnsureActivationSafeAsync(app.Services, cancellationToken);
+    await PvadOAuthBootstrapper.InitializeAsync(app);
+    await PvadDevelopmentIdentityBootstrapper.InitializeAsync(app);
+});
 
 public partial class Program {}

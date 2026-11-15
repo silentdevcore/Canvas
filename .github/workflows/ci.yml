@@ -888,7 +888,16 @@ jobs:
           PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
         run: node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
       - name: Verify fail-closed production startup exits independently
+        id: startup_rejection
         run: node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
+      - name: Preserve production startup verification result
+        if: always() && (steps.startup_rejection.outcome == 'success' || steps.startup_rejection.outcome == 'failure')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pvad-startup-rejection-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/sbom/webapi-startup/report.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Generate WebApi and Designer SPDX SBOMs
         run: |
           VERSION="$(cat VERSION)"

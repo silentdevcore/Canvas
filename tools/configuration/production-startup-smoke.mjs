@@ -26,8 +26,9 @@ export function verifyRejectedStartup(state, logs, elapsedMs) {
   assert.equal(state.Error, '', 'Container startup itself failed.');
   assert.ok(Number.isFinite(elapsedMs) && elapsedMs >= 0 && elapsedMs <= deadlineMs,
     'Rejected startup exceeded its 15-second bound or has an invalid duration.');
-  assert.match(logs, /PVADSTART001/);
-  assert.doesNotMatch(logs, /Now listening on:|Unhandled exception\./);
+  assert.match(logs, /PVADSTART001/, 'The retention refusal diagnostic must be emitted.');
+  assert.doesNotMatch(logs, /Now listening on:|Unhandled exception\.|"eventName"\s*:\s*"ListeningOnAddress"/,
+    'Rejected startup must not listen or emit an unhandled exception.');
 }
 
 export async function runProductionStartupSmoke(image) {
@@ -36,6 +37,7 @@ export async function runProductionStartupSmoke(image) {
   const output = resolve(root, 'artifacts/sbom/webapi-startup');
   await mkdir(output, { recursive: true });
   await writeFile(resolve(output, 'report.json'), JSON.stringify({ status: 'failed',
+    failurePhase: 'image-and-inventory-validation',
     failure: 'Image and source-inventory validation have not completed.' }, null, 2) + '\n');
   const inventory = JSON.parse(await readFile(resolve(root, 'product-metadata/data-processing-inventory.json'), 'utf8'));
   if (!requiresRetentionRejection(inventory)) {
@@ -65,6 +67,7 @@ export async function runProductionStartupSmoke(image) {
     } catch { return false; }
   };
   let failure;
+  let phase = 'prepare-fixture';
   try {
     const keys = generateKeyPairSync('ec', { namedCurve: 'prime256v1',
       privateKeyEncoding: { type: 'sec1', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } });
@@ -72,6 +75,7 @@ export async function runProductionStartupSmoke(image) {
     await writeFile(join(temporary, 'public.pem'), keys.publicKey, { mode: 0o600 });
     const archive = await execute('tar', ['--no-xattrs', '-cf', '-', '-C', temporary, 'private.pem', 'public.pem'],
       { encoding: 'buffer', maxBuffer: 1024 * 1024, env: { ...process.env, COPYFILE_DISABLE: '1' } });
+    phase = 'seed-owned-volume';
     await docker(['volume', 'create', '--label', label, volume]);
     allocated.add(volume);
     assert.ok(await owns('volume', volume), 'Fixture volume ownership could not be confirmed.');
@@ -88,6 +92,7 @@ export async function runProductionStartupSmoke(image) {
       ConnectionStrings__PvadDatabase: 'Host=127.0.0.1;Port=9;Database=synthetic;Username=synthetic;Timeout=1',
       Licensing__PrivateKeyPath: '/app/data/licenses/private.pem', Licensing__PublicKeyPath: '/app/data/licenses/public.pem',
     };
+    phase = 'create-rejected-startup-container';
     await docker(['create', '--name', container, '--label', label, '--network', 'none', '--read-only',
       '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true', '--pids-limit', '256', '--memory', '512m', '--cpus', '1',
       '--mount', `type=volume,src=${volume},dst=/app/data`,
@@ -95,6 +100,7 @@ export async function runProductionStartupSmoke(image) {
       ...Object.entries(environment).flatMap(([key, value]) => ['-e', `${key}=${value}`]), immutable]);
     allocated.add(container);
     const start = Date.now();
+    phase = 'observe-independent-exit';
     await docker(['start', container]);
     let state;
     do {
@@ -108,11 +114,14 @@ export async function runProductionStartupSmoke(image) {
     await writeFile(resolve(output, 'startup.log'), logs);
     Object.assign(report, { elapsedMs, containerStatus: state.Status, exitCode: state.ExitCode,
       logSha256: createHash('sha256').update(logs).digest('hex') });
+    phase = 'verify-retention-refusal';
     verifyRejectedStartup(state, logs, elapsedMs);
     report.status = 'passed';
   } catch (error) {
     failure = error;
     report.failure = 'Production startup rejection verification failed; no process arguments or secrets are recorded.';
+    report.failurePhase = phase;
+    report.failureType = error.code === 'ERR_ASSERTION' ? 'assertion' : 'operation';
   } finally {
     const cleanup = [];
     for (const [kind, name] of [['container', container], ['container', seed], ['volume', volume]]) {
