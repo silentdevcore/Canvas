@@ -61,7 +61,7 @@ fi
 csrf="$(
   curl --fail --silent --show-error --max-time 10 \
     --cookie-jar "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/auth/csrf" | jq -r '.token'
+    "${operator_url}/api/pvad/v1/auth/csrf" | jq -r '.token'
 )"
 login_payload="$(
   jq -nc \
@@ -75,12 +75,12 @@ curl --fail --silent --show-error --max-time 10 \
   --header "Content-Type: application/json" \
   --header "X-PVAD-CSRF: ${csrf}" \
   --data "${login_payload}" \
-  "${operator_url}/api/pxa/v1/auth/login" >/dev/null
+  "${operator_url}/api/pvad/v1/auth/login" >/dev/null
 
 operator_access_status="$(
   curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
     --cookie "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/admin/operator/access"
+    "${operator_url}/api/pvad/v1/admin/operator/access"
 )"
 if [[ "${operator_access_status}" != "204" ]]; then
   echo "Expected authenticated operator access to return 204, got ${operator_access_status}." >&2
@@ -92,15 +92,15 @@ curl --fail --silent --show-error --max-time 10 \
   grep -q "Operator Documentation"
 operator_documents="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${operator_url}/api/pxa/v1/admin/operator/documentation"
+    "${operator_url}/api/pvad/v1/admin/operator/documentation"
 )"
 if [[ "$(jq '.documents | length' <<<"${operator_documents}")" -lt 2 ]]; then
   echo "Expected protected operator runbooks to be available." >&2
   exit 1
 fi
 curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-  "${operator_url}/api/pxa/v1/admin/operator/documentation/legal-backup-restore-recovery" | \
-  jq -e '.markdown | contains("RESTORE PXA DATABASE")' >/dev/null
+  "${operator_url}/api/pvad/v1/admin/operator/documentation/legal-backup-restore-recovery" | \
+  jq -e '.markdown | contains("RESTORE PVAD DATABASE")' >/dev/null
 
 direct_runbook_status="$(
   curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
@@ -114,7 +114,7 @@ fi
 curl --fail --silent --show-error --max-time 10 \
   --cookie "${cookie_jar}" "${grafana_url}/api/health" >/dev/null
 
-for datasource in pxa-prometheus pxa-loki pxa-tempo; do
+for datasource in pvad-prometheus pvad-loki pvad-tempo; do
   response="$(
     curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
       "${grafana_url}/api/datasources/uid/${datasource}/health"
@@ -127,10 +127,10 @@ done
 
 prometheus_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-prometheus"
+    "${grafana_url}/api/datasources/uid/pvad-prometheus"
 )"
 if ! jq -e \
-  '.jsonData.exemplarTraceIdDestinations[] | select(.datasourceUid == "pxa-tempo")' \
+  '.jsonData.exemplarTraceIdDestinations[] | select(.datasourceUid == "pvad-tempo")' \
   <<<"${prometheus_datasource}" >/dev/null; then
   echo "Prometheus exemplars are not linked to Tempo." >&2
   exit 1
@@ -138,10 +138,10 @@ fi
 
 loki_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-loki"
+    "${grafana_url}/api/datasources/uid/pvad-loki"
 )"
 if ! jq -e \
-  '.jsonData.derivedFields[] | select(.datasourceUid == "pxa-tempo")' \
+  '.jsonData.derivedFields[] | select(.datasourceUid == "pvad-tempo")' \
   <<<"${loki_datasource}" >/dev/null; then
   echo "Loki trace IDs are not linked to Tempo." >&2
   exit 1
@@ -149,10 +149,10 @@ fi
 
 tempo_datasource="$(
   curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
-    "${grafana_url}/api/datasources/uid/pxa-tempo"
+    "${grafana_url}/api/datasources/uid/pvad-tempo"
 )"
-if [[ "$(jq -r '.jsonData.tracesToLogsV2.datasourceUid' <<<"${tempo_datasource}")" != "pxa-loki" ]] ||
-   [[ "$(jq -r '.jsonData.tracesToMetrics.datasourceUid' <<<"${tempo_datasource}")" != "pxa-prometheus" ]]; then
+if [[ "$(jq -r '.jsonData.tracesToLogsV2.datasourceUid' <<<"${tempo_datasource}")" != "pvad-loki" ]] ||
+   [[ "$(jq -r '.jsonData.tracesToMetrics.datasourceUid' <<<"${tempo_datasource}")" != "pvad-prometheus" ]]; then
   echo "Tempo trace drilldowns are not linked to Loki and Prometheus." >&2
   exit 1
 fi
@@ -182,11 +182,11 @@ dashboards="$(
     "${grafana_url}/api/search?query=PVAD"
 )"
 for dashboard_uid in \
-  pxa-platform-overview \
-  pxa-infrastructure \
-  pxa-operations \
-  pxa-document-operations \
-  pxa-browser-health; do
+  pvad-platform-overview \
+  pvad-infrastructure \
+  pvad-operations \
+  pvad-document-operations \
+  pvad-browser-health; do
   if ! jq -e --arg uid "${dashboard_uid}" \
     '.[] | select(.uid == $uid)' <<<"${dashboards}" >/dev/null; then
     echo "The provisioned dashboard ${dashboard_uid} was not found." >&2

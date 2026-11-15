@@ -42,7 +42,7 @@ public sealed class PdfSignaturesControllerTests
         await using var stream = new MemoryStream(file.FileContents);
         var trust = await new PdfTrustInspector().InspectAsync(stream);
         Assert.Equal("SHA-384", Assert.Single(trust.Signatures).DigestAlgorithm);
-        Assert.Equal("B-B", controller.Response.Headers["X-PXA-PAdES-Profile"]);
+        Assert.Equal("B-B", controller.Response.Headers["X-PVAD-PAdES-Profile"]);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI104", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI104", details.Extensions["code"]);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI105", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI105", details.Extensions["code"]);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public sealed class PdfSignaturesControllerTests
         var problem = Assert.IsType<ObjectResult>(response);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAPDFTRUSTAPI124", details.Extensions["code"]);
+        Assert.Equal("PVADPDFTRUSTAPI124", details.Extensions["code"]);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public sealed class PdfSignaturesControllerTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA API signing fixture", 40, 40);
+        document.AddPage().DrawText("PVAD API signing fixture", 40, 40);
         return document.ToBytes();
     }
 

@@ -161,8 +161,8 @@ describe('PDF Trust API', () => {
         invalidatesSignatures: false,
         originalPreserved: true,
         findings: [{
-          code: 'PXAPDFACONVERT004', canonicalCode: 'PVADPDFACONVERT004',
-          severity: 1, message: 'Synthetic finding', localizationKey: 'diagnostics.PXAPDFACONVERT004',
+          code: 'PVADPDFACONVERT004',
+          severity: 1, message: 'Synthetic finding', localizationKey: 'diagnostics.PVADPDFACONVERT004',
         }],
       }),
     } as Response);
@@ -173,8 +173,8 @@ describe('PDF Trust API', () => {
     expect(result.capability).toBe(0);
     expect(result.originalPreserved).toBe(true);
     expect(result.findings[0]).toMatchObject({
-      code: 'PXAPDFACONVERT004', canonicalCode: 'PVADPDFACONVERT004',
-      localizationKey: 'diagnostics.PXAPDFACONVERT004',
+      code: 'PVADPDFACONVERT004',
+      localizationKey: 'diagnostics.PVADPDFACONVERT004',
     });
     expect(fetchMock.mock.calls[0][0]).toBe('/api/pvad/v1/pdf/compliance/preflight');
   });

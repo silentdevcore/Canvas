@@ -1,11 +1,65 @@
 # PVAD Rename Release Approvals
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 The decision register below distinguishes confirmed scope from pending release
 approval. Local tests are not authorization to publish,
 change production infrastructure or certify an existing customer installation.
 The [rename tracker](../checklists/PVAD.Rename-Plan.md) remains authoritative.
 
+## Owner Decisions And Integration Status (2026-11-05)
+
+The owner supplied the following current answers while source-only PR 214 was
+being validated.
+These confirmations supersede any assumption that the missing prerequisites
+already exist; they do not grant deployment, publication or review authority.
+
+| Requirement | Latest confirmed state | Acceptance effect |
+| --- | --- | --- |
+| NuGet and npm publishers | Not yet set up; no confirmed registered publisher scopes were supplied | G01 remains open; do not invent ownership or publish packages |
+| Non-local staging | No staging environment exists yet; localhost remains local evidence only | G06 remains open; no real target, operator or test window is authorized |
+| Independent reviewer | No independent reviewer is currently available | G08 remains open; the owner's second account does not establish independent review |
+
+The confirmed domain, support/sender names and selected GHCR target remain
+unchanged. Their selection is not new DNS/mail verification or publishing access.
+No production/customer rollout owner or real-target recovery approval is inferred
+from the owner's existing local-development responsibility.
+
+PR 214 targets protected `develop` from `chore/pvad-release-readiness` at
+`a4e9c1480d17dfd86603fae4df305864571b73ff`. It integrates the 19 pending source
+commits only. All seven required checks and the mandatory review remain enabled;
+successful local tests, a mergeable Git graph or opening a PR cannot replace them.
+The PR does not prepare an actual Major release or authorize deployment. Its
+final CI/review/merge outcome must be read separately, not inferred here.
+
+At the UTC checkpoint `2026-11-05T23:15Z`, all seven required checks succeeded
+for that exact head through GitHub Actions App 15368: version-policy, dotnet,
+frontend, dependency-security, mcp-beta, visual-parity and supply-chain. The
+pull-request snapshot skip is intentional; snapshots run after a develop push.
+The source remains mergeable but blocked by `REVIEW_REQUIRED`, with no submitted
+review and no merge. Auto-merge is disabled in the repository; no control was
+changed. Ignored evidence is under
+`artifacts/rename/integration-pr-20261105/`, including the bounded CI observation.
+Successful PR CI does not establish independent production review, publisher
+rights, a deployed staging environment or authority to change installed systems.
+
+Primary acceptance remains **90/98 (91.8%)**. At least four original gates must
+actually close to reach **94/98 (95.9%)**. More cosmetic edits, local repeats or
+new supporting tasks do not change that denominator. The proposed G01/G05/G02/G06
+package cannot be completed while publisher, actual-target and review prerequisites
+remain absent. Production Legal/retention approvals also remain separate.
+
+These notes are a subsequent documentation follow-up, not part of the PR head
+identified above until separately committed and pushed.
+
 ## Current Closeout Review (2026-11-05)
+
+This earlier same-day checkpoint predates PR 214 and the owner confirmations
+above. Its observations retain their original point-in-time scope.
 
 The [final acceptance matrix](pvad-rename-final-acceptance.md) maps all eight
 remaining primary gates to concrete evidence and accountable roles. The completed

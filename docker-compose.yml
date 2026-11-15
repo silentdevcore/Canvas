@@ -305,7 +305,8 @@ services:
       GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: 'false'
       GF_ANALYTICS_REPORTING_ENABLED: 'false'
     volumes:
-      - './deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro'
+      - './deploy/observability/grafana/profiles/current/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro'
+      - './deploy/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro'
       - './deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro'
       - '${PVAD_GRAFANA_DATA_PATH:-pvad-grafana-data}:/var/lib/grafana'
     networks:

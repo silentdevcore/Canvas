@@ -3,6 +3,18 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { apiListeningAddress, childEnvironment, gatewayAddress, removeOwnedResources, runOperatorBrowserRehearsal } from './operator-browser-rehearsal.mjs';
+import { assertOperatorIdentityHeaders } from './operator-browser-scenarios.mjs';
+import { gatewayProtocol } from './operator-gateway-rehearsal.mjs';
+
+test('operator identity requires the canonical header and rejects retired output even when values match', async () => {
+  const { legacyOperatorHeader } = await gatewayProtocol();
+  const identity = 'pvad-' + 'a'.repeat(24);
+  assert.equal(assertOperatorIdentityHeaders({ 'x-pvad-operator': identity }, legacyOperatorHeader), identity);
+  assert.throws(() => assertOperatorIdentityHeaders({}, legacyOperatorHeader));
+  assert.throws(() => assertOperatorIdentityHeaders({ 'x-pvad-operator': 'operator@example.invalid' }, legacyOperatorHeader));
+  assert.throws(() => assertOperatorIdentityHeaders({ 'x-pvad-operator': identity,
+    [legacyOperatorHeader.toLowerCase()]: identity }, legacyOperatorHeader), /retired operator identity header/);
+});
 
 test('child processes do not inherit application credentials, proxy settings or storage configuration', () => {
   assert.deepEqual(childEnvironment({ PATH: '/synthetic/bin', HOME: '/synthetic/home', PVAD_BOOTSTRAP_ADMIN_PASSWORD: 'private',

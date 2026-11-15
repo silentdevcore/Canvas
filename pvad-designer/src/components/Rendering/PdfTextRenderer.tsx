@@ -1,4 +1,5 @@
 import type { SimpleElement } from '@/types';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
@@ -12,15 +13,16 @@ type TextKind = 'date' | 'link' | 'number' | 'pagenumber';
  */
 const pdfFontSlot = (value?: string): 'serif' | 'mono' | 'sans' => {
   const normalized = (value?.toLowerCase() ?? '').replace(/sans-serif/g, '');
-  if (normalized.includes('courier') || normalized.includes('mono')) return 'mono';
-  if (normalized.includes('times') || normalized.includes('serif')) return 'serif';
+  if (normalized.includes('times') || normalized.includes('georgia') || normalized.includes('serif')) return 'serif';
+  if (normalized.includes('courier') || normalized.includes('mono') || normalized.includes('consolas') || normalized.includes('code')) return 'mono';
   return 'sans';
 };
 
 export const pdfFontFamily = (value?: string) => {
+  if (/arabic/i.test(value ?? '')) return "'PVADE Arabic', sans-serif";
   switch (pdfFontSlot(value)) {
-    case 'serif': return 'Times New Roman, Times, serif';
-    case 'mono': return 'Courier New, Courier, monospace';
+    case 'serif': return "'PVADE Times', 'Times New Roman', Times, serif";
+    case 'mono': return "'PVADE Courier', 'Courier New', Courier, monospace";
     default: return "'PVADE Helvetica', Arial, Helvetica, sans-serif";
   }
 };
@@ -112,6 +114,18 @@ export function PdfSingleLineText({
   const decoration = kind === 'link' || String(style.textDecoration ?? '').includes('underline')
     ? 'underline'
     : undefined;
+  const textNode = useRef<SVGTextElement>(null);
+  const [advance, setAdvance] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    let active = true;
+    const measure = () => {
+      if (active && typeof textNode.current?.getComputedTextLength === 'function')
+        setAdvance(textNode.current.getComputedTextLength());
+    };
+    measure();
+    void document.fonts?.ready.then(measure);
+    return () => { active = false; };
+  }, [text, size, style.fontFamily, style.fontStyle, weight]);
 
   return (
     <svg
@@ -123,24 +137,33 @@ export function PdfSingleLineText({
       style={{ display: 'block', overflow: 'hidden' }}
     >
       <text
+        ref={textNode}
         x="0"
+        direction={element.textDirection === 'rtl' ? 'rtl' : undefined}
+        textAnchor={element.textDirection === 'rtl' ? 'end' : undefined}
         y={size * 0.72}
         fill={style.color ?? (kind === 'link' ? '#2563eb' : '#101828')}
         fontFamily={pdfFontFamily(style.fontFamily)}
         fontSize={size}
         fontWeight={weight}
         fontStyle={style.fontStyle ?? 'normal'}
-        textDecoration={decoration}
       >
         {text}
       </text>
+      {decoration && <line data-pdf-underline="true" x1="0" x2={advance ?? pdfTextWidth(text, size, style.fontFamily)}
+        y1={size * 0.84} y2={size * 0.84} stroke={style.color ?? (kind === 'link' ? '#2563eb' : '#101828')}
+        strokeWidth={Math.max(0.5, size * 0.06)} />}
     </svg>
   );
 }
 
-const wrapPdfText = (text: string, width: number, fontSize: number, family?: string) => {
+export const pdfTextWidth = (text: string, fontSize: number, family?: string) => {
   const slot = pdfFontSlot(family);
   const factor = slot === 'mono' ? 0.6 : slot === 'serif' ? 0.5 : 0.52;
+  return text.length * fontSize * factor;
+};
+
+export const wrapPdfText = (text: string, width: number, fontSize: number, family?: string) => {
   const lines: string[] = [];
   text.replace(/\r\n/g, '\n').split('\n').forEach(paragraph => {
     if (!paragraph) {
@@ -148,9 +171,9 @@ const wrapPdfText = (text: string, width: number, fontSize: number, family?: str
       return;
     }
     let current = '';
-    paragraph.split(/\s+/).filter(Boolean).forEach(word => {
+    paragraph.split(' ').filter(Boolean).forEach(word => {
       const candidate = current ? `${current} ${word}` : word;
-      if (!current || candidate.length * fontSize * factor <= width) current = candidate;
+      if (!current || pdfTextWidth(candidate, fontSize, family) <= width) current = candidate;
       else {
         lines.push(current);
         current = word;
@@ -161,27 +184,44 @@ const wrapPdfText = (text: string, width: number, fontSize: number, family?: str
   return lines;
 };
 
-export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement; text: string }) {
+export function layoutPdfTextBlock(element: SimpleElement, text: string) {
   const style = element.style ?? {};
   const size = Number(style.fontSize ?? 12);
   const padding = Number(style.padding ?? 0);
   const left = Number(style.paddingLeft ?? padding);
   const right = Number(style.paddingRight ?? padding);
   const top = Number(style.paddingTop ?? padding);
-  const lineHeightValue = Number(style.lineHeight ?? 1.2);
+  const requestedLineHeight = Number(style.lineHeight ?? 1.2);
+  const lineHeightValue = requestedLineHeight > 0 ? requestedLineHeight : 1.2;
   const lineHeight = lineHeightValue < 8 ? lineHeightValue * size : lineHeightValue;
   const availableWidth = Math.max(1, element.width - left - right);
   const lines = wrapPdfText(text, availableWidth, size, style.fontFamily);
+  const hasContent = text.trim().length > 0;
+  const height = hasContent && lines.length ? top + (lines.length - 1) * lineHeight + size + Number(style.paddingBottom ?? padding) : 0;
+  return { size, left, right, top, lineHeight, availableWidth, lines, height,
+    overflows: hasContent && (height > element.height || lines.some(line => pdfTextWidth(line, size, style.fontFamily) > availableWidth)) };
+}
+
+export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement; text: string }) {
+  const style = element.style ?? {};
+  const { size, left, right, top, lineHeight, availableWidth, lines } = layoutPdfTextBlock(element, text);
   const alignment = style.textAlign ?? 'left';
-  const x = alignment === 'center' ? element.width / 2 : alignment === 'right' ? element.width - right : left;
-  const anchor = alignment === 'center' ? 'middle' : alignment === 'right' ? 'end' : 'start';
+  const x = alignment === 'center' ? left + availableWidth / 2 : alignment === 'right' ? element.width - right : left;
+  const rtl = element.textDirection === 'rtl';
+  const anchor = alignment === 'center' ? 'middle' : (alignment === 'right') !== rtl ? 'end' : 'start';
   const weight = style.fontWeight === 'bold' || Number(style.fontWeight) >= 600 ? 700 : 400;
   const borderWidth = Number(style.borderWidth ?? 0);
-  const sideBorders = (['Top', 'Right', 'Bottom', 'Left'] as const)
+  const sides = ['Top', 'Right', 'Bottom', 'Left'] as const;
+  const hasSideBorders = sides.some(side => style[`border${side}Width`] != null);
+  const dashArray = (borderStyle: string | undefined, width: number) => borderStyle === 'dashed' ? '8 4'
+    : borderStyle === 'dotted' ? `${width} ${width * 2}` : undefined;
+  const radius = Math.max(0, Math.min(Number.parseFloat(String(style.borderRadius ?? 0)) || 0, element.width / 2, element.height / 2));
+  const sideBorders = sides
     .map(side => ({
       side,
       width: Number(style[`border${side}Width`] ?? 0),
       color: style[`border${side}Color`] ?? style.borderColor ?? '#000000',
+      dash: dashArray(style[`border${side}Style`] ?? style.borderStyle, Number(style[`border${side}Width`] ?? 0)),
     }))
     .filter(border => border.width > 0);
 
@@ -192,32 +232,35 @@ export function PdfTextBlockRenderer({ element, text }: { element: SimpleElement
       preserveAspectRatio="none"
       width="100%"
       height="100%"
-      style={{ display: 'block', overflow: 'hidden' }}
+      style={{ display: 'block', overflow: 'visible' }}
+      data-pdf-overflow="true"
+      data-date-paragraph={element.type === 'date' ? 'true' : undefined}
     >
       {style.backgroundColor && style.backgroundColor !== 'transparent' && (
         <rect width={element.width} height={element.height} fill={style.backgroundColor} />
       )}
-      {borderWidth > 0 && sideBorders.length === 0 && (
+      {borderWidth > 0 && !hasSideBorders && (
         <rect
-          x={borderWidth / 2}
-          y={borderWidth / 2}
-          width={element.width - borderWidth}
-          height={element.height - borderWidth}
+          x={0}
+          y={0}
+          width={element.width}
+          height={element.height}
           fill="none"
           stroke={style.borderColor ?? '#000000'}
           strokeWidth={borderWidth}
+          rx={radius || undefined}
+          strokeDasharray={dashArray(style.borderStyle, borderWidth)}
         />
       )}
       {sideBorders.map(border => {
-        const half = border.width / 2;
         const coordinates = border.side === 'Top'
-          ? { x1: 0, y1: half, x2: element.width, y2: half }
+          ? { x1: 0, y1: 0, x2: element.width, y2: 0 }
           : border.side === 'Right'
-            ? { x1: element.width - half, y1: 0, x2: element.width - half, y2: element.height }
+            ? { x1: element.width, y1: 0, x2: element.width, y2: element.height }
             : border.side === 'Bottom'
-              ? { x1: 0, y1: element.height - half, x2: element.width, y2: element.height - half }
-              : { x1: half, y1: 0, x2: half, y2: element.height };
-        return <line key={border.side} {...coordinates} stroke={border.color} strokeWidth={border.width} />;
+              ? { x1: 0, y1: element.height, x2: element.width, y2: element.height }
+              : { x1: 0, y1: 0, x2: 0, y2: element.height };
+        return <line key={border.side} {...coordinates} stroke={border.color} strokeWidth={border.width} strokeDasharray={border.dash} />;
       })}
       {lines.map((line, index) => line && (
         <text
@@ -261,12 +304,12 @@ export function PdfRichTextRenderer({ element }: { element: SimpleElement }) {
     const lineHeight = configuredLineHeight > 0
       ? configuredLineHeight < 8 ? configuredLineHeight * baseSize : configuredLineHeight
       : maxSize * 1.35;
-    const lines = wrapRichTextRuns(paragraph, maxWidth);
+    const lines = wrapRichTextRuns(paragraph, maxWidth, style.fontFamily);
     lines.forEach(line => {
       let x = left;
       line.forEach(run => {
         if (run.text.trim()) positioned.push({ ...run, x, y: baseline });
-        x += richTextRunWidth(run);
+        x += richTextRunWidth(run, style.fontFamily);
       });
       baseline += lineHeight;
     });
@@ -391,9 +434,10 @@ export function parseRichTextRuns(html: string, baseSize: number, baseColor: str
   return paragraphs;
 }
 
-const richTextRunWidth = (run: RichTextRun) => run.text.length * run.size * (run.bold ? 0.57 : 0.52);
+const richTextRunWidth = (run: RichTextRun, family?: string) => run.text.length * run.size
+  * (pdfFontSlot(family) === 'mono' ? 0.6 : run.bold ? 0.57 : 0.52);
 
-function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number) {
+function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number, family?: string) {
   const lines: RichTextRun[][] = [];
   let line: RichTextRun[] = [];
   let width = 0;
@@ -403,12 +447,12 @@ function wrapRichTextRuns(runs: RichTextRun[], maxWidth: number) {
       const part = index < words.length - 1 ? `${word} ` : word;
       if (!part) return;
       const partRun = { ...run, text: part };
-      const partWidth = richTextRunWidth(partRun);
+      const partWidth = richTextRunWidth(partRun, family);
       if (width + partWidth > maxWidth && line.length > 0 && part.trim()) {
         lines.push(line);
         const trimmed = part.trimStart();
         line = trimmed ? [{ ...run, text: trimmed }] : [];
-        width = trimmed ? richTextRunWidth({ ...run, text: trimmed }) : 0;
+        width = trimmed ? richTextRunWidth({ ...run, text: trimmed }, family) : 0;
       } else {
         line.push(partRun);
         width += partWidth;

@@ -29,8 +29,8 @@ test('Account hides inaccessible navigation and renders a consistent forbidden r
     contentType: 'application/json',
     body: JSON.stringify({
       id: '11111111-1111-1111-1111-111111111111',
-      username: 'viewer@pxa.test',
-      email: 'viewer@pxa.test',
+      username: 'viewer@pvad.test',
+      email: 'viewer@pvad.test',
       displayName: 'Viewer',
       roles: ['Viewer'],
       permissions: [

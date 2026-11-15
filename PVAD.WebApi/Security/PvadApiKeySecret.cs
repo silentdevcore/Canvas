@@ -18,7 +18,7 @@ public static class PvadApiKeySecret
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(secret))).ToLowerInvariant();
 
     public static bool IsSupported(string secret) => secret.Length <= 256 &&
-        (secret.StartsWith("pvad_", StringComparison.Ordinal) || secret.StartsWith("pxa_", StringComparison.Ordinal));
+        secret.StartsWith("pvad_", StringComparison.Ordinal);
 
     public static bool IsBearer(string authorization) => authorization.StartsWith("Bearer ", StringComparison.Ordinal) &&
         IsSupported(authorization["Bearer ".Length..]);

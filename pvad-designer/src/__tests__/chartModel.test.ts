@@ -46,7 +46,7 @@ describe('chart definition model', () => {
     expect(legacy.datasets).toHaveLength(2);
   });
 
-  test.each(['pxaMetadata', 'pvadMetadata'] as const)('canonicalizes %s without modifying the source definition', sourceKind => {
+  test.each(['pvadMetadata', 'pvadMetadata'] as const)('canonicalizes %s without modifying the source definition', sourceKind => {
     const chart = normalizeChartDefinition(createDefaultChartDefinition());
     chart.recognition = { status: 'automatic', confidence: 1, sourceKind };
     const normalized = normalizeChartDefinition(chart);

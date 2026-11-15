@@ -65,6 +65,8 @@ public sealed class PdfEmbeddedFont
 
     public double MeasureWidth(string text, double fontSize)
     {
+        if (IsRtlCapable)
+            return Shape(text).Sum(glyph => glyph.Advance) / _unitsPerEm * fontSize;
         if (_unitsPerEm == 0) return text.Length * fontSize * 0.5;
 
         double total = 0;
@@ -78,6 +80,46 @@ public sealed class PdfEmbeddedFont
         }
         return total / _unitsPerEm * fontSize;
     }
+
+    internal IReadOnlyList<ShapedGlyph> Shape(string text)
+    {
+        using var stream = new MemoryStream(FontBytes.ToArray(), writable: false);
+        using var blob = HarfBuzzSharp.Blob.FromStream(stream);
+        using var face = new HarfBuzzSharp.Face(blob, 0);
+        using var font = new HarfBuzzSharp.Font(face);
+        font.SetFunctionsOpenType();
+        font.SetScale(_unitsPerEm, _unitsPerEm);
+        // HarfBuzz shapes one directional run; UAX #9 must resolve mixed-script ordering first.
+        var bidi = Unicode.Bidi.BidiInfo.Create(text);
+        var result = new List<ShapedGlyph>();
+        foreach (var paragraph in bidi.Paragraphs)
+        {
+            var (levels, runs) = bidi.VisualRuns(paragraph, paragraph.Range);
+            foreach (var run in runs)
+            {
+                var runText = text[run.Start..run.End];
+                using var buffer = new HarfBuzzSharp.Buffer();
+                buffer.AddUtf16(runText);
+                buffer.GuessSegmentProperties();
+                buffer.Direction = levels[run.Start].IsRtl() ? HarfBuzzSharp.Direction.RightToLeft : HarfBuzzSharp.Direction.LeftToRight;
+                font.Shape(buffer);
+                var infos = buffer.GlyphInfos;
+                var positions = buffer.GlyphPositions;
+                var boundaries = infos.Select(info => (int)info.Cluster).Append(runText.Length).Distinct().Order().ToArray();
+                var clusterEnds = boundaries.Zip(boundaries.Skip(1)).ToDictionary(pair => pair.First, pair => pair.Second);
+                result.AddRange(infos.Select((info, index) =>
+                {
+                    var start = (int)info.Cluster;
+                    var position = positions[index];
+                    return new ShapedGlyph((ushort)info.Codepoint, position.XAdvance, position.XOffset,
+                        position.YOffset, runText[start..clusterEnds[start]]);
+                }));
+            }
+        }
+        return result;
+    }
+
+    internal sealed record ShapedGlyph(ushort Id, double Advance, double OffsetX, double OffsetY, string Unicode);
 
     // ── Factory ──────────────────────────────────────────────────────────────
 

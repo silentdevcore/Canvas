@@ -162,7 +162,7 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-PVAD.WebApi                  ← ASP.NET Core presentation layer with stable API routes and legacy aliases
+PVAD.WebApi                  ← ASP.NET Core presentation layer with stable API routes
   ↓
 PVAD.Application             ← Use-case orchestration
   ↓

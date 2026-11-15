@@ -100,7 +100,7 @@ public sealed class PvadJobProcessorTests
         var jobId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
         var traceParent = $"00-{ActivityTraceId.CreateRandom()}-{ActivitySpanId.CreateRandom()}-01";
-        var root = Path.Combine(Path.GetTempPath(), $"pxa-job-storage-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"pvad-job-storage-{Guid.NewGuid():N}");
 
         try
         {
@@ -111,8 +111,8 @@ public sealed class PvadJobProcessorTests
                 Id = userId,
                 UserName = "job-processor",
                 NormalizedUserName = "JOB-PROCESSOR",
-                Email = "job-processor@pxa.local",
-                NormalizedEmail = "JOB-PROCESSOR@PXA.LOCAL",
+                Email = "job-processor@pvad.test",
+                NormalizedEmail = "JOB-PROCESSOR@PVAD.TEST",
                 DisplayName = "Job Processor",
             });
             context.Organizations.Add(new Organization
@@ -135,7 +135,7 @@ public sealed class PvadJobProcessorTests
             {
                 OrganizationId = organizationId,
                 SubscriptionId = subscriptionId,
-                LicenseNumber = "PXA-METRICS-TEST",
+                LicenseNumber = "PVAD-METRICS-TEST",
                 EnvelopeJson = "{}",
                 Signature = "signature",
                 KeyId = "test",
@@ -163,11 +163,11 @@ public sealed class PvadJobProcessorTests
                 CreatedByUserId = userId,
                 Type = PvadJobQueue.TemplateRenderType,
                 TraceParent = traceParent,
-                TraceState = "pxa=integration-test",
+                TraceState = "pvad=integration-test",
                 RetentionMode = PvadJobRetentionMode.Retained,
                 PayloadJson = JsonSerializer.Serialize(new TemplateRenderJobPayload(
                     templateId.ToString(),
-                    JsonSerializer.SerializeToElement(new { invoiceNumber = "PXA-1" }),
+                    JsonSerializer.SerializeToElement(new { invoiceNumber = "PVAD-1" }),
                     null)),
             });
             await context.SaveChangesAsync();
@@ -278,7 +278,7 @@ public sealed class PvadJobProcessorTests
             var completed = await context.BackgroundJobs.SingleAsync(value => value.Id == jobId);
             Assert.Equal(PvadBackgroundJobStatus.Completed, completed.Status);
             Assert.Equal(traceParent, completed.TraceParent);
-            Assert.Equal("pxa=integration-test", completed.TraceState);
+            Assert.Equal("pvad=integration-test", completed.TraceState);
             Assert.NotNull(completed.ResultObjectId);
             var result = await storedObjects.OpenAsync(
                 completed.ResultObjectId.Value,
@@ -371,7 +371,7 @@ public sealed class PvadJobProcessorTests
                 CreatedByUserId = userId,
                 Type = PvadJobQueue.DesignerCodeExecutionType,
                 PayloadJson = "{\"sourceChecksum\":\"sha256-only\"}",
-                DiagnosticsJson = "{\"diagnosticCodes\":[\"PXACODE030\"]}",
+                DiagnosticsJson = "{\"diagnosticCodes\":[\"PVADCODE030\"]}",
                 Status = PvadBackgroundJobStatus.Completed,
                 RetentionMode = PvadJobRetentionMode.Transient,
                 CompletedAt = DateTimeOffset.UtcNow.AddHours(-2),

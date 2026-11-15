@@ -3,12 +3,12 @@
   "targetApi": "PVAD.Generator",
   "diagnostics": [
     {
-      "id": "PXAMIG001",
+      "id": "PVADMIG001",
       "severity": "info",
       "message": "Provider detected: DevExpress PDF code migration"
     },
     {
-      "id": "PXAMIG101",
+      "id": "PVADMIG101",
       "severity": "warning",
       "message": "Manual review required for processor lifetime and file IO."
     }

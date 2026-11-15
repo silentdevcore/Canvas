@@ -7,13 +7,11 @@ secret in a checked-in client configuration.
 
 ## Supported Protocol Revisions
 
-Current discovery advertises `pvad.*` scope names. New clients accept the three
-canonical read-only scopes and their known [compatibility entry `compat-7cf668ff61aa`](reference/compatibility-identifiers.v1.json) aliases. Retained clients may
-still require legacy requests until their opt-in scope migration is verified. Organization
-claims default to `pvad_organization`, with a conflict-checked [compatibility entry `compat-47cb27e46c9f`](reference/compatibility-identifiers.v1.json)
-reader. Internal API delegation uses a separate canonical `PVAD-MCP` envelope;
+Discovery advertises only the canonical `pvad.*` scope names, and clients accept
+only the three canonical read-only scopes. Organization claims default to
+`pvad_organization`. Internal API delegation uses a separate canonical `PVAD-MCP` envelope;
 it is not a replacement OAuth client ID or grant. See
-[identity compatibility](pvad-identity-compatibility.md) for rollout boundaries.
+[legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) for the 2026-11-09 hard cut.
 
 The Beta build uses the pinned official TypeScript MCP SDK and negotiates these revisions:
 
@@ -85,8 +83,7 @@ browser for OAuth. Do not add a static `Authorization` header to a shared worksp
 Automation obtains the OAuth client ID and one-time secret from PVAD Account. Request only required
 scopes from `/connect/token` using `client_credentials`. Store the secret in the operating-system or
 CI credential store, rotate it regularly, and revoke it immediately when a workload is retired.
-Use the stored client ID returned by Account: new keys use `pvad-sa-<id>`, while
-retained registrations may still use [compatibility entry `compat-8f9995c94bfe`](reference/compatibility-identifiers.v1.json). Do not rewrite IDs locally.
+Use the stored client ID returned by Account (`pvad-sa-<id>`). Do not construct IDs locally.
 The [client-transition guide](pvad-oauth-client-transition.md) covers parallel
 built-in clients, scope migration, maintenance and rollback without token rewriting.
 

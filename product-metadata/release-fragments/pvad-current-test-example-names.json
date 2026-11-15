@@ -1,0 +1,11 @@
+{
+  "id": "pvad-current-test-example-names",
+  "impact": "none",
+  "components": ["designer", "account", "api", "generator", "importer", "infrastructure", "migration"],
+  "category": "improved",
+  "summary": "Aligned current Designer and document-processing test examples with PVAD and PVADE naming.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This mechanical cleanup changes only synthetic test inputs, matching assertions, comments and temporary test names; shipped behavior and compatibility contracts are unchanged."
+}

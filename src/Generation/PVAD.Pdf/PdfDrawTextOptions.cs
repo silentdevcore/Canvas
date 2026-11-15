@@ -18,6 +18,8 @@ public sealed class PdfDrawTextOptions
 
     public double RotationDegrees { get; init; }
 
+    public double Opacity { get; init; } = 1;
+
     public bool Underline { get; init; }
 
     public bool Strikethrough { get; init; }

@@ -1,7 +1,7 @@
 /**
  * Localized, client-side invoice validation.
  *
- * Every rule mirrors one `PXAEINV1xx` diagnostic from `EInvoice.ValidateDocument`, and each
+ * Every rule mirrors a diagnostic from `EInvoice.ValidateDocument`, and each
  * finding carries that stable code. The point is a fast, translated hint while the user types -
  * the backend remains the authority, and passing this check is never presented as conformance.
  */
@@ -34,45 +34,45 @@ export function validateInvoice(
 ): InvoiceFinding[] {
   const findings: InvoiceFinding[] = [];
 
-  required(invoice.invoiceNumber, 200, 'PXAEINV100', 'invoiceNumber', 'validation.invoiceNumberRequired', findings);
-  required(invoice.currency, 3, 'PXAEINV101', 'currency', 'validation.currencyRequired', findings);
+  required(invoice.invoiceNumber, 200, 'PVADEINV100', 'invoiceNumber', 'validation.invoiceNumberRequired', findings);
+  required(invoice.currency, 3, 'PVADEINV101', 'currency', 'validation.currencyRequired', findings);
   const currency = invoice.currency?.trim() ?? '';
   if (currency !== '' && (currency.length !== 3 || !/^[A-Za-z]{3}$/.test(currency))) {
-    findings.push(error('PXAEINV102', 'currency', 'validation.currencyFormat'));
+    findings.push(error('PVADEINV102', 'currency', 'validation.currencyFormat'));
   }
   if (
     !Number.isInteger(invoice.currencyDecimalPlaces) ||
     invoice.currencyDecimalPlaces < 0 ||
     invoice.currencyDecimalPlaces > 4
   ) {
-    findings.push(error('PXAEINV103', 'currencyDecimalPlaces', 'validation.currencyDecimalPlaces'));
+    findings.push(error('PVADEINV103', 'currencyDecimalPlaces', 'validation.currencyDecimalPlaces'));
   }
 
-  validateParty(invoice.seller, 'seller', 'PXAEINV104', findings);
-  validateParty(invoice.buyer, 'buyer', 'PXAEINV105', findings);
+  validateParty(invoice.seller, 'seller', 'PVADEINV104', findings);
+  validateParty(invoice.buyer, 'buyer', 'PVADEINV105', findings);
 
   const lines = invoice.lines ?? [];
   if (lines.length === 0) {
-    findings.push(error('PXAEINV106', 'lines', 'validation.linesRequired'));
+    findings.push(error('PVADEINV106', 'lines', 'validation.linesRequired'));
   } else if (lines.length > MAXIMUM_LINES) {
     findings.push(
-      error('PXAEINV107', 'lines', 'validation.tooManyLines', { maximum: MAXIMUM_LINES }),
+      error('PVADEINV107', 'lines', 'validation.tooManyLines', { maximum: MAXIMUM_LINES }),
     );
   } else {
     const identifiers = new Set<string>();
     lines.forEach((line, index) => {
       const position = index + 1;
       const field = `lines[${index}]`;
-      required(line.identifier, 200, 'PXAEINV108', `${field}.identifier`, 'validation.lineIdentifierRequired', findings, { position });
-      required(line.description, 4_096, 'PXAEINV109', `${field}.description`, 'validation.lineDescriptionRequired', findings, { position });
-      required(line.unitCode, 16, 'PXAEINV110', `${field}.unitCode`, 'validation.lineUnitCodeRequired', findings, { position });
-      required(line.taxCategoryCode, 16, 'PXAEINV111', `${field}.taxCategoryCode`, 'validation.lineTaxCategoryRequired', findings, { position });
+      required(line.identifier, 200, 'PVADEINV108', `${field}.identifier`, 'validation.lineIdentifierRequired', findings, { position });
+      required(line.description, 4_096, 'PVADEINV109', `${field}.description`, 'validation.lineDescriptionRequired', findings, { position });
+      required(line.unitCode, 16, 'PVADEINV110', `${field}.unitCode`, 'validation.lineUnitCodeRequired', findings, { position });
+      required(line.taxCategoryCode, 16, 'PVADEINV111', `${field}.taxCategoryCode`, 'validation.lineTaxCategoryRequired', findings, { position });
 
       const identifier = line.identifier?.trim() ?? '';
       if (identifier !== '') {
         if (identifiers.has(identifier)) {
           findings.push(
-            error('PXAEINV112', `${field}.identifier`, 'validation.lineIdentifierDuplicated', {
+            error('PVADEINV112', `${field}.identifier`, 'validation.lineIdentifierDuplicated', {
               identifier,
             }),
           );
@@ -80,23 +80,23 @@ export function validateInvoice(
         identifiers.add(identifier);
       }
       if (!(line.quantity > 0)) {
-        findings.push(error('PXAEINV113', `${field}.quantity`, 'validation.lineQuantityPositive', { position }));
+        findings.push(error('PVADEINV113', `${field}.quantity`, 'validation.lineQuantityPositive', { position }));
       }
       if (!(line.unitPrice >= 0)) {
-        findings.push(error('PXAEINV114', `${field}.unitPrice`, 'validation.lineUnitPriceNonNegative', { position }));
+        findings.push(error('PVADEINV114', `${field}.unitPrice`, 'validation.lineUnitPriceNonNegative', { position }));
       }
       if (!(line.taxRate >= 0 && line.taxRate <= 100)) {
-        findings.push(error('PXAEINV115', `${field}.taxRate`, 'validation.lineTaxRateRange', { position }));
+        findings.push(error('PVADEINV115', `${field}.taxRate`, 'validation.lineTaxRateRange', { position }));
       }
     });
   }
 
   if (invoice.dueDate && invoice.issueDate && invoice.dueDate < invoice.issueDate) {
-    findings.push(error('PXAEINV116', 'dueDate', 'validation.dueDateBeforeIssueDate'));
+    findings.push(error('PVADEINV116', 'dueDate', 'validation.dueDateBeforeIssueDate'));
   }
   if (settings.standard === 'XRechnung' && !invoice.buyerReference?.trim()) {
     findings.push({
-      code: 'PXAEINV117',
+      code: 'PVADEINV117',
       severity: 'warning',
       field: 'buyerReference',
       messageKey: 'validation.buyerReferenceRecommended',
@@ -115,12 +115,12 @@ export function validateSettings(settings: EInvoiceSettings): InvoiceFinding[] {
   const findings: InvoiceFinding[] = [];
   const expectedVersion = EINVOICE_VERSIONS[settings.standard];
   if (!expectedVersion) {
-    findings.push(error('PXAEINV016', 'standard', 'validation.standardUnsupported'));
+    findings.push(error('PVADEINV016', 'standard', 'validation.standardUnsupported'));
     return findings;
   }
   if (settings.version?.trim() !== expectedVersion) {
     findings.push(
-      error('PXAEINV012', 'version', 'validation.versionUnsupported', {
+      error('PVADEINV012', 'version', 'validation.versionUnsupported', {
         standard: settings.standard,
         expected: expectedVersion,
         actual: settings.version?.trim() ?? '',
@@ -129,7 +129,7 @@ export function validateSettings(settings: EInvoiceSettings): InvoiceFinding[] {
   }
   if (!EINVOICE_PROFILES[settings.standard].includes(settings.profile?.trim() ?? '')) {
     findings.push(
-      error('PXAEINV013', 'profile', 'validation.profileUnsupported', {
+      error('PVADEINV013', 'profile', 'validation.profileUnsupported', {
         profile: settings.profile?.trim() ?? '',
         standard: settings.standard,
       }),

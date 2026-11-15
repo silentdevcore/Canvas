@@ -27,7 +27,7 @@ test('rejects expired, malformed and unassigned legacy transfers', () => {
   clearDocumentHandoffs(); setDocumentHandoffOwner('a', 'one');
   sessionStorage.setItem(key, 'broken-json');
   expect(readDocumentHandoff(key)).toBeNull();
-  sessionStorage.setItem('pxa_migration_designer_handoff', '{"template":{"name":"Unassigned"}}');
+  sessionStorage.setItem('pvad_migration_designer_handoff', '{"template":{"name":"Unassigned"}}');
   sessionStorage.removeItem(key);
   expect(readDocumentHandoff(key)).toBeNull();
 });

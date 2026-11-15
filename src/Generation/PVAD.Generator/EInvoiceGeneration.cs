@@ -90,7 +90,7 @@ public static partial class EInvoice
         var recognition = Recognize(xml);
         diagnostics.AddRange(recognition.Diagnostics);
         if (!recognition.IsRecognized)
-            diagnostics.Add(Error("PXAEINV119", "Generated invoice XML failed structural recognition."));
+            diagnostics.Add(Error("PVADEINV119", "Generated invoice XML failed structural recognition."));
 
         return new(
             diagnostics.All(static diagnostic => diagnostic.Severity != "error"),
@@ -110,7 +110,7 @@ public static partial class EInvoice
         if (fontLoader is null)
         {
             return new(false, ReadOnlyMemory<byte>.Empty, generated.Xml, generated.SemanticData,
-                [.. generated.Diagnostics, Error("PXAEINV120", "PDF/A-3 invoice creation requires an embedded-font loader.")]);
+                [.. generated.Diagnostics, Error("PVADEINV120", "PDF/A-3 invoice creation requires an embedded-font loader.")]);
         }
 
         var diagnostics = generated.Diagnostics.ToList();
@@ -123,11 +123,11 @@ public static partial class EInvoice
             if (plan.OverflowingLines.Count > 0)
             {
                 // Fail closed rather than emit a document of unbounded length. A description this
-                // long cannot reach here through the public API: PXAEINV109 caps it well below the
+                // long cannot reach here through the public API: invoice validation caps it well below the
                 // bound, so this guards the renderer itself.
                 var positions = string.Join(", ", plan.OverflowingLines.Select(static index => index + 1));
                 return new(false, ReadOnlyMemory<byte>.Empty, generated.Xml, generated.SemanticData,
-                    [.. diagnostics, Error("PXAEINV122",
+                    [.. diagnostics, Error("PVADEINV122",
                         $"Invoice line {positions} has a description too long to render within {EInvoicePageLayout.MaximumDescriptionFragments} continuation fragments.")]);
             }
             var document = Pdf.CreateDocument();
@@ -147,7 +147,7 @@ public static partial class EInvoice
         }
         catch (Exception exception) when (exception is PdfComplianceException or InvalidDataException or ArgumentException)
         {
-            diagnostics.Add(Error("PXAEINV121", $"The PDF/A-3 invoice could not be created: {exception.Message}"));
+            diagnostics.Add(Error("PVADEINV121", $"The PDF/A-3 invoice could not be created: {exception.Message}"));
             return new(false, ReadOnlyMemory<byte>.Empty, generated.Xml, generated.SemanticData, diagnostics);
         }
     }
@@ -429,43 +429,43 @@ public static partial class EInvoice
         PvadEInvoiceStandard standard,
         ICollection<PvadEInvoiceDiagnostic> diagnostics)
     {
-        Required(invoice.InvoiceNumber, 200, "PXAEINV100", "An invoice number is required.", diagnostics);
-        Required(invoice.Currency, 3, "PXAEINV101", "A three-letter currency code is required.", diagnostics);
+        Required(invoice.InvoiceNumber, 200, "PVADEINV100", "An invoice number is required.", diagnostics);
+        Required(invoice.Currency, 3, "PVADEINV101", "A three-letter currency code is required.", diagnostics);
         if (!string.IsNullOrWhiteSpace(invoice.Currency) &&
             (invoice.Currency.Trim().Length != 3 || !invoice.Currency.Trim().All(char.IsLetter)))
-            diagnostics.Add(Error("PXAEINV102", "The currency must be a three-letter alphabetic code."));
+            diagnostics.Add(Error("PVADEINV102", "The currency must be a three-letter alphabetic code."));
         if (invoice.CurrencyDecimalPlaces is < 0 or > 4)
-            diagnostics.Add(Error("PXAEINV103", "Currency decimal places must be between zero and four."));
-        ValidateParty(invoice.Seller, "seller", "PXAEINV104", diagnostics);
-        ValidateParty(invoice.Buyer, "buyer", "PXAEINV105", diagnostics);
+            diagnostics.Add(Error("PVADEINV103", "Currency decimal places must be between zero and four."));
+        ValidateParty(invoice.Seller, "seller", "PVADEINV104", diagnostics);
+        ValidateParty(invoice.Buyer, "buyer", "PVADEINV105", diagnostics);
         if (invoice.Lines is null || invoice.Lines.Count == 0)
-            diagnostics.Add(Error("PXAEINV106", "At least one invoice line is required."));
+            diagnostics.Add(Error("PVADEINV106", "At least one invoice line is required."));
         else if (invoice.Lines.Count > 10_000)
-            diagnostics.Add(Error("PXAEINV107", "An invoice cannot contain more than 10,000 lines."));
+            diagnostics.Add(Error("PVADEINV107", "An invoice cannot contain more than 10,000 lines."));
         else
         {
             var identifiers = new HashSet<string>(StringComparer.Ordinal);
             foreach (var (line, index) in invoice.Lines.Select(static (line, index) => (line, index)))
             {
-                Required(line.Identifier, 200, "PXAEINV108", $"Invoice line {index + 1} requires an identifier.", diagnostics);
-                Required(line.Description, 4_096, "PXAEINV109", $"Invoice line {index + 1} requires a description.", diagnostics);
-                Required(line.UnitCode, 16, "PXAEINV110", $"Invoice line {index + 1} requires a unit code.", diagnostics);
-                Required(line.TaxCategoryCode, 16, "PXAEINV111", $"Invoice line {index + 1} requires a tax category.", diagnostics);
+                Required(line.Identifier, 200, "PVADEINV108", $"Invoice line {index + 1} requires an identifier.", diagnostics);
+                Required(line.Description, 4_096, "PVADEINV109", $"Invoice line {index + 1} requires a description.", diagnostics);
+                Required(line.UnitCode, 16, "PVADEINV110", $"Invoice line {index + 1} requires a unit code.", diagnostics);
+                Required(line.TaxCategoryCode, 16, "PVADEINV111", $"Invoice line {index + 1} requires a tax category.", diagnostics);
                 if (!string.IsNullOrWhiteSpace(line.Identifier) && !identifiers.Add(line.Identifier.Trim()))
-                    diagnostics.Add(Error("PXAEINV112", $"Invoice line identifier '{line.Identifier.Trim()}' is duplicated."));
+                    diagnostics.Add(Error("PVADEINV112", $"Invoice line identifier '{line.Identifier.Trim()}' is duplicated."));
                 if (line.Quantity <= 0)
-                    diagnostics.Add(Error("PXAEINV113", $"Invoice line {index + 1} quantity must be greater than zero."));
+                    diagnostics.Add(Error("PVADEINV113", $"Invoice line {index + 1} quantity must be greater than zero."));
                 if (line.UnitPrice < 0)
-                    diagnostics.Add(Error("PXAEINV114", $"Invoice line {index + 1} unit price cannot be negative."));
+                    diagnostics.Add(Error("PVADEINV114", $"Invoice line {index + 1} unit price cannot be negative."));
                 if (line.TaxRate is < 0 or > 100)
-                    diagnostics.Add(Error("PXAEINV115", $"Invoice line {index + 1} tax rate must be between zero and 100."));
+                    diagnostics.Add(Error("PVADEINV115", $"Invoice line {index + 1} tax rate must be between zero and 100."));
             }
         }
 
         if (invoice.DueDate is { } dueDate && dueDate < invoice.IssueDate)
-            diagnostics.Add(Error("PXAEINV116", "The due date cannot be earlier than the issue date."));
+            diagnostics.Add(Error("PVADEINV116", "The due date cannot be earlier than the issue date."));
         if (standard == PvadEInvoiceStandard.XRechnung && string.IsNullOrWhiteSpace(invoice.BuyerReference))
-            diagnostics.Add(Warning("PXAEINV117", "XRechnung commonly requires a buyer reference (BT-10)."));
+            diagnostics.Add(Warning("PVADEINV117", "XRechnung commonly requires a buyer reference (BT-10)."));
     }
 
     private static void ValidateParty(

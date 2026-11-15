@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "76ad71013788af674a7e5beb412926c3afd6fa4c",
+  "platform": "win32",
+  "architecture": "x64",
+  "osRelease": "10.0.26100",
+  "runnerImage": "20261103.298.1",
+  "node": "v22.23.4",
+  "dotnetSdk": "10.0.404",
+  "browserVersion": "156.0.8078.4",
+  "playwright": "1.64.1",
+  "poppler": "pdftoppm version 26.09.0\r\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\r\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+  "imageMagick": "Version: ImageMagick 7.1.2-25 Q16-HDRI x64 04a04ea:20260604 https://imagemagick.org\r\nCopyright: (C) 1999 ImageMagick Studio LLC\r\nLicense: https://imagemagick.org/license/\r\nFeatures: Channel-masks(64-bit) Cipher DPC HDRI Modules OpenCL OpenMP(2.0) \r\nDelegates (built-in): bzlib cairo freetype gslib heic jng jp2 jpeg jxl lcms lqr lzma openexr pangocairo png ps raqm raw rsvg tiff webp xml zip zlib\r\nCompiler: Visual Studio 2026 (195136244)",
+  "dateFormattingContract": {
+    "version": 3,
+    "defaultFormat": "yyyy-MM-dd",
+    "defaultLocale": "en-US",
+    "defaultTimeZone": "UTC",
+    "minimumZonedInstant": "1973-01-01T00:00:00Z",
+    "backendTimeZoneProvider": "NodaTime.Tzdb",
+    "backendTimeZoneVersion": "TZDB: 2026f (mapping: 49)",
+    "maximumFormatLength": 256,
+    "literalLetters": [
+      "T",
+      "Z"
+    ],
+    "tokens": {
+      "y": 4,
+      "M": 4,
+      "d": 4,
+      "H": 2,
+      "h": 2,
+      "m": 2,
+      "s": 2,
+      "f": 3,
+      "F": 3,
+      "t": 2,
+      "z": 3,
+      "K": 1
+    },
+    "timeZoneAliases": {
+      "GMT": "UTC",
+      "Etc/UTC": "UTC",
+      "W. Europe Standard Time": "Europe/Berlin",
+      "Eastern Standard Time": "America/New_York",
+      "Pacific Standard Time": "America/Los_Angeles"
+    },
+    "locales": {
+      "en": {
+        "culture": "en-US",
+        "dateSeparator": "/",
+        "shortDate": "M/d/yyyy",
+        "longDate": "dddd, MMMM d, yyyy",
+        "shortTime": "h:mm tt",
+        "longTime": "h:mm:ss tt",
+        "monthDay": "MMMM d",
+        "yearMonth": "MMMM yyyy",
+        "am": "AM",
+        "pm": "PM"
+      },
+      "de": {
+        "culture": "de-DE",
+        "dateSeparator": ".",
+        "shortDate": "dd.MM.yyyy",
+        "longDate": "dddd, d. MMMM yyyy",
+        "shortTime": "HH:mm",
+        "longTime": "HH:mm:ss",
+        "monthDay": "d. MMMM",
+        "yearMonth": "MMMM yyyy",
+        "am": "AM",
+        "pm": "PM"
+      },
+      "fr": {
+        "culture": "fr-FR",
+        "dateSeparator": "/",
+        "shortDate": "dd/MM/yyyy",
+        "longDate": "dddd d MMMM yyyy",
+        "shortTime": "HH:mm",
+        "longTime": "HH:mm:ss",
+        "monthDay": "d MMMM",
+        "yearMonth": "MMMM yyyy",
+        "am": "AM",
+        "pm": "PM"
+      },
+      "es": {
+        "culture": "es-ES",
+        "dateSeparator": "/",
+        "shortDate": "dd/MM/yyyy",
+        "longDate": "dddd, d 'de' MMMM 'de' yyyy",
+        "shortTime": "H:mm",
+        "longTime": "H:mm:ss",
+        "monthDay": "d 'de' MMMM",
+        "yearMonth": "MMMM 'de' yyyy",
+        "am": "a. m.",
+        "pm": "p. m."
+      },
+      "it": {
+        "culture": "it-IT",
+        "dateSeparator": "/",
+        "shortDate": "dd/MM/yyyy",
+        "longDate": "dddd d MMMM yyyy",
+        "shortTime": "HH:mm",
+        "longTime": "HH:mm:ss",
+        "monthDay": "d MMMM",
+        "yearMonth": "MMMM yyyy",
+        "am": "AM",
+        "pm": "PM"
+      },
+      "ar": {
+        "culture": "ar-EG",
+        "dateSeparator": "/",
+        "shortDate": "dd/MM/yyyy",
+        "longDate": "dddd، d MMMM yyyy",
+        "shortTime": "h:mm tt",
+        "longTime": "h:mm:ss tt",
+        "monthDay": "d MMMM",
+        "yearMonth": "MMMM yyyy",
+        "am": "ص",
+        "pm": "م"
+      }
+    },
+    "standardFormats": {
+      "s": "yyyy-MM-dd'T'HH:mm:ss",
+      "o": "yyyy-MM-dd'T'HH:mm:ss.fffzzz",
+      "O": "yyyy-MM-dd'T'HH:mm:ss.fffzzz",
+      "u": "yyyy-MM-dd HH:mm:ss'Z'",
+      "r": "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+      "R": "ddd, dd MMM yyyy HH:mm:ss 'GMT'"
+    }
+  },
+  "fonts": [
+    {
+      "file": "liberation/LiberationSans-Regular.ttf",
+      "sha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f"
+    },
+    {
+      "file": "liberation/LiberationSans-Bold.ttf",
+      "sha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc"
+    },
+    {
+      "file": "liberation/LiberationSans-Italic.ttf",
+      "sha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512"
+    },
+    {
+      "file": "liberation/LiberationSans-BoldItalic.ttf",
+      "sha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d"
+    },
+    {
+      "file": "liberation/LiberationSerif-Regular.ttf",
+      "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74"
+    },
+    {
+      "file": "liberation/LiberationSerif-Bold.ttf",
+      "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+    },
+    {
+      "file": "liberation/LiberationSerif-Italic.ttf",
+      "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e"
+    },
+    {
+      "file": "liberation/LiberationSerif-BoldItalic.ttf",
+      "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7"
+    },
+    {
+      "file": "liberation/LiberationMono-Regular.ttf",
+      "sha256": "f2b83c763e8afd21709333370bed4774337fae82267937e2b5aea7e2fbd922c1"
+    },
+    {
+      "file": "liberation/LiberationMono-Bold.ttf",
+      "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb"
+    },
+    {
+      "file": "liberation/LiberationMono-Italic.ttf",
+      "sha256": "605c01c711b44480a7508d349dfbf3264e81fa43d69e61cfa7d10b86e764c4d1"
+    },
+    {
+      "file": "liberation/LiberationMono-BoldItalic.ttf",
+      "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130"
+    },
+    {
+      "file": "noto-arabic/NotoSansArabic-Regular.ttf",
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+    }
+  ],
+  "fixtures": [
+    "font-families",
+    "date-format",
+    "date-historical",
+    "date-layout",
+    "all-elements"
+  ],
+  "results": [
+    {
+      "fixture": "font-families",
+      "exitCode": 0,
+      "elapsedMs": 62262,
+      "summary": {
+        "pages": 3,
+        "elements": 22,
+        "elementTypes": 6,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 11,
+          "match": 11
+        }
+      }
+    },
+    {
+      "fixture": "date-format",
+      "exitCode": 0,
+      "elapsedMs": 41758,
+      "summary": {
+        "pages": 2,
+        "elements": 18,
+        "elementTypes": 1,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 0,
+          "match": 18
+        }
+      }
+    },
+    {
+      "fixture": "date-historical",
+      "exitCode": 0,
+      "elapsedMs": 40706,
+      "summary": {
+        "pages": 2,
+        "elements": 18,
+        "elementTypes": 1,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 0,
+          "match": 18
+        }
+      }
+    },
+    {
+      "fixture": "date-layout",
+      "exitCode": 0,
+      "elapsedMs": 45599,
+      "summary": {
+        "pages": 3,
+        "elements": 20,
+        "elementTypes": 1,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 6,
+          "match": 14
+        }
+      }
+    },
+    {
+      "fixture": "all-elements",
+      "exitCode": 0,
+      "elapsedMs": 69574,
+      "summary": {
+        "pages": 4,
+        "elements": 40,
+        "elementTypes": 38,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 5,
+          "match": 35
+        }
+      }
+    }
+  ],
+  "scope": "Synthetic rendering only; P2 measurements remain visible and platform-specific visual approval is separate.",
+  "status": "passed"
+}

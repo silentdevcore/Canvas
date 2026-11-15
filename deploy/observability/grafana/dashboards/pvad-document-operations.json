@@ -8,7 +8,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -40,7 +40,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate({__name__=~\"(pvad|pxa)_document_operations_total\"}[5m]))",
+          "expr": "sum(rate({__name__=~\"pvad_document_operations_total\"}[5m]))",
           "legendFormat": "Operations",
           "range": true,
           "refId": "A"
@@ -52,7 +52,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -84,7 +84,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum({__name__=~\"(pvad|pxa)_jobs_queue_depth\"})",
+          "expr": "sum({__name__=~\"pvad_jobs_queue_depth\"})",
           "legendFormat": "Pending jobs",
           "range": true,
           "refId": "A"
@@ -96,7 +96,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -145,7 +145,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max({__name__=~\"(pvad|pxa)_jobs_queue_oldest_age_seconds\"})",
+          "expr": "max({__name__=~\"pvad_jobs_queue_oldest_age_seconds\"})",
           "legendFormat": "Oldest job",
           "range": true,
           "refId": "A"
@@ -157,7 +157,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -189,7 +189,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_api_failures_total\"}[24h]))",
+          "expr": "sum(increase({__name__=~\"pvad_api_failures_total\"}[24h]))",
           "legendFormat": "API failures",
           "range": true,
           "refId": "A"
@@ -201,7 +201,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -240,7 +240,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (operation_type, operation_outcome) (rate({__name__=~\"(pvad|pxa)_document_operations_total\"}[5m]))",
+          "expr": "sum by (operation_type, operation_outcome) (rate({__name__=~\"pvad_document_operations_total\"}[5m]))",
           "legendFormat": "{{operation_type}} / {{operation_outcome}}",
           "range": true,
           "refId": "A"
@@ -252,7 +252,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -291,7 +291,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, operation_type) (rate({__name__=~\"(pvad|pxa)_document_operation_duration_seconds_bucket\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, operation_type) (rate({__name__=~\"pvad_document_operation_duration_seconds_bucket\"}[5m])))",
           "legendFormat": "{{operation_type}}",
           "range": true,
           "refId": "A"
@@ -303,7 +303,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -342,7 +342,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{__name__=~\"(pvad|pxa)_jobs_queue_depth\"}",
+          "expr": "{__name__=~\"pvad_jobs_queue_depth\"}",
           "legendFormat": "{{job_type}} depth",
           "range": true,
           "refId": "A"
@@ -354,7 +354,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -393,7 +393,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (failure_type, api_surface) (rate({__name__=~\"(pvad|pxa)_api_failures_total\"}[5m]))",
+          "expr": "sum by (failure_type, api_surface) (rate({__name__=~\"pvad_api_failures_total\"}[5m]))",
           "legendFormat": "{{api_surface}} / {{failure_type}}",
           "range": true,
           "refId": "A"
@@ -405,7 +405,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -444,14 +444,14 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(increase({__name__=~\"(pvad|pxa)_jobs_lease_recoveries_total\"}[1h]))",
+          "expr": "sum(increase({__name__=~\"pvad_jobs_lease_recoveries_total\"}[1h]))",
           "legendFormat": "Lease recoveries",
           "range": true,
           "refId": "A"
         },
         {
           "editorMode": "code",
-          "expr": "sum by (retention_outcome) (increase({__name__=~\"(pvad|pxa)_jobs_retention_total\"}[1h]))",
+          "expr": "sum by (retention_outcome) (increase({__name__=~\"pvad_jobs_retention_total\"}[1h]))",
           "legendFormat": "Retention / {{retention_outcome}}",
           "range": true,
           "refId": "B"
@@ -463,7 +463,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -502,7 +502,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (storage_operation, storage_outcome) (rate({__name__=~\"(pvad|pxa)_storage_operations_total\"}[5m]))",
+          "expr": "sum by (storage_operation, storage_outcome) (rate({__name__=~\"pvad_storage_operations_total\"}[5m]))",
           "legendFormat": "{{storage_operation}} / {{storage_outcome}}",
           "range": true,
           "refId": "A"
@@ -514,7 +514,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -553,7 +553,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (licensing_operation, licensing_outcome) (rate({__name__=~\"(pvad|pxa)_licensing_operations_total\"}[5m]))",
+          "expr": "sum by (licensing_operation, licensing_outcome) (rate({__name__=~\"pvad_licensing_operations_total\"}[5m]))",
           "legendFormat": "{{licensing_operation}} / {{licensing_outcome}}",
           "range": true,
           "refId": "A"
@@ -565,7 +565,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -595,7 +595,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (license_state) ({__name__=~\"(pvad|pxa)_licensing_licenses\"})",
+          "expr": "sum by (license_state) ({__name__=~\"pvad_licensing_licenses\"})",
           "legendFormat": "{{license_state}}",
           "range": true,
           "refId": "A"
@@ -607,7 +607,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -637,7 +637,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (storage_operation) (rate({__name__=~\"(pvad|pxa)_storage_bytes_total\"}[5m]))",
+          "expr": "sum by (storage_operation) (rate({__name__=~\"pvad_storage_bytes_total\"}[5m]))",
           "legendFormat": "{{storage_operation}}",
           "range": true,
           "refId": "A"
@@ -649,7 +649,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "pxa-loki"
+        "uid": "pvad-loki"
       },
       "gridPos": {
         "h": 10,
@@ -671,7 +671,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{service_name=~\"(pvad|pxa)-webapi\"}",
+          "expr": "{service_name=~\"pvad-webapi\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -697,6 +697,6 @@
   },
   "timezone": "browser",
   "title": "PVADE Document Operations",
-  "uid": "pxa-document-operations",
+  "uid": "pvad-document-operations",
   "version": 1
 }

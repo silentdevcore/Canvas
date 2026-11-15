@@ -24,7 +24,7 @@ public sealed class OptionListRenderingTests
     [InlineData("selectedValue")]
     [InlineData("multiSelect")]
     [InlineData("accessibility")]
-    public void FormList_RetainsItsChoiceWidget_WithoutDuplicatePageText(string intent)
+    public async Task FormList_RetainsItsChoiceWidget_WithoutDuplicatePageText(string intent)
     {
         var list = List();
         switch (intent)
@@ -38,7 +38,10 @@ public sealed class OptionListRenderingTests
         var pdf = Render(list);
         Assert.Contains("/FT /Ch /Ff 0 /F 4", pdf);
         Assert.Contains("/Opt [", pdf);
-        Assert.DoesNotContain("Alpha) Tj", pdf);
+        Assert.Contains("/AP << /N", pdf);
+        using var stream = new MemoryStream(Encoding.Latin1.GetBytes(pdf));
+        var imported = await new PVAD.Importer.PdfImporter().LoadAsync(stream);
+        Assert.DoesNotContain(imported.Pages.SelectMany(page => page.TextObjects), text => text.Text.Contains("Alpha", StringComparison.Ordinal));
     }
 
     private static ElementDto List() => new()

@@ -10,7 +10,7 @@ namespace PVAD.Infrastructure.Persistence.Tests;
 public sealed class PvadDbContextModelTests
 {
     [Theory]
-    [InlineData("pxa-retained")]
+    [InlineData("pvad-retained")]
     [InlineData("pvad-new")]
     [InlineData("customer-owned")]
     public void Persistence_registration_preserves_explicit_database_and_login_names(string database)
@@ -210,7 +210,7 @@ public sealed class PvadDbContextModelTests
     private static PvadDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PvadDbContext>()
-            .UseNpgsql("Host=localhost;Database=pxa-model-tests;Username=pxa")
+            .UseNpgsql("Host=localhost;Database=pvad-model-tests;Username=pvad")
             .Options;
 
         return new PvadDbContext(options);

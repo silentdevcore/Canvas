@@ -97,7 +97,6 @@ public sealed class ProcessIsolatedTesseractOcrEngineTests
 
         Assert.NotNull(workerSpan);
         Assert.Equal("PVAD.ImageOcr", workerSpan.Source.Name);
-        Assert.Equal("PXA.ImageOcr", ProcessIsolatedTesseractOcrEngine.LegacyActivitySourceName);
         Assert.Equal("pvad.ocr.worker.execute", workerSpan.OperationName);
         Assert.Equal(parent.TraceId, workerSpan.TraceId);
         Assert.Equal(parent.SpanId, workerSpan.ParentSpanId);

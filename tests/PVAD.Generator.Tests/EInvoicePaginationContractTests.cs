@@ -7,7 +7,7 @@ namespace PVAD.Generator.Tests;
 /// Holds the hybrid-invoice renderer to the shared pagination contract.
 /// </summary>
 /// <remarks>
-/// PXA renders an invoice twice - the Designer projects it onto pages, and
+/// PVAD renders an invoice twice - the Designer projects it onto pages, and
 /// <see cref="EInvoice.CreatePdf"/> renders the hybrid PDF - and the two must agree, or the document
 /// approved on screen is not the document issued. They agree by each implementing
 /// <c>test-assets/e-invoicing/pagination-contract.json</c> rather than by sharing code, because
@@ -172,7 +172,7 @@ public sealed class EInvoicePaginationContractTests
     public void A_description_beyond_the_bound_is_reported_rather_than_rendered()
     {
         // Longer than MaximumDescriptionFragments pages of text. The public API cannot produce this
-        // - PXAEINV109 caps a description at 4 096 characters - so the planner is driven directly.
+        // - invoice validation caps a description at 4 096 characters - so the planner is driven directly.
         var words = Enumerable.Repeat("maintenance", 4_000);
         var plan = EInvoicePageLayout.Plan([string.Join(' ', words)], 1);
 

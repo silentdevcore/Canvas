@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import LivePreview from '@/components/Preview/LivePreview';
 import type { Page, SimpleElement, Template, PageSettings } from '@/types';
 import { normalizePageSettings } from '@/store';
+import { displaySystemMessage } from '@/utils/presentation';
 
 export interface ParsedDesign {
   id?: string;
@@ -90,7 +91,7 @@ export default function CodePreviewPane({ raw, language, validation, parsed, pdf
               : t('preview.modelError')}
         </div>
         <ul className="code-preview-error-list">
-          {convertError.split('\n').map((e, i) => <li key={i}>{e}</li>)}
+          {convertError.split('\n').map((e, i) => <li key={i}>{displaySystemMessage(e)}</li>)}
         </ul>
       </div>
     );

@@ -54,12 +54,12 @@ public sealed class PdfEInvoicesAttachControllerTests
         Assert.Equal("application/pdf", file.ContentType);
         Assert.Equal("statement-hybrid.pdf", file.FileDownloadName);
         Assert.Equal(source, file.FileContents[..source.Length]);
-        Assert.Equal("IncrementalUpdate", controller.Response.Headers["PXA-Attachment-Strategy"]);
-        Assert.Equal("true", controller.Response.Headers["PXA-Pages-Unchanged"]);
-        Assert.Equal("PDF/A-3b", controller.Response.Headers["PXA-Compliance-Profile"]);
-        Assert.Equal("consistent", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("IncrementalUpdate", controller.Response.Headers["PVAD-Attachment-Strategy"]);
+        Assert.Equal("true", controller.Response.Headers["PVAD-Pages-Unchanged"]);
+        Assert.Equal("PDF/A-3b", controller.Response.Headers["PVAD-Compliance-Profile"]);
+        Assert.Equal("consistent", controller.Response.Headers["PVAD-Invoice-Consistency"]);
         // Structural validation alone never yields a conformance claim.
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Conformance"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Conformance"]);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class PdfEInvoicesAttachControllerTests
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status409Conflict, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAEINVAPI022", details.Extensions["code"]);
+        Assert.Equal("PVADEINVAPI022", details.Extensions["code"]);
         Assert.NotNull(details.Extensions["preflight"]);
     }
 
@@ -164,7 +164,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             CancellationToken.None);
 
         Assert.IsType<FileContentResult>(result);
-        Assert.Equal("ArchiveConversion", controller.Response.Headers["PXA-Attachment-Strategy"]);
+        Assert.Equal("ArchiveConversion", controller.Response.Headers["PVAD-Attachment-Strategy"]);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public sealed class PdfEInvoicesAttachControllerTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status409Conflict, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI021", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI021", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             CancellationToken.None);
 
         Assert.IsType<FileContentResult>(result);
-        Assert.Equal("reviewRequired", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("reviewRequired", controller.Response.Headers["PVAD-Invoice-Consistency"]);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public sealed class PdfEInvoicesAttachControllerTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI020", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI020", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public sealed class PdfEInvoicesAttachControllerTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI002", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI002", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             false, false, false, false, false, null, CancellationToken.None);
 
         var problem = Assert.IsType<ObjectResult>(result);
-        Assert.Equal("PXAEINVAPI010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI010", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -269,7 +269,7 @@ public sealed class PdfEInvoicesAttachControllerTests
             false, false, false, false, false, null, CancellationToken.None);
 
         var problem = Assert.IsType<ObjectResult>(result);
-        Assert.Equal("PXAEINVAPI001", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI001", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]

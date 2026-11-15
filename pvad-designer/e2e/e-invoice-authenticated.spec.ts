@@ -5,6 +5,7 @@ import {
   type Page,
 } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { readPvadEnvironment } from '../../tools/configuration/environment.mjs';
 
 /**
  * The electronic-invoice workflow end to end, as a signed-in customer performs it.
@@ -126,9 +127,9 @@ test.describe('electronic invoice workspace', () => {
   // and Mailpit services all running, which a plain checkout does not have.
   test.beforeEach(() => {
     test.skip(
-      process.env.PXA_RUN_LIVE_AUTH_EINVOICE !== '1',
+      readPvadEnvironment('PVAD_RUN_LIVE_AUTH_EINVOICE') !== '1',
       'Requires running Account, Designer, WebApi, PostgreSQL, and Mailpit services. '
-      + 'Set PXA_RUN_LIVE_AUTH_EINVOICE=1 to run it.',
+      + 'Set PVAD_RUN_LIVE_AUTH_EINVOICE=1 to run it.',
     );
   });
 
@@ -273,7 +274,7 @@ test.describe('electronic invoice workspace', () => {
         defaultEnabled: true,
         documentationPath: '/#electronic-invoicing-details',
         enabled: false,
-        decisionCode: 'PXA_DESIGNER_ENTITLEMENT_REQUIRED',
+        decisionCode: 'PVAD_DESIGNER_ENTITLEMENT_REQUIRED',
         decisionReason: 'The active subscription does not include electronic invoicing.',
       }]),
     }));
@@ -293,7 +294,7 @@ test.describe('electronic invoice workspace', () => {
       status: 503,
       contentType: 'application/problem+json',
       body: JSON.stringify({
-        type: 'https://pxa.invalid/problems/unavailable',
+        type: 'https://pvad.invalid/problems/unavailable',
         title: 'The invoice worker is unavailable.',
         status: 503,
       }),

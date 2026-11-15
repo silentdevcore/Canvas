@@ -86,8 +86,8 @@ public sealed class PageLayoutResolverTests
 
         _ = DesignLayoutPlanner.BuildPages(design);
 
-        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PXALAYOUT001");
-        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PXALAYOUT003");
-        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PXALAYOUT005");
+        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PVADLAYOUT001");
+        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PVADLAYOUT003");
+        Assert.Contains(design.ImportDiagnostics!, item => item.Code == "PVADLAYOUT005");
     }
 }

@@ -229,6 +229,8 @@ public sealed class PdfPage
         }
 
         ArgumentNullException.ThrowIfNull(options);
+        if (!double.IsFinite(options.Opacity) || options.Opacity is < 0 or > 1)
+            throw new ArgumentOutOfRangeException(nameof(options), "Opacity must be between zero and one.");
 
         if (options.FontSize <= 0)
         {
@@ -244,7 +246,7 @@ public sealed class PdfPage
         var fillColor = options.FillColor ?? PdfColor.Black;
 
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), TableFontFamily(resolvedFont), out embeddedFont);
 
         AddElement(new TextElement(
             text,
@@ -260,7 +262,21 @@ public sealed class PdfPage
             Underline: options.Underline,
             Strikethrough: options.Strikethrough,
             CharacterSpacing: options.CharacterSpacing,
-            HorizontalScalingPercent: options.HorizontalScalingPercent));
+            HorizontalScalingPercent: options.HorizontalScalingPercent,
+            Opacity: options.Opacity));
+    }
+
+    /// <summary>Measures a single line using the same font resolution as DrawText.</summary>
+    public double MeasureTextWidth(string text, PdfDrawTextOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(options);
+        if (!double.IsFinite(options.FontSize) || options.FontSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(options));
+        var resolved = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
+        PdfEmbeddedFont? embedded = null;
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolved), IsItalicFont(resolved), TableFontFamily(resolved), out embedded);
+        return embedded?.MeasureWidth(text, options.FontSize) ?? EstimateTextWidth(text, options.FontSize, resolved);
     }
 
     public void DrawTextFromTop(string text, double x, double topY, double fontSize = 12, PdfStandardFont? font = null)
@@ -733,6 +749,47 @@ public sealed class PdfPage
             ClipHeight: clipHeight));
     }
 
+    /// <summary>
+    /// Fits an in-memory image inside a clipped box. Focus is a percentage of the remaining
+    /// space, measured from the left/top, matching browser object-position semantics.
+    /// Natural image pixels map to points when <see cref="PdfImageFitMode.None"/> is used.
+    /// </summary>
+    public PdfImageLayoutResult DrawImageFitted(byte[] imageBytes, double x, double y,
+        double width, double height, PdfImageFitMode fitMode = PdfImageFitMode.Contain,
+        double focalX = 50, double focalY = 50, double opacity = 1)
+    {
+        if (!double.IsFinite(x) || !double.IsFinite(y))
+            throw new ArgumentOutOfRangeException(nameof(x), "Image position must be finite.");
+        if (!double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), "Image box dimensions must be finite and positive.");
+        if (!double.IsFinite(opacity) || opacity < 0 || opacity > 1)
+            throw new ArgumentOutOfRangeException(nameof(opacity), "Opacity must be between 0 and 1.");
+        if (!Enum.IsDefined(fitMode))
+            throw new ArgumentOutOfRangeException(nameof(fitMode));
+
+        var image = PdfImageReader.Read(imageBytes);
+        var scale = fitMode switch
+        {
+            PdfImageFitMode.Contain => Math.Min(width / image.Width, height / image.Height),
+            PdfImageFitMode.Cover => Math.Max(width / image.Width, height / image.Height),
+            _ => 1
+        };
+        var drawWidth = fitMode == PdfImageFitMode.Fill ? width : image.Width * scale;
+        var drawHeight = fitMode == PdfImageFitMode.Fill ? height : image.Height * scale;
+        var horizontal = double.IsFinite(focalX) ? Math.Clamp(focalX, 0, 100) / 100 : 0.5;
+        var vertical = double.IsFinite(focalY) ? Math.Clamp(focalY, 0, 100) / 100 : 0.5;
+        var drawX = x + (width - drawWidth) * horizontal;
+        // PDF coordinates start at the bottom; the focus percentage starts at the top.
+        var drawY = y + (height - drawHeight) * (1 - vertical);
+        if (!double.IsFinite(drawX) || !double.IsFinite(drawY) ||
+            !double.IsFinite(drawWidth) || !double.IsFinite(drawHeight))
+            throw new ArgumentOutOfRangeException(nameof(width), "Fitted image bounds exceed the supported numeric range.");
+        AddElement(new ImageElement(image, GetImageBytesCacheKey(imageBytes),
+            drawX, drawY, drawWidth, drawHeight, opacity, ClipToBounds: true,
+            ClipX: x, ClipY: y, ClipWidth: width, ClipHeight: height));
+        return new PdfImageLayoutResult { X = drawX, Y = drawY, Width = drawWidth, Height = drawHeight };
+    }
+
     public PdfImageLayoutResult DrawImageScaledToWidth(string imagePath, double x, double y, double width)
     {
         if (width <= 0)
@@ -868,7 +925,7 @@ public sealed class PdfPage
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), TableFontFamily(resolvedFont), out embeddedFont);
         var lines = WrapText(text, maxWidth, options.FontSize, resolvedFont);
         var widestLine = 0d;
 
@@ -974,7 +1031,7 @@ public sealed class PdfPage
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         PdfEmbeddedFont? embeddedFont = null;
-        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), out embeddedFont);
+        _fontLoader?.TryLoad(options.Language, IsBoldFont(resolvedFont), IsItalicFont(resolvedFont), TableFontFamily(resolvedFont), out embeddedFont);
         var lines = WrapText(text, width, options.FontSize, resolvedFont);
         var contentHeight = lines.Count > 0 ? ((lines.Count - 1) * lineHeight) + options.FontSize : 0;
         var topBaselineY = ResolveTextBoxTopBaselineY(topY, height, contentHeight, options.FontSize, options.VerticalAlignment);
@@ -1105,6 +1162,20 @@ public sealed class PdfPage
     /// <returns>The resulting layout, including the consumed height.</returns>
     public PdfTableLayoutResult DrawSimpleTable(double x, double y, double width, IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions? options = null)
     {
+        options ??= PdfTableOptions.Default;
+        return DrawPreparedSimpleTable(x, y, width, rows, options, PrepareSimpleTable(width, rows, options));
+    }
+
+    internal double[] MeasureSimpleTableRows(double width, IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions options)
+        => PrepareSimpleTable(width, rows, options).RowHeights;
+
+    private sealed record PreparedTable(double[] ColumnWidths,
+        Dictionary<(int Row, int Column), PdfTableCellStyle> CellStyles,
+        PdfTextAlignment[] ColumnAlignments, PdfVerticalAlignment[] ColumnVerticalAlignments,
+        Func<string, string>[] ColumnFormatters, double[] RowHeights);
+
+    private PreparedTable PrepareSimpleTable(double width, IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions options)
+    {
         ArgumentNullException.ThrowIfNull(rows);
 
         if (rows.Count == 0)
@@ -1112,14 +1183,12 @@ public sealed class PdfPage
             throw new ArgumentException("Table requires at least one row.", nameof(rows));
         }
 
-        if (width <= 0)
+        if (!double.IsFinite(width) || width <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(width), "Table width must be greater than zero.");
         }
 
-        options ??= PdfTableOptions.Default;
-
-        if (options.RowHeight <= 0)
+        if (!double.IsFinite(options.RowHeight) || options.RowHeight <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "RowHeight must be greater than zero.");
         }
@@ -1133,19 +1202,19 @@ public sealed class PdfPage
 
             foreach (var rowHeight in customRowHeights)
             {
-                if (rowHeight <= 0)
+                if (!double.IsFinite(rowHeight) || rowHeight <= 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(options), "RowHeights values must be greater than zero.");
                 }
             }
         }
 
-        if (options.FontSize <= 0)
+        if (!double.IsFinite(options.FontSize) || options.FontSize <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "FontSize must be greater than zero.");
         }
 
-        if (options.CellLineHeight is <= 0)
+        if (options.CellLineHeight is { } cellLineHeight && (!double.IsFinite(cellLineHeight) || cellLineHeight <= 0))
         {
             throw new ArgumentOutOfRangeException(nameof(options), "CellLineHeight must be greater than zero when provided.");
         }
@@ -1159,19 +1228,20 @@ public sealed class PdfPage
 
             foreach (var rowLineHeight in rowLineHeights)
             {
-                if (rowLineHeight <= 0)
+                if (!double.IsFinite(rowLineHeight) || rowLineHeight <= 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(options), "RowLineHeights values must be greater than zero.");
                 }
             }
         }
 
-        if (options.CellPadding < 0)
+        if (!double.IsFinite(options.CellPadding) || options.CellPadding < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "CellPadding cannot be negative.");
         }
 
-        if (options.CellPaddingLeft is < 0 || options.CellPaddingRight is < 0 || options.CellPaddingTop is < 0 || options.CellPaddingBottom is < 0)
+        if (new[] { options.CellPaddingLeft, options.CellPaddingRight, options.CellPaddingTop, options.CellPaddingBottom }
+            .Any(value => value is { } padding && (!double.IsFinite(padding) || padding < 0)))
         {
             throw new ArgumentOutOfRangeException(nameof(options), "Cell padding side values cannot be negative.");
         }
@@ -1227,10 +1297,53 @@ public sealed class PdfPage
         }
 
         var columnWidths = ResolveTableColumnWidths(width, columnCount, options);
+        var cellStyles = new Dictionary<(int Row, int Column), PdfTableCellStyle>();
+        foreach (var cell in options.CellStyles ?? [])
+        {
+            if (cell.Row < 0 || cell.Row >= rows.Count || cell.Column < 0 || cell.Column >= columnCount)
+                continue;
+            if (cellStyles.ContainsKey((cell.Row, cell.Column))) continue;
+            if (cell.FontSize is { } size && (!double.IsFinite(size) || size <= 0)
+                || cell.Padding is { } padding && (!double.IsFinite(padding) || padding < 0)
+                || cell.BorderWidth is { } border && (!double.IsFinite(border) || border < 0)
+                || new[] { cell.BorderTop, cell.BorderRight, cell.BorderBottom, cell.BorderLeft }
+                    .Any(side => side is not null && (!double.IsFinite(side.Width) || side.Width < 0)))
+                throw new ArgumentOutOfRangeException(nameof(options), "Cell styles require valid font sizes, padding and border widths.");
+            cellStyles.TryAdd((cell.Row, cell.Column), cell);
+        }
         var columnAlignments = ResolveTableColumnAlignments(columnCount, options);
         var columnVerticalAlignments = ResolveTableColumnVerticalAlignments(columnCount, options);
         var columnFormatters = ResolveTableColumnFormatters(columnCount, options);
         var rowHeights = ResolveTableRowHeights(rows, columnWidths, columnFormatters, options);
+        if (options.AutoRowHeight && cellStyles.Count > 0)
+            for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                rowHeights[rowIndex] = Math.Max(options.RowHeight, options.RowHeights?[rowIndex] ?? 0);
+                for (var columnIndex = 0; columnIndex < columnCount; columnIndex++)
+                {
+                    cellStyles.TryGetValue((rowIndex, columnIndex), out var cell);
+                    var size = cell?.FontSize ?? options.FontSize;
+                    var left = cell?.Padding ?? options.CellPaddingLeft ?? options.CellPadding;
+                    var right = cell?.Padding ?? options.CellPaddingRight ?? options.CellPadding;
+                    var baseFont = ResolveTableFont(options);
+                    if (options.HasHeaderRow && rowIndex == 0 || options.HasFooterRow && rowIndex == rows.Count - 1)
+                        baseFont = WithBoldStyle(baseFont);
+                    var lines = WrapTableCellText(columnFormatters[columnIndex](rows[rowIndex][columnIndex] ?? ""),
+                        columnWidths[columnIndex] - left - right, size, ResolveStyledTableFont(baseFont, cell), options.WrapCellText);
+                    var lineHeight = cell?.FontSize is null ? ResolveRowLineHeight(rowIndex, options) : size * 1.2;
+                    rowHeights[rowIndex] = Math.Max(rowHeights[rowIndex], lines.Count * lineHeight
+                        + (cell?.Padding ?? options.CellPaddingTop ?? options.CellPadding)
+                        + (cell?.Padding ?? options.CellPaddingBottom ?? options.CellPadding));
+                }
+            }
+        return new PreparedTable(columnWidths, cellStyles, columnAlignments, columnVerticalAlignments, columnFormatters, rowHeights);
+    }
+
+    private PdfTableLayoutResult DrawPreparedSimpleTable(double x, double y, double width,
+        IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions options, PreparedTable prepared)
+    {
+        var (columnWidths, cellStyles, columnAlignments, columnVerticalAlignments, columnFormatters, rowHeights) = prepared;
+        var columnCount = columnWidths.Length;
         var font = ResolveTableFont(options);
         var textColor = options.TextColor ?? PdfColor.Black;
         var outerBorderColor = options.OuterBorderColor ?? options.BorderColor ?? PdfColor.Black;
@@ -1260,7 +1373,7 @@ public sealed class PdfPage
             var rowBottom = currentRowTop - rowHeight;
             var isHeader = options.HasHeaderRow && rowIndex == 0;
             var isFooter = options.HasFooterRow && rowIndex == rows.Count - 1;
-            var dataRowIndex = options.HasHeaderRow ? rowIndex - 1 : rowIndex;
+            var dataRowIndex = (options.HasHeaderRow ? rowIndex - 1 : rowIndex) + options.DataRowOffset;
             var cellX = x;
             var rowSemantic = tableSemantic is not null && tableId is { Length: > 0 }
                 ? new PdfAccessibilityProperties
@@ -1278,6 +1391,7 @@ public sealed class PdfPage
             for (var columnIndex = 0; columnIndex < columnCount; columnIndex++)
             {
                 var cellWidth = columnWidths[columnIndex];
+                cellStyles.TryGetValue((rowIndex, columnIndex), out var cellStyle);
                 var cellSemantic = rowSemantic is not null
                     ? new PdfAccessibilityProperties
                     {
@@ -1299,6 +1413,7 @@ public sealed class PdfPage
                     : dataRowIndex >= 0 && (dataRowIndex % 2 == 1)
                         ? options.AlternateRowFillColor
                         : null;
+                fillColor = cellStyle?.BackgroundColor ?? fillColor;
 
                 if (fillColor is not null)
                 {
@@ -1345,17 +1460,23 @@ public sealed class PdfPage
                 var rawCellText = row[columnIndex] ?? string.Empty;
                 var cellText = columnFormatters[columnIndex](rawCellText);
                 var cellFont = isHeader || isFooter ? WithBoldStyle(font) : font;
+                cellFont = ResolveStyledTableFont(cellFont, cellStyle);
+                var cellFontSize = cellStyle?.FontSize ?? options.FontSize;
+                var cellPaddingLeft = cellStyle?.Padding ?? paddingLeft;
+                var cellPaddingRight = cellStyle?.Padding ?? paddingRight;
+                var cellPaddingTop = cellStyle?.Padding ?? paddingTop;
+                var cellPaddingBottom = cellStyle?.Padding ?? paddingBottom;
 
-                var availableTextWidth = cellWidth - paddingLeft - paddingRight;
-                var lines = WrapTableCellText(cellText, availableTextWidth, options.FontSize, cellFont, options.WrapCellText);
-                var lineHeight = ResolveRowLineHeight(rowIndex, options);
+                var availableTextWidth = cellWidth - cellPaddingLeft - cellPaddingRight;
+                var lines = WrapTableCellText(cellText, availableTextWidth, cellFontSize, cellFont, options.WrapCellText);
+                var lineHeight = cellStyle?.FontSize is null ? ResolveRowLineHeight(rowIndex, options) : cellFontSize * 1.2;
                 var contentHeight = lines.Count * lineHeight;
                 var verticalAlignment = columnVerticalAlignments[columnIndex];
                 var firstBaselineY = verticalAlignment switch
                 {
-                    PdfVerticalAlignment.Top => (rowBottom + rowHeight) - paddingTop - lineHeight,
+                    PdfVerticalAlignment.Top => (rowBottom + rowHeight) - cellPaddingTop - lineHeight,
                     PdfVerticalAlignment.Middle => rowBottom + ((rowHeight + contentHeight) / 2) - lineHeight,
-                    PdfVerticalAlignment.Bottom => rowBottom + paddingBottom + ((lines.Count - 1) * lineHeight),
+                    PdfVerticalAlignment.Bottom => rowBottom + cellPaddingBottom + ((lines.Count - 1) * lineHeight),
                     _ => rowBottom + ((rowHeight + contentHeight) / 2) - lineHeight
                 };
 
@@ -1368,25 +1489,25 @@ public sealed class PdfPage
                         if (string.IsNullOrEmpty(line))
                             continue;
 
-                        var textWidth = EstimateTextWidth(line, options.FontSize, cellFont);
-                        var alignment = columnAlignments[columnIndex];
+                        var textWidth = EstimateTextWidth(line, cellFontSize, cellFont);
+                        var alignment = cellStyle?.Alignment ?? columnAlignments[columnIndex];
                         var textX = alignment switch
                         {
-                            PdfTextAlignment.Left or PdfTextAlignment.Justify => cellX + paddingLeft,
+                            PdfTextAlignment.Left or PdfTextAlignment.Justify => cellX + cellPaddingLeft,
                             PdfTextAlignment.Center => cellX + ((cellWidth - textWidth) / 2),
-                            PdfTextAlignment.Right => cellX + cellWidth - paddingRight - textWidth,
-                            _ => cellX + paddingLeft
+                            PdfTextAlignment.Right => cellX + cellWidth - cellPaddingRight - textWidth,
+                            _ => cellX + cellPaddingLeft
                         };
 
-                        if (textX < cellX + paddingLeft)
-                            textX = cellX + paddingLeft;
+                        if (textX < cellX + cellPaddingLeft)
+                            textX = cellX + cellPaddingLeft;
 
                         var textY = firstBaselineY - (lineIndex * lineHeight);
                         DrawText(line, textX, textY, new PdfDrawTextOptions
                         {
-                            FontSize = options.FontSize,
+                            FontSize = cellFontSize,
                             Font = cellFont,
-                            FillColor = textColor
+                            FillColor = cellStyle?.TextColor ?? textColor
                         });
                     }
                 }
@@ -1405,9 +1526,13 @@ public sealed class PdfPage
         var bordersArtifactScope = tableSemantic is null ? null : BeginArtifact();
         try
         {
+            if (cellStyles.Count > 0)
+            {
+                DrawStyledTableBorders(x, y, columnWidths, rowHeights, cellStyles, options);
+            }
             // Borders must be emitted after cell fills. PDF elements are painted in
             // insertion order, so drawing fills later would otherwise hide the grid.
-            if (options.DrawOuterBorder)
+            if (options.DrawOuterBorder && cellStyles.Count == 0)
             {
                 DrawRectangle(
                     x: x,
@@ -1420,7 +1545,7 @@ public sealed class PdfPage
                     strokeStyle: outerStrokeStyle);
             }
 
-            if (options.DrawInnerHorizontalBorders)
+            if (options.DrawInnerHorizontalBorders && cellStyles.Count == 0)
             {
                 var horizontalY = y;
 
@@ -1438,7 +1563,7 @@ public sealed class PdfPage
                 }
             }
 
-            if (options.DrawInnerVerticalBorders)
+            if (options.DrawInnerVerticalBorders && cellStyles.Count == 0)
             {
                 var verticalX = x;
 
@@ -1706,6 +1831,17 @@ public sealed class PdfPage
             IsChecked = isChecked,
             Accessibility = _activeArtifact ? null : _activeAccessibility,
         });
+    }
+
+    /// <summary>Adds a checkbox with an explicit normal appearance shared by viewers and printing.</summary>
+    public void AddCheckBox(PdfCheckBoxAnnotation annotation)
+    {
+        ArgumentNullException.ThrowIfNull(annotation);
+        ValidateFormField(annotation.FieldName, annotation.Width, annotation.Height);
+        if (annotation.CheckStyle is not ("checked" or "cross" or "dot" or "empty")
+            || !double.IsFinite(annotation.BorderWidth) || annotation.BorderWidth <= 0)
+            throw new ArgumentException("Invalid checkbox appearance.", nameof(annotation));
+        _checkBoxAnnotations.Add(annotation with { Accessibility = _activeArtifact ? null : _activeAccessibility });
     }
 
     /// <summary>Adds an interactive list-box field.</summary>
@@ -2146,6 +2282,78 @@ public sealed class PdfPage
         };
     }
 
+    private static PdfFontFamily TableFontFamily(PdfStandardFont font) => font switch
+    {
+        PdfStandardFont.TimesRoman or PdfStandardFont.TimesBold or PdfStandardFont.TimesItalic or PdfStandardFont.TimesBoldItalic => PdfFontFamily.Times,
+        PdfStandardFont.Courier or PdfStandardFont.CourierBold or PdfStandardFont.CourierOblique or PdfStandardFont.CourierBoldOblique => PdfFontFamily.Courier,
+        _ => PdfFontFamily.Helvetica
+    };
+
+    private static PdfStandardFont ResolveStyledTableFont(PdfStandardFont font, PdfTableCellStyle? cell)
+    {
+        if (cell is null || cell.FontFamily is null && cell.Bold is null && cell.Italic is null) return font;
+        var family = TableFontFamily(font);
+        var bold = font is PdfStandardFont.HelveticaBold or PdfStandardFont.HelveticaBoldOblique
+            or PdfStandardFont.TimesBold or PdfStandardFont.TimesBoldItalic or PdfStandardFont.CourierBold or PdfStandardFont.CourierBoldOblique;
+        var italic = font is PdfStandardFont.HelveticaOblique or PdfStandardFont.HelveticaBoldOblique
+            or PdfStandardFont.TimesItalic or PdfStandardFont.TimesBoldItalic or PdfStandardFont.CourierOblique or PdfStandardFont.CourierBoldOblique;
+        return PdfStandardFonts.FromStyle(cell.FontFamily ?? family, cell.Bold ?? bold, cell.Italic ?? italic);
+    }
+
+    private void DrawStyledTableBorders(double x, double top, double[] widths, double[] heights,
+        Dictionary<(int Row, int Column), PdfTableCellStyle> cells, PdfTableOptions options)
+    {
+        var xs = new double[widths.Length + 1];
+        var ys = new double[heights.Length + 1];
+        xs[0] = x; ys[0] = top;
+        for (var c = 0; c < widths.Length; c++) xs[c + 1] = xs[c] + widths[c];
+        for (var r = 0; r < heights.Length; r++) ys[r + 1] = ys[r] - heights[r];
+        (double Width, IPdfColor Color, bool Explicit) Side(int r, int c, string side, bool outer, bool enabled)
+        {
+            cells.TryGetValue((r, c), out var cell);
+            var specific = side switch { "top" => cell?.BorderTop, "right" => cell?.BorderRight,
+                "bottom" => cell?.BorderBottom, _ => cell?.BorderLeft };
+            var custom = cell is not null && (cell.BorderWidth is not null || cell.BorderColor is not null
+                || cell.BorderTop is not null || cell.BorderRight is not null || cell.BorderBottom is not null || cell.BorderLeft is not null);
+            if (custom)
+                return (specific?.Width ?? (cell!.BorderWidth is not null || cell.BorderColor is not null ? cell.BorderWidth ?? 1 : 0),
+                    specific?.Color ?? cell!.BorderColor ?? PdfColor.Black, true);
+            return (enabled ? (outer ? options.OuterBorderLineWidth : options.InnerBorderLineWidth) ?? options.BorderLineWidth : 0,
+                (outer ? options.OuterBorderColor : options.InnerBorderColor) ?? options.BorderColor ?? PdfColor.Black, false);
+        }
+        void Edge((double Width, IPdfColor Color, bool Explicit) first, (double Width, IPdfColor Color, bool Explicit) second,
+            double x1, double y1, double x2, double y2, bool outer)
+        {
+            var selected = first.Explicit != second.Explicit ? (first.Explicit ? first : second)
+                : first.Width > second.Width ? first : second;
+            if (selected.Width > 0)
+                DrawLine(x1, y1, x2, y2, selected.Width, selected.Color,
+                    selected.Explicit ? null : outer ? options.OuterBorderStrokeStyle : options.InnerBorderStrokeStyle);
+        }
+        for (var r = 0; r < heights.Length; r++)
+            for (var c = 0; c <= widths.Length; c++)
+            {
+                var outer = c == 0 || c == widths.Length;
+                var enabled = outer ? options.DrawOuterBorder : options.DrawInnerVerticalBorders;
+                var left = Side(r, c - 1, "right", outer, enabled);
+                var right = Side(r, c, "left", outer, enabled);
+                if (c == 0) left = right;
+                if (c == widths.Length) right = left;
+                Edge(left, right, xs[c], ys[r], xs[c], ys[r + 1], outer);
+            }
+        for (var r = 0; r <= heights.Length; r++)
+            for (var c = 0; c < widths.Length; c++)
+            {
+                var outer = r == 0 || r == heights.Length;
+                var enabled = outer ? options.DrawOuterBorder : options.DrawInnerHorizontalBorders;
+                var above = Side(r - 1, c, "bottom", outer, enabled);
+                var below = Side(r, c, "top", outer, enabled);
+                if (r == 0) above = below;
+                if (r == heights.Length) below = above;
+                Edge(above, below, xs[c], ys[r], xs[c + 1], ys[r], outer);
+            }
+    }
+
     private static double[] ResolveTableRowHeights(
         IReadOnlyList<IReadOnlyList<string>> rows,
         IReadOnlyList<double> columnWidths,
@@ -2295,10 +2503,20 @@ public sealed class PdfPage
 
     private PdfStandardFont ResolveFont(PdfStandardFont? font, PdfFontFamily? fontFamily, bool bold, bool italic)
     {
-        return font
-            ?? (fontFamily is { } family
-                ? PdfStandardFonts.FromStyle(family, bold, italic)
-                : DefaultFont);
+        if (font is { } explicitFont) return explicitFont;
+        if (fontFamily is { } family) return PdfStandardFonts.FromStyle(family, bold, italic);
+        if (!bold && !italic) return DefaultFont;
+
+        var defaultFamily = DefaultFont switch
+        {
+            PdfStandardFont.TimesRoman or PdfStandardFont.TimesBold or PdfStandardFont.TimesItalic
+                or PdfStandardFont.TimesBoldItalic => PdfFontFamily.Times,
+            PdfStandardFont.Courier or PdfStandardFont.CourierBold or PdfStandardFont.CourierOblique
+                or PdfStandardFont.CourierBoldOblique => PdfFontFamily.Courier,
+            _ => PdfFontFamily.Helvetica
+        };
+        return PdfStandardFonts.FromStyle(defaultFamily,
+            bold || IsBoldFont(DefaultFont), italic || IsItalicFont(DefaultFont));
     }
 
     private static (double Width, double Height) CalculateFitSize(PdfImageData image, double maxWidth, double maxHeight)

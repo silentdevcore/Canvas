@@ -2,7 +2,6 @@ import { companyPage } from './siteLinks.js';
 
 const NOTICE_VERSION = '2026-08';
 const COOKIE_NAME = 'PVAD.StorageNotice';
-const LEGACY_COOKIE_NAME = 'PXA.StorageNotice';
 
 function readCookie(name) {
   return document.cookie.split(';').map((value) => value.trim())
@@ -11,15 +10,15 @@ function readCookie(name) {
 function cookieAttributes(maxAge) {
   const production = location.protocol === 'https:';
   const sharedDomain = production && (
-    location.hostname === 'powerdoxautomation.com' ||
-    location.hostname.endsWith('.powerdoxautomation.com')
+    location.hostname === 'pvade.com' ||
+    location.hostname.endsWith('.pvade.com')
   );
   return [
     'Path=/',
     `Max-Age=${maxAge}`,
     'SameSite=Lax',
     production ? 'Secure' : '',
-    sharedDomain ? 'Domain=.powerdoxautomation.com' : '',
+    sharedDomain ? 'Domain=.pvade.com' : '',
   ].filter(Boolean).join('; ');
 }
 
@@ -55,9 +54,7 @@ function showNotice() {
 
 export function initializeStorageNotice() {
   const current = readCookie(COOKIE_NAME);
-  const legacyAcknowledged = current === undefined && readCookie(LEGACY_COOKIE_NAME) === NOTICE_VERSION;
-  if (legacyAcknowledged) acknowledge();
-  if (current !== NOTICE_VERSION && !legacyAcknowledged)
+  if (current !== NOTICE_VERSION)
     showNotice();
   document.addEventListener('click', (event) => {
     if (!event.target.closest('[data-pvad-storage-settings]')) return;

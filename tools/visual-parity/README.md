@@ -3,6 +3,263 @@
 The visual parity tools use deterministic local fixtures and pinned rendering
 settings. `run.mjs` compares Designer surfaces with generated PDF output.
 
+Canvas and Live Preview delegate all 38 element types to
+`pvad-designer/src/components/Rendering/DocumentElementRenderer.tsx`. Surface
+placement and editor interaction controls stay separate from printable content.
+The coverage contract checks that both consumers use the shared dispatcher and
+that its types match the catalog, fixture pack and backend. Display-field
+localization is also checked against the backend substitution list; stable IDs,
+form names and binding paths are not localized.
+
+Run the additional localized pack with:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/shared-renderer.json node tools/visual-parity/run.mjs
+```
+
+The pack uses a French target language, synthetic properties, text/rich text,
+form and signature labels, a note, and a local contained image. It exercises
+normal PDF and real C# execution as well as both browser surfaces. Rendering
+must leave the canonical fixture and its checksum unchanged. This is scoped
+coverage, not certification of every image crop or arbitrary date format; see
+`docs/guides/PVAD.Designer-Preview.md` for remaining limits.
+
+The dedicated image pack extends fitting coverage:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/image-fit.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+node --test tools/visual-parity/fixture-layout.test.mjs
+```
+
+It compares 34 PNG/JPEG cases on three pages: contain/cover/fill/none, wide/tall
+images, natural-size images smaller and larger than their boxes, focus edges,
+alpha transparency, the legacy preserve-aspect override and localized bounds.
+Expected PDF crops come from the fixture's exact/base language override, not
+measured browser geometry. Document images must finish decoding before capture.
+The optional internal `surface=editor&fixture=image-fit` view retains editor
+controls for Inspector smoke tests; it has the same build-time gate as the
+other parity views and is absent from production bundles.
+CI runs the image pack before the full catalog, archives its report separately
+even on failure, and uploads `pvad-image-fit-parity` evidence without replacing
+the catalog report consumed by the fidelity aggregator.
+
+The date pack freezes browser and normal/C# backend rendering to one shared
+synthetic instant from `date-format.clock.json`:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-format.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+It covers 18 outputs: six locale families including shaped Arabic with Latin
+digits, timezone offsets, formats, fallbacks and property binding. The shared
+`date-format-cases.json` separately exercises DST changes, calendar validation,
+fractional offsets, tokens and standard formats in Jest and .NET. Frozen time
+is test-only sidecar data; it is not a design property, API query option or
+saved template setting. Production render-time dates capture the actual clock
+once per PDF. `product-metadata/designer-date-formatting.json` is the shared,
+versioned format/default contract and is embedded in the Core assembly.
+
+Historical timezone boundaries have a separate 18-case visual pack and 32 shared
+formatter vectors in `date-historical-cases.json`:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-historical.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+Contract version 3 limits non-UTC zone conversion to instants from
+`1973-01-01T00:00:00Z`. Earlier timestamp dates render in UTC with a localized
+Inspector warning; static text, date-only bindings and UTC-forcing formats stay
+unchanged. Positive/negative source offsets test the absolute-instant boundary,
+not just the input year. This does not certify second-accurate local-mean time
+or different platform timezone-database versions. Keep the original date packs
+and owner approvals unchanged; archive this pack separately before another run.
+The backend uses Noda Time 3.3.7 with pinned TZDB data, not Windows registry
+history. The package's Apache license and NOTICE are copied into build/publish
+outputs; package/source/license hashes are in `assets/licenses/nodatime-provenance.json`.
+
+The separate paragraph-layout pack uses another test-only clock sidecar:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/date-layout.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+```
+
+Its 20 cases on three pages cover narrow/multiline Latin and Arabic dates,
+asymmetric padding, left/center/right alignment, line-height variants, explicit
+breaks, empty fields, uniform/per-side/zero/rounded/dashed frames and overflow.
+The nonrotated left-aligned Latin text guard checks Date line positions and
+widths against extracted PDF text; shaped Arabic retains its separate guard.
+Fields are not automatically resized. The Inspector warns when content exceeds
+the box. CI preserves `date-layout-parity` artifacts separately from formatting,
+image and catalog reports. Existing thresholds and reviewed baseline pins apply
+unchanged; a small raster-only P2 finding must remain visible in the report.
+
+The parity run uses packaged Liberation Sans faces and Noto Sans Arabic, not
+network-loaded fonts. PDF and generated C# output retain Arabic logical text
+through shaped glyphs and ActualText. In addition to aggregate pixel metrics,
+the runner rejects missing/clipped RTL SVG text and verifies Arabic words in
+both PDFs through `pdftotext`. Poppler's `pdftoppm`, `pdftotext`, and `pdfimages`,
+plus ImageMagick, must therefore be available on PATH.
+
+Footnote and endnote references remain at their element position; their body
+uses the effective page height and the backend footer offset. The browser run
+also rejects footer text clipped by an element wrapper or another ancestor.
+Standard tables use the same cell matrix, relative column weights, paragraph
+wrapping, minimum row heights, text positioning and single grid as the PDF.
+Tables with complete canonical cell matrices use this shared renderer for
+individual cell-style overrides as well. Sparse overrides preserve defaults;
+explicit false bold/italic and zero padding remain meaningful. A shared edge
+is painted once: explicit overrides beat defaults, wider explicit borders win,
+and equal widths use the right/bottom cell. An explicit zero width suppresses
+an adjacent default border. Incomplete legacy cell matrices retain their
+fallback rendering and are not covered by this table parity guarantee.
+Table dimension edits resize the cell matrix and preserve retained values,
+column settings and in-range cell overrides in the same update.
+
+Run the additional cell-style pack with:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/styled-tables.json node tools/visual-parity/run.mjs
+```
+
+The pack covers cell typography, fills, padding, automatic row heights,
+individual borders and inserted RDL matrix headers. It uses bundled sans-serif
+faces. The separate font-family pack supplies matching packaged Serif/Mono
+faces rather than relying on native viewer substitution. This table pack alone
+does not certify every font or platform. SDK native standard-font fallback
+without a loader remains outside that guarantee. PDF/A font embedding still
+requires actual matching font files. Per-cell styles are supported on explicit pages through
+`PdfPage.DrawSimpleTable` and in automatic `PdfFlowContext.AddSimpleTable`
+pagination. Flow measures the original rows before planning page breaks, maps
+styles and row metrics into each chunk, repeats headers, and honors repeated
+or final-only footers. Continuation markers reserve their own space and
+alternating row fills retain their data-row parity. Rows stay whole; a row
+that cannot fit a fresh page with its required repeated content is rejected
+before any table chunk is painted.
+
+The dedicated family pack compares 22 cases on three pages:
+
+```bash
+PVAD_VISUAL_PARITY_FIXTURE=test-assets/visual-parity/font-families.json PVAD_VISUAL_PARITY_ENFORCE=true node tools/visual-parity/run.mjs
+node --test tools/visual-parity/font-families.test.mjs
+```
+
+It covers Serif/Mono regular, bold, italic and bold-italic, wrapped/padded and
+aligned paragraphs, Rich Text, table cells, dates, links and numbers. The font
+provenance record pins eight unmodified upstream faces; the API and browser
+distributions include their license. Current Sans faces and approved references
+stay unchanged. CI enforces the pack and preserves separate `font-family-parity`
+artifacts. Font substitution and text drift fail rather than relaxing thresholds.
+Native fonts without a loader and untested platforms remain separate validation.
+
+For an isolated Linux replay of the committed font and complete catalog packs,
+see [Linux validation](linux/README.md). It uses a read-only Git archive and
+temporary container build outputs; local macOS reports and open worktree changes
+are not reused as Linux evidence. Record the actual image, architecture, browser
+and source hashes. Local container execution is distinct from remote CI or
+Windows certification.
+
+## Native Linux And Windows
+
+The [platform workflow](../../.github/workflows/visual-parity-platforms.yml)
+uses native Ubuntu 24.04/x64 and Windows Server 2025/x64 runners. It runs font,
+date-format, historical-date, date-layout and full-catalog fixtures sequentially
+per platform, with fail-fast disabled between platforms. A failed pack retains
+its log and partial outputs; later packs still run. Local reproduction:
+
+```bash
+node tools/visual-parity/platforms.mjs
+```
+
+Install .NET 10, Node 22, the project Playwright Chromium, Poppler and ImageMagick
+first. Windows uses native tools, not WSL. The workflow installs Poppler 26.9.0;
+the actual runner image, tool versions, font hashes, source commit and browser
+version are captured in each platform's `environment.json`.
+
+The harness explicitly selects bundled Chromium with `--bundled-browser`, never
+the runner's independently updated Chrome. It generates fresh backend/C# PDFs
+and saves evidence under `artifacts/platform-parity/<platform>-<architecture>/`.
+`report.html` links every pack. Native image comparisons use the existing
+ImageMagick wrapper and `null:` output, preserving metrics and thresholds.
+
+An isolated `validation/platform-parity-*` branch can trigger this workflow
+without a merge or release. Source byte identities are preserved across Windows
+checkout. No deployment secrets or write-capable token are provided. Rendering
+success and human P2 approval remain separate: macOS/Linux ARM64 approvals do
+not automatically approve Windows or Linux/x64 output. CI artifacts are retained
+for 30 days and must be downloaded for durable review.
+
+After building `PVAD.Api.Tests`, generate the dedicated three-page flow versus
+independently planned explicit-page comparison with:
+
+```bash
+node tools/visual-parity/flow-tables.mjs
+```
+
+This command runs the synthetic artifact test, rasterizes both PDFs at 72 DPI,
+and writes `artifacts/flow-table-parity/report.html` and JSON alongside overlays
+and pixel diffs. It requires exact zero changed pixels, not a relaxed threshold.
+The test also requires byte-identical PDFs for its fixed explicit-page fixture.
+The native C# workflow and limits are documented in
+`docs/guides/PVAD.Styled-Table-Pagination.md`; Designer tables remain explicitly
+positioned elements rather than acquiring implicit page creation.
+
+Normal widget appearances, stored radio selection, default-family bold/italic
+styles, TOC titles, and single-rotation watermark rendering have focused tests
+in `VisualRenderingRegressionTests.cs` and `pdfVisualRendering.test.tsx`.
+The same tests cover form-label offsets, required markers, note wrapping,
+footnote position, centered shape borders, dashed lines, table resizing and
+colored PDF text decorations. P2 findings remain visible in the reports;
+matching aggregate thresholds does not make different glyph shapes, widget
+baselines or underline extents automatically equivalent at 200% inspection.
+
+After building `PVAD.Api.Tests`, inspect the two residual Latin bold-text crops
+at a newly rendered 200% scale with:
+
+```bash
+node tools/visual-parity/bold-text-review.mjs
+node --test tools/visual-parity/text-metrics.test.mjs tools/visual-parity/bold-text-approval.test.mjs
+```
+
+The command writes `artifacts/bold-text-review/report.html` and JSON. Browser
+screenshots use two device pixels per PDF point; PDF vectors are rerasterized
+at 144 DPI after supersampling, not enlarged from the 72-DPI reports. It also
+checks the exact loaded font bytes, size/style, each glyph offset and advance,
+and the existing 0.1-point text-layout guard. This deliberately covers plain
+Latin text only, not shaped scripts or arbitrary ligature clusters.
+
+The repository owner explicitly approved both current comparisons on
+2026-11-13. The reviewed images and fixture/font hashes are stored in
+`test-assets/visual-parity/approvals/2026-11-13-bold-text/`. The review runner
+recognizes that approval only for the exact matching images, fixture hashes,
+font, platform, browser version and scale. Changed evidence remains pending;
+the runner never approves a new image or updates these pins. P2 measurements
+and normal CI image thresholds remain unchanged. This approval is not a
+cross-platform or universal-font rendering certification.
+The archived PNG byte hashes protect the original review evidence. Repeat-run
+approval uses exact decoded RGBA16 pixels plus dimensions, excluding only file
+encoding metadata such as timestamps. A one-pixel change requires renewed
+approval; there is no perceptual tolerance in that approval check.
+
+The artifact generator also reads `text-metrics.json` back from the real PDF.
+For unrotated, left-aligned non-RTL Text and Link runs, the browser comparison
+independently checks the baseline, start position and actual unkerned advance
+within 0.1 point. The JSON report retains both sets of measurements and the
+embedded font's hash. This is an additional layout guard, not a replacement for
+pixel comparisons or an increase of the approved image thresholds. Reused
+artifacts must include the current metrics sidecar; regenerate older outputs.
+
+Choice widgets have explicit normal appearances, clipped to their inner boxes,
+and embed the packaged regular font when a loader is configured. The existing
+PDF CID-width serialization remains unchanged to preserve pinned invoice evidence.
+Form filling invalidates the old choice appearance so readers do not display
+the old value. Link underlines use explicit PDF-positioned strokes, rather than
+browser-specific decoration metrics. QR images use normal downsampling;
+barcode image rendering remains pixelated and original symbol pixels remain
+verified in both PDF outputs.
+Aggregate pixel metrics alone are not a semantic correctness guarantee; review
+the per-element images as well. Thresholds and approved Trust references must
+not be changed just to conceal a rendering failure.
+
 `pdf-trust-golden.mjs` covers the current PDF Trust visual contract:
 
 - `signed`: digital signature appearance and page geometry

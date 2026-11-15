@@ -20,8 +20,8 @@ payload="$(
     annotations: {
       summary: ("PVAD operator notification delivery test pvad-alert-email-" + $test_id),
       description: "Synthetic technical alert used to verify independent Alertmanager SMTP delivery.",
-      dashboard_path: "/d/pxa-platform-overview/pxa-platform-overview",
-      runbook_id: "PXA-OBS-TEST"
+      dashboard_path: "/d/pvad-platform-overview/pvad-platform-overview",
+      runbook_id: "PVAD-OBS-TEST"
     }
   }]'
 )"
@@ -68,7 +68,7 @@ jq -e --arg test_id "pvad-alert-email-${test_id}" --arg alert_name "PvadNotifica
   (.Text | contains("Service: pvad-observability")) and
   (.Text | contains("Environment: local-evaluation")) and
   (.Text | contains("Dashboard: http://localhost:3001/operator/grafana/")) and
-  (.Text | contains("Runbook: PXA-OBS-TEST")) and
+  (.Text | contains("Runbook: PVAD-OBS-TEST")) and
   (.HTML | contains("Open protected dashboard"))
 ' <<<"${message}" >/dev/null
 

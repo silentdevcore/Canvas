@@ -9,7 +9,7 @@ using PVAD.WebApi.Controllers;
 namespace PVAD.Api.Tests;
 
 /// <summary>
-/// EINV-10: XML PXA does not recognize may be stored byte for byte, but only when the caller
+/// EINV-10: XML PVAD does not recognize may be stored byte for byte, but only when the caller
 /// asks for it, and never as a standards claim.
 /// </summary>
 public sealed class PdfEInvoicePreservedXmlTests
@@ -25,7 +25,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI020", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI020", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status409Conflict, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI028", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI028", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -48,10 +48,10 @@ public sealed class PdfEInvoicePreservedXmlTests
         var extracted = await CreateController().Extract(
             Pdf(attached.FileContents), "preserved-invoice.xml", CancellationToken.None);
         Assert.Equal(UnknownXml, Assert.IsType<FileContentResult>(extracted).FileContents);
-        Assert.Equal("PreservedUnknownXml", controller.Response.Headers["PXA-Invoice-Mode"]);
-        Assert.Equal("unrecognized", controller.Response.Headers["PXA-Invoice-Recognition"]);
-        Assert.Equal("false", controller.Response.Headers["PXA-Invoice-Editable"]);
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Conformance"]);
+        Assert.Equal("PreservedUnknownXml", controller.Response.Headers["PVAD-Invoice-Mode"]);
+        Assert.Equal("unrecognized", controller.Response.Headers["PVAD-Invoice-Recognition"]);
+        Assert.Equal("false", controller.Response.Headers["PVAD-Invoice-Editable"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Conformance"]);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI026", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI026", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Theory]
@@ -139,7 +139,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI025", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI025", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI027", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI027", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public sealed class PdfEInvoicePreservedXmlTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI027", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI027", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public sealed class PdfEInvoicePreservedXmlTests
             attachmentFileName: null,
             CancellationToken.None);
 
-        Assert.Equal("PXAEINVAPI001", Assert.IsType<ProblemDetails>(
+        Assert.Equal("PVADEINVAPI001", Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(result).Value).Extensions["code"]);
     }
 

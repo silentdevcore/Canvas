@@ -1,0 +1,10 @@
+{
+  "id": "pdfua-choice-appearance-font-validation",
+  "impact": "patch",
+  "components": ["generator", "documentation"],
+  "category": "fixed",
+  "summary": "Prevented non-conforming PDF/UA choice fields and unsupported interactive controls in PDF/A output.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

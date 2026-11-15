@@ -37,12 +37,12 @@ public sealed class PvadUsageService : IPvadUsageService
         CancellationToken cancellationToken = default)
     {
         if (quantity <= 0 || string.IsNullOrWhiteSpace(requestId) || string.IsNullOrWhiteSpace(operation))
-            return new(false, false, "PXA_USAGE_INVALID", "Quantity, request ID, and operation are required.", null);
+            return new(false, false, "PVAD_USAGE_INVALID", "Quantity, request ID, and operation are required.", null);
         var existing = await dbContext.SubscriptionUsageEvents.AsNoTracking()
             .SingleOrDefaultAsync(value => value.OrganizationId == organizationId && value.RequestId == requestId,
                 cancellationToken);
         if (existing is not null)
-            return new(true, true, "PXA_USAGE_ALREADY_RECORDED", "The idempotent usage event already exists.", existing.Id);
+            return new(true, true, "PVAD_USAGE_ALREADY_RECORDED", "The idempotent usage event already exists.", existing.Id);
 
         var decision = await entitlementService.EvaluateAsync(
             organizationId, capability, quantity, cancellationToken);
@@ -70,10 +70,10 @@ public sealed class PvadUsageService : IPvadUsageService
                 .SingleOrDefaultAsync(value => value.OrganizationId == organizationId && value.RequestId == requestId,
                     cancellationToken);
             if (concurrent is not null)
-                return new(true, true, "PXA_USAGE_ALREADY_RECORDED", "The idempotent usage event already exists.", concurrent.Id);
+                return new(true, true, "PVAD_USAGE_ALREADY_RECORDED", "The idempotent usage event already exists.", concurrent.Id);
             throw;
         }
-        return new(true, false, "PXA_USAGE_RECORDED", "Usage was recorded.", usageEvent.Id);
+        return new(true, false, "PVAD_USAGE_RECORDED", "Usage was recorded.", usageEvent.Id);
     }
 }
 

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import crypto from 'node:crypto';
 
 import type { PvadMcpDiagnostic } from './results.js';
-import { canonicalScopes } from './scopeCompatibility.js';
+import { uniqueScopes } from './scopes.js';
 
 const API_TIMEOUT_MS = 10_000;
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
@@ -135,7 +135,7 @@ export class PvadApiClient {
       if (delegation) {
         if (!this.delegationSecret) {
           return { diagnostic: {
-            code: 'PXAMCP045',
+            code: 'PVADMCP045',
             severity: 'error',
             message: 'Tenant delegation to PVAD WebApi is not configured.',
           } };
@@ -151,7 +151,7 @@ export class PvadApiClient {
       if (!response.ok) {
         return {
           diagnostic: {
-            code: response.status === 401 || response.status === 403 ? 'PXAMCP041' : 'PXAMCP040',
+            code: response.status === 401 || response.status === 403 ? 'PVADMCP041' : 'PVADMCP040',
             severity: 'error',
             message: response.status === 401 || response.status === 403
               ? 'PVAD WebApi denied the internal capability request.'
@@ -179,7 +179,7 @@ export class PvadApiClient {
     } catch {
       return {
         diagnostic: {
-          code: abortController.signal.aborted ? 'PXAMCP042' : 'PXAMCP043',
+          code: abortController.signal.aborted ? 'PVADMCP042' : 'PVADMCP043',
           severity: 'error',
           message: abortController.signal.aborted
             ? `PVAD WebApi capability request exceeded ${API_TIMEOUT_MS} milliseconds.`
@@ -199,7 +199,7 @@ function createDelegation(secret: string, context: PvadDelegationContext): strin
     aud: 'pvad-api',
     sub: context.subject,
     org: context.organizationId,
-    scope: canonicalScopes(context.scopes),
+    scope: uniqueScopes(context.scopes),
     iat: now,
     exp: now + 30,
     jti: crypto.randomUUID(),
@@ -211,7 +211,7 @@ function createDelegation(secret: string, context: PvadDelegationContext): strin
 function invalidResponse<T>(): PvadApiResult<T> {
   return {
     diagnostic: {
-      code: 'PXAMCP044',
+      code: 'PVADMCP044',
       severity: 'error',
       message: 'PVAD WebApi returned an invalid or oversized capability response.',
     },

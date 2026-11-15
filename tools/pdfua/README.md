@@ -1,5 +1,15 @@
 # PVAD PDF/UA Validation
 
+Choice-control normal appearances (combo boxes and list boxes) render text and
+therefore require an embeddable font for PDF/UA-1. Configure `PdfFontLoader` with
+the packaged fonts before adding pages. Preflight rejects missing/unloadable
+appearance fonts with `PVADPDFUA006` instead of emitting a non-conforming file.
+Standard non-PDF/UA output retains its existing native-font fallback.
+The PDF/A generator's current no-interactive-forms restriction also covers list,
+radio, signature and push-button widgets. It fails preflight rather than making
+an unsupported archival-conformance claim. Validator batch runs retain a report
+for every input and fail if any validator invocation or compliance check fails.
+
 `validate-pdfua.sh` runs the pinned official veraPDF CLI container with the
 PDF/UA-1 profile and retains one machine-readable XML report per input file.
 

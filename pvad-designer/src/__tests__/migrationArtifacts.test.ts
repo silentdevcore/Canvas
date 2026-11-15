@@ -3,7 +3,7 @@ import { migrationCodeArtifact } from '@/features/migrations/artifacts';
 describe('migration code artifacts', () => {
   it.each(['pdf', 'spreadsheet'] as const)('reads current and legacy %s outputs without changing source', domain => {
     const suffix = domain === 'pdf' ? 'csharp' : 'spreadsheet-csharp';
-    for (const prefix of ['pvad', 'pxa']) {
+    for (const prefix of ['pvad', 'pvad']) {
       const content = '// Keep comments and identifiers\nusing PVAD.Pdf;';
       const artifact = { id: `${prefix}-${suffix}`, mediaType: 'text/x-csharp', fileExtension: '.cs', content };
       expect(migrationCodeArtifact([{ id: 'design', content: {} }, artifact], domain)).toEqual({

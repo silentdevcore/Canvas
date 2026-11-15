@@ -49,14 +49,14 @@ public sealed class FileImporterFacadeTests
     [Fact]
     public async Task OdtImporter_ImportsTextDesign()
     {
-        await using var stream = new MemoryStream(MakeMinimalOdt("Hello PXA"));
+        await using var stream = new MemoryStream(MakeMinimalOdt("Hello PVAD"));
 
         var design = await new OdtFileImporter().ImportAsync(stream, "sample.odt");
 
         Assert.Equal("sample.odt", design.Name);
         Assert.Equal(595, design.PageSettings!.Width);
         Assert.Equal("text", design.Pages[0].Elements[0].Type);
-        Assert.Equal("Hello PXA", design.Pages[0].Elements[0].Content);
+        Assert.Equal("Hello PVAD", design.Pages[0].Elements[0].Content);
     }
 
     [Fact]
@@ -76,9 +76,9 @@ public sealed class FileImporterFacadeTests
     [Fact]
     public async Task PdfImporter_PreservesEverySourcePageBox()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var pdf = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         pdf.AddPage(595, 842);
         var landscape = pdf.AddPage(842, 595);
         landscape.SetPageBoundary(PdfPageBoundary.CropBox, new PdfPoint(10, 20), new PdfPoint(810, 570));
@@ -111,7 +111,7 @@ public sealed class FileImporterFacadeTests
         const string svg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="100">
               <rect x="10" y="20" width="80" height="40" fill="#336699" />
-              <text x="12" y="80">PXA</text>
+              <text x="12" y="80">PVAD</text>
             </svg>
             """;
 

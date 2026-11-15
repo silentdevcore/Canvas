@@ -14,8 +14,8 @@ public sealed class PvadPdfLongTermValidationMaterialProviderTests
     public async Task GetMaterialAsync_UsesServerOwnedSignerAndTimestampTrustAnchors()
     {
         var now = DateTimeOffset.UtcNow;
-        using var signer = CreateCertificate("PXA B-LT Signer", now, timestamping: false);
-        using var timestampSigner = CreateCertificate("PXA B-LT TSA", now, timestamping: true);
+        using var signer = CreateCertificate("PVAD B-LT Signer", now, timestamping: false);
+        using var timestampSigner = CreateCertificate("PVAD B-LT TSA", now, timestamping: true);
         var timestampToken = CreateTimestampToken(timestampSigner, now);
         var evidenceProvider = new RejectingEvidenceProvider();
         var provider = new PvadPdfLongTermValidationMaterialProvider(
@@ -67,7 +67,7 @@ public sealed class PvadPdfLongTermValidationMaterialProviderTests
         var tokenInfo = new Rfc3161TimestampTokenInfo(
             new Oid("1.2.3.4.5"),
             new Oid("2.16.840.1.101.3.4.2.1"),
-            SHA256.HashData("PXA signature"u8),
+            SHA256.HashData("PVAD signature"u8),
             new byte[] { 1 },
             timestamp,
             accuracyInMicroseconds: null,

@@ -32,12 +32,12 @@ describe('Designer project API', () => {
     global.structuredClone = value => JSON.parse(JSON.stringify(value));
   });
 
-  test('opens a PXAP through the canonical PDF project endpoint', async () => {
-    const file = new File(['project'], 'invoice.pxap', {
+  test('opens a PVADP through the canonical PDF project endpoint', async () => {
+    const file = new File(['project'], 'invoice.pvadp', {
       type: 'application/vnd.pvad.pvadp+zip',
     });
     const response = {
-      manifest: { title: 'Invoice', formatId: 'pxap', documentSchemaVersion: '1.0' },
+      manifest: { title: 'Invoice', formatId: 'pvadp', documentSchemaVersion: '1.0' },
       document: { id: 'invoice', name: 'Invoice', pages: [{ id: 'page-1', elements: [] }] },
       packageSha256: 'a'.repeat(64),
     };
@@ -55,14 +55,14 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Invoice', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Invoice', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: { id: 'document-import-2', name: 'Invoice', pages: [] },
         packageSha256: 'a'.repeat(64),
         idRemaps: { document: 'document-import-2' },
       }),
     });
 
-    await openPdfProject(new File(['project'], 'invoice.pxap'), ['document', 'page-1']);
+    await openPdfProject(new File(['project'], 'invoice.pvadp'), ['document', 'page-1']);
 
     const init = fetchMock.mock.calls[0][1];
     expect(init.body).toBeInstanceOf(FormData);
@@ -73,13 +73,13 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Budget', formatId: 'pxas', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Budget', formatId: 'pvads', documentSchemaVersion: '1.0' },
         document: { id: 'budget', name: 'Budget', sheets: [] },
         packageSha256: 'b'.repeat(64),
       }),
     });
 
-    await openSpreadsheetProject(new File(['project'], 'budget.pxas'));
+    await openSpreadsheetProject(new File(['project'], 'budget.pvads'));
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/pvad/v1/designer/projects/spreadsheet/open');
   });
@@ -127,7 +127,7 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Future', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Future', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: {
           id: 'future',
           name: 'Future',
@@ -139,7 +139,7 @@ describe('Designer project API', () => {
       }),
     });
 
-    const result = await openPdfProject(new File(['project'], 'future.pxap'));
+    const result = await openPdfProject(new File(['project'], 'future.pvadp'));
 
     expect(result.document.extensionData).toEqual({ futureDocumentOption: { enabled: true } });
     expect(result.document.pages[0].extensionData).toEqual({ futurePageOption: 42 });
@@ -150,14 +150,14 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: false,
       status: 400,
-      json: async () => ({ code: 'PXAPROJECT007', detail: 'The package was tampered with.' }),
+      json: async () => ({ code: 'PVADPROJECT007', detail: 'The package was tampered with.' }),
     });
 
-    const operation = openPdfProject(new File(['broken'], 'broken.pxap'));
+    const operation = openPdfProject(new File(['broken'], 'broken.pvadp'));
 
     await expect(operation).rejects.toThrow('The package was tampered with.');
     await expect(operation).rejects.toMatchObject({
-      code: 'PXAPROJECT007',
+      code: 'PVADPROJECT007',
       status: 400,
     } satisfies Partial<DesignerProjectApiError>);
   });
@@ -166,7 +166,7 @@ describe('Designer project API', () => {
     const setHeader = jest.fn();
     const progress: Array<{ phase: string; percent: number }> = [];
     const response = {
-      manifest: { title: 'Large', formatId: 'pxap', documentSchemaVersion: '1.0' },
+      manifest: { title: 'Large', formatId: 'pvadp', documentSchemaVersion: '1.0' },
       document: { id: 'large', name: 'Large', pages: [{ id: 'page-1', elements: [] }] },
       packageSha256: 'd'.repeat(64),
     };
@@ -189,7 +189,7 @@ describe('Designer project API', () => {
     const original = global.XMLHttpRequest;
     global.XMLHttpRequest = ProjectRequest as unknown as typeof XMLHttpRequest;
     try {
-      await openPdfProject(new File([new Uint8Array(100)], 'large.pxap'), [], {
+      await openPdfProject(new File([new Uint8Array(100)], 'large.pvadp'), [], {
         onProgress: event => progress.push({ phase: event.phase, percent: event.percent }),
       });
     } finally {
@@ -234,13 +234,13 @@ describe('Designer project API', () => {
     global.XMLHttpRequest = ProjectRequest as unknown as typeof XMLHttpRequest;
     const controller = new AbortController();
     try {
-      const operation = openPdfProject(new File(['project'], 'cancel.pxap'), [], {
+      const operation = openPdfProject(new File(['project'], 'cancel.pvadp'), [], {
         signal: controller.signal,
         onProgress: jest.fn(),
       });
       controller.abort();
       await expect(operation).rejects.toMatchObject({
-        code: 'PXAPROJECT_CANCELLED',
+        code: 'PVADPROJECT_CANCELLED',
         status: 499,
       });
     } finally {
@@ -253,10 +253,10 @@ describe('Designer project API', () => {
       requiresReview: true,
       missingFeatures: ['pdf.future-feature'],
       diagnostics: [
-        { code: 'PXAPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link.', source: 'page-1' },
-        { code: 'PXAPROJECT_INFO', severity: 'info', message: 'Informational.' },
+        { code: 'PVADPROJECT_EXTERNAL_LINK', severity: 'warning', message: 'External link.', source: 'page-1' },
+        { code: 'PVADPROJECT_INFO', severity: 'info', message: 'Informational.' },
       ],
-    })).toBe('Feature: pdf.future-feature | PXAPROJECT_EXTERNAL_LINK: External link.');
+    })).toBe('Feature: pdf.future-feature | PVADPROJECT_EXTERNAL_LINK: External link.');
     expect(projectCompatibilitySummary({
       requiresReview: false,
       missingFeatures: [],
@@ -268,7 +268,7 @@ describe('Designer project API', () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({
-        manifest: { title: 'Legacy', formatId: 'pxap', documentSchemaVersion: '1.0' },
+        manifest: { title: 'Legacy', formatId: 'pvadp', documentSchemaVersion: '1.0' },
         document: { id: 'legacy', name: 'Legacy', pages: [] },
         packageSha256: 'original-hash',
         compatibility: { requiresReview: false, missingFeatures: [], diagnostics: [] },
@@ -276,7 +276,7 @@ describe('Designer project API', () => {
           sourceVersion: '0.9', targetVersion: '1.0', originalPackageSha256: 'original-hash',
           isLossy: false, steps: [{ fromVersion: '0.9', toVersion: '1.0', isLossy: false }],
           diagnostics: [{
-            code: 'PXAPROJECT_UPGRADED', severity: 'warning',
+            code: 'PVADPROJECT_UPGRADED', severity: 'warning',
             message: 'The project was upgraded in memory.', source: 'document',
           }],
         },
@@ -284,11 +284,11 @@ describe('Designer project API', () => {
       }),
     });
 
-    const result = await openPdfProject(new File(['project'], 'legacy.pxap'));
+    const result = await openPdfProject(new File(['project'], 'legacy.pvadp'));
 
     expect(result.compatibility).toMatchObject({ requiresReview: true });
     expect(result.compatibility?.diagnostics).toContainEqual(expect.objectContaining({
-      code: 'PXAPROJECT_UPGRADED',
+      code: 'PVADPROJECT_UPGRADED',
     }));
   });
 
@@ -314,7 +314,7 @@ describe('Designer project API', () => {
       }],
     });
 
-    await expect(operation).rejects.toMatchObject({ code: 'PXAPROJECT010' });
+    await expect(operation).rejects.toMatchObject({ code: 'PVADPROJECT010' });
   });
 
   test('removes assets already uploaded when a later project image fails', async () => {

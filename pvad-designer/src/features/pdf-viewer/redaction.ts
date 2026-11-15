@@ -12,7 +12,6 @@ export type RedactionCoverage = 'None' | 'Partial' | 'Contained';
 
 export interface RedactionFinding {
   code: string;
-  canonicalCode?: string | null;
   capability: RedactionCapability;
   message: string;
   pageNumber?: number | null;
@@ -67,7 +66,6 @@ export class RedactionBlockedError extends Error {
     readonly code: string | null,
     readonly preflight: RedactionPreflightReport | null,
     readonly verification: RedactionVerification | null,
-    readonly canonicalCode: string | null = null,
   ) {
     super(message);
     this.name = 'RedactionBlockedError';

@@ -11,10 +11,10 @@ public sealed class PdfViewerAnnotationStoreRenameTests
         var root = Directory.CreateTempSubdirectory("pvad-annotation-rename-").FullName;
         try
         {
-            var mount = Path.Combine(root, "retained-pxa-mount");
-            using var payload = JsonDocument.Parse("[{\"id\":\"note-1\",\"text\":\"Synthetic PXA source text\"}]");
-            var original = new PdfViewerAnnotationStore(mount).Save("synthetic-pxa-document", 1,
-                "Synthetic PXA source.pdf", DateTimeOffset.Parse("2026-10-21T00:00:00Z"), payload.RootElement);
+            var mount = Path.Combine(root, "retained-pvad-mount");
+            using var payload = JsonDocument.Parse("[{\"id\":\"note-1\",\"text\":\"Synthetic PVAD source text\"}]");
+            var original = new PdfViewerAnnotationStore(mount).Save("synthetic-pvad-document", 1,
+                "Synthetic PVAD source.pdf", DateTimeOffset.Parse("2026-10-21T00:00:00Z"), payload.RootElement);
             var path = Assert.Single(Directory.GetFiles(mount));
             var bytes = File.ReadAllBytes(path);
             var restarted = new PdfViewerAnnotationStore(mount);

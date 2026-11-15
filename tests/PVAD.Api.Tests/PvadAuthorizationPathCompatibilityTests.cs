@@ -26,10 +26,9 @@ public sealed class PvadAuthorizationPathCompatibilityTests
         Assert.False(reachedEndpoint);
         context.Response.Body.Position = 0;
         using var payload = await System.Text.Json.JsonDocument.ParseAsync(context.Response.Body);
-        Assert.Equal("PXA_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("code").GetString());
-        Assert.Equal("PVAD_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("canonicalCode").GetString());
-        Assert.Equal("PXA_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("title").GetString());
-        Assert.Equal("PVAD_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("canonicalTitle").GetString());
+        Assert.Equal("PVAD_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("code").GetString());
+        Assert.Equal("PVAD_AUTHENTICATION_REQUIRED", payload.RootElement.GetProperty("title").GetString());
+        Assert.False(payload.RootElement.TryGetProperty("canonicalTitle", out _));
     }
 
     [Theory]
@@ -47,7 +46,7 @@ public sealed class PvadAuthorizationPathCompatibilityTests
         var expectedPermission = PvadDesignerPermissionResolver.Resolve("/api" + suffix, method);
         var expectedCapability = PvadProductAccessMiddleware.ResolveCapability("/api" + suffix);
         Assert.NotNull(expectedCapability);
-        foreach (var brand in new[] { "pvad", "pxa", "PVAD", "PXA" })
+        foreach (var brand in new[] { "pvad", "pvad", "PVAD", "PVAD" })
         {
             var path = new PathString($"/api/{brand}{suffix}");
             Assert.Equal(expectedPermission, PvadDesignerPermissionResolver.Resolve(path, method));
@@ -56,8 +55,8 @@ public sealed class PvadAuthorizationPathCompatibilityTests
     }
 
     [Theory]
-    [InlineData("/api/pvad/v1/pdf/signatures/sign", "/api/pxa/v1/pdf/signatures/sign")]
-    [InlineData("/api/pvad/v1/pdf/redactions/apply", "/api/pxa/v1/pdf/redactions/apply")]
+    [InlineData("/api/pvad/v1/pdf/signatures/sign", "/api/pvad/v1/pdf/signatures/sign")]
+    [InlineData("/api/pvad/v1/pdf/redactions/apply", "/api/pvad/v1/pdf/redactions/apply")]
     public void Versioned_aliases_preserve_sensitive_operation_requirements(string canonical, string legacy)
     {
         Assert.Equal(PvadDesignerPermissionResolver.Resolve(canonical, "POST"),
@@ -68,7 +67,7 @@ public sealed class PvadAuthorizationPathCompatibilityTests
 
     [Theory]
     [InlineData("/api/pvad/exported")]
-    [InlineData("/api/pxa/documentary")]
+    [InlineData("/api/pvad/documentary")]
     [InlineData("/api/pvad/v10/pdf/signatures/sign")]
     public void Near_prefixes_are_not_rewritten(string path) =>
         Assert.Equal(new PathString(path), PvadAuthorizationPaths.Normalize(path));

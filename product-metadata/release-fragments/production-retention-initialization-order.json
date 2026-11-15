@@ -1,0 +1,10 @@
+{
+  "id": "production-retention-initialization-order",
+  "impact": "patch",
+  "components": ["api", "infrastructure"],
+  "category": "fixed",
+  "summary": "Production startup now checks retention approval before data activation and identity initialization, with controlled shutdown on refusal.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

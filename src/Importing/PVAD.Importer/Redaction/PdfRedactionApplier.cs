@@ -27,14 +27,14 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
     /// </summary>
     private static readonly Dictionary<string, Func<PdfRedactionSanitizationPolicy, bool>> ResolvableFindings = new(StringComparer.Ordinal)
     {
-        ["PXAPDFREDACT102"] = static _ => true,
-        ["PXAPDFREDACT103"] = static policy => policy.RemoveEmbeddedFiles,
-        ["PXAPDFREDACT104"] = static policy => policy.RemoveDocumentMetadata,
-        ["PXAPDFREDACT107"] = static policy => policy.RemoveActionsAndJavaScript,
-        ["PXAPDFREDACT202"] = static policy => policy.RemoveOverlappingAnnotations,
-        ["PXAPDFREDACT207"] = static policy => policy.RemoveOverlappingAnnotations,
-        ["PXAPDFREDACT108"] = static policy => policy.RemoveHiddenRepresentations,
-        ["PXAPDFREDACT203"] = static policy => policy.RemoveHiddenRepresentations
+        ["PVADPDFREDACT102"] = static _ => true,
+        ["PVADPDFREDACT103"] = static policy => policy.RemoveEmbeddedFiles,
+        ["PVADPDFREDACT104"] = static policy => policy.RemoveDocumentMetadata,
+        ["PVADPDFREDACT107"] = static policy => policy.RemoveActionsAndJavaScript,
+        ["PVADPDFREDACT202"] = static policy => policy.RemoveOverlappingAnnotations,
+        ["PVADPDFREDACT207"] = static policy => policy.RemoveOverlappingAnnotations,
+        ["PVADPDFREDACT108"] = static policy => policy.RemoveHiddenRepresentations,
+        ["PVADPDFREDACT203"] = static policy => policy.RemoveHiddenRepresentations
     };
 
     private readonly BoundingBoxCalculator _bounds = new();
@@ -196,7 +196,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             .SelectMany(static region => region.Covered.Select(covered => (region, covered)))
             .Where(static item => item.covered.Capability != PdfRedactionCapability.Removable)
             .Select(static item => new PdfRedactionFinding(
-                "PXAPDFREDACT210",
+                "PVADPDFREDACT210",
                 item.covered.Capability,
                 $"Covered {item.covered.Kind} content is not fully contained in the region.",
                 item.region.PageNumber,
@@ -745,7 +745,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         if (residualElements > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT301",
+                "PVADPDFREDACT301",
                 PdfRedactionCapability.Unsupported,
                 $"{residualElements} element(s) still intersect a redaction region after apply."));
         }
@@ -771,7 +771,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         if (residualMatches > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT302",
+                "PVADPDFREDACT302",
                 PdfRedactionCapability.Unsupported,
                 $"{residualMatches} removed text run(s) are still extractable from the result."));
         }
@@ -781,7 +781,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         if (table.Revisions.Count != 1)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT303",
+                "PVADPDFREDACT303",
                 PdfRedactionCapability.Unsupported,
                 $"The result contains {table.Revisions.Count} revisions; earlier revisions may retain removed content."));
         }

@@ -19,7 +19,7 @@ public sealed class PdfInfrastructureFacadeTests
     public void Facade_GeneratesPdfFile()
     {
         var document = BuildDocument();
-        var path = Path.Combine(Path.GetTempPath(), $"pxa-pdf-{Guid.NewGuid():N}.pdf");
+        var path = Path.Combine(Path.GetTempPath(), $"pvad-pdf-{Guid.NewGuid():N}.pdf");
 
         try
         {
@@ -64,7 +64,7 @@ public sealed class PdfInfrastructureFacadeTests
 
         new PdfPageNumberingService().Apply(document);
         new PdfHeaderFooterService().Apply(document);
-        new PdfWatermarkService().Apply(document, "PXA");
+        new PdfWatermarkService().Apply(document, "PVAD");
         var bytes = new PdfDocumentRenderer().Render(document);
 
         Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
@@ -74,7 +74,7 @@ public sealed class PdfInfrastructureFacadeTests
     {
         var document = new PdfDocument();
         var page = document.AddPage(300, 180);
-        page.DrawTextFromTop("PXA infrastructure", 24, 24, 12);
+        page.DrawTextFromTop("PVAD infrastructure", 24, 24, 12);
         return document;
     }
 }

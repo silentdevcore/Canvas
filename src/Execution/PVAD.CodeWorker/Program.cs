@@ -18,12 +18,12 @@ static async Task<int> RunAsync(string[] args)
     try
     {
         var requestBytes = await File.ReadAllBytesAsync(args[0]);
-        if (requestBytes.Length > PvadCodeLimits.MaximumWorkerRequestBytes) throw new InvalidOperationException("PXACODE009: Worker request is too large.");
+        if (requestBytes.Length > PvadCodeLimits.MaximumWorkerRequestBytes) throw new InvalidOperationException("PVADCODE009: Worker request is too large.");
         var request = JsonSerializer.Deserialize<PvadCodeWorkerRequest>(requestBytes,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-            ?? throw new InvalidOperationException("PXACODE010: Worker request is invalid.");
+            ?? throw new InvalidOperationException("PVADCODE010: Worker request is invalid.");
         if (request.Language is not (PvadCodeLanguages.CSharpModel or PvadCodeLanguages.CSharpPdf or PvadCodeLanguages.CSharpBase64))
-            throw new InvalidOperationException("PXACODE011: Worker language is unsupported.");
+            throw new InvalidOperationException("PVADCODE011: Worker language is unsupported.");
 
         response.Diagnostics = SandboxPolicy.Analyze(request.Source);
         if (response.Diagnostics.Any(value => value.Severity == "error"))
@@ -63,19 +63,19 @@ static async Task<int> RunAsync(string[] args)
             else if (evaluated is PdfDocument document)
             {
                 if (document.Pages.Count > Math.Clamp(request.MaximumPages, 1, 500))
-                    throw new InvalidOperationException("PXACODE020: Result exceeds the page limit.");
+                    throw new InvalidOperationException("PVADCODE020: Result exceeds the page limit.");
                 response.CanonicalDesign = PdfSnapshotDesignMapper.Map(
                     document.CreateDesignSnapshot(), request.Source,
                     Math.Clamp(request.MaximumElements, 1, 50_000), response.Diagnostics, response.SourceMap);
                 response.PdfBytes = request.Operation == "execute" ? document.ToBytes() : null;
                 if (response.PdfBytes is { Length: > 25_000_000 })
-                    throw new InvalidOperationException("PXACODE023: PDF output exceeds 25 MB.");
+                    throw new InvalidOperationException("PVADCODE023: PDF output exceeds 25 MB.");
                 response.Fidelity = response.Diagnostics.Any(value => value.Severity == "warning")
                     ? PvadCodeFidelity.ReviewRequired : PvadCodeFidelity.Compatible;
             }
             else
             {
-                throw new InvalidOperationException("PXACODE012: C# PDF code must return PvadPdfCodeDocument or legacy PdfDocument.");
+                throw new InvalidOperationException("PVADCODE012: C# PDF code must return PvadPdfCodeDocument or legacy PdfDocument.");
             }
         }
         response.Success = response.CanonicalDesign is not null;
@@ -86,29 +86,29 @@ static async Task<int> RunAsync(string[] args)
             .Select(value =>
             {
                 var point = value.Location.GetLineSpan().StartLinePosition;
-                return new PvadCodeDiagnosticDto { Code = "PXACODE030", Severity = "error", Message = value.GetMessage(), Line = point.Line + 1, Column = point.Character + 1 };
+                return new PvadCodeDiagnosticDto { Code = "PVADCODE030", Severity = "error", Message = value.GetMessage(), Line = point.Line + 1, Column = point.Character + 1 };
             }));
     }
     catch (OperationCanceledException)
     {
-        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PXACODE031", Severity = "error", Message = "Execution exceeded the sandbox time limit." });
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PVADCODE031", Severity = "error", Message = "Execution exceeded the sandbox time limit." });
     }
     catch (FormatException)
     {
-        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PXACODE130", Severity = "error", Message = "The Base64 payload is invalid." });
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PVADCODE130", Severity = "error", Message = "The Base64 payload is invalid." });
     }
     catch (DecoderFallbackException)
     {
-        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PXACODE131", Severity = "error", Message = "The decoded Base64 payload is not valid UTF-8." });
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PVADCODE131", Severity = "error", Message = "The decoded Base64 payload is not valid UTF-8." });
     }
     catch (JsonException exception)
     {
-        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PXACODE132", Severity = "error", Message = exception.Message });
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = "PVADCODE132", Severity = "error", Message = exception.Message });
     }
     catch (Exception exception)
     {
-        var message = exception.Message.StartsWith("PXACODE", StringComparison.Ordinal)
-            ? exception.Message : $"PXACODE032: {exception.GetType().Name}.";
+        var message = exception.Message.StartsWith("PVADCODE", StringComparison.Ordinal)
+            ? exception.Message : $"PVADCODE032: {exception.GetType().Name}.";
         response.Diagnostics.Add(new PvadCodeDiagnosticDto { Code = message.Split(':')[0], Severity = "error", Message = message });
     }
     return await WriteAsync(args[1], response);
@@ -117,21 +117,21 @@ static async Task<int> RunAsync(string[] args)
 static void ValidateDesignLimits(DesignExportDto design, PvadCodeWorkerRequest request)
 {
     if (design.Pages.Count == 0)
-        throw new InvalidOperationException("PXACODE100: A design must contain at least one page.");
+        throw new InvalidOperationException("PVADCODE100: A design must contain at least one page.");
     if (design.Pages.Any(page => string.IsNullOrWhiteSpace(page.Id)) ||
         design.Pages.GroupBy(page => page.Id, StringComparer.Ordinal).Any(group => group.Count() > 1))
-        throw new InvalidOperationException("PXACODE104: Every page requires a unique stable id.");
+        throw new InvalidOperationException("PVADCODE104: Every page requires a unique stable id.");
     var elements = design.Pages.SelectMany(page => page.Elements).Concat(design.SharedElements).ToArray();
     if (elements.Any(element => string.IsNullOrWhiteSpace(element.Id) || string.IsNullOrWhiteSpace(element.Type)))
-        throw new InvalidOperationException("PXACODE101: Every element requires a stable id and type.");
+        throw new InvalidOperationException("PVADCODE101: Every element requires a stable id and type.");
     if (elements.GroupBy(element => element.Id, StringComparer.Ordinal).Any(group => group.Count() > 1))
-        throw new InvalidOperationException("PXACODE105: Every element id must be unique in the design.");
+        throw new InvalidOperationException("PVADCODE105: Every element id must be unique in the design.");
     if (design.Pages.Count > Math.Clamp(request.MaximumPages, 1, 500))
-        throw new InvalidOperationException("PXACODE020: Result exceeds the page limit.");
+        throw new InvalidOperationException("PVADCODE020: Result exceeds the page limit.");
     if (design.Pages.Sum(page => page.Elements.Count) > Math.Clamp(request.MaximumElements, 1, 50_000))
-        throw new InvalidOperationException("PXACODE021: The result exceeds the element limit.");
+        throw new InvalidOperationException("PVADCODE021: The result exceeds the element limit.");
     if (JsonSerializer.SerializeToUtf8Bytes(design).Length > PvadCodeLimits.MaximumDesignBytes)
-        throw new InvalidOperationException("PXACODE103: The canonical design exceeds the 10 MiB limit.");
+        throw new InvalidOperationException("PVADCODE103: The canonical design exceeds the 10 MiB limit.");
     var trustIssue = PdfTrustSettingsValidator.Validate(design.PageSettings).FirstOrDefault();
     if (trustIssue is not null)
         throw new InvalidOperationException($"{trustIssue.Code}: {trustIssue.Message}");

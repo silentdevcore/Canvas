@@ -55,7 +55,7 @@ Source compatibility readers do not imply old-binary forward compatibility.
 
 ## Evidence And Remaining Gates
 
-The [paired-binary harness](../tools/job-cutover/README.md) provides synthetic
+The paired-binary harness (`tools/job-cutover/README.md`, removed 2026-11-09) provides synthetic
 database/job evidence, not production restore certification. See
 [identity](pvad-identity-compatibility.md),
 [licenses/jobs](pvad-license-and-job-compatibility.md),

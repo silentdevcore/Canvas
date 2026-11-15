@@ -7,11 +7,8 @@ namespace PVAD.Importer.Tests;
 
 public sealed class PdfChartMetadataRoundTripTests
 {
-    [Theory]
-    [InlineData("PVADChartsV2", false)]
-    [InlineData("PXAChartsV2", false)]
-    [InlineData("PVADChartsV2", true)]
-    public async Task Import_RestoresPvadChartMetadata_AndConsumesRenderedPrimitives(string key, bool includeAlias)
+    [Fact]
+    public async Task Import_RestoresPvadChartMetadata_AndConsumesRenderedPrimitives()
     {
         var chart = new ElementDto
         {
@@ -25,11 +22,10 @@ public sealed class PdfChartMetadataRoundTripTests
         };
         var encoded = ChartMetadataCodec.Encode([new PlannedPage("page-1", [chart])]);
 
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
-        document.Info.CustomProperties[key] = Assert.IsType<string>(encoded);
-        if (includeAlias) document.Info.CustomProperties[ChartMetadataCodec.LegacyPdfInfoKey] = encoded;
+#pragma warning restore PVAD0001
+        document.Info.CustomProperties[ChartMetadataCodec.PdfInfoKey] = Assert.IsType<string>(encoded);
         var page = document.AddPage(595, 842);
         page.DrawRectangle(40, 602, 300, 180, fill: true, fillColor: PdfColor.FromRgb(37, 99, 235));
         page.DrawText("Outside chart", 40, 500, 12, PdfFontFamily.Helvetica);
@@ -46,13 +42,12 @@ public sealed class PdfChartMetadataRoundTripTests
         Assert.Equal("pvadMetadata", restored.Style!["pdfChartRecognitionSource"]);
         Assert.DoesNotContain(elements, element => element.Type == "shape");
         Assert.Contains(elements, element => element.Content == "Outside chart");
-        Assert.Contains(imported.ImportDiagnostics!, item => item.Code == "PXA-PDF-CHART-002");
+        Assert.Contains(imported.ImportDiagnostics!, item => item.Code == "PVAD-PDF-CHART-002");
     }
 
     [Theory]
-    [InlineData("conflict")]
     [InlineData("invalid-canonical")]
-    [InlineData("invalid-legacy")]
+    [InlineData("former-key-only")]
     public async Task Import_preserves_graphics_when_metadata_is_invalid_or_conflicting(string scenario)
     {
         string Payload(double value) => Assert.IsType<string>(ChartMetadataCodec.Encode([
@@ -66,14 +61,13 @@ public sealed class PdfChartMetadataRoundTripTests
             }]),
         ]));
 
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
-        if (scenario != "invalid-legacy")
-            document.Info.CustomProperties[ChartMetadataCodec.PdfInfoKey] =
-                scenario == "conflict" ? Payload(10) : "not-base64";
-        document.Info.CustomProperties[ChartMetadataCodec.LegacyPdfInfoKey] =
-            scenario == "invalid-legacy" ? "not-base64" : Payload(5);
+#pragma warning restore PVAD0001
+        if (scenario == "invalid-canonical")
+            document.Info.CustomProperties[ChartMetadataCodec.PdfInfoKey] = "not-base64";
+        else
+            document.Info.CustomProperties["PXAChartsV2"] = Payload(5);
         var page = document.AddPage(595, 842);
         page.DrawRectangle(40, 602, 300, 180, fill: true, fillColor: PdfColor.FromRgb(37, 99, 235));
 
@@ -83,6 +77,9 @@ public sealed class PdfChartMetadataRoundTripTests
         var elements = Assert.Single(imported.Pages).Elements;
         Assert.DoesNotContain(elements, element => element.Type == "chart");
         Assert.Contains(elements, element => element.Type == "shape");
-        Assert.Contains(imported.ImportDiagnostics!, item => item.Code == "PXA-PDF-CHART-001");
+        if (scenario == "invalid-canonical")
+            Assert.Contains(imported.ImportDiagnostics!, item => item.Code == "PVAD-PDF-CHART-001");
+        else
+            Assert.DoesNotContain(imported.ImportDiagnostics ?? [], item => item.Code.StartsWith("PVAD-PDF-CHART", StringComparison.Ordinal));
     }
 }

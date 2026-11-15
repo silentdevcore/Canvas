@@ -28,16 +28,16 @@ public sealed class DesignerAssetsController(
         if (!TryGetContext(out var organizationId, out var userId))
             return Unauthorized();
         if (file is null || file.Length == 0)
-            return ProblemResult(400, "PXA_DESIGNER_ASSET_REQUIRED", "A PNG or JPEG image is required.");
+            return ProblemResult(400, "PVAD_DESIGNER_ASSET_REQUIRED", "A PNG or JPEG image is required.");
         if (file.Length > options.Value.MaximumDesignerAssetBytes)
-            return ProblemResult(413, "PXA_DESIGNER_ASSET_TOO_LARGE", $"Images may not exceed {options.Value.MaximumDesignerAssetBytes} bytes.");
+            return ProblemResult(413, "PVAD_DESIGNER_ASSET_TOO_LARGE", $"Images may not exceed {options.Value.MaximumDesignerAssetBytes} bytes.");
 
         await using var source = file.OpenReadStream();
         using var buffered = new MemoryStream((int)file.Length);
         await source.CopyToAsync(buffered, cancellationToken);
         buffered.Position = 0;
         if (!TryInspectImage(buffered.ToArray(), out var contentType, out var width, out var height))
-            return ProblemResult(415, "PXA_DESIGNER_ASSET_TYPE_UNSUPPORTED", "Only valid PNG and JPEG images are supported.");
+            return ProblemResult(415, "PVAD_DESIGNER_ASSET_TYPE_UNSUPPORTED", "Only valid PNG and JPEG images are supported.");
 
         buffered.Position = 0;
         var stored = await storedObjects.StoreAsync(

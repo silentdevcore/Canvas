@@ -76,7 +76,7 @@ public sealed class PdfEInvoiceScannedDocumentTests
 
         // "Not evaluated" is not "inconsistent", so the operation proceeds - and says so.
         Assert.IsType<FileContentResult>(attached);
-        Assert.Equal("notEvaluated", controller.Response.Headers["PXA-Invoice-Consistency"]);
+        Assert.Equal("notEvaluated", controller.Response.Headers["PVAD-Invoice-Consistency"]);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class PdfEInvoiceScannedDocumentTests
 
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status409Conflict, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI021", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI021", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     /// <summary>A page drawn only as graphics: the closest deterministic stand-in for a scan.</summary>

@@ -168,7 +168,7 @@ test('Viewer UI completes PDF Trust workflow with synthetic API fixtures', async
   await page.route('**/api/pvad/v1/designer/features', route => route.fulfill({ status: 200,
     contentType: 'application/json', body: JSON.stringify(catalog.features.map((feature: Record<string, unknown>) => ({
       ...feature, enabled: feature.maturity !== 'alpha' && feature.defaultEnabled,
-      decisionCode: 'PXA_DESIGNER_FEATURE_ENABLED', decisionReason: 'Synthetic UI fixture.',
+      decisionCode: 'PVAD_DESIGNER_FEATURE_ENABLED', decisionReason: 'Synthetic UI fixture.',
     }))) }));
   await page.route('**/api/pvad/v1/designer/releases', route => route.fulfill({ status: 200,
     contentType: 'application/json', body: JSON.stringify({ releases: [], readVersions: [] }) }));
@@ -257,9 +257,9 @@ test('Viewer UI completes PDF Trust workflow with synthetic API fixtures', async
     status: 200,
     contentType: 'application/pdf',
     headers: {
-      'PXA-Redaction-Result-Sha256': 'd'.repeat(64),
-      'PXA-Redaction-Audit': 'e'.repeat(64),
-      'PXA-Redaction-Audit-Signed': 'false',
+      'PVAD-Redaction-Result-Sha256': 'd'.repeat(64),
+      'PVAD-Redaction-Audit': 'e'.repeat(64),
+      'PVAD-Redaction-Audit-Signed': 'false',
     },
     body: pdfBuffer,
   }));
@@ -334,7 +334,7 @@ test.describe('live authenticated PDF Trust workflow', () => {
     request,
   }, testInfo) => {
     test.skip(
-      process.env.PXA_RUN_LIVE_AUTH_TRUST !== '1',
+      readPvadEnvironment('PVAD_RUN_LIVE_AUTH_TRUST') !== '1',
       'Requires running Account, Designer, WebApi, PostgreSQL, and Mailpit services.',
     );
     test.setTimeout(180_000);

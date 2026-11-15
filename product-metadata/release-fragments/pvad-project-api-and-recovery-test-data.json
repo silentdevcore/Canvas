@@ -1,0 +1,11 @@
+{
+  "id": "pvad-project-api-and-recovery-test-data",
+  "impact": "none",
+  "components": ["api", "designer", "observability"],
+  "category": "improved",
+  "summary": "Aligned project API and telemetry test data with PVAD naming and expanded recovery compatibility coverage.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only test inputs, expectations and internal verification change. Legacy project fixtures, persisted audit identifiers, storage readers, diagnostics and production application behavior remain unchanged."
+}

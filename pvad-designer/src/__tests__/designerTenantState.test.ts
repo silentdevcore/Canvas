@@ -5,16 +5,16 @@ afterEach(() => jest.restoreAllMocks());
 
 test('clears canonical and legacy unscoped drafts without clearing personal preferences', () => {
   localStorage.clear(); sessionStorage.clear();
-  for (const key of ['pvad-code-editor-draft-v2', 'pxa-code-editor-draft-v2', 'pxa-spreadsheet', 'canvas-spreadsheet'])
+  for (const key of ['pvad-code-editor-draft-v2', 'pvad-code-editor-draft-v2', 'pvad-spreadsheet', 'canvas-spreadsheet'])
     localStorage.setItem(key, 'private');
   localStorage.setItem('pvad-designer-element-favorites-v1:a', '["text"]');
-  sessionStorage.setItem('pxa_migration_designer_handoff', 'private');
+  sessionStorage.setItem('pvad_migration_designer_handoff', 'private');
   clearDesignerTenantState();
   expect(localStorage.getItem('pvad-code-editor-draft-v2')).toBeNull();
-  expect(localStorage.getItem('pxa-code-editor-draft-v2')).toBeNull();
-  expect(localStorage.getItem('pxa-spreadsheet')).toBeNull();
+  expect(localStorage.getItem('pvad-code-editor-draft-v2')).toBeNull();
+  expect(localStorage.getItem('pvad-spreadsheet')).toBeNull();
   expect(localStorage.getItem('canvas-spreadsheet')).toBeNull();
-  expect(sessionStorage.getItem('pxa_migration_designer_handoff')).toBeNull();
+  expect(sessionStorage.getItem('pvad_migration_designer_handoff')).toBeNull();
   expect(localStorage.getItem('pvad-designer-element-favorites-v1:a')).toBe('["text"]');
 });
 

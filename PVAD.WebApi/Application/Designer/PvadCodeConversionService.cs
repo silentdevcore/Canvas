@@ -17,7 +17,8 @@ public interface IPvadCodeConversionService
 
 public sealed class PvadCodeConversionService(
     IPvadCodeWorkerClient worker,
-    PVAD.Pdf.PdfFontLoader? fontLoader = null) : IPvadCodeConversionService
+    PVAD.Pdf.PdfFontLoader? fontLoader = null,
+    TimeProvider? timeProvider = null) : IPvadCodeConversionService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private static readonly IReadOnlyDictionary<string, RepresentationCodec> Codecs = new RepresentationCodec[]
@@ -85,7 +86,8 @@ public sealed class PvadCodeConversionService(
         }
         if (language == PvadCodeLanguages.CSharpPdf && result.Success && result.PdfBytes is null && result.CanonicalDesign is not null)
         {
-            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign, fontLoader);
+            var document = DesignJsonMapper.MapToPdfDocument(result.CanonicalDesign, fontLoader,
+                renderInstant: (timeProvider ?? TimeProvider.System).GetUtcNow());
             result.PdfBytes = document.ToBytes(DesignJsonMapper.BuildSaveOptions(result.CanonicalDesign));
         }
         PvadTelemetry.RecordCodeOperation("execute", language, result.Success ? "succeeded" : "rejected",
@@ -111,18 +113,18 @@ public sealed class PvadCodeConversionService(
         try
         {
             if (Encoding.UTF8.GetByteCount(source) > PvadCodeLimits.MaximumDesignBytes)
-                return (null, [Diagnostic("PXACODE103", "The canonical design exceeds the 10 MiB limit.")]);
+                return (null, [Diagnostic("PVADCODE103", "The canonical design exceeds the 10 MiB limit.")]);
             var design = JsonSerializer.Deserialize<DesignExportDto>(source, JsonOptions);
             if (design is null || design.Pages.Count == 0)
-                return (null, [Diagnostic("PXACODE100", "A design must contain at least one page.")]);
+                return (null, [Diagnostic("PVADCODE100", "A design must contain at least one page.")]);
             if (design.Pages.SelectMany(value => value.Elements).Any(value => string.IsNullOrWhiteSpace(value.Id) || string.IsNullOrWhiteSpace(value.Type)))
-                return (null, [Diagnostic("PXACODE101", "Every element requires a stable id and type.")]);
+                return (null, [Diagnostic("PVADCODE101", "Every element requires a stable id and type.")]);
             if (design.Pages.Any(value => string.IsNullOrWhiteSpace(value.Id)) ||
                 design.Pages.GroupBy(value => value.Id, StringComparer.Ordinal).Any(group => group.Count() > 1))
-                return (null, [Diagnostic("PXACODE104", "Every page requires a unique stable id.")]);
+                return (null, [Diagnostic("PVADCODE104", "Every page requires a unique stable id.")]);
             var elements = design.Pages.SelectMany(value => value.Elements).Concat(design.SharedElements).ToArray();
             if (elements.GroupBy(value => value.Id, StringComparer.Ordinal).Any(group => group.Count() > 1))
-                return (null, [Diagnostic("PXACODE105", "Every element id must be unique in the design.")]);
+                return (null, [Diagnostic("PVADCODE105", "Every element id must be unique in the design.")]);
             var trustIssues = PdfTrustSettingsValidator.Validate(design.PageSettings);
             if (trustIssues.Count > 0)
                 return (null, trustIssues.Select(value => Diagnostic(value.Code, value.Message)).ToList());
@@ -130,7 +132,7 @@ public sealed class PvadCodeConversionService(
         }
         catch (JsonException exception)
         {
-            return (null, [new PvadCodeDiagnosticDto { Code = "PXACODE102", Severity = "error", Message = exception.Message, Line = (int?)exception.LineNumber + 1, Column = (int?)exception.BytePositionInLine + 1 }]);
+            return (null, [new PvadCodeDiagnosticDto { Code = "PVADCODE102", Severity = "error", Message = exception.Message, Line = (int?)exception.LineNumber + 1, Column = (int?)exception.BytePositionInLine + 1 }]);
         }
     }
 

@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import {
   cancelAccountClosure,
@@ -69,7 +70,7 @@ export function closurePage(user: UserInfo): string {
       </div>
     </header>
     <section class="account-form">
-      ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
+      ${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : ''}
       <table class="account-table">
         <thead><tr><th>Target</th><th>Status</th><th>Requested</th><th>Scheduled for</th><th></th></tr></thead>
         <tbody>${state.requests.map((request) => requestRow(request, canManageOrganization)).join('') || `<tr><td colspan="5">${state.loading ? 'Loading…' : 'No closure requests.'}</td></tr>`}</tbody>

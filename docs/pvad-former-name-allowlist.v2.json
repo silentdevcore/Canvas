@@ -1,0 +1,1076 @@
+{
+  "schemaVersion": 2,
+  "reviewedAt": "2026-11-14",
+  "decision": "checklists/PVAD.Legacy-Name-Retirement.md",
+  "rule": "Every tracked or untracked non-ignored file containing the former short or expanded product name must be listed by exact path. Pinned reasons must keep their exact bytes.",
+  "entries": [
+    {
+      "path": ".github/workflows/deployment-validation.yml",
+      "reason": "external-binding"
+    },
+    {
+      "path": "PVAD.WebApi/AdminDocumentation/images/dashboard-mobile.png",
+      "reason": "third-party-bytes",
+      "sha256": "c0192935c8eb6ffbba81bbcb32d1e102ae670cff48273adb542f28b7068a8be2"
+    },
+    {
+      "path": "PVAD.WebApi/AdminDocumentation/images/licenses.png",
+      "reason": "third-party-bytes",
+      "sha256": "25fac73fbf4ba9b7402640a9eae833a04c0a6c995def97bf697812eb3ee34557"
+    },
+    {
+      "path": "PVAD.WebApi/Security/PvadProtectedDataReprotection.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "assets/fonts/noto-arabic/NotoSansArabic-Regular.ttf",
+      "reason": "third-party-bytes",
+      "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b"
+    },
+    {
+      "path": "checklists/PVAD.Company.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Configuration-Key-Inventory.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Hosting.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.JSON-Naming-Audit.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Markdown-Naming-Audit.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Rename-Audit.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Rename-Inventory-Current.tsv",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Rename-Inventory.tsv",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Rename-Plan.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Rename-Test-Report.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Serialized-Contract-Inventory.tsv",
+      "reason": "historical-record"
+    },
+    {
+      "path": "checklists/PVAD.Symbol-Rename-Map.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "deploy/websites/environment.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/blog/master-detail-report-using-list/master-detail-report-using-list.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "f2fff17bbd788c174eeb352b783bcc360bed591184c1ba880c80e83d48dd72a6"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/blog/master-detail-report-using-table/master-detail-report-using-table.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "22deaafa518427e9cc7f98951e5a11d1732f9e4fbefe8dad89d2f33fe55c0a9b"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/compose-report/bookmark.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "05028e909d068eebde8cbc39dbbce71685e6cc9d199e57dc157d77bf8191684c"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/compose-report/document-map.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "077e959f654927af0a741eba761f5b17c842e6eb8674be46cb15a1fa34684c1d"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/image-manager/add-image.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "2e3b2d45f52c3be4596854fd4cfd03110c449436a1d35d2849bd278949d15069"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/map/design-map-using-color-palette-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "1748518a2c3a7a83f46b03a78e0e5923cf60d888c228e6097bf477a37ed3ee06"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/map/design-map-using-color-range-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "87654fda0719e9b5ad1157ec878af03e1d034fde338d2e0f5aa1ae15c0191688"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/map/design-map-using-custom-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "30761bd4ecac90f3a7558d708262042c2da69795f4f82f852ddb8d51108c2fb7"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/map/design-map-using-marker-color-range-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "a2bd17a655918fffe574d76ab5107447b0b9c23b3ea6dab4df68b856e82c604b"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/map/design-map-using-marker-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "3aa5788b77fef1ee42643186608c1488384395cfbc06f804888d93ff63c14478"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/pdf/design-ssrs-rdl-report-using-pdf-report-item.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "595cab551aa71a66157569813525285e56b7577d02a4e89b2d1794f3588a17ad"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/signature/design-ssrs-rdl-report-using-electronic-signature.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "a8635d62781303afdffae68bdfffc189778bfccbe4d49f71ea953a430d1c7ae8"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/docs/report-designer/signature/design-ssrs-rdl-report-using-pdf-signature.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "66cae7fad7d482dbf92af9234341ba0c0c600eabf0d152e2a35823821098e484"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/video-tutorial/Reports/map-color-palette.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "7f4635739e8a32c7d6888f1c147fe53b34d6e4b64f0a2fc035153dea303f271e"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/video-tutorial/Reports/map-color-rule.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "d997817e56228ad82753bef26355d16e9f754feecd13bcf8f9aa0d904172906b"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/video-tutorial/Reports/map-marker-and-marker-color-range.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "7740fe58ea234f276315a9bc86b2a11fbbf183ee1e3dca9571b10289a6dd1d0f"
+    },
+    {
+      "path": "designer-simples/syncfustion/resources-master/video-tutorial/Reports/map-report.rdl",
+      "reason": "third-party-bytes",
+      "sha256": "cbd90680c7950a6a864a47e42e36ca78af5808187946d7f47aaf7ac78e388707"
+    },
+    {
+      "path": "docs/fixtures/native-projects/SHA256SUMS",
+      "reason": "published-evidence",
+      "sha256": "fb0804934063cadbc77fd8b64a8d98e302208e4796c6726a60bf3a47ebc78f52"
+    },
+    {
+      "path": "docs/fixtures/native-projects/minimal.pxap",
+      "reason": "published-evidence",
+      "sha256": "1913423e4ad0fda76b5bb4ea0e0fb4ae07b21e732b70bf8a39fd7694ab4b482e"
+    },
+    {
+      "path": "docs/fixtures/native-projects/minimal.pxas",
+      "reason": "published-evidence",
+      "sha256": "fdf248da92abe926ec3e81f957d657ddfd633dc47120afdc1e7e02d2e6c466e6"
+    },
+    {
+      "path": "docs/pvad-documentation-path-migration.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/pvad-identity-compatibility.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/pvad-rename-exceptions.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/pvad-rename-migration-notes.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/pvad-rename-reviewed-exceptions.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/pvad-schema-and-client-contracts.md",
+      "reason": "historical-record"
+    },
+    {
+      "path": "docs/reference/compatibility-identifiers.v1.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "operator-docs/compatibility-identifiers.v1.json",
+      "reason": "historical-record"
+    },
+    {
+      "path": "product-metadata/document-fidelity/real-world-review-decisions.json",
+      "reason": "published-evidence",
+      "sha256": "fd33df99fbf4b4cc891101582b758b65cb6033ec543dd60c54bbe22b9d9a78c9"
+    },
+    {
+      "path": "product-metadata/pvad-releases.json",
+      "reason": "published-evidence",
+      "sha256": "236daefcecb3a3ec51169de663ccc6336b6debb3b530fbc6bd4599a0733d9e5c"
+    },
+    {
+      "path": "pvad-designer/e2e/account-designer-flow.spec.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/package-lock.json",
+      "reason": "third-party-bytes",
+      "sha256": "eeee98d4a65660d8293460d77a9ab872219a1e98de413fdd55011583a1b988cb"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/designerAccessibility.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/designerPkceTransaction.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/eInvoiceWorkspace.test.tsx",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/elementFavoritesCache.test.tsx",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/localeCatalog.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/pdfViewerSmoke.test.tsx",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/projectImportNotice.test.tsx",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/pvadDocumentHeaders.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/runtimeConfig.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "pvad-designer/src/__tests__/visibleBranding.test.tsx",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/nld.traineddata",
+      "reason": "third-party-bytes",
+      "sha256": "ced0e5e046a84c908a6aa7accbef9a232c4a5d9a8276691b81c6ee64d02963f6"
+    },
+    {
+      "path": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/nor.traineddata",
+      "reason": "third-party-bytes",
+      "sha256": "0451eb4f8049ae78196806bf878a389a2f40f1386fe038568cf4441226ba6ef2"
+    },
+    {
+      "path": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/pol.traineddata",
+      "reason": "third-party-bytes",
+      "sha256": "c4476cdbc0e33d898d32345122b7be1cbf85ace15f920f06c7714756e1ef79b2"
+    },
+    {
+      "path": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/swe.traineddata",
+      "reason": "third-party-bytes",
+      "sha256": "f7304988d41f833efebcc2d529df54b1903ecebbc3da1faabd19a0fddd4fe586"
+    },
+    {
+      "path": "src/Infrastructure/PVAD.Infrastructure.Persistence/Migrations/20260927050514_AddEInvoiceValidationRecords.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "src/Infrastructure/PVAD.Infrastructure.Persistence/Migrations/20261109201328_RetireFormerNameData.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "src/Infrastructure/PVAD.Infrastructure.Persistence/Migrations/20261110193750_UseCanonicalRetentionPurgeSetting.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "src/Migrations/Report/PVAD.Migration.Report.Designer.Rpx/RpxToDesignConverter.cs",
+      "reason": "third-party-bytes",
+      "sha256": "4fe747a40e7c696f54d7d38fa30e55582e018cc82862f8c32c47bce94eb708d7"
+    },
+    {
+      "path": "test-assets/e-invoicing/baselines/dotnet-10.0.13-pdfa-fixtures.json",
+      "reason": "published-evidence",
+      "sha256": "1a789ef08d77e7534bc2fb45a21790f09402633f1b263c13540b966328f167dc"
+    },
+    {
+      "path": "test-assets/e-invoicing/baselines/dotnet-10.0.5-pdfa-fixtures.json",
+      "reason": "published-evidence",
+      "sha256": "18ac85666ed6aa4211db76c72a78c587863eb87d62c4629c0e80534c7f80db46"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/AccountProfileControllerTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/CodeWorkspaceConversionTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/DesignerAuthorizationSecurityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/FileSystemPvadObjectStorageTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/LegalContentCatalogTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/LegalDocumentGovernanceTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/MigrationGeneratedCodeExecutionTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/OpenApiNamingSnapshotTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/OperatorDocumentationContractTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PdfComplianceExportTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PdfEInvoiceBoundaryTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadCanonicalApiRouteTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadClaimValidationTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadCookieSecurityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadEnvironmentTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadExportBrandingTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadMailTemplateRendererTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadMcpDelegationCompatibilityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadMigrationArtifactIdentityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadOAuthScopeCatalogTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadProtectedDataReprotectionTests.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadRetentionGovernanceTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadRuntimeIdentityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/PvadSecurityHeaderMiddlewareTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Api.Tests/RetireFormerNameDataMigrationTests.cs",
+      "reason": "historical-record"
+    },
+    {
+      "path": "tests/PVAD.Core.Tests/PvadProjectArchiveTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/libreoffice-pdfa2b.pdf",
+      "reason": "published-evidence",
+      "sha256": "32b0b01ef9ec4e326c2de826a47cffed06f4403d921ee3188fee2e1fe23c5eab"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/libreoffice-pdfua1.pdf",
+      "reason": "published-evidence",
+      "sha256": "72a71ace3377a4f155e0487138803f349d72a723d175c23b4a0c5dd6415f2ae7"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/pyhanko-pades-bb.pdf",
+      "reason": "published-evidence",
+      "sha256": "bb5d652250049b35d93ba783a0c8a53dd51f0d98696f77fee36467a7ec6c2c72"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/PdfTrustExternal/qpdf-aes256-unicode-qpdf.txt",
+      "reason": "published-evidence",
+      "sha256": "a4f0853f95112ab29f221fbcae11852808fc32ff3d303e4569d22cf14d6c0f25"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/Sources/chromium-encoded-glyphs.html",
+      "reason": "published-evidence",
+      "sha256": "913b481168c5521da3b614b8f7a0d0141f23d8567c40a39d830b3b1c04f5cdf3"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/Sources/libreoffice-reusable-resources.html",
+      "reason": "published-evidence",
+      "sha256": "da43a3b2dad7c21bd4e05f674193fa275c5dbe4d9db3a062e368d77f1a8d9632"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfA3bAndColorConversionTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfAProfileRestrictionTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfChartMetadataRoundTripTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfHybridCrossReferenceTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfImageRedactionTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfRedactionPreflightTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfRedactionSanitizationAndVisibilityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfRevisionAndChangeImpactTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfTrustCorpusTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Importer.Tests/PdfUaGenerationTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Infrastructure.Pdf.Tests/PvadComplianceIdentityTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tests/PVAD.Migration.Pdf.Code.Nutrient.Tests/NutrientMigrationTests.cs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/package-lock.json",
+      "reason": "third-party-bytes",
+      "sha256": "e320b3c1d01a40f36999169c4594afa97cf7ddeee3979ce4b60178b77c6f6fcd"
+    },
+    {
+      "path": "tools/PVAD.Mcp/smoke.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/src/core/scopes.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/src/core/server.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/src/core/validation.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/src/remote/auth.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/PVAD.Mcp/src/remote/config.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/container-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/environment.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/former-name-guard.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/former-name-guard.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/generated-code-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/json-naming-audit.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/json-naming-audit.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/markdown-path-audit.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/markdown-path-audit.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/migration-diagnostic-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/monitoring-display-review.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/observability-script-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/operator-guide-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/refresh-openapi-descriptions.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/refresh-openapi-descriptions.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/rename-artifact-audit.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/rename-artifact-audit.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/schema-identities.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/shell-environment.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/telemetry-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/tool-key-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/configuration/visible-branding-browser.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/configuration/workflow-identity.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/deployment/pvad-deployment.mjs",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "tools/deployment/pvad-deployment.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/legal/recovery-contract.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/legal/validate-legal-content.mjs",
+      "reason": "former-name-detector"
+    },
+    {
+      "path": "tools/native-project-fixtures/Program.cs",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "tools/pdf-security/aes256-interop.mjs",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "tools/pdf-trust-pades-interop/corpus-contract.mjs",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "tools/pdf-trust-pades-interop/corpus-contract.test.mjs",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "tools/versioning/pvad-build-consistency.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "tools/versioning/pvad-version.test.mjs",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Account/tests/authI18n.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Account/tests/designerAccessPresentation.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Account/tests/registrationEntryPoints.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Account/tests/returnUrl.test.ts",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Admin/tests/documentation-contract.test.js",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Demo/tests/example-source-identity.test.js",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/accessible.expected.json",
+      "reason": "published-evidence",
+      "sha256": "42b4c4db918743353e2a752fd4977382010934259d089bd4b6d1b6ec72ef2560"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/accessible.pdf",
+      "reason": "published-evidence",
+      "sha256": "0d6a2a59dc54dca020effd9f7ad7fac8818326f3317938124a0151e96caa673d"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/archived.expected.json",
+      "reason": "published-evidence",
+      "sha256": "2456d9f0388071279602ee4f6f33c35bace9c4fa351e9f6dad414faa1c04bea3"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/archived.pdf",
+      "reason": "published-evidence",
+      "sha256": "dbd0405efd5603b42ee2e0bb51ada25d8a8f1dc2317ecfe965bd7ebe54072012"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/clean.expected.json",
+      "reason": "published-evidence",
+      "sha256": "450d09338a662afe118db27c18347b2e339f47b0cb978f614b9d7ba6e28c156a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/clean.pdf",
+      "reason": "published-evidence",
+      "sha256": "a0c20274474432bab951b1fa51f51770540e24ebdcc2322e1706301ab35cbb7a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/encrypted.expected.json",
+      "reason": "published-evidence",
+      "sha256": "fa646eed6521c7914072c1c6a674f08f7b4a015423c0759f9a157bb6e021fd8d"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/chromium-skia-tagged.expected.json",
+      "reason": "published-evidence",
+      "sha256": "7f5ec0bc882889f146d2e2ad820d244ff08d527d05f6844a5c269b2dca111c6a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/libreoffice-pdfa2b.expected.json",
+      "reason": "published-evidence",
+      "sha256": "94d5f95580fc6012b14a232d6af9cc6a45be3528a61e8c93b9891c52aa35437a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/libreoffice-pdfa2b.pdf",
+      "reason": "published-evidence",
+      "sha256": "32b0b01ef9ec4e326c2de826a47cffed06f4403d921ee3188fee2e1fe23c5eab"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/libreoffice-pdfua1.expected.json",
+      "reason": "published-evidence",
+      "sha256": "fa66ede484aa489913dddb5007c40d946cac059a89f7fbf64d4d0809e5b9e525"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/libreoffice-pdfua1.pdf",
+      "reason": "published-evidence",
+      "sha256": "72a71ace3377a4f155e0487138803f349d72a723d175c23b4a0c5dd6415f2ae7"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/libreoffice-tagged.expected.json",
+      "reason": "published-evidence",
+      "sha256": "076397896c536a8a6e88285674eb4f8e751e93475fc9acfb4f5a3f9b8df71a7d"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/pyhanko-pades-bb.expected.json",
+      "reason": "published-evidence",
+      "sha256": "9fea2976ece590a0c321cbb94a549b236779048f5c027fe8af3c09d66211b8fb"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/pyhanko-pades-bb.pdf",
+      "reason": "published-evidence",
+      "sha256": "bb5d652250049b35d93ba783a0c8a53dd51f0d98696f77fee36467a7ec6c2c72"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/qpdf-aes256-unicode-qpdf.txt",
+      "reason": "published-evidence",
+      "sha256": "a4f0853f95112ab29f221fbcae11852808fc32ff3d303e4569d22cf14d6c0f25"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/external/qpdf-aes256-unicode.expected.json",
+      "reason": "published-evidence",
+      "sha256": "44e2bb744eb76138de4c6976203713f12247f6784b32aa51bd94bbf6bc07cfba"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/malformed.expected.json",
+      "reason": "published-evidence",
+      "sha256": "01ef01c22e30f64fe82147ac0087872a376e2a2acb028be06ba58edeb9f11e62"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/malformed.pdf",
+      "reason": "published-evidence",
+      "sha256": "1e6043ce0e092dbed35b4734ffa710ac9f1b91c622fc4aaaae260c08f572eb43"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/index.html",
+      "reason": "published-evidence",
+      "sha256": "c5e88ff7429d02744c1625f924cab21940fd1f1399001cbfba91270cbdce90ef"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/expired-root-current.crl",
+      "reason": "published-evidence",
+      "sha256": "cf484c5fedaeccc897d2618a1c9b0308ae52f9ca9805dd78688dc3a367a8388f"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/expired-root.cer",
+      "reason": "published-evidence",
+      "sha256": "bdc34c6d6d30f8300666edb72bb6cb0d822e74126932ae4d7d80cda0e7a67492"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/index.html",
+      "reason": "published-evidence",
+      "sha256": "77c9b162362d6cc8026e91deb2ad99cc63ac3f1c8e7d0718b052ed6e21cf899b"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/negative-corpus.json",
+      "reason": "published-evidence",
+      "sha256": "6707661ce1061e651ef1e63707e0e8596f19adcc15be634c11c4d14910688fa0"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-expired-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "4aa157a62c943e8f1b2be748d453d35987d11af41a5c7e77978903b87f94aee8"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-expired-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "50cddd3b921bf3ac7886411c3f677a7c3b586391de7b289d97829ab6cebd39c6"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-expired-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "15d4700b7a5ee7f27d906b02117349dbc06861b085085fe18be3960758fd187b"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-expired.pdf",
+      "reason": "published-evidence",
+      "sha256": "247003f65c03d05059ecb2536fa5eed9c39aaeba6056733a39d36f3dd694ec63"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revocation-unavailable-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "804fadb2600ca4b09300c1e5c01eb3d4b601b18eb46c26700c9e36a7144d71bd"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revocation-unavailable-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "ae407dde0241a6b2a2ced1bca35cadb687f0af11172987bc06809073f7ae224c"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revocation-unavailable-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "3f6a7c64f777f246d27b6fc42a2b9dc6e51ae6b3bd2c4a47d47f80d90eaf0a46"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revocation-unavailable.pdf",
+      "reason": "published-evidence",
+      "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revoked-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "003c8a4b66774341fb9e4203598c9fb3486882e9180d37ad3f79c14d9e9d6e53"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revoked-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "98df7a3fc64a8600dd6bcd42f06140e14a8e7b8592dd68a19bc386b21a8c87f7"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revoked-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "7d8443c8a5696000fcb2982521607b4ed2bb9de9b3d6109fb06666b448adaa07"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-revoked.pdf",
+      "reason": "published-evidence",
+      "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lt-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "465f48cb9aaa0b0dfa5e2c64f02f1b41f8104a3f3b4a6fcd442ccde0a8e76db4"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lt-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "03caf9e192abbcf065c3e1838b75a55e813d0acdb6b6cb14f32ba84685afc566"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lt-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "801f4879905f3b37d5d6391c97dc145a917b5eac196aa958ee6d497dacaeef47"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lt.pdf",
+      "reason": "published-evidence",
+      "sha256": "db896a11492a05f8f2d9f2bcabf585a63d7b42f9c58ca586a38684169bd19f4e"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lta-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "e2f3cd6ca9eec5b3bdbe4a58db0830403b181898807ef71e8121e5f77b47c0e2"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lta-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "53236b17803594f7913e94b9a99263e10030fad935b06b76850af5edf6dc9e0a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lta-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "b6f545aa16fa79403d6d13b3e0229eec8a0b9ba45d3a6ca798efeead3d231370"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-tampered-lta.pdf",
+      "reason": "published-evidence",
+      "sha256": "10ed8513e1474200e2ba32f0954ba07189e6d03938b1b5476ddaa6449a80be1d"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-untrusted-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "d820b322e1dd2095dc1ef51b0b71b31971dcbe403bf3952fe82f985f649d599a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-untrusted-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "6583d58a1dea2164a5bb5aff3ee85df5179686373b237e22c6d46f1dd31c445a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-untrusted-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "faf2431e6b2093d4f8dcfd01cf69b08349e67946e0612ff898be1760270077e3"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/pxa-pades-untrusted.pdf",
+      "reason": "published-evidence",
+      "sha256": "00e9706ad2c58b45d4b49272cc915eecc8b5aa4b1da094ceebd31159fa27673a"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/root-current.crl",
+      "reason": "published-evidence",
+      "sha256": "0cbc2e04b8209164fab489acd449ff30afe71baf9d186a73eab40352bbd06e25"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/root-signer-revoked.crl",
+      "reason": "published-evidence",
+      "sha256": "626b9bee960662d7486cbeb30de01ec783edfaca704a75b7c3c2ccbabc517660"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/root-trust-anchor.cer",
+      "reason": "published-evidence",
+      "sha256": "08c5bcfdcbebb386e998acc39a1864af135ced3e3123b967854ecee1f1597c13"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/negative/untrusted-root.cer",
+      "reason": "published-evidence",
+      "sha256": "9f7fb850c8363936c7212ef5ac1d92325d42b63c17f4604bd8d0be334b39cffb"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pades-corpus.json",
+      "reason": "published-evidence",
+      "sha256": "a5aa05b332ab3f08dbb8eef7624a7372497f39c79da66986f4440bcba509cd69"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lt-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "754c8eb1acd9b7cb8fac1c6797b96a0cc7d22e0e2acb0bc30a8b8797ea75b6c1"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lt-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "5a451d9c737fe4b14eab067d0b5569d3ec91f6d52d8421707b866ccc2b2651ac"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lt-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "2ce8e3a24234eae35e71ea3c66dc5189d26c79381a7e76acd59d657aabdc9687"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lt.pdf",
+      "reason": "published-evidence",
+      "sha256": "c6d40b3954cb80f8d20cc86256a4333be7a0ac2eca969dd8e8a1024c93b017b4"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lta-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "015a1a735caa8ec82419febb88fa0a7ed0f78b5ad3bac97578b90e5f39c678ca"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lta-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "34bf0e2bd982b7b6797a9b87573715b6c507e5139165196c999f1ed550f6df5e"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lta-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "4139c70bb7b0db5b0c917e439796203742a2a1fc53c129f72e7be11ad6038773"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-lta.pdf",
+      "reason": "published-evidence",
+      "sha256": "a3b2375593b04bbcbe6385e6b4f0d9e3446ecd758a2947011a03ba4c8c5e97ff"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-t-dss-detailed.xml",
+      "reason": "published-evidence",
+      "sha256": "2deaaad862d485ecade0743053ea545c0a3fc280f326319ea71bd90f69aa8054"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-t-dss-diagnostic.xml",
+      "reason": "published-evidence",
+      "sha256": "2d5ca9468cc1612254967455121487ddc7db75a60ca17feda42643a88d7c7685"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-t-dss-simple.xml",
+      "reason": "published-evidence",
+      "sha256": "6a1133333224505b0a16c6f2ad4a81f43a612401a82c077f4631cf335762e063"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/pxa-pades-b-t.pdf",
+      "reason": "published-evidence",
+      "sha256": "9e78739298a00a9b4e64bfb1e3be7a7531003d4647810924570f704dc8be0e51"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/root-current.crl",
+      "reason": "published-evidence",
+      "sha256": "5fd803da6756321ab03e94889f82188da938b02fbc962c4893981e0008454566"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/pades/root-trust-anchor.cer",
+      "reason": "published-evidence",
+      "sha256": "477d65fa0282cfd4a87a29f069e68fe006ffee7b51ac2f2ddac5ab90c4766ce0"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/redaction-risk.expected.json",
+      "reason": "published-evidence",
+      "sha256": "036ffc5dc85d1f193d41a69071c768d20e3a62f7ad4d44fe3430a934aecec6e0"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/redaction-risk.pdf",
+      "reason": "published-evidence",
+      "sha256": "8e2d2b45b9a7b1b0724d2f8fb078c3b0ffbfb86f1b3f4fbf44c8beecc194334b"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/signed.expected.json",
+      "reason": "published-evidence",
+      "sha256": "d4b487c646444a5b482e322e5f111b10341032db9e983c978ee0c881ea96fc3e"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/downloads/pdf-trust/signed.pdf",
+      "reason": "published-evidence",
+      "sha256": "3cd872d7f90d2bbee7dc8fa50ddb0af74f6f69e7507c6d8ddcb813e3eed2c5ee"
+    },
+    {
+      "path": "websites/PVAD.Documentation/public/images/pdf-trust/viewer-trust-mobile.png",
+      "reason": "third-party-bytes",
+      "sha256": "9d645415c685446c38dc962adc1e6bf7fe09ef4318d563a2bf2dba579d27fbad"
+    },
+    {
+      "path": "websites/PVAD.Documentation/tests/pdf-trust-documentation-contract.test.js",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/shared/brand.test.js",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/shared/browserTelemetry.test.js",
+      "reason": "rejection-or-absence-test"
+    },
+    {
+      "path": "websites/shared/diagnosticPresentation.ts",
+      "reason": "evidence-reference"
+    },
+    {
+      "path": "websites/shared/siteLinks.test.js",
+      "reason": "rejection-or-absence-test"
+    }
+  ]
+}

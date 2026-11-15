@@ -164,7 +164,7 @@ public sealed class PdfEInvoicesControllerTests
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAEINV106", details.Extensions["code"]);
+        Assert.Equal("PVADEINV106", details.Extensions["code"]);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public sealed class PdfEInvoicesControllerTests
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, problem.StatusCode);
         var details = Assert.IsType<ProblemDetails>(problem.Value);
-        Assert.Equal("PXAEINV106", details.Extensions["code"]);
+        Assert.Equal("PVADEINV106", details.Extensions["code"]);
     }
 
     [Fact]
@@ -238,6 +238,6 @@ public sealed class PdfEInvoicesControllerTests
             Currency = "EUR",
             Seller = new("Seller GmbH", Address: new("Main Street 1", "Berlin", "10115", "DE")),
             Buyer = new("Buyer AG", Address: new("Buyer Street 2", "Munich", "80331", "DE")),
-            Lines = [new("1", "PXA service", 1, "C62", 100m, 19m)]
+            Lines = [new("1", "PVAD service", 1, "C62", 100m, 19m)]
         });
 }

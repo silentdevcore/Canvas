@@ -15,7 +15,7 @@ namespace PVAD.Api.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// PXA states the same invoice facts in seven places: the Designer, the API, the Viewer's
+/// PVAD states the same invoice facts in seven places: the Designer, the API, the Viewer's
 /// inspection, the migration catalog, the generator, the importer's recognition and the public
 /// documentation. If any two disagree about which version is maintained, which profile is offered,
 /// which syntax a standard uses, or what a conformance state is called, a customer is told two
@@ -298,6 +298,6 @@ public sealed partial class PdfEInvoiceCrossSurfaceContractTests
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
         return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+            ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
     }
 }

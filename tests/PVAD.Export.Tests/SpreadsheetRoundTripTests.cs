@@ -126,7 +126,7 @@ public sealed class SpreadsheetRoundTripTests
         ws.Cell("B3").Formula("=B2*2");
         ws.Column(0).Width(24);
 
-        // The model is the canonical PXA Workbook JSON.
+        // The model is the canonical PVAD Workbook JSON.
         var model = wb.ToWorkbook();
         Assert.Equal("Report", model.Name);
         Assert.Equal("1.0", model.SchemaVersion);

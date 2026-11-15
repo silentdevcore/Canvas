@@ -48,16 +48,6 @@ const dockerPaths = [
 ];
 const composePaths = ['deploy/api/docker-compose.api.yml'];
 
-test('version synchronization retains legacy Docker argument fallback', async () => {
-  const root = await fixture();
-  await writeFile(join(root, dockerPaths[0]),
-    'ARG PXA_VERSION\nARG PVAD_VERSION=${PXA_VERSION:-0.1.0}\n');
-  await synchronizeVersions(root);
-  assert.match(await readFile(join(root, dockerPaths[0]), 'utf8'),
-    /ARG PVAD_VERSION=\$\{PXA_VERSION:-1\.0\.0\}/);
-  assert.equal(await checkRepository(root), '1.0.0');
-});
-
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'pvad-version-'));
   await writeFile(join(root, 'VERSION'), '1.0.0\n');
@@ -441,10 +431,10 @@ test('calculates pull request impact from trusted Git objects', async () => {
     fragment({ id: 'api-fix', impact: 'patch', category: 'fixed', featureIds: [], documentation: [] }),
   ]), 'patch');
 
-  const root = await mkdtemp(join(tmpdir(), 'pxa-impact-label-'));
+  const root = await mkdtemp(join(tmpdir(), 'pvad-impact-label-'));
   await execFileAsync('git', ['init'], { cwd: root });
   await execFileAsync('git', ['config', 'user.email', 'release-test@example.test'], { cwd: root });
-  await execFileAsync('git', ['config', 'user.name', 'PXA Release Test'], { cwd: root });
+  await execFileAsync('git', ['config', 'user.name', 'PVAD Release Test'], { cwd: root });
   await writeFile(join(root, 'README.md'), 'base\n');
   await execFileAsync('git', ['add', '.'], { cwd: root });
   await execFileAsync('git', ['commit', '-m', 'Base'], { cwd: root });

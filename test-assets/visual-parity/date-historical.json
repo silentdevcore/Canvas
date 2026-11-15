@@ -1,0 +1,335 @@
+{
+  "id": "date-historical",
+  "name": "Historical timezone boundaries",
+  "category": "visual-parity",
+  "description": "Synthetic historical UTC fallback, date-only preservation and portable timezone boundary cases.",
+  "pages": [
+    {
+      "id": "historical-page-1",
+      "elements": [
+        {
+          "id": "paris-render",
+          "name": "paris-render",
+          "type": "date",
+          "x": 20,
+          "y": 20,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "content": "1890-01-01T00:00:00.120Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "berlin-bound",
+          "name": "berlin-bound",
+          "type": "date",
+          "x": 20,
+          "y": 85,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1890-01-01T00:00:00Z",
+          "timezone": "Europe/Berlin",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "zurich-bound",
+          "name": "zurich-bound",
+          "type": "date",
+          "x": 20,
+          "y": 150,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1850-01-01T00:00:00Z",
+          "timezone": "Europe/Zurich",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "kathmandu-bound",
+          "name": "kathmandu-bound",
+          "type": "date",
+          "x": 20,
+          "y": 215,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1900-01-01T00:00:00Z",
+          "timezone": "Asia/Kathmandu",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "monrovia-negative-offset",
+          "name": "monrovia-negative-offset",
+          "type": "date",
+          "x": 20,
+          "y": 280,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Africa/Monrovia",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "content": "1971-01-01T00:00:00.120Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "new-york-negative-offset",
+          "name": "new-york-negative-offset",
+          "type": "date",
+          "x": 20,
+          "y": 345,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "America/New_York",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "content": "1880-01-01T00:00:00Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "before-boundary",
+          "name": "before-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 410,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "content": "1972-12-31T23:59:59.999Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "at-boundary",
+          "name": "at-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 475,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "content": "1973-01-01T00:00:00Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "positive-source-offset-before-boundary",
+          "name": "positive-source-offset-before-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 540,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1973-01-01T00:30:00+01:00",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        }
+      ]
+    },
+    {
+      "id": "historical-page-2",
+      "elements": [
+        {
+          "id": "negative-source-offset-after-boundary",
+          "name": "negative-source-offset-after-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 20,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1972-12-31T23:30:00-01:00",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "historical-utc",
+          "name": "historical-utc",
+          "type": "date",
+          "x": 20,
+          "y": 85,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "UTC",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+          "content": "1890-01-01T00:00:00.120Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "historical-date-only",
+          "name": "historical-date-only",
+          "type": "date",
+          "x": 20,
+          "y": 150,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "1890-01-01",
+          "timezone": "America/New_York",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "historical-static",
+          "name": "historical-static",
+          "type": "date",
+          "x": 20,
+          "y": 215,
+          "width": 560,
+          "height": 40,
+          "dateMode": "static",
+          "content": "01.01.1850",
+          "timezone": "Europe/Paris",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "historical-forced-utc",
+          "name": "historical-forced-utc",
+          "type": "date",
+          "x": 20,
+          "y": 280,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Europe/Paris",
+          "dateFormat": "u",
+          "content": "1890-01-01T00:00:00.120Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "historical-rfc",
+          "name": "historical-rfc",
+          "type": "date",
+          "x": 20,
+          "y": 345,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Europe/Paris",
+          "dateFormat": "r",
+          "content": "1890-01-01T00:00:00.120Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "minimum-year",
+          "name": "minimum-year",
+          "type": "date",
+          "x": 20,
+          "y": 410,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "content": "0001-01-01T00:00:00Z",
+          "timezone": "Europe/Paris",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "kathmandu-after-boundary",
+          "name": "kathmandu-after-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 475,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Asia/Kathmandu",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "content": "1973-01-01T00:00:00Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        },
+        {
+          "id": "monrovia-after-boundary",
+          "name": "monrovia-after-boundary",
+          "type": "date",
+          "x": 20,
+          "y": 540,
+          "width": 560,
+          "height": 40,
+          "dateMode": "binding",
+          "timezone": "Africa/Monrovia",
+          "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+          "content": "1973-01-01T00:00:00Z",
+          "style": {
+            "fontSize": 12,
+            "color": "#172033"
+          }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 600,
+    "height": 650,
+    "orientation": "portrait",
+    "backgroundColor": "#ffffff",
+    "systemLanguage": "en",
+    "targetLanguage": "en",
+    "activeLanguages": [
+      "en"
+    ]
+  }
+}

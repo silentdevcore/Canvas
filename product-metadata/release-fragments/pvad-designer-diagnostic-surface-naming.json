@@ -1,0 +1,10 @@
+{
+  "id": "pvad-designer-diagnostic-surface-naming",
+  "impact": "patch",
+  "components": ["designer"],
+  "category": "fixed",
+  "summary": "Designer project, code preview and PDF signing errors now use consistent PVAD diagnostic labels while preserving original diagnostic data.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false
+}

@@ -4,7 +4,7 @@
 /**
  * Holds the Designer projection to the shared pagination contract.
  *
- * PXA renders an invoice twice - the Designer projects it onto Canvas and Live Preview pages, and
+ * PVAD renders an invoice twice - the Designer projects it onto Canvas and Live Preview pages, and
  * `EInvoice.CreatePdf` renders the hybrid PDF - and the two must agree, or the document approved on
  * screen is not the document issued. They agree by each implementing
  * `test-assets/e-invoicing/pagination-contract.json` rather than by sharing code, because
@@ -73,7 +73,7 @@ const planFor = (testCase: ContractCase): InvoicePlan => planInvoicePages({
 
 describe('electronic invoice pagination contract', () => {
   it('is the version this projection implements', () => {
-    expect(contract.schema).toBe('pxa.e-invoice.pagination/1');
+    expect(contract.schema).toBe('pvad.e-invoice.pagination/1');
     expect(contract.cases.length).toBeGreaterThanOrEqual(12);
   });
 
@@ -198,7 +198,7 @@ describe('electronic invoice pagination contract', () => {
   });
 
   it('reports a description beyond the bound rather than rendering it', () => {
-    // The public API cannot produce this: PXAEINV109 caps a description at 4 096 characters. The
+    // The public API cannot produce this: invoice validation caps a description at 4 096 characters. The
     // planner is driven directly, which is the only way to reach the bound.
     const plan = planInvoicePages({
       layout,

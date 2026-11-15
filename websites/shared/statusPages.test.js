@@ -27,21 +27,23 @@ test('unknown status keys fail closed', () => {
   assert.throws(() => getStatusDefinition('madeUp'), /Unknown PVADE status key/);
 });
 
-test('status model exposes bounded recovery and diagnostic fields', () => {
-  const model = createStatusPageModel('upstreamUnavailable', {
-    diagnosticCode: 'PXAAPI018',
-    correlationId: 'trace-42',
-    secondaryAction: 'support',
-    supportHref: '/support',
-  });
+for (const [generation, diagnosticCode] of [['current', 'PVADAPI018'], ['legacy', 'PVADAPI018']]) {
+  test(`status model preserves ${generation} diagnostics and bounded recovery fields`, () => {
+    const model = createStatusPageModel('upstreamUnavailable', {
+      diagnosticCode,
+      correlationId: 'trace-42',
+      secondaryAction: 'support',
+      supportHref: '/support',
+    });
 
-  assert.equal(model.retryPolicy, 'manual');
-  assert.equal(model.primaryAction, 'retry');
-  assert.equal(model.secondaryAction, 'support');
-  assert.equal(model.diagnosticCode, 'PXAAPI018');
-  assert.equal(model.correlationId, 'trace-42');
-  assert.equal(model.supportHref, '/support');
-});
+    assert.equal(model.retryPolicy, 'manual');
+    assert.equal(model.primaryAction, 'retry');
+    assert.equal(model.secondaryAction, 'support');
+    assert.equal(model.diagnosticCode, diagnosticCode);
+    assert.equal(model.correlationId, 'trace-42');
+    assert.equal(model.supportHref, '/support');
+  });
+}
 
 test('renderer escapes customer-controlled diagnostic values', () => {
   const html = renderStatusPage('unexpected', {

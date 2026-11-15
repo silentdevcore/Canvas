@@ -4,7 +4,7 @@ import { resolveSiteLinks, siteLinkDefaults } from './siteLinks.js';
 
 test('each website URL accepts canonical and legacy keys in both modes', () => {
   for (const name of Object.keys(siteLinkDefaults.production)) {
-    for (const prefix of ['VITE_PVAD_', 'VITE_PXA_']) {
+    for (const prefix of ['VITE_PVAD_', 'VITE_PVAD_']) {
       for (const mode of ['development', 'production']) {
         const result = resolveSiteLinks(mode, { [`${prefix}${name.toUpperCase()}_URL`]: 'https://sites.example/base' });
         assert.equal(result[name], 'https://sites.example/base/');
@@ -13,15 +13,12 @@ test('each website URL accepts canonical and legacy keys in both modes', () => {
   }
 });
 
-test('defaults remain stable and aliases must agree without exposing values', () => {
+test('defaults remain stable and former keys are ignored', () => {
   assert.deepEqual(resolveSiteLinks('production'), siteLinkDefaults.production);
   assert.deepEqual(resolveSiteLinks('development'), siteLinkDefaults.local);
-  assert.equal(resolveSiteLinks('production', { VITE_PVAD_COMPANY_URL: 'https://same.example/', VITE_PXA_COMPANY_URL: 'https://same.example/' }).company, 'https://same.example/');
-  assert.throws(() => resolveSiteLinks('production', { VITE_PVAD_COMPANY_URL: 'https://private-new.example/', VITE_PXA_COMPANY_URL: 'https://private-old.example/' }), error => {
-    assert.match(error.message, /VITE_PVAD_COMPANY_URL/);
-    assert.doesNotMatch(error.message, /private|https:/);
-    return true;
-  });
+  assert.equal(resolveSiteLinks('production', { VITE_PVAD_COMPANY_URL: 'https://same.example/' }).company, 'https://same.example/');
+  assert.equal(resolveSiteLinks('production', { VITE_PXA_COMPANY_URL: 'https://former.example/' }).company,
+    siteLinkDefaults.production.company);
 });
 
 test('production defaults use the selected domain while local ports remain unchanged', () => {

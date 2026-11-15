@@ -24,7 +24,7 @@ server {
         default_type application/problem+json;
         add_header Cache-Control "no-store" always;
         add_header X-Content-Type-Options "nosniff" always;
-        return 503 '{"type":"about:blank","title":"PVAD API is unavailable","status":503,"code":"PXAAPI018","canonicalCode":"PVADAPI018"}';
+        return 503 '{"type":"about:blank","title":"PVAD API is unavailable","status":503,"code":"PVADAPI018"}';
     }
 
     location = /index.html {

@@ -83,7 +83,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
     {
         var report = await PreflightAsync(WithPatternPaint(overlapsRegion: true, malformed: true));
 
-        Assert.Contains(Findings(report), f => f.Code == "PXAPDFREDACT210");
+        Assert.Contains(Findings(report), f => f.Code == "PVADPDFREDACT210");
     }
 
     [Theory]
@@ -128,7 +128,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
 
         var report = await PreflightAsync(pdf);
 
-        Assert.Contains(Findings(report), f => f.Code == "PXAPDFREDACT211");
+        Assert.Contains(Findings(report), f => f.Code == "PVADPDFREDACT211");
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
 
         var report = await PreflightAsync(pdf);
 
-        Assert.Contains(Findings(report), f => f.Code == "PXAPDFREDACT212");
+        Assert.Contains(Findings(report), f => f.Code == "PVADPDFREDACT212");
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class PdfRedactionSanitizationAndVisibilityTests
         var report = await PreflightAsync(CreatePdf());
 
         Assert.DoesNotContain(Findings(report), f =>
-            f.Code is "PXAPDFREDACT209" or "PXAPDFREDACT210" or "PXAPDFREDACT211" or "PXAPDFREDACT212");
+            f.Code is "PVADPDFREDACT209" or "PVADPDFREDACT210" or "PVADPDFREDACT211" or "PVADPDFREDACT212");
     }
 
     [Fact]

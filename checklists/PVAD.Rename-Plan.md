@@ -4,6 +4,197 @@ Historical record: results and task states are retained. Names and rerun referen
 are editorially normalized; original commands and wording remain in Git at
 `30496722`. This is not a new execution or release approval.
 
+## Repository-Only Acceptance (2026-11-08)
+
+The current source naming scope is complete under the agreed retention rules.
+The [closeout audit](PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+rechecks all 3,229 tracked regular files, including tracked ignored vendor inputs,
+corrects two overbroad retention decisions, and records actual regression results.
+The latest decision supersedes earlier pending semantic-review statements only
+for repository naming; their historical counts and evidence remain intact.
+
+Current technical identities use PVAD and product/Designer presentation uses
+PVADE. Exact supported readers, diagnostics, persisted/cryptographic identities,
+original evidence, negative tests, neutral drawing APIs and incidental encoded
+substrings remain for their specific documented reasons. This is not a promise
+of zero old-name search matches. The [consolidated remaining-items list](PVAD.Rename-Remaining-Items.md)
+separates these contracts from independent product defects and future operations.
+The original 90/98 release/cutover matrix and its eight open gates are unchanged;
+no publication, deployment, publisher approval, version bump or commit is implied.
+
+## Current Repository-Only Scope (2026-11-06)
+
+The owner has confirmed that the active task is **repository renaming only**.
+Technical names use **PVAD**; product, website and Designer names use **PVADE**.
+Current code, project/file names, configuration sources, examples, tests and
+documentation are in scope. Existing compatibility readers and original
+evidence retain their agreed protection.
+
+Package publication, publisher registration, release preparation, version
+increases, deployment, DNS/mail activation, remote protection changes and
+production approval are outside this task. Do not perform or require these
+operations to finish repository renaming. A repository rename is not a release.
+
+The original **90/98** count below tracks the earlier combined rename and
+release/cutover plan. It is **not a measure of unfinished source renaming**.
+Its eight unchecked operational/release gates remain intact for future work;
+they do not block the current repository-only task. Earlier execution results,
+checkbox states and approvals are not rewritten by this scope clarification.
+
+The [source acceptance](../docs/pvad-rename-source-acceptance.md) describes
+canonical output and retained contracts. The latest functional-test cleanup
+is committed as `b3812027`; its exact changes and verification are recorded in
+the [remaining-code checklist](PVAD.Remaining-Code-Naming-Cleanup.md#mechanical-test-source-cleanup---2026-11-06).
+No publication or deployment follows from that commit or this instruction.
+
+The [Grafana repository-default batch](PVAD.Remaining-Code-Naming-Cleanup.md#grafana-repository-defaults---2026-11-06)
+uses PVAD provider/folder defaults for fresh local installations and an explicit
+compatibility overlay for existing ones. The original provisioning files and
+installed services remain unchanged. This closes a concrete source-default
+finding without claiming a live cutover or changing any operational checkbox.
+
+The subsequent [large mechanical replacement batch](PVAD.Remaining-Code-Naming-Cleanup.md#large-mechanical-search-and-replace-batch---2026-11-06)
+updates 120 exact matches across 50 current test/example files in Designer,
+Account, backend document processing and migrations. Original evidence and
+compatibility contracts remain unchanged; it is not a new runtime feature or
+closure of any release gate.
+
+The next [API/tooling mechanical batch](PVAD.Remaining-Code-Naming-Cleanup.md#api-and-tooling-mechanical-batch---2026-11-06)
+removes another 70 old-name occurrences in 29 files, including a private Core
+identifier and current test/tool text. Public serialized aliases and original
+evidence stay unchanged; this remains repository-only work.
+
+The [recovery and current-example batch](PVAD.Remaining-Code-Naming-Cleanup.md#recovery-and-current-example-naming---2026-11-06)
+provides a canonical explicit restore phrase, retains the former phrase as an
+exact input alias and uses current names throughout the isolated database drill.
+Converter, fidelity and release-tool test examples are normalized together with
+their expectations. Existing backup files, databases and evidence are not renamed.
+
+The [current-route and project-example pass](PVAD.Remaining-Code-Naming-Cleanup.md#current-routes-and-project-examples---2026-11-06)
+replaces 58 exact occurrences in 14 files. Generic current API workflows now
+exercise the canonical prefix instead of relying on the compatibility adapter.
+Current project examples, generated PDF/UA filenames and ephemeral test data
+use current names; dedicated legacy, header and schema tests remain unchanged.
+
+The [MCP current-test pass](PVAD.Remaining-Code-Naming-Cleanup.md#mcp-current-test-configuration---2026-11-06)
+normalizes four configuration, JWT, HTTP and API-client test files. Dedicated
+alias/conflict cases remain intact, and explicit HTTP/delegation cases preserve
+old grants. Unknown scopes are not promoted or given invented aliases. Production
+MCP sources, packages and resource identities remain unchanged.
+
+The [project archive example pass](PVAD.Remaining-Code-Naming-Cleanup.md#project-archive-current-examples---2026-11-06)
+normalizes generic atomic-file tests, editable sample text and the default
+workbook schema hint. Separate roundtrip cases preserve both schema generations;
+original project fixtures, diagnostics and production archive code stay unchanged.
+
+The [smoke/browser input pass](PVAD.Remaining-Code-Naming-Cleanup.md#smoke-and-browser-current-inputs---2026-11-06)
+normalizes general operator API calls and live browser opt-ins. Current and
+legacy cookie tests stay separate; the Company test verifies navigation-only
+sign-in presentation without persistent markers. Production behavior and
+installed infrastructure identities remain unchanged.
+
+The [project API/recovery example pass](PVAD.Remaining-Code-Naming-Cleanup.md#project-api-recovery-and-telemetry-examples---2026-11-06)
+uses current generic project filenames and telemetry inputs. Explicit tests
+retain both project-extension generations and both recovery storage readers;
+original fixtures, diagnostic IDs and audit contracts remain unchanged.
+
+The [current header/delegation follow-up](PVAD.Remaining-Code-Naming-Cleanup.md#current-pdf-header-and-delegation-workflows---2026-11-07)
+replaces general workflow test defaults while retaining explicit protocol and
+original-fixture cases. Repository naming remains under semantic review; the
+classified scan is not a blanket completion claim.
+
+The [Generator/Importer artifact review](PVAD.Remaining-Code-Naming-Cleanup.md#generator-and-importer-artifact-metadata---2026-11-07)
+normalizes new nonvisual PDF metadata and retains specific hash-bound invoice
+and signature-appearance inputs. Remaining semantic review is still open.
+
+The [Designer authentication/template route review](PVAD.Remaining-Code-Naming-Cleanup.md#designer-authentication-and-template-adapter-routes---2026-11-07)
+uses current render requests and explicit current/legacy adapter lifecycles,
+without removing compatibility. A pre-existing stored-template render limitation
+is tracked separately; this pass does not claim document-fidelity completion.
+
+The [JavaScript/XML review](PVAD.Remaining-Code-Naming-Cleanup.md#javascript-and-xml-review---2026-11-07)
+checks all 115 tracked files of those extensions. General test defaults and a
+format label are canonicalized; explicit compatibility inputs remain. All 27
+matching XML files are original hash-bound DSS reports and remain unchanged.
+This scoped pass does not close the overall semantic review or release gates.
+
+The [Designer/Account TypeScript review](PVAD.Remaining-Code-Naming-Cleanup.md#designer-and-account-typescript-review---2026-11-07)
+inspects all 330 tracked frontend TypeScript files. Commentary and test labels
+are normalized, and export/configuration tests cover both naming generations.
+Stable diagnostic, reader and original-fixture contracts remain unchanged;
+repository-wide closure is not inferred from the scoped inventory.
+
+The [backend CSharp review](PVAD.Remaining-Code-Naming-Cleanup.md#backend-csharp-review---2026-11-07)
+inspects production and test source, uses current OAuth/generated-code defaults
+with explicit old-input coverage, and normalizes explanatory invoice comments
+and a test-method name. Stable diagnostics, persisted audit formats, security
+identities and original evidence are retained rather than globally replaced.
+
+The [build/configuration review](PVAD.Remaining-Code-Naming-Cleanup.md#build-and-configuration-review---2026-11-08)
+covers 444 tracked files and preserves actual historical runtime bindings while
+normalizing free display labels. The [consolidated remaining-items list](PVAD.Rename-Remaining-Items.md)
+separates current source changes, retained contracts, original evidence and
+unverified Release-build prerequisites. A repeatable tracked-only inventory
+records positions and hashes without copying source lines; raw counts and the
+exception ledger do not establish overall completion.
+
+The [current application-output follow-up](PVAD.Remaining-Code-Naming-Cleanup.md#current-application-output-review---2026-11-08)
+fixes dynamically supplied diagnostic references in project/code/signing failure
+surfaces without changing machine IDs, source drafts or customer filenames.
+All 827 Designer tests, typecheck and production build passed. This extends the
+scoped acceptance record; original rollout gates, evidence and VERSION stay intact.
+
+The [Account/Admin output review](PVAD.Remaining-Code-Naming-Cleanup.md#account-and-admin-output-review---2026-11-08)
+extends display-only diagnostics to portal failures and fixes the Admin Problem
+Details reader. Original response fields, customer/license/key data and audit
+evidence remain exact. Both portal builds and four mocked-API browser scenarios
+passed; no real authorization, licensing or deployment acceptance is inferred.
+
+The [public websites output review](PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+covers Company, Documentation and Demo together. Two PAdES catalog wrappers now
+use the market name while original signed files, reports, hashes, filenames and
+classifications stay exact. This is an editorial presentation correction, not
+new validation evidence or permission to change historical artifacts.
+
+The [CLI/MCP tool review](PVAD.Remaining-Code-Naming-Cleanup.md#cli-mcp-and-diagnostic-tool-review---2026-11-08)
+corrects internal smoke/validator presentation while retaining exact protocol
+data, original schema resources and standards policy validation. It exercises
+all catalog example surfaces without claiming C# compilation or new backend
+rendering coverage. Original evidence and operational gates remain unchanged.
+
+The [generated-document review](PVAD.Remaining-Code-Naming-Cleanup.md#generated-document-output-review---2026-11-08)
+tests fresh PDF, Office and text/XML exports, file-response names and explicit
+customer metadata. It separates real artifact checks from source inspection
+and preserves original signed documents and compatibility outputs. Actual
+results and remaining test prerequisites are recorded in that scoped review.
+
+## Repository-Only Naming Review (2026-11-06)
+
+Source baseline: `24390509`. The tracked-file classification is recorded, but
+repository naming is not declared complete. Classification and exact-file
+checks do not prove that every remaining current identity must be retained.
+Review remaining source identifiers and defaults individually before closure.
+
+The detailed local inventory is
+`artifacts/rename/final-repository-audit/scan.json`; its compact counts are in
+`summary.json` beside it. It scans 3,214 tracked regular files: 3,126 through the
+text boundary and 88 as binary inputs. Private IDE paths, untracked notes,
+symlinks and ignored/generated output are excluded. Known source formats with
+embedded null bytes are included in the text scan.
+
+The remaining inventory contains 590 text-scanned files with 20,319 content
+occurrences, 42 matching paths and 28 binary inputs with 127 raw-byte matches.
+These are classified findings, not a verified count of unfinished rename tasks
+or product defects. Exact counts belong to this baseline, not to all future
+commits. The [naming review](../docs/pvad-rename-source-acceptance.md#repository-only-naming-review-2026-11-06)
+explains the categories, pending semantic review and validation limits.
+
+Historical inventories, source evidence and earlier task states remain intact.
+The original eight release/cutover gates below remain open; the historical
+90/98 count is unchanged and must not be presented as the repository-only
+naming completion percentage. No publication, deployment, key rotation,
+database migration, commit or push is implied by this review.
+
 ## Final Acceptance Review (2026-11-05)
 
 The [final acceptance matrix](../docs/pvad-rename-final-acceptance.md) is the
@@ -330,7 +521,7 @@ upload, Designer/CSRF headers and visible imported content. Fixed the missing
 progress-upload headers and the StrictMode cancellation of Spreadsheet launches.
 The earlier release dry-run proposed 2.0.0 from 99 pending fragments; VERSION and the published
 manifest were verified unchanged. This is not a release or deployment approval.
-The repeatable [local validation bundle](../deploy/rename/LOCAL-VALIDATION.md)
+The repeatable local validation bundle (`deploy/rename/LOCAL-VALIDATION.md`, removed 2026-11-09)
 also covers relocated synthetic keyring restore, real PostgreSQL dump/restore,
 Nginx-hosted production assets and Chromium installability diagnostics. Public
 Designer CSP remains an internal predeployment gap, not a third-party dependency.

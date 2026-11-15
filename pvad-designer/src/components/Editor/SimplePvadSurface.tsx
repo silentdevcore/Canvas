@@ -10,10 +10,14 @@ import { applyVerticalWheelToHorizontalScroll } from '@/utils/editorScrolling';
 import { updateLanguageSelection } from '@/utils/languageSelection';
 import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 import { effectivePageSettings } from '@/utils/pageLayout';
+import { DocumentElementRenderer } from '@/components/Rendering/DocumentElementRenderer';
+import { createDocumentContentResolver, effectiveDocumentElement, elementMatchesDocumentLanguage } from '@/components/Rendering/documentContent';
+import { DESIGNER_DATE_DEFAULTS, formatDocumentDate } from '@/components/Rendering/documentDate';
+import { layoutPdfTextBlock } from '@/components/Rendering/PdfTextRenderer';
+import EditorDocumentMarker from './EditorDocumentMarker';
 import { assessPasswordStrength } from '@/utils/passwordStrength';
 import { designerAssetContentUrl } from '@/services/designerAssetApi';
 import { motion } from 'framer-motion';
-import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
 import ChartInspector from '@/chart/ChartInspector';
 import { createDefaultChartDefinition, toLegacyChartData } from '@/chart/model';
 import {
@@ -110,7 +114,6 @@ import { ELEMENT_GROUP_ORDER, ELEMENT_REGISTRY, registryEntry, type ElementGroup
 import { CONTENT_LIBRARY, buildContentPages, type ContentLibraryEntry } from '@/data/contentLibrary';
 import { prepareBlockInsertion, preparePageKitInsertion } from '@/utils/contentInsertion';
 import { useElementFavorites } from '@/hooks/useElementFavorites';
-import { readMigratedStorage } from '@/utils/storageMigration';
 import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
@@ -128,34 +131,7 @@ import {
   withRepeatedPageArtifactAccessibility,
   withSuggestedAccessibility,
 } from '@/accessibility/designerAccessibility';
-import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
-import LineRenderer from '@/components/Rendering/LineRenderer';
-import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
-import ArrowRenderer from '@/components/Rendering/ArrowRenderer';
-import HighlightRenderer from '@/components/Rendering/HighlightRenderer';
-import {
-  formatNumberForPdf,
-  formatPageNumberForPdf,
-  pdfFontFamily,
-  PdfRichTextRenderer,
-  PdfSingleLineText,
-  PdfTextBlockRenderer,
-} from '@/components/Rendering/PdfTextRenderer';
-import {
-  PdfButtonRenderer,
-  PdfCheckboxRenderer,
-  PdfCheckmarkRenderer,
-  PdfDropdownRenderer,
-  PdfSignatureRenderer,
-} from '@/components/Rendering/PdfControlRenderer';
-import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
-import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
-import {
-  PdfCommentRenderer,
-  PdfContentControlRenderer,
-  PdfLayoutBoundaryRenderer,
-  PdfNoteRenderer,
-} from '@/components/Rendering/PdfStructureRenderer';
+import { resizeTable } from '@/utils/tableDimensions';
 
 
 interface SimplePvadSurfaceProps {
@@ -611,7 +587,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
   const [isDragOverSurface, setIsDragOverSurface] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
     try {
-      const saved = JSON.parse(readMigratedStorage(localStorage, 'pvad-designer-element-groups-v1', 'pxa-designer-element-groups-v1') ?? '[]');
+      const saved = JSON.parse(localStorage.getItem('pvad-designer-element-groups-v1') ?? '[]');
       if (Array.isArray(saved) && saved.length) return saved;
     } catch { /* use defaults */ }
     return ['favorites', 'textData', 'formsInput', 'tablesCharts', 'mediaCodes', 'shapesLayout', 'documentNavigation'];
@@ -765,20 +741,13 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
   const isMultilingual = (pageSettings.activeLanguages?.length ?? 0) > 1;
 
   // Returns the effective position/size for an element, applying lang override if one exists.
-  const getEffectivePos = (el: SimpleElement) => {
-    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
-    return {
-      x: ov?.x ?? el.x,
-      y: ov?.y ?? el.y,
-      width: ov?.width ?? el.width,
-      height: ov?.height ?? el.height,
-    };
+  const getEffectivePos = (element: SimpleElement) => {
+    const effective = effectiveDocumentElement(element, currentPreviewLanguage);
+    return { x: effective.x, y: effective.y, width: effective.width, height: effective.height };
   };
 
-  const getEffectiveRotation = (el: SimpleElement): number => {
-    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
-    return ov?.rotation ?? el.style?.rotation ?? 0;
-  };
+  const getEffectiveRotation = (element: SimpleElement): number =>
+    effectiveDocumentElement(element, currentPreviewLanguage).style?.rotation ?? 0;
 
   const setLanguageSelected = (tag: string, selected: boolean) => {
     const current = pageSettings.activeLanguages ?? [];
@@ -821,29 +790,11 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
   }, [currentPreviewLanguage]);
 
   // Resolve {{KEY}} in content using localized property values for the current preview language.
-  const resolveContent = useMemo(() => {
-    const props = pageSettings.localizedProperties ?? [];
-    const sysLang = navigator.language.split('-')[0];
-    const target = currentPreviewLanguage || sysLang;
-    const map: Record<string, string> = {};
-    for (const p of props) {
-      if (p.scope === 'own') {
-        // Own properties are only visible when the current preview language matches the owner
-        if (p.ownerLanguage === target) {
-          map[p.key] = p.localizedValues[p.ownerLanguage] ?? '';
-        }
-      } else {
-        // Global: each language fills its own value; fall back to system language value
-        map[p.key] = p.localizedValues[target]
-          ?? p.localizedValues[sysLang]
-          ?? '';
-      }
-    }
-    return (content: string | undefined): string => {
-      if (!content || !content.includes('{{')) return content ?? '';
-      return content.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
-    };
-  }, [pageSettings.localizedProperties, currentPreviewLanguage]);
+  const resolveContent = useMemo(() => createDocumentContentResolver(
+    pageSettings.localizedProperties ?? [], currentPreviewLanguage,
+    pageSettings.systemLanguage || navigator.language, pageSettings.customProperties),
+    [pageSettings.localizedProperties, pageSettings.customProperties, pageSettings.systemLanguage, currentPreviewLanguage]);
+  const renderInstant = useMemo(() => new Date(), [pages, sharedElements, documentPageSettings, currentPreviewLanguage]);
 
   const updateMargin = (side: keyof PageSettings['margins'], displayVal: number) => {
     const px = fromDisplay(displayVal, pageSettings.unit);
@@ -1045,7 +996,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         y: 276,
         width: 220,
         height: 140,
-        content: 'https://via.placeholder.com/220x140'
+        content: ''
       })
     },
     {
@@ -1077,6 +1028,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         y: 556,
         width: 300,
         height: 140,
+        cellData: Array.from({ length: 3 }, () => ['', '', '']),
         style: {
           rows: 3,
           columns: 3,
@@ -1345,9 +1297,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         height: 40,
         content: new Date().toISOString().slice(0, 10),
         dateMode: 'static',
-        dateFormat: 'yyyy-MM-dd',
-        locale: 'de-DE',
-        timezone: 'Europe/Berlin',
+        dateFormat: DESIGNER_DATE_DEFAULTS.format,
+        locale: DESIGNER_DATE_DEFAULTS.locale,
+        timezone: DESIGNER_DATE_DEFAULTS.timezone,
         fallbackText: '-',
         style: { color: '#111827', fontSize: 14 }
       })
@@ -2144,9 +2096,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
         height: elHeight,
         content: new Date().toISOString().slice(0, 10),
         dateMode: 'static',
-        dateFormat: 'yyyy-MM-dd',
-        locale: 'de-DE',
-        timezone: 'Europe/Berlin',
+        dateFormat: DESIGNER_DATE_DEFAULTS.format,
+        locale: DESIGNER_DATE_DEFAULTS.locale,
+        timezone: DESIGNER_DATE_DEFAULTS.timezone,
         fallbackText: '-',
         style: { fontSize: 11, color: '#374151' }
       };
@@ -2205,7 +2157,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
           notify.warning(t('contentLibrary.scaled', { percent: Math.round(prepared.scale * 100) }));
         }
       }
-      const recent = JSON.parse(readMigratedStorage(localStorage, 'pvad-designer-recent-content-v1', 'pxa-designer-recent-content-v1') ?? '[]') as string[];
+      const recent = JSON.parse(localStorage.getItem('pvad-designer-recent-content-v1') ?? '[]') as string[];
       localStorage.setItem('pvad-designer-recent-content-v1', JSON.stringify([entry.id, ...recent.filter(id => id !== entry.id)].slice(0, 8)));
       notify.success(t('contentLibrary.inserted'));
     } catch (error) {
@@ -2218,7 +2170,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     setIsDragOverSurface(false);
 
     const contentId = event.dataTransfer.getData('application/x-pvad-content-block')
-      || event.dataTransfer.getData('application/x-pxa-content-block');
+      || event.dataTransfer.getData('application/x-pvad-content-block');
     if (contentId) {
       const entry = CONTENT_LIBRARY.find(value => value.id === contentId && value.kind === 'block');
       if (entry) insertLibraryContent(entry, undefined, getSurfacePoint(event.clientX, event.clientY));
@@ -2454,6 +2406,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     if (element.type === 'date' && element.dateMode === 'binding' && !element.binding?.trim()) {
       warnings.push(t('warnings.bindingPathNeeded'));
     }
+    if (element.type === 'date') {
+      const formatted = formatDocumentDate(element, renderInstant, resolveContent);
+      for (const warning of formatted.warnings)
+        warnings.push(t(`warnings.${warning}`));
+      if (layoutPdfTextBlock(element, formatted.text).overflows) warnings.push(t('warnings.dateLayoutOverflow'));
+    }
 
     if (element.type === 'draw' && !element.pathData?.trim()) {
       warnings.push(t('warnings.drawPathNeeded'));
@@ -2466,449 +2424,13 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
     return warnings;
   };
 
-  const getDatePreview = (element: SimpleElement) => {
-    if (element.dateMode === 'static') return element.content || element.fallbackText || '-';
-    if (element.dateMode === 'binding') return element.binding ? `{{ ${element.binding} }}` : element.fallbackText || '-';
-
-    const locale = element.locale || 'de-DE';
-    const date = new Date();
-    if ((element.dateFormat || '').toLowerCase().includes('time')) {
-      return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-    }
-
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
-  };
 
   const renderElement = (element: SimpleElement, pageIndex = currentPageIndex) => {
-    if (element.type === 'text') {
-      return <PdfTextBlockRenderer element={element} text={resolveContent(element.content) ?? ''} />;
-    }
-
-    if (element.type === 'qrcode') {
-      return <BackendSymbolRenderer element={element} type="qrcode" />;
-    }
-
-    if (element.type === 'barcode') {
-      return <BackendSymbolRenderer element={element} type="barcode" />;
-    }
-
-    if (element.type === 'signature') {
-      return <PdfSignatureRenderer element={{ ...element, signatureLabel: resolveContent(element.signatureLabel) }} />;
-    }
-
-    if (element.type === 'richtext') {
-      return <PdfRichTextRenderer element={element} />;
-    }
-
-    if (element.type === 'field') {
-      return <FormFieldRenderer element={element} resolveContent={resolveContent} />;
-    }
-
-    if (element.type === 'textarea') {
-      return <FormFieldRenderer element={element} multiline resolveContent={resolveContent} />;
-    }
-
-    if (element.type === 'checkbox') {
-      return <PdfCheckboxRenderer element={{ ...element, fieldLabel: resolveContent(element.fieldLabel) }} />;
-    }
-
-    if (element.type === 'line') {
-      return <LineRenderer element={element} />;
-    }
-
-    if (element.type === 'image') {
-      const imgStyle: React.CSSProperties = {
-        width: '100%',
-        height: '100%',
-        objectFit: element.fitMode || 'contain',
-        objectPosition: `${element.focalX || 50}% ${element.focalY || 50}%`
-      };
-
-      if (element.preserveAspectRatio) {
-        imgStyle.objectFit = 'contain';
-      }
-
-      return (
-        <div style={{
-          overflow: 'hidden',
-          width: '100%',
-          height: '100%',
-          position: 'relative'
-        }}>
-          <img
-            src={element.content || 'https://via.placeholder.com/220x140'}
-            alt={t('placeholders.image')}
-            style={imgStyle}
-          />
-        </div>
-      );
-    }
-
-    if (element.type === 'shape' || element.type === 'rect') {
-      return <PdfShapeRenderer element={element} />;
-    }
-
-    if (element.type === 'circle') {
-      return <PdfCircleRenderer element={element} />;
-    }
-
-    if (element.type === 'table') {
-      const totalRows    = element.style?.rows ?? 3;
-      const columns      = element.style?.columns ?? 3;
-      const bw           = element.style?.borderWidth ?? 1;
-      const bc           = element.style?.borderColor || '#000000';
-      const cp           = element.style?.cellPadding ?? 5;
-      const hasHeader    = element.headerRow ?? false;
-      const hasFooter    = element.footerRow ?? false;
-      const headerBg     = element.headerBgColor || '#f1f5f9';
-      const zebraOn      = element.zebraEnabled ?? false;
-      const zebraColor   = element.zebraColor || '#f9fafb';
-      const colWidths    = element.columnWidths ?? [];
-      const cellData     = element.cellData ?? [];
-      const colAligns    = element.columnAlignments ?? [];
-      const bodyRows     = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
-      const rdlColumnHeaders = Array.isArray(element.style?.rdlTablixColumnHierarchy)
-        ? element.style.rdlTablixColumnHierarchy
-            .map((member: any) => member?.headerText || member?.groupName)
-            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        : [];
-      const rdlRowHeaders = Array.isArray(element.style?.rdlTablixRowHierarchy)
-        ? element.style.rdlTablixRowHierarchy
-            .map((member: any) => member?.headerText || member?.groupName)
-            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        : [];
-      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
-      const visualRowHeight = element.height / Math.max(1, totalRows + rdlMatrixHeaders.length);
-
-      const cellFontSize   = element.style?.cellFontSize ?? 10;
-      const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
-      const cellColor      = element.style?.cellColor as string | undefined;
-      const cellFontWeight = element.style?.cellFontWeight ?? 'normal';
-
-      const cellStyles = element.cellStyles ?? [];
-      const sideCss = (s?: { color?: string; width?: number }) =>
-        s ? `${s.width ?? 1}px solid ${s.color ?? '#000000'}` : undefined;
-
-      const tdStyle = (
-        rowIdx: number,
-        colIdx: number,
-        kind: 'header' | 'body' | 'footer',
-        dataRow: number = rowIdx
-      ): React.CSSProperties => {
-        const style: React.CSSProperties = {
-          border: `${bw}px solid ${bc}`,
-          padding: cp,
-          textAlign: colAligns[colIdx] || 'left',
-          fontSize: cellFontSize,
-          fontFamily: pdfFontFamily(cellFontFamily),
-          fontWeight: kind === 'header' || kind === 'footer' ? 700 : cellFontWeight,
-          color: cellColor ?? '#101828',
-          backgroundColor:
-            kind === 'header' ? headerBg
-            : kind === 'footer' ? '#f8fafc'
-            : zebraOn && rowIdx % 2 === 1 ? zebraColor
-            : 'transparent',
-          width: colWidths[colIdx] ? colWidths[colIdx] : undefined,
-        };
-
-        // Sparse per-cell override (background / alignment / borders) keyed by the absolute data row.
-        const cs = cellStyles.find((x) => x.row === dataRow && x.col === colIdx);
-        if (cs) {
-          if (cs.backgroundColor) style.backgroundColor = cs.backgroundColor;
-          if (cs.textAlign) style.textAlign = cs.textAlign;
-          if (cs.padding != null) style.padding = cs.padding;
-          if (cs.fontFamily) style.fontFamily = cs.fontFamily;
-          if (cs.fontSize != null) style.fontSize = cs.fontSize;
-          if (cs.bold) style.fontWeight = 700;
-          if (cs.italic) style.fontStyle = 'italic';
-          if (cs.color) style.color = cs.color;
-          const hasBorder = cs.borderColor != null || cs.borderWidth != null
-            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
-          if (hasBorder) {
-            // Explicit per-cell borders replace the default grid border (parity with the image exporter).
-            const uniform = (cs.borderColor != null || cs.borderWidth != null)
-              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
-              : 'none';
-            style.border = undefined;
-            style.borderTop = sideCss(cs.borderTop) ?? uniform;
-            style.borderRight = sideCss(cs.borderRight) ?? uniform;
-            style.borderBottom = sideCss(cs.borderBottom) ?? uniform;
-            style.borderLeft = sideCss(cs.borderLeft) ?? uniform;
-          }
-        }
-        return style;
-      };
-
-      const cell = (r: number, c: number) => cellData[r]?.[c] ?? '';
-
-      return (
-        <table style={{
-          width: '100%', height: '100%', borderCollapse: 'collapse',
-          border: `${bw}px solid ${bc}`,
-          tableLayout: colWidths.some(Boolean) ? 'fixed' : 'auto',
-        }}>
-          {colWidths.some(Boolean) && (
-            <colgroup>
-              {Array.from({ length: columns }).map((_, i) => (
-                <col key={i} style={{ width: colWidths[i] ? colWidths[i] : undefined }} />
-              ))}
-            </colgroup>
-          )}
-          {hasHeader && (
-            <thead>
-              {rdlMatrixHeaders.map((header, index) => (
-                <tr key={`rdl-matrix-header-${index}`} style={{ height: visualRowHeight }}>
-                  <th
-                    colSpan={columns}
-                    style={{
-                      ...tdStyle(index, 0, 'header'),
-                      textAlign: 'left',
-                      backgroundColor: '#e0f2fe',
-                      color: '#075985'
-                    }}
-                  >
-                    {header}
-                  </th>
-                </tr>
-              ))}
-              <tr style={{ height: visualRowHeight }}>
-                {Array.from({ length: columns }).map((_, c) => (
-                  <th key={c} style={tdStyle(0, c, 'header')}>
-                    {cell(0, c)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          )}
-          <tbody>
-            {Array.from({ length: bodyRows }).map((_, r) => {
-              const dataRow = r + (hasHeader ? 1 : 0);
-              return (
-                <tr key={r} style={{ height: visualRowHeight }}>
-                  {Array.from({ length: columns }).map((_, c) => (
-                    <td key={c} style={tdStyle(r, c, 'body', dataRow)}>
-                      {cell(dataRow, c)}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-          {hasFooter && (
-            <tfoot>
-              <tr style={{ height: visualRowHeight }}>
-                {Array.from({ length: columns }).map((_, c) => (
-                  <td key={c} style={tdStyle(0, c, 'footer', totalRows - 1)}>
-                    {cell(totalRows - 1, c)}
-                  </td>
-                ))}
-              </tr>
-            </tfoot>
-          )}
-        </table>
-      );
-    }
-
-    if (element.type === 'button') {
-      return <PdfButtonRenderer element={element} />;
-    }
-
-    if (element.type === 'dropdown') {
-      return <PdfDropdownRenderer element={element} />;
-    }
-
-    if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
-
-    if (element.type === 'radio') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {(element.options || []).map((opt, index) => (
-            <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input type="radio" name={element.id} defaultChecked={index === 0} />
-              <span style={{
-                fontFamily: element.style?.fontFamily || 'sans-serif',
-                fontSize: element.style?.fontSize || 14,
-                color: element.style?.color || '#000000'
-              }}>{opt}</span>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    if (element.type === 'chart') {
-      return (
-        <PdfContractChartRenderer
-          chart={element.chart}
-          legacyType={element.chartType}
-          legacyData={element.chartData}
-          ariaLabel={element.name || t('diagnostics.chart')}
-          width={element.width}
-          height={element.height}
-        />
-      );
-    }
-
-    if (element.type === 'watermark') {
-      const isImage = element.watermarkMode === 'image';
-      return (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            opacity: element.style?.opacity ?? 0.18,
-            transform: `rotate(${element.style?.rotation ?? -24}deg) scale(${element.style?.scale ?? 1})`,
-            pointerEvents: 'none'
-          }}
-        >
-          {isImage ? (
-            <img
-              src={element.content || 'https://via.placeholder.com/260x80'}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          ) : (
-            <span
-              style={{
-                color: element.style?.color || '#64748b',
-                fontSize: element.style?.fontSize || 42,
-                fontWeight: element.style?.fontWeight || 'bold',
-                letterSpacing: 2,
-                whiteSpace: 'nowrap',
-                textTransform: 'uppercase'
-              }}
-            >
-              {element.content || 'WATERMARK'}
-            </span>
-          )}
-        </div>
-      );
-    }
-
-    if (element.type === 'note') {
-      return <PdfNoteRenderer element={element} />;
-    }
-
-    if (element.type === 'arrow') {
-      return <ArrowRenderer element={element} />;
-    }
-
-    if (element.type === 'link') {
-      return <PdfSingleLineText element={element} kind="link" text={element.content || element.href || ''} />;
-    }
-
-    if (element.type === 'number') {
-      return <PdfSingleLineText element={element} kind="number" text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />;
-    }
-
-    if (element.type === 'draw') {
-      return <PdfDrawingRenderer element={element} />;
-    }
-
-    if (element.type === 'date') {
-      return <PdfSingleLineText element={element} kind="date" text={getDatePreview(element)} />;
-    }
-
-    if (element.type === 'highlight') {
-      return <HighlightRenderer element={element} />;
-    }
-
-    if (element.type === 'subsection' || element.type === 'area') {
-      return <PdfLayoutBoundaryRenderer element={element} />;
-    }
-
-    if (element.type === 'checkmark') {
-      return <PdfCheckmarkRenderer element={{ ...element, fieldLabel: resolveContent(element.fieldLabel) }} />;
-    }
-
-    if (element.type === 'pageboundary') {
-      if (visualParityMode) return null;
-      const color = element.style?.color || '#7c3aed';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 8, color }}>
-          <div style={{ flex: 1, borderTop: `2px ${element.style?.dashStyle || 'dashed'} ${color}` }} />
-          <strong style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>
-            {element.pageBoundaryMode === 'end' ? 'Page end' : 'Page start'}
-          </strong>
-          <div style={{ flex: 1, borderTop: `2px ${element.style?.dashStyle || 'dashed'} ${color}` }} />
-        </div>
-      );
-    }
-
-    if (element.type === 'pagenumber') {
-      return <PdfSingleLineText element={element} kind="pagenumber" text={formatPageNumberForPdf(element, pageIndex, pages.length)} />;
-    }
-
-    if (element.type === 'footnote' || element.type === 'endnote') {
-      const label = element.type === 'footnote' ? '†' : '‡';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12, color: '#6366f1', borderLeft: '3px solid #6366f1', overflow: 'hidden' }}>
-          <span style={{ fontWeight: 700 }}>{label}</span>
-          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.footnoteText || `${element.type === 'footnote' ? 'Footnote' : 'Endnote'}…`}
-          </span>
-        </div>
-      );
-    }
-
-    if (element.type === 'bookmark') {
-      if (visualParityMode) return null;
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12, color: '#0891b2' }}>
-          <FiBookmark size={12} />
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.bookmarkName || 'bookmark'}
-          </span>
-        </div>
-      );
-    }
-
-    if (element.type === 'comment') {
-      return <PdfCommentRenderer element={element} />;
-    }
-
-    if (element.type === 'contentcontrol') {
-      return <PdfContentControlRenderer element={element} />;
-    }
-
-    if (element.type === 'toc') {
-      const fontSize = element.style?.fontSize || 13;
-      const color = element.style?.color || '#1f2937';
-      const entries = element.tocEntries ?? [];
-      return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: '8px 10px', border: '1px dashed #94a3b8', borderRadius: 4, background: '#f8fafc' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6, textTransform: 'uppercase' }}>
-            Table of Contents
-          </div>
-          {entries.length === 0 ? (
-            <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
-              No headings found. Select a text element and set a Heading Level in the inspector.
-            </div>
-          ) : entries.map((e, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 3,
-              paddingLeft: (e.level - 1) * 12, fontSize: e.level === 1 ? fontSize : fontSize - 1,
-              fontWeight: e.level === 1 ? 600 : 400, color
-            }}>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.text}</span>
-              <span style={{ flexShrink: 0, borderBottom: '1px dotted #cbd5e1', flex: 1, alignSelf: 'center', margin: '0 4px' }} />
-              <span style={{ flexShrink: 0 }}>{e.page}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <div className="editor-placeholder">
-        <FiBox className="editor-placeholder-icon" />
-        <span>{element.type}</span>
-      </div>
-    );
+    const effective = effectiveDocumentElement(element, currentPreviewLanguage);
+    if (!visualParityMode && (effective.type === 'bookmark' || effective.type === 'pageboundary'))
+      return <EditorDocumentMarker element={effective} />;
+    return <DocumentElementRenderer element={effective} pageIndex={pageIndex} pageCount={pages.length}
+      pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height} resolveContent={resolveContent} now={renderInstant} />;
   };
 
   if (visualParityMode) {
@@ -3482,7 +3004,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                 </div>
               )}
               {elements
-                .filter(el => !el.elementLanguage || el.elementLanguage === currentPreviewLanguage)
+                .filter(el => elementMatchesDocumentLanguage(el, currentPreviewLanguage))
                 .map((element, index) => (
                 <motion.div
                   key={element.id}
@@ -3490,6 +3012,7 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  data-element-id={element.id}
                   style={(() => { const ep = getEffectivePos(element); return {
                     left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x,
                     top: ep.y, width: ep.width, height: ep.height,
@@ -3532,13 +3055,14 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
               ))}
 
               {/* Shared elements (header / footer — appear on all pages) */}
-              {sharedElements.map((element, index) => (
+              {sharedElements.filter(element => elementMatchesDocumentLanguage(element, currentPreviewLanguage)).map((element, index) => (
                 <motion.div
                   key={element.id}
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  data-element-id={element.id}
                   style={(() => { const ep = getEffectivePos(element); return { left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x, top: ep.y, width: ep.width, height: ep.height }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
@@ -6379,15 +5903,15 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                   <div className="editor-form-grid">
                     <label>
                       <span>{t('elementInspector.date.locale')}</span>
-                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
+                      <input type="text" value={selectedElement.locale ?? DESIGNER_DATE_DEFAULTS.locale} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.timezone')}</span>
-                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
+                      <input type="text" value={selectedElement.timezone ?? DESIGNER_DATE_DEFAULTS.timezone} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.format')}</span>
-                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
+                      <input type="text" value={selectedElement.dateFormat ?? DESIGNER_DATE_DEFAULTS.format} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
                     </label>
                     <label>
                       <span>{t('elementInspector.date.color')}</span>
@@ -6955,7 +6479,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                       <span>{t('elementInspector.image.focalX')}</span>
                       <input
                         type="number"
-                        value={selectedElement.focalX || 50}
+                        min={0}
+                        max={100}
+                        value={selectedElement.focalX ?? 50}
                         onChange={(event) => updateSelectedElement({ focalX: Number(event.target.value) })}
                       />
                     </label>
@@ -6963,7 +6489,9 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                       <span>{t('elementInspector.image.focalY')}</span>
                       <input
                         type="number"
-                        value={selectedElement.focalY || 50}
+                        min={0}
+                        max={100}
+                        value={selectedElement.focalY ?? 50}
                         onChange={(event) => updateSelectedElement({ focalY: Number(event.target.value) })}
                       />
                     </label>
@@ -6981,8 +6509,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
 
 
               {selectedElement.type === 'table' && (() => {
-                const cols = selectedElement.style?.columns ?? 3;
-                const rows = selectedElement.style?.rows ?? 3;
+                const cols = selectedElement.cellData?.[0]?.length || selectedElement.style?.columns || 3;
+                const rows = selectedElement.cellData?.length || selectedElement.style?.rows || 3;
+                const resize = (rowCount: number, columnCount: number) => {
+                  const update = resizeTable(selectedElement, rowCount, columnCount);
+                  if (update) updateSelectedElement(update);
+                };
                 const colAligns = selectedElement.columnAlignments ?? Array.from({ length: cols }, () => 'left' as const);
                 const colWidths = selectedElement.columnWidths ?? Array.from({ length: cols }, () => 0);
                 const selectedCellRow = Math.min(Math.max(Number(selectedElement.style?.selectedCellRow ?? 0), 0), rows - 1);
@@ -7013,12 +6545,12 @@ const SimplePvadSurface: React.FC<SimplePvadSurfaceProps> = ({
                     <label>
                       <span>{t('elementInspector.table.rows')}</span>
                       <input type="number" min="1" value={rows}
-                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, rows: Number(e.target.value) } })} />
+                        onChange={(e) => resize(Number(e.target.value), cols)} />
                     </label>
                     <label>
                       <span>{t('elementInspector.table.columns')}</span>
                       <input type="number" min="1" value={cols}
-                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, columns: Number(e.target.value) } })} />
+                        onChange={(e) => resize(rows, Number(e.target.value))} />
                     </label>
                     <label>
                       <span>{t('elementInspector.table.borderWidth')}</span>

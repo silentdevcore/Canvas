@@ -19,7 +19,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT004");
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PVADPDFACONVERT004");
         Assert.Equal(PdfTrustDiagnosticSeverity.Info, finding.Severity);
         Assert.Contains("converted to sRGB", finding.Message, StringComparison.Ordinal);
     }
@@ -47,7 +47,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFACONVERT012");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFACONVERT012");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFACONVERT004");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFACONVERT004");
         Assert.DoesNotContain(report.Findings, static item => item.Code == "PXAPDFACONVERT012");
     }
 
@@ -152,7 +152,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT015");
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PVADPDFACONVERT015");
         Assert.Contains("converted to sRGB", finding.Message, StringComparison.Ordinal);
     }
 
@@ -190,7 +190,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT010");
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PVADPDFACONVERT010");
         Assert.Contains("encoded or unknown filter", finding.Message, StringComparison.Ordinal);
     }
 
@@ -209,7 +209,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfA2bConverter(new PdfTrustInspector()).PreflightAsync(Stream(source));
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        var finding = Assert.Single(report.Findings, static item => item.Code == "PXAPDFACONVERT010");
+        var finding = Assert.Single(report.Findings, static item => item.Code == "PVADPDFACONVERT010");
         Assert.Contains("Colour-key image masks", finding.Message, StringComparison.Ordinal);
     }
 
@@ -245,11 +245,11 @@ public sealed class PdfA3bAndColorConversionTests
 
         Assert.Equal("PDF/A-2b", a2b.TargetProfile);
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, a2b.Capability);
-        Assert.Contains(a2b.Findings, static item => item.Code == "PXAPDFACONVERT006");
+        Assert.Contains(a2b.Findings, static item => item.Code == "PVADPDFACONVERT006");
 
         Assert.Equal("PDF/A-3b", a3b.TargetProfile);
         Assert.NotEqual(PdfComplianceConversionCapability.Unsupported, a3b.Capability);
-        Assert.Contains(a3b.Findings, static item => item.Code == "PXAPDFACONVERT013");
+        Assert.Contains(a3b.Findings, static item => item.Code == "PVADPDFACONVERT013");
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public sealed class PdfA3bAndColorConversionTests
         var (_, graph) = ParseGraph(result.Bytes);
         Assert.Contains("<pdfaid:part>3</pdfaid:part>", ReadXmp(graph), StringComparison.Ordinal);
         Assert.Contains("<pdfaid:conformance>B</pdfaid:conformance>", ReadXmp(graph), StringComparison.Ordinal);
-        Assert.Contains("PXA attachment payload", Encoding.Latin1.GetString(result.Bytes), StringComparison.Ordinal);
+        Assert.Contains("PVAD attachment payload", Encoding.Latin1.GetString(result.Bytes), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -328,7 +328,7 @@ public sealed class PdfA3bAndColorConversionTests
         var report = await new PdfTrustInspector().InspectAsync(Stream(malformed));
 
         Assert.Equal(PdfTrustStatus.Invalid, report.PdfA.Status);
-        Assert.Contains(report.Diagnostics, static item => item.Code == "PXAPDFTRUST322");
+        Assert.Contains(report.Diagnostics, static item => item.Code == "PVADPDFTRUST322");
     }
 
     [Fact]
@@ -339,7 +339,7 @@ public sealed class PdfA3bAndColorConversionTests
             new PdfA2bConversionOptions { Profile = PdfArchiveProfile.PdfA3b });
 
         Assert.Equal(PdfComplianceConversionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.Findings, static item => item.Code == "PXAPDFTRUST323");
+        Assert.Contains(report.Findings, static item => item.Code == "PVADPDFTRUST323");
     }
 
     private static MemoryStream Stream(byte[] bytes) => new(bytes, writable: false);
@@ -351,7 +351,7 @@ public sealed class PdfA3bAndColorConversionTests
             FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
         };
         document.Info.Title = "Colour conversion fixture";
-        document.Info.Producer = "PXA";
+        document.Info.Producer = "PVAD";
         document.AddPage().DrawText("Archival text", 40, 40, new PdfDrawTextOptions { Language = "en" });
         return document.ToBytes(new PdfSaveOptions { ComplianceProfile = PdfComplianceProfile.PdfA2B });
     }
@@ -623,7 +623,7 @@ public sealed class PdfA3bAndColorConversionTests
         return Append(source, [
             new PdfIncrementalObjectUpdate(streamId, new PdfStreamObject(
                 new PdfDictionary { ["Subtype"] = new PdfName("text/plain") },
-                "PXA attachment payload"u8.ToArray())),
+                "PVAD attachment payload"u8.ToArray())),
             new PdfIncrementalObjectUpdate(specificationId, new PdfDictionary
             {
                 ["Type"] = new PdfName("Filespec"),

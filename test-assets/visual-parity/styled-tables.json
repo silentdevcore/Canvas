@@ -1,0 +1,42 @@
+{
+  "id": "styled-table-parity",
+  "name": "Styled table parity",
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait", "backgroundColor": "#ffffff", "margins": { "top": 24, "right": 24, "bottom": 24, "left": 24 } },
+  "sharedElements": [],
+  "pages": [{
+    "id": "styled-table-page",
+    "elements": [
+      {
+        "id": "styled-cells", "type": "table", "x": 30, "y": 35, "width": 530, "height": 180,
+        "headerRow": true, "footerRow": true, "headerBgColor": "#dbeafe", "zebraEnabled": true, "zebraColor": "#e0f2fe",
+        "columnWidths": [2, 1, 1], "columnAlignments": ["left", "center", "right"],
+        "cellData": [["Description", "Units", "Amount"], ["Long styled cell content wraps predictably across several lines.", "4", "CHF 80"], ["Total", "", "CHF 80"]],
+        "style": { "cellFontFamily": "Arial", "cellFontSize": 11, "cellPadding": 4, "borderWidth": 1, "borderColor": "#64748b" },
+        "cellStyles": [
+          { "row": 0, "col": 0, "bold": false, "italic": true, "fontSize": 16, "color": "#7c3aed", "padding": 10 },
+          { "row": 1, "col": 0, "fontFamily": "Arial, Helvetica, sans-serif", "fontSize": 14, "italic": true, "backgroundColor": "#fef9c3", "padding": 12 },
+          { "row": 1, "col": 1, "bold": true, "color": "#dc2626", "textAlign": "right", "padding": 0 },
+          { "row": 2, "col": 2, "bold": false, "fontSize": 16, "backgroundColor": "#dcfce7", "textAlign": "center" }
+        ]
+      },
+      {
+        "id": "styled-borders", "type": "table", "x": 30, "y": 320, "width": 530, "height": 110,
+        "cellData": [["No right edge", "Custom top edge", "Uniform border"], ["Shared edge", "Empty", ""]],
+        "style": { "cellFontFamily": "Arial", "cellFontSize": 11, "cellPadding": 6, "borderColor": "#94a3b8", "borderWidth": 1 },
+        "cellStyles": [
+          { "row": 0, "col": 0, "borderColor": "#0284c7", "borderWidth": 2, "borderRight": { "width": 0 } },
+          { "row": 0, "col": 1, "borderTop": { "color": "#dc2626", "width": 3 } },
+          { "row": 0, "col": 2, "borderColor": "#16a34a", "borderWidth": 2 },
+          { "row": 1, "col": 0, "borderTop": { "color": "#a855f7", "width": 4 }, "borderBottom": { "width": 0 } },
+          { "row": 1, "col": 1, "backgroundColor": "#f1f5f9", "borderWidth": 0 }
+        ]
+      },
+      {
+        "id": "styled-matrix", "type": "table", "x": 30, "y": 490, "width": 530, "height": 150,
+        "cellData": [["Original row zero", "A"], ["Original row one", "B"]],
+        "style": { "rdlTablixColumnHierarchy": [{ "headerText": "Matrix header" }], "cellFontFamily": "Arial", "cellFontSize": 12, "cellPadding": 4 },
+        "cellStyles": [{ "row": 0, "col": 0, "backgroundColor": "#dbeafe", "bold": true }, { "row": 1, "col": 1, "backgroundColor": "#dcfce7", "italic": true }]
+      }
+    ]
+  }]
+}

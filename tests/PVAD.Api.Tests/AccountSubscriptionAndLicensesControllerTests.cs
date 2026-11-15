@@ -115,7 +115,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
             {
                 OrganizationId = organization.Id,
                 SubscriptionId = subscription.Id,
-                LicenseNumber = "PXA-TEST-0001",
+                LicenseNumber = "PVAD-TEST-0001",
                 EnvelopeJson = string.Empty,
                 Signature = string.Empty,
                 KeyId = string.Empty,
@@ -145,16 +145,16 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
 
         var licenses = await ownerClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/licenses");
         Assert.Equal(1, licenses.GetArrayLength());
-        Assert.Equal("PXA-TEST-0001", licenses[0].GetProperty("licenseNumber").GetString());
+        Assert.Equal("PVAD-TEST-0001", licenses[0].GetProperty("licenseNumber").GetString());
 
         var validation = await ownerClient.GetFromJsonAsync<JsonElement>($"/api/pvad/v1/account/licenses/{licenseId}/validate");
         Assert.True(validation.GetProperty("valid").GetBoolean());
-        Assert.Equal("PXA_LICENSE_VALID", validation.GetProperty("code").GetString());
-        Assert.Equal("PVAD_LICENSE_VALID", validation.GetProperty("canonicalCode").GetString());
+        Assert.Equal("PVAD_LICENSE_VALID", validation.GetProperty("code").GetString());
 
         var download = await ownerClient.GetAsync($"/api/pvad/v1/account/licenses/{licenseId}/download");
         Assert.Equal(HttpStatusCode.OK, download.StatusCode);
-        Assert.Equal("application/vnd.pxa.license+json", download.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("application/vnd.pvad.license+json", download.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("PVAD-TEST-0001.pvad-license.json", download.Content.Headers.ContentDisposition?.FileNameStar);
 
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/pvad/v1/account/licenses/{licenseId}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/pvad/v1/account/licenses/{licenseId}/validate")).StatusCode);
@@ -206,10 +206,10 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                 }));
             builder.ConfigureServices(services =>
             {
@@ -260,7 +260,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
     private static HttpRequestMessage CreateCsrfRequest(HttpMethod method, string path, string token, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 

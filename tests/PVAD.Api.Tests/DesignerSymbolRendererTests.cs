@@ -11,7 +11,7 @@ public sealed class DesignerSymbolRendererTests
     [Fact]
     public void QrCode_is_deterministic_and_shared_with_code_execution()
     {
-        const string value = "https://powerdoxautomation.com/parity";
+        const string value = "https://pvade.com/parity";
         var canonical = PvadSymbolRenderer.RenderQrCode(value);
 
         Assert.Equal(canonical, PvadSymbolRenderer.RenderQrCode(value));
@@ -23,9 +23,9 @@ public sealed class DesignerSymbolRendererTests
     [Fact]
     public void Barcode_preserves_requested_pixel_dimensions()
     {
-        var canonical = PvadSymbolRenderer.RenderBarcode("PXA-2026-0001", "CODE128", 370, 70);
+        var canonical = PvadSymbolRenderer.RenderBarcode("PVAD-2026-0001", "CODE128", 370, 70);
 
-        Assert.Equal(canonical, ScriptHelpers.GenerateBarcodePng("PXA-2026-0001", "CODE128", 370, 70));
+        Assert.Equal(canonical, ScriptHelpers.GenerateBarcodePng("PVAD-2026-0001", "CODE128", 370, 70));
         AssertPng(canonical);
         Assert.Equal(370, ReadPngWidth(canonical));
         Assert.Equal(70, ReadPngHeight(canonical));

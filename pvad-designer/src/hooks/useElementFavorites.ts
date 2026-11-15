@@ -4,14 +4,12 @@ import { ELEMENT_TYPES } from '@/data/elementRegistry';
 import { getElementFavorites, replaceElementFavorites } from '@/services/designerElementFavoritesApi';
 import { notify } from '@/notifications/toast';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { readMigratedStorage } from '@/utils/storageMigration';
 
 const cacheKey = (userId: string) => `pvad-designer-element-favorites-v1:${userId}`;
 
 function readCache(key: string): ElementType[] {
   try {
-    const values = JSON.parse(readMigratedStorage(localStorage, key,
-      key.replace(/^pvad-designer-element-favorites-v1:/, 'pxa-designer-element-favorites-v1:')) ?? '[]');
+    const values = JSON.parse(localStorage.getItem(key) ?? '[]');
     return Array.isArray(values)
       ? ELEMENT_TYPES.filter(type => values.includes(type))
       : [];

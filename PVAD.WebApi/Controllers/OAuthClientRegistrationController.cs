@@ -50,7 +50,7 @@ public sealed class OAuthClientRegistrationController(
             OpenIddictConstants.Permissions.Endpoints.Token,
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
-            .. PvadScopeCompatibility.ReadOnlyScopes.Select(scope => OpenIddictConstants.Permissions.Prefixes.Scope + scope),
+            .. PvadOAuthScopes.ReadOnly.Select(scope => OpenIddictConstants.Permissions.Prefixes.Scope + scope),
         ]);
         descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
         await applicationManager.CreateAsync(descriptor, cancellationToken);

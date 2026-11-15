@@ -169,9 +169,9 @@ public sealed class PdfEditableDocument : IDisposable
             var sourceBytes = source.RequireBytes().ToArray();
             if (_bytes is null)
             {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
                 var blank = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
                 blank.AddPage(1, 1);
                 var withPage = _composer.Apply(blank.ToBytes(), [new PdfPageImport(sourceBytes, pageNumber)]).Bytes;
                 _bytes = _editor.Apply(withPage, [new PdfDeletePageOperation(1)]).Bytes;
@@ -189,9 +189,9 @@ public sealed class PdfEditableDocument : IDisposable
         {
             if (!double.IsFinite(width) || width <= 0 || !double.IsFinite(height) || height <= 0)
                 throw new ArgumentOutOfRangeException(nameof(width), "Page dimensions must be finite and positive.");
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
             var blank = new PVAD.Pdf.PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
             blank.AddPage(width, height);
             var blankBytes = blank.ToBytes();
             _bytes = _bytes is null

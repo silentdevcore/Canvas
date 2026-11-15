@@ -5,41 +5,14 @@ import { FiCheck, FiChevronDown, FiDownload, FiExternalLink, FiFileText, FiLayer
 import ExportService, { DesignerAccessibilityPreflightError } from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
-import { normalizePageSettings } from '@/store';
+import { normalizePageSettings, useEditorStore } from '@/store';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { installImportedFontFaces } from '@/utils/importedFonts';
 import { effectivePageSettings } from '@/utils/pageLayout';
-import PdfContractChartRenderer from '@/chart/PdfContractChartRenderer';
-import FormFieldRenderer from '@/components/Rendering/FormFieldRenderer';
-import LineRenderer from '@/components/Rendering/LineRenderer';
-import BackendSymbolRenderer from '@/components/Rendering/BackendSymbolRenderer';
-import ArrowRenderer from '@/components/Rendering/ArrowRenderer';
-import HighlightRenderer from '@/components/Rendering/HighlightRenderer';
-import {
-  formatNumberForPdf,
-  formatPageNumberForPdf,
-  pdfFontFamily,
-  PdfRichTextRenderer,
-  PdfSingleLineText,
-  PdfTextBlockRenderer,
-} from '@/components/Rendering/PdfTextRenderer';
-import {
-  PdfButtonRenderer,
-  PdfCheckboxRenderer,
-  PdfCheckmarkRenderer,
-  PdfDropdownRenderer,
-  PdfSignatureRenderer,
-} from '@/components/Rendering/PdfControlRenderer';
-import { PdfOptionListRenderer } from '@/components/Rendering/PdfOptionListRenderer';
-import { PdfCircleRenderer, PdfDrawingRenderer, PdfShapeRenderer } from '@/components/Rendering/PdfGraphicsRenderer';
+import { DocumentElementRenderer } from '@/components/Rendering/DocumentElementRenderer';
+import { createDocumentContentResolver, effectiveDocumentElement, elementMatchesDocumentLanguage } from '@/components/Rendering/documentContent';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
 import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
-import {
-  PdfCommentRenderer,
-  PdfContentControlRenderer,
-  PdfLayoutBoundaryRenderer,
-  PdfNoteRenderer,
-} from '@/components/Rendering/PdfStructureRenderer';
 
 interface LivePreviewProps {
   template: Template;
@@ -57,34 +30,7 @@ interface LivePreviewProps {
 }
 
 type ExportFormat = 'pdf' | 'json' | 'image' | 'print';
-const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
-const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProperties => {
-  const sideStyle: React.CSSProperties = {};
-  let hasSideBorder = false;
-
-  BORDER_SIDES.forEach((side) => {
-    const width = s[`border${side}Width`];
-    if (width == null) return;
-
-    hasSideBorder = true;
-    const key = `border${side}` as keyof React.CSSProperties;
-    sideStyle[key] = `${(Number(width) || 0) * zoom}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000'}` as never;
-  });
-
-  if (hasSideBorder) {
-    return {
-      ...sideStyle,
-      borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
-    };
-  }
-
-  const bw = s.borderWidth ?? 0;
-  return {
-    border: bw > 0 ? `${bw * zoom}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000'}` : undefined,
-    borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
-  };
-};
 
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel, visualParityMode = false, autoFitWidth = false }) => {
   const { t } = useTranslation('preview');
@@ -95,6 +41,15 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const [zoom, setZoom] = useState(1);
   const previewPagesRef = useRef<HTMLDivElement>(null);
   const documentPageSettings = React.useMemo(() => normalizePageSettings(pageSettings), [pageSettings]);
+  const currentPreviewLanguage = useEditorStore(state => state.currentPreviewLanguage);
+  const previewLanguage = documentPageSettings.targetLanguage || currentPreviewLanguage || documentPageSettings.systemLanguage || navigator.language;
+  const resolveContent = React.useMemo(() => createDocumentContentResolver(
+    documentPageSettings.localizedProperties ?? [], previewLanguage,
+    documentPageSettings.systemLanguage || navigator.language, documentPageSettings.customProperties),
+    [documentPageSettings.localizedProperties, documentPageSettings.customProperties, documentPageSettings.systemLanguage, previewLanguage]);
+  const renderInstant = React.useMemo(() => new Date(), [pages, sharedElements, documentPageSettings, previewLanguage]);
+  const exportPageSettings = React.useMemo(() => ({ ...documentPageSettings, targetLanguage: previewLanguage }),
+    [documentPageSettings, previewLanguage]);
   const pageLayouts = React.useMemo(
     () => pages.map(page => effectivePageSettings(documentPageSettings, page)),
     [documentPageSettings, pages],
@@ -166,7 +121,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     if (format === 'print') {
       try {
         setExportingFormat('print');
-        await ExportService.printToPDF(template, pages, sharedElements, pageSettings, {
+        await ExportService.printToPDF(template, pages, sharedElements, exportPageSettings, {
           blocked: t('printBlocked'),
           preparing: t('printPreparing'),
           title: t('printTitle', { name: template.name }),
@@ -184,7 +139,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     }
 
     if (format === 'json') {
-      ExportService.exportToJSON(template, pages, sharedElements, pageSettings);
+      ExportService.exportToJSON(template, pages, sharedElements, exportPageSettings);
       setExportDone('json');
       onExport();
       setTimeout(() => setExportDone(null), 2500);
@@ -195,7 +150,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     if (format === 'image') {
       try {
         setExportingFormat('image');
-        await ExportService.exportViaBackend('png', template, pages, sharedElements, pageSettings);
+        await ExportService.exportViaBackend('png', template, pages, sharedElements, exportPageSettings);
         setExportingFormat(null);
         setExportDone('image');
         onExport();
@@ -212,7 +167,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     // PDF via backend
     try {
       setExportingFormat('pdf');
-      const blob = await ExportService.exportToPDF(template, pages, sharedElements, pageSettings);
+      const blob = await ExportService.exportToPDF(template, pages, sharedElements, exportPageSettings);
       setViewerPdfDataUrl(await blobToDataUrl(blob));
       setExportingFormat(null);
       setExportDone('pdf');
@@ -237,400 +192,28 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     navigate('/pdf/viewer?handoff=session');
   };
 
-  const getDatePreview = (element: SimpleElement) => {
-    if (element.dateMode === 'static') return element.content || element.fallbackText || '-';
-    if (element.dateMode === 'binding') return element.binding ? `{{ ${element.binding} }}` : element.fallbackText || '-';
-    return new Intl.DateTimeFormat(element.locale || 'de-DE', { dateStyle: 'medium' }).format(new Date());
-  };
 
-  // Shared border + padding style applied on the element wrapper
-  const hexToRgba = (hex: string, opacity: number): string => {
-    const h = hex.replace('#', '');
-    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
-    const r = parseInt(full.slice(0, 2), 16);
-    const g = parseInt(full.slice(2, 4), 16);
-    const b = parseInt(full.slice(4, 6), 16);
-    return isNaN(r) ? 'transparent' : `rgba(${r},${g},${b},${opacity})`;
-  };
+  // Positioning belongs to the surface; printable styling belongs to the shared renderer.
+  const wrapperStyle = (element: SimpleElement): React.CSSProperties => ({
+    position: 'absolute', left: element.x * zoom, top: element.y * zoom,
+    width: element.width * zoom, height: element.height * zoom,
+    transform: element.style?.rotation ? `rotate(${element.style.rotation}deg)` : undefined,
+    transformOrigin: 'center center', boxSizing: 'border-box',
+    overflow: ['contentcontrol', 'footnote', 'endnote', 'text', 'date', 'field', 'textarea', 'rect', 'shape', 'circle', 'note', 'table'].includes(element.type) ? 'visible' : 'hidden',
+  });
 
-  const wrapperStyle = (el: SimpleElement): React.CSSProperties => {
-    const s = el.style ?? {};
-    const rendersOwnBox = ['area', 'arrow', 'bookmark', 'checkbox', 'circle', 'comment', 'contentcontrol', 'draw', 'dropdown', 'field', 'highlight', 'line', 'note', 'pageboundary', 'rect', 'richtext', 'shape', 'subsection', 'table', 'text', 'textarea'].includes(el.type);
-
-    let bgColor: string | undefined;
-    const rawBg = s.backgroundColor ?? s.fill;
-    if (rawBg && rawBg !== 'transparent') {
-      const opacity = s.backgroundOpacity ?? 1;
-      bgColor = opacity < 1 ? hexToRgba(rawBg, opacity) : rawBg;
-    }
-
-    return {
-      position: 'absolute',
-      left:   el.x * zoom,
-      top:    el.y * zoom,
-      width:  el.width  * zoom,
-      height: el.height * zoom,
-      transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
-      transformOrigin: 'center center',
-      backgroundColor: rendersOwnBox ? undefined : bgColor,
-      ...(rendersOwnBox ? {} : borderStyleForZoom(s, zoom)),
-      paddingTop:    !rendersOwnBox && s.paddingTop    ? s.paddingTop    * zoom : undefined,
-      paddingRight:  !rendersOwnBox && s.paddingRight  ? s.paddingRight  * zoom : undefined,
-      paddingBottom: !rendersOwnBox && s.paddingBottom ? s.paddingBottom * zoom : undefined,
-      paddingLeft:   !rendersOwnBox && s.paddingLeft   ? s.paddingLeft   * zoom : undefined,
-      boxSizing: 'border-box',
-      overflow: 'hidden',
-    };
-  };
-
-  const renderElement = (element: SimpleElement, pageIndex: number = 0) => {
-    if (element.type === 'text') {
-      return <PdfTextBlockRenderer element={element} text={element.content ?? ''} />;
-    }
-
-    if (element.type === 'qrcode') {
-      return <BackendSymbolRenderer element={element} type="qrcode" />;
-    }
-
-    if (element.type === 'barcode') {
-      return <BackendSymbolRenderer element={element} type="barcode" />;
-    }
-
-    if (element.type === 'signature') {
-      return <PdfSignatureRenderer element={element} />;
-    }
-
-    if (element.type === 'richtext') {
-      return <PdfRichTextRenderer element={element} />;
-    }
-
-    if (element.type === 'field') {
-      return <FormFieldRenderer element={element} />;
-    }
-
-    if (element.type === 'textarea') {
-      return <FormFieldRenderer element={element} multiline />;
-    }
-
-    if (element.type === 'checkbox') {
-      return <PdfCheckboxRenderer element={element} />;
-    }
-
-    if (element.type === 'image') {
-      return (
-        <img
-          src={element.content || 'https://via.placeholder.com/220x140'}
-          alt=""
-          style={{
-            width: '100%', height: '100%',
-            objectFit: element.fitMode || 'contain',
-            objectPosition: `${element.focalX || 50}% ${element.focalY || 50}%`
-          }}
-        />
-      );
-    }
-
-    if (element.type === 'shape' || element.type === 'rect') {
-      return <PdfShapeRenderer element={element} />;
-    }
-
-    if (element.type === 'circle') {
-      return <PdfCircleRenderer element={element} />;
-    }
-
-    if (element.type === 'line') {
-      return <LineRenderer element={element} />;
-    }
-
-    if (element.type === 'table') {
-      const s = element.style ?? {};
-      const totalRows  = s.rows ?? 3;
-      const columns    = s.columns ?? 3;
-      const bw         = s.borderWidth ?? 1;
-      const bc         = s.borderColor || '#000000';
-      const cp         = s.cellPadding ?? 5;
-      const hasHeader  = element.headerRow ?? false;
-      const hasFooter  = element.footerRow ?? false;
-      const headerBg   = element.headerBgColor || '#f1f5f9';
-      const zebraOn    = element.zebraEnabled ?? false;
-      const zebraColor = element.zebraColor || '#f9fafb';
-      const colWidths  = element.columnWidths ?? [];
-      const colAligns  = element.columnAlignments ?? [];
-      const cellData   = element.cellData ?? [];
-      const bodyRows   = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
-      const rdlColumnHeaders = Array.isArray(s.rdlTablixColumnHierarchy)
-        ? s.rdlTablixColumnHierarchy
-            .map((member: any) => member?.headerText || member?.groupName)
-            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        : [];
-      const rdlRowHeaders = Array.isArray(s.rdlTablixRowHierarchy)
-        ? s.rdlTablixRowHierarchy
-            .map((member: any) => member?.headerText || member?.groupName)
-            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        : [];
-      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
-      const visualRowHeight = (element.height * zoom) / Math.max(1, totalRows + rdlMatrixHeaders.length);
-      const cellFontSize = s.cellFontSize ?? 10;
-      const cellFontFamily = s.cellFontFamily ?? 'Arial';
-      const cellColor = s.cellColor as string | undefined;
-      const cellFontWeight = s.cellFontWeight ?? 'normal';
-
-      const cellStyles = element.cellStyles ?? [];
-      const sideCss = (sd?: { color?: string; width?: number }) =>
-        sd ? `${sd.width ?? 1}px solid ${sd.color ?? '#000000'}` : undefined;
-
-      const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer', dataRow: number = r): React.CSSProperties => {
-        const st: React.CSSProperties = {
-          border: `${bw}px solid ${bc}`,
-          padding: cp,
-          textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
-          fontSize: cellFontSize * zoom,
-          fontFamily: pdfFontFamily(cellFontFamily),
-          fontWeight: kind === 'header' || kind === 'footer' ? 700 : cellFontWeight,
-          color: cellColor ?? '#101828',
-          backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
-        };
-        const cs = cellStyles.find((x) => x.row === dataRow && x.col === c);
-        if (cs) {
-          if (cs.backgroundColor) st.backgroundColor = cs.backgroundColor;
-          if (cs.textAlign) st.textAlign = cs.textAlign;
-          if (cs.padding != null) st.padding = cs.padding;
-          if (cs.fontFamily) st.fontFamily = cs.fontFamily;
-          if (cs.fontSize != null) st.fontSize = cs.fontSize;
-          if (cs.bold) st.fontWeight = 700;
-          if (cs.italic) st.fontStyle = 'italic';
-          if (cs.color) st.color = cs.color;
-          const hasBorder = cs.borderColor != null || cs.borderWidth != null
-            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
-          if (hasBorder) {
-            const uniform = (cs.borderColor != null || cs.borderWidth != null)
-              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
-              : 'none';
-            st.border = undefined;
-            st.borderTop = sideCss(cs.borderTop) ?? uniform;
-            st.borderRight = sideCss(cs.borderRight) ?? uniform;
-            st.borderBottom = sideCss(cs.borderBottom) ?? uniform;
-            st.borderLeft = sideCss(cs.borderLeft) ?? uniform;
-          }
-        }
-        return st;
-      };
-
-      return (
-        <table style={{
-          width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}`,
-          tableLayout: colWidths.some(Boolean) ? 'fixed' : 'auto',
-        }}>
-          {colWidths.some(Boolean) && (
-            <colgroup>
-              {Array.from({ length: columns }).map((_, index) => (
-                <col key={index} style={{ width: colWidths[index] || undefined }} />
-              ))}
-            </colgroup>
-          )}
-          {hasHeader && (
-            <thead>
-              {rdlMatrixHeaders.map((header, index) => (
-                <tr key={`rdl-matrix-header-${index}`} style={{ height: visualRowHeight }}>
-                  <th
-                    colSpan={columns}
-                    style={{
-                      ...tdSt(index, 0, 'header'),
-                      textAlign: 'left',
-                      backgroundColor: '#e0f2fe',
-                      color: '#075985'
-                    }}
-                  >
-                    {header}
-                  </th>
-                </tr>
-              ))}
-              <tr style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
-                <th key={c} style={tdSt(0, c, 'header')}>{cellData[0]?.[c] ?? ''}</th>
-              ))}</tr>
-            </thead>
-          )}
-          <tbody>
-            {Array.from({ length: bodyRows }).map((_, r) => (
-              <tr key={r} style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(r, c, 'body', r + (hasHeader ? 1 : 0))}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] ?? ''}</td>
-              ))}</tr>
-            ))}
-          </tbody>
-          {hasFooter && (
-            <tfoot>
-              <tr style={{ height: visualRowHeight }}>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(0, c, 'footer', totalRows - 1)}>{cellData[totalRows - 1]?.[c] ?? ''}</td>
-              ))}</tr>
-            </tfoot>
-          )}
-        </table>
-      );
-    }
-
-    if (element.type === 'button') {
-      return <PdfButtonRenderer element={element} />;
-    }
-
-    if (element.type === 'dropdown') {
-      return <PdfDropdownRenderer element={element} />;
-    }
-
-    if (element.type === 'optionlist') return <PdfOptionListRenderer element={element} />;
-
-    if (element.type === 'radio') {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 4 }}>
-          {(element.options || []).map((opt, i) => (
-            <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: (element.style?.fontSize || 14) * zoom, color: element.style?.color || '#000' }}>
-              <input type="radio" name={element.id} defaultChecked={i === 0} readOnly />
-              {opt}
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    if (element.type === 'chart') {
-      return (
-        <PdfContractChartRenderer
-          chart={element.chart}
-          legacyType={element.chartType}
-          legacyData={element.chartData}
-          ariaLabel={element.name || 'Chart'}
-          width={element.width}
-          height={element.height}
-        />
-      );
-    }
-
-    if (element.type === 'watermark') {
-      return (
-        <div style={{
-          width: '100%', height: '100%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: element.style?.opacity ?? 0.18,
-          transform: `rotate(${element.style?.rotation ?? -24}deg) scale(${element.style?.scale ?? 1})`,
-          pointerEvents: 'none', overflow: 'hidden'
-        }}>
-          {element.watermarkMode === 'image' ? (
-            <img src={element.content || 'https://via.placeholder.com/260x80'} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          ) : (
-            <span style={{
-              color: element.style?.color || '#64748b',
-              fontSize: (element.style?.fontSize || 42) * zoom,
-              fontWeight: 'bold',
-              letterSpacing: 2,
-              whiteSpace: 'nowrap',
-              textTransform: 'uppercase'
-            }}>
-              {element.content || 'WATERMARK'}
-            </span>
-          )}
-        </div>
-      );
-    }
-
-    if (element.type === 'note') {
-      return <PdfNoteRenderer element={element} />;
-    }
-
-    if (element.type === 'arrow') {
-      return <ArrowRenderer element={element} />;
-    }
-
-    if (element.type === 'draw') {
-      return <PdfDrawingRenderer element={element} />;
-    }
-
-    if (element.type === 'date') {
-      return <PdfSingleLineText element={element} kind="date" text={getDatePreview(element)} />;
-    }
-
-    if (element.type === 'highlight') {
-      return <HighlightRenderer element={element} />;
-    }
-
-    if (element.type === 'subsection' || element.type === 'area') {
-      return <PdfLayoutBoundaryRenderer element={element} />;
-    }
-
-    if (element.type === 'checkmark') {
-      return <PdfCheckmarkRenderer element={element} />;
-    }
-
-    if (element.type === 'pageboundary') {
-      return null;
-    }
-
-    if (element.type === 'pagenumber') {
-      return <PdfSingleLineText element={element} kind="pagenumber" text={formatPageNumberForPdf(element, pageIndex, pages.length)} />;
-    }
-
-    if (element.type === 'link') {
-      return <PdfSingleLineText element={element} kind="link" text={element.content || element.href || ''} />;
-    }
-
-    if (element.type === 'footnote' || element.type === 'endnote') {
-      const label = element.type === 'footnote' ? '†' : '‡';
-      return (
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px', fontSize: 12 * zoom, color: '#6366f1', borderLeft: `${3 * zoom}px solid #6366f1`, overflow: 'hidden' }}>
-          <span style={{ fontWeight: 700 }}>{label}</span>
-          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.footnoteText || `${element.type === 'footnote' ? 'Footnote' : 'Endnote'}…`}
-          </span>
-        </div>
-      );
-    }
-
-    if (element.type === 'bookmark') {
-      return null;
-    }
-
-    if (element.type === 'comment') {
-      return <PdfCommentRenderer element={element} />;
-    }
-
-    if (element.type === 'contentcontrol') {
-      return <PdfContentControlRenderer element={element} />;
-    }
-
-    if (element.type === 'toc') {
-      const fontSize = (element.style?.fontSize || 13) * zoom;
-      const color = element.style?.color || '#1f2937';
-      const entries = element.tocEntries ?? [];
-      return (
-        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: `${8 * zoom}px ${10 * zoom}px`, border: `${zoom}px dashed #94a3b8`, borderRadius: 4 * zoom, background: '#f8fafc' }}>
-          <div style={{ fontSize: 10 * zoom, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6 * zoom, textTransform: 'uppercase' }}>
-            {element.tocTitle || 'Table of Contents'}
-          </div>
-          {entries.map((entry, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'baseline', gap: 4 * zoom, marginBottom: 3 * zoom, paddingLeft: (entry.level - 1) * 12 * zoom, fontSize: entry.level === 1 ? fontSize : fontSize - zoom, fontWeight: entry.level === 1 ? 600 : 400, color }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.text}</span>
-              {element.tocShowLeaderDots !== false && <span style={{ flex: 1, borderBottom: '1px dotted #cbd5e1' }} />}
-              {element.tocShowPageNumbers !== false && <span>{entry.page}</span>}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (element.type === 'number') {
-      return <PdfSingleLineText element={element} kind="number" text={`${element.prefix ?? ''}${formatNumberForPdf(element)}${element.suffix ?? ''}`} />;
-    }
-
-    return (
-      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', border: '2px dashed #d1d5db', borderRadius: 4 }}>
-        <FiLayers style={{ color: '#9ca3af', marginRight: 6 }} />
-        <span style={{ fontSize: 12, color: '#6b7280', textTransform: 'capitalize' }}>{element.type}</span>
-      </div>
-    );
-  };
+  const renderElement = (element: SimpleElement, pageIndex = 0) => (
+    <DocumentElementRenderer element={element} pageIndex={pageIndex} pageCount={pages.length}
+      pageHeight={effectivePageSettings(documentPageSettings, pages[pageIndex]).height}
+      resolveContent={resolveContent} zoom={zoom} now={renderInstant} />
+  );
 
   const renderPage = (page: Page, pageIndex: number) => {
     const layout = effectivePageSettings(documentPageSettings, page);
-    const visiblePageElements = page.elements.filter(el => !el.hidden);
-    const visibleShared = sharedElements.filter(el => !el.hidden);
+    const visiblePageElements = page.elements.filter(el => !el.hidden && elementMatchesDocumentLanguage(el, previewLanguage))
+      .map(element => effectiveDocumentElement(element, previewLanguage));
+    const visibleShared = sharedElements.filter(el => !el.hidden && elementMatchesDocumentLanguage(el, previewLanguage))
+      .map(element => effectiveDocumentElement(element, previewLanguage));
     return (
       <div key={page.id} style={{ marginBottom: visualParityMode ? 0 : pages.length > 1 ? 40 : 0 }}>
         {!visualParityMode && pages.length > 1 && (
@@ -867,7 +450,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         template={template}
         pages={pages}
         sharedElements={sharedElements}
-        pageSettings={pageSettings}
+        pageSettings={exportPageSettings}
         onClose={() => setExportModalOpen(false)}
       />
     )}

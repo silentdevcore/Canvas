@@ -143,7 +143,7 @@ public sealed class PdfTrustCorpusTests
                     Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
                     Assert.Equal(PdfTrustStatus.Invalid, signature.CertificateStatus);
                     Assert.Equal(PdfTrustStatus.Invalid, invalidAtTime.Status);
-                    Assert.Contains(invalidAtTime.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST135");
+                    Assert.Contains(invalidAtTime.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST135");
                 }
                 Assert.Same(TimeProvider.System, new PdfSignatureValidationPolicy().ValidationClock);
                 Assert.DoesNotContain("ValidationClock", System.Text.Json.JsonSerializer.Serialize(new PdfSignatureValidationPolicy()));
@@ -450,7 +450,28 @@ public sealed class PdfTrustCorpusTests
         var expected = historical?.DeepClone();
         if (expected?["pdfA"]?["validator"]?.GetValue<string>() == "PXA PDF/A-2b/3b structural validator 1.3")
             expected["pdfA"]!["validator"] = "PVAD PDF/A-2b/3b structural validator 1.3";
-        return expected;
+        return WithCurrentDiagnosticCodes(expected);
+    }
+
+    // Published expected reports predate the PVAD diagnostic prefix; compare them with the current codes.
+    private static JsonNode? WithCurrentDiagnosticCodes(JsonNode? node)
+    {
+        switch (node)
+        {
+            case JsonObject value:
+                foreach (var property in value.ToArray())
+                    value[property.Key] = WithCurrentDiagnosticCodes(property.Value?.DeepClone());
+                return value;
+            case JsonArray value:
+                for (var index = 0; index < value.Count; index++)
+                    value[index] = WithCurrentDiagnosticCodes(value[index]?.DeepClone());
+                return value;
+            case JsonValue value when value.TryGetValue<string>(out var text) &&
+                System.Text.RegularExpressions.Regex.IsMatch(text, "^PXA[A-Z]+[0-9]+$"):
+                return JsonValue.Create("PVAD" + text[3..]);
+            default:
+                return node;
+        }
     }
 
     private static JsonObject ProjectStableReport(PdfTrustReport report) => new()

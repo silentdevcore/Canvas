@@ -10,7 +10,7 @@ const required = new Set(['iso-32000', 'iso-19005', 'iso-14289', 'etsi-en-319-14
 const errors = [];
 
 if (baseline.schemaVersion !== 1) errors.push('schemaVersion must be 1.');
-if (baseline.policyId !== 'pxa-pdf-trust') errors.push('policyId must be pxa-pdf-trust.');
+if (baseline.policyId !== 'pvad-pdf-trust') errors.push('policyId does not match the recorded PDF Trust policy.');
 if (!Array.isArray(baseline.standards)) errors.push('standards must be an array.');
 
 const ids = new Set();

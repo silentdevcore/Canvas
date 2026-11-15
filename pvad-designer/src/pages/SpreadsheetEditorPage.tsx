@@ -437,7 +437,7 @@ const SpreadsheetEditorPage: React.FC = () => {
           )}
         </div>
         <input ref={fileInput} type="file" accept=".xlsx,.csv,.json" hidden onChange={onImport} />
-        <input ref={projectInput} type="file" accept=".pvads,.pxas,application/vnd.pvad.pvads+zip,application/vnd.powerdox.pxas+zip" hidden onChange={openProject} />
+        <input ref={projectInput} type="file" accept=".pvads,application/vnd.pvad.pvads+zip" hidden onChange={openProject} />
         <input ref={imageInput} type="file" accept="image/png,image/jpeg" hidden onChange={onImageUpload} />
       </div>
 

@@ -1,0 +1,11 @@
+{
+  "id": "visual-parity-linux-validation",
+  "impact": "none",
+  "components": ["designer", "api", "documentation"],
+  "category": "improved",
+  "summary": "Added an isolated Linux validation runner for document rendering comparisons.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false,
+  "reason": "Internal validation tooling and exact owner-approved Linux raster evidence only; no comparison thresholds, shipped application behavior or release versions are changed by this tooling."
+}

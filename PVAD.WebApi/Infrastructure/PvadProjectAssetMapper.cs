@@ -99,7 +99,7 @@ internal static class PvadProjectAssetMapper
         {
             var content = Convert.FromBase64String(value[(separator + 1)..]);
             if (content.Length is 0 or > MaximumAssetBytes)
-                throw new PvadProjectFormatException("PXAPROJECT005", "A project image exceeds its size limit.");
+                throw new PvadProjectFormatException("PVADPROJECT005", "A project image exceeds its size limit.");
             return new DecodedAsset(contentType, content);
         }
         catch (FormatException)
@@ -123,10 +123,10 @@ internal static class PvadProjectAssetMapper
     private static string Extension(string contentType) => contentType == "image/jpeg" ? ".jpg" : ".png";
 
     private static PvadProjectFormatException Error(string message) =>
-        new("PXAPROJECT010", message);
+        new("PVADPROJECT010", message);
 
     private static PvadProjectFormatException MissingAsset() =>
-        new("PXAPROJECT008", "The project document references a missing package asset.");
+        new("PVADPROJECT008", "The project document references a missing package asset.");
 
     private sealed record DecodedAsset(string ContentType, byte[] Content);
 }

@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvedAt": "2026-11-14",
+  "approvedBy": "repository-owner",
+  "approvalSource": "Explicit user confirmation after viewing all thirteen Linux 200% comparisons.",
+  "confirmation": "Alle 13 Vergleiche angesehen und freigegeben",
+  "scope": "Only these thirteen Linux/ARM64 comparisons and their exact fixture, font, environment and crop hashes. P2 metrics and regression thresholds remain unchanged. No changed pixels, Linux/x64 CI, Windows or customer workflow approval is implied.",
+  "environment": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "node": "v22.23.5",
+    "playwright": "1.64.1",
+    "browserVersion": "156.0.8078.80",
+    "sourceCommit": "b1c71e435584869da27f0eb6817068c286b78142"
+  },
+  "sourceCommit": "6846818d792b58532e9fd9fc0ed53f97e20e4666",
+  "pdfSourceCommit": "b1c71e435584869da27f0eb6817068c286b78142",
+  "validationMethod": "Frontend-only candidate replay against the original Linux backend and generated C# PDF artifacts. Not a fresh complete candidate build.",
+  "imageId": "sha256:1f92d383b08c9176c3fcb190277ee856593406f8e58de05ba99979f3065897fc",
+  "sourceArchiveSha256": "0e5f89656a18390a441663843d87dbc07efbde32cddecdae37b6061ee876068c",
+  "productionInputs": [
+    {
+      "file": "pvad-designer/src/styles/editor.css",
+      "sha256": "2fb636faf1ffdd1883b61cc735e8d9833e2324b2857ab4157be8dd7b2b63480b"
+    },
+    {
+      "file": "pvad-designer/src/components/Editor/SimplePvadSurface.tsx",
+      "sha256": "02be39ce82d55dc14bda858e0dd2e494ee3ca9f34ebed9b93a789540cb757360"
+    }
+  ],
+  "faces": [
+    {
+      "file": "LiberationMono-Bold.ttf",
+      "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb"
+    },
+    {
+      "file": "LiberationMono-BoldItalic.ttf",
+      "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130"
+    },
+    {
+      "file": "LiberationMono-Italic.ttf",
+      "sha256": "605c01c711b44480a7508d349dfbf3264e81fa43d69e61cfa7d10b86e764c4d1"
+    },
+    {
+      "file": "LiberationMono-Regular.ttf",
+      "sha256": "f2b83c763e8afd21709333370bed4774337fae82267937e2b5aea7e2fbd922c1"
+    },
+    {
+      "file": "LiberationSans-Bold.ttf",
+      "sha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc"
+    },
+    {
+      "file": "LiberationSans-BoldItalic.ttf",
+      "sha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d"
+    },
+    {
+      "file": "LiberationSans-Italic.ttf",
+      "sha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512"
+    },
+    {
+      "file": "LiberationSans-Regular.ttf",
+      "sha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f"
+    },
+    {
+      "file": "LiberationSerif-Bold.ttf",
+      "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+    },
+    {
+      "file": "LiberationSerif-BoldItalic.ttf",
+      "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7"
+    },
+    {
+      "file": "LiberationSerif-Italic.ttf",
+      "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e"
+    },
+    {
+      "file": "LiberationSerif-Regular.ttf",
+      "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74"
+    }
+  ],
+  "fixtures": [
+    {
+      "file": "test-assets/visual-parity/font-families.json",
+      "sha256": "bd30de85f9369efeef5041ba223ce9bacf20fe26a97029be1b4f2b672226c1c6",
+      "reportSha256": "7dec65d4c103385c73b9d9fb732f39289b70b79f81a35af73c85a9f15a5ccc14",
+      "summary": {
+        "pages": 3,
+        "elements": 22,
+        "elementTypes": 6,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 8,
+          "match": 14
+        }
+      }
+    },
+    {
+      "file": "test-assets/visual-parity/all-elements.json",
+      "sha256": "84959bf9d1edbf4c1907e9427281d9f743ee8e54697da212ea88fd68aff46f93",
+      "reportSha256": "7accac3ad7fca69378eaef47221155376c7dffaa688b1d0ffc6a99bf04cc0803",
+      "summary": {
+        "pages": 4,
+        "elements": 40,
+        "elementTypes": 38,
+        "findings": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 5,
+          "match": 35
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "fixture": "font-families",
+      "id": "serif-bold",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.0230315,
+        "preview": 0.0230315,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-bold-backend.png",
+          "sha256": "dee1cdd6e57afcba42888594dc1fdcc6d0d7dc1cbb7c14f8fc6025c34eb6dfad",
+          "pixelSha256": "5e406bf16cd4ea33baf26b56871127437b6b4f1843e7140598b0bb52768be9a4"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-bold-canvas.png",
+          "sha256": "83b074fbe1f4173d2736ee9160aaf6f7edb43af8fe497a0f13604b1df03e825c",
+          "pixelSha256": "fcc1b4ef35d8d139a389a1939ea0e90eb4925d645f0017ea99e1d40d4899fe52"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-bold-preview.png",
+          "sha256": "83b074fbe1f4173d2736ee9160aaf6f7edb43af8fe497a0f13604b1df03e825c",
+          "pixelSha256": "fcc1b4ef35d8d139a389a1939ea0e90eb4925d645f0017ea99e1d40d4899fe52"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-bold-csharp.png",
+          "sha256": "dee1cdd6e57afcba42888594dc1fdcc6d0d7dc1cbb7c14f8fc6025c34eb6dfad",
+          "pixelSha256": "5e406bf16cd4ea33baf26b56871127437b6b4f1843e7140598b0bb52768be9a4"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "serif-bold-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.0227609,
+        "preview": 0.0227609,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/serif-bold-italic-backend.png",
+          "sha256": "8d2bdd8541a98e8defa0667976f9e1378168ef4e801773a09e7eda9b79bfcebb",
+          "pixelSha256": "5d7cf1b95315cdfa7dc3081165d45891d32d547bc90010f529dcf237734dab74"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/serif-bold-italic-canvas.png",
+          "sha256": "f920da2c400f0463074c3854103bf55100ba857d0d6a25a607eca1c42a19c874",
+          "pixelSha256": "a5a8291d363a6e71a8094ba12773694253e7a42ae774c07f32a2f49d61dad68f"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/serif-bold-italic-preview.png",
+          "sha256": "f920da2c400f0463074c3854103bf55100ba857d0d6a25a607eca1c42a19c874",
+          "pixelSha256": "a5a8291d363a6e71a8094ba12773694253e7a42ae774c07f32a2f49d61dad68f"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/serif-bold-italic-csharp.png",
+          "sha256": "8d2bdd8541a98e8defa0667976f9e1378168ef4e801773a09e7eda9b79bfcebb",
+          "pixelSha256": "5d7cf1b95315cdfa7dc3081165d45891d32d547bc90010f529dcf237734dab74"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-regular",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.0235266,
+        "preview": 0.0235266,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-regular-backend.png",
+          "sha256": "905d8147adaf82e2707e94451be331601e0c44a74e09c4aef96183cc50ba18dd",
+          "pixelSha256": "200adeabc53d1a43074e1b77ed134be75007055161cd9d426b3c608e7d29b5a4"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-regular-canvas.png",
+          "sha256": "2faddb3bb5c5d50d7f669b563ec04201a0bd8ffe98cece0c5c52356f4bd154f6",
+          "pixelSha256": "804e1e5eab2ce3dcb7249e3374fbe226677ed94bffbbabafd293cf6c0d285753"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-regular-preview.png",
+          "sha256": "2faddb3bb5c5d50d7f669b563ec04201a0bd8ffe98cece0c5c52356f4bd154f6",
+          "pixelSha256": "804e1e5eab2ce3dcb7249e3374fbe226677ed94bffbbabafd293cf6c0d285753"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-regular-csharp.png",
+          "sha256": "905d8147adaf82e2707e94451be331601e0c44a74e09c4aef96183cc50ba18dd",
+          "pixelSha256": "200adeabc53d1a43074e1b77ed134be75007055161cd9d426b3c608e7d29b5a4"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.0297605,
+        "preview": 0.0297605,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-bold-backend.png",
+          "sha256": "b45b9e34307e6c49127d3bba7e6a2916704719b7d63ec75abec6dc85053f457b",
+          "pixelSha256": "7e386c4e744b473180989b461b8c4103e1f7968e407a2a7635c78e7f698e1c15"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-bold-canvas.png",
+          "sha256": "71c9e118d9f1732441de6c03e051fadb86c0f909e055e6f564a5108dc618dc60",
+          "pixelSha256": "ddcd44695877e6c6ae77d6b59051ce7e0d3df26679e88edb7fdc7f6d8ff67850"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-bold-preview.png",
+          "sha256": "71c9e118d9f1732441de6c03e051fadb86c0f909e055e6f564a5108dc618dc60",
+          "pixelSha256": "ddcd44695877e6c6ae77d6b59051ce7e0d3df26679e88edb7fdc7f6d8ff67850"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-bold-csharp.png",
+          "sha256": "b45b9e34307e6c49127d3bba7e6a2916704719b7d63ec75abec6dc85053f457b",
+          "pixelSha256": "7e386c4e744b473180989b461b8c4103e1f7968e407a2a7635c78e7f698e1c15"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.023357,
+        "preview": 0.023357,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-italic-backend.png",
+          "sha256": "b59bd0e019e46171108c1a68f487f15a9696391fda89b2a95ece698b65592e91",
+          "pixelSha256": "b3fcbee8954511d45541a18b5831fbb6b3eb8300a867965d653c6e0df3feb4a9"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-italic-canvas.png",
+          "sha256": "360cce4254f27efe1fa3981ba57a3589434c909078a3891afbb2c4c31582fd87",
+          "pixelSha256": "83a3720f9c31447d1d947290fe76efb911ad88303f343a8d28e587b647da0b4b"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-italic-preview.png",
+          "sha256": "360cce4254f27efe1fa3981ba57a3589434c909078a3891afbb2c4c31582fd87",
+          "pixelSha256": "83a3720f9c31447d1d947290fe76efb911ad88303f343a8d28e587b647da0b4b"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-italic-csharp.png",
+          "sha256": "b59bd0e019e46171108c1a68f487f15a9696391fda89b2a95ece698b65592e91",
+          "pixelSha256": "b3fcbee8954511d45541a18b5831fbb6b3eb8300a867965d653c6e0df3feb4a9"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-bold-italic",
+      "severity": "P2",
+      "width": 270,
+      "height": 110,
+      "perceptualRmse": {
+        "canvas": 0.0320728,
+        "preview": 0.0320728,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-bold-italic-backend.png",
+          "sha256": "109eb809ceb78f234c7511c97da64bd17beeb3a069bfbdbd26ec667b91d16652",
+          "pixelSha256": "f0953070bdd4b01916508127dfc164dc696587be26bc763419885bbca2439e8d"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-bold-italic-canvas.png",
+          "sha256": "f72e0a63bb251a8257011b62ec284c81802c141375e9c9e241fd6a465b41506c",
+          "pixelSha256": "fa96e4ed46cd3c10c9347021e708a00e362ad2f04dbd7ccd65a5b641435af1af"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-bold-italic-preview.png",
+          "sha256": "f72e0a63bb251a8257011b62ec284c81802c141375e9c9e241fd6a465b41506c",
+          "pixelSha256": "fa96e4ed46cd3c10c9347021e708a00e362ad2f04dbd7ccd65a5b641435af1af"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-bold-italic-csharp.png",
+          "sha256": "109eb809ceb78f234c7511c97da64bd17beeb3a069bfbdbd26ec667b91d16652",
+          "pixelSha256": "f0953070bdd4b01916508127dfc164dc696587be26bc763419885bbca2439e8d"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-date",
+      "severity": "P2",
+      "width": 270,
+      "height": 85,
+      "perceptualRmse": {
+        "canvas": 0.020133,
+        "preview": 0.020133,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-date-backend.png",
+          "sha256": "6000f8cd41607a6d320c56c38300a780093c1b6dfb653c04a39dbf02e1bbfc66",
+          "pixelSha256": "541ef55d913afda229443273d173b25c82d854d6acd710eb9dc13bb0e010f1e4"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-date-canvas.png",
+          "sha256": "8b788c37d926efb8b58e0e9f88e2ed6238035c2130946597698cdd09fbca9e16",
+          "pixelSha256": "adb48603b428a1b793a0bd841df22f38c11ca6078363e4f3ef0093505eacfcbf"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-date-preview.png",
+          "sha256": "8b788c37d926efb8b58e0e9f88e2ed6238035c2130946597698cdd09fbca9e16",
+          "pixelSha256": "adb48603b428a1b793a0bd841df22f38c11ca6078363e4f3ef0093505eacfcbf"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-date-csharp.png",
+          "sha256": "6000f8cd41607a6d320c56c38300a780093c1b6dfb653c04a39dbf02e1bbfc66",
+          "pixelSha256": "541ef55d913afda229443273d173b25c82d854d6acd710eb9dc13bb0e010f1e4"
+        }
+      ]
+    },
+    {
+      "fixture": "font-families",
+      "id": "mono-number",
+      "severity": "P2",
+      "width": 270,
+      "height": 45,
+      "perceptualRmse": {
+        "canvas": 0.0232633,
+        "preview": 0.0232633,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "font-families/mono-number-backend.png",
+          "sha256": "e48b39848b11a002aded9c2c1a25e554d7ec231a0626b239d7f8ebfc4a65c8c9",
+          "pixelSha256": "0f956b394cee983a071de6b9e4c4a7b96af0309af176e8c55ea5e0c3ad5ab704"
+        },
+        {
+          "surface": "canvas",
+          "file": "font-families/mono-number-canvas.png",
+          "sha256": "5521636ead8160aab6e2b1532d3d840beba820d584b9cc60da419fb5a1425150",
+          "pixelSha256": "e407ae66607f8ea941eb0a31239f6dc6e981d02830c8d5ee6644d7de94f20689"
+        },
+        {
+          "surface": "preview",
+          "file": "font-families/mono-number-preview.png",
+          "sha256": "5521636ead8160aab6e2b1532d3d840beba820d584b9cc60da419fb5a1425150",
+          "pixelSha256": "e407ae66607f8ea941eb0a31239f6dc6e981d02830c8d5ee6644d7de94f20689"
+        },
+        {
+          "surface": "csharp",
+          "file": "font-families/mono-number-csharp.png",
+          "sha256": "e48b39848b11a002aded9c2c1a25e554d7ec231a0626b239d7f8ebfc4a65c8c9",
+          "pixelSha256": "0f956b394cee983a071de6b9e4c4a7b96af0309af176e8c55ea5e0c3ad5ab704"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "text",
+      "severity": "P2",
+      "width": 250,
+      "height": 58,
+      "perceptualRmse": {
+        "canvas": 0.0302272,
+        "preview": 0.0302272,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/text-backend.png",
+          "sha256": "02bd41a9c6d874f7f4b25319bef0f7ca85ecf59ecfc7a9a8ffe9ff052bf4cb09",
+          "pixelSha256": "8d9ca2d8d2a56be5df0a4de86e2e7aa61bbdb15dfd5fb1b91502ccc1a9f8ad3e"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/text-canvas.png",
+          "sha256": "0e0ab3186f00e1ee214a636b8d8ce6695f34bde3e08ffde2b1691def1e4fc434",
+          "pixelSha256": "76d7be96fc3a382d1eeedb43b3aa2bb5bdbfaf35cef74f5f2c9e5a841b6a6d20"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/text-preview.png",
+          "sha256": "0e0ab3186f00e1ee214a636b8d8ce6695f34bde3e08ffde2b1691def1e4fc434",
+          "pixelSha256": "76d7be96fc3a382d1eeedb43b3aa2bb5bdbfaf35cef74f5f2c9e5a841b6a6d20"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/text-csharp.png",
+          "sha256": "02bd41a9c6d874f7f4b25319bef0f7ca85ecf59ecfc7a9a8ffe9ff052bf4cb09",
+          "pixelSha256": "8d9ca2d8d2a56be5df0a4de86e2e7aa61bbdb15dfd5fb1b91502ccc1a9f8ad3e"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "date",
+      "severity": "P2",
+      "width": 160,
+      "height": 28,
+      "perceptualRmse": {
+        "canvas": 0.0227491,
+        "preview": 0.0227491,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/date-backend.png",
+          "sha256": "cf67e5d79c584a6f6492636a893298a82b4f2d3c0050ee64b044d6e7730c9461",
+          "pixelSha256": "93407bc22b0cf10ce0deb8d2b61ed21048c2f80b805472874f1c68f358820b82"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/date-canvas.png",
+          "sha256": "df467a107417185e1869bea18f5f02f1602dede43486e220498057b459b59543",
+          "pixelSha256": "65951c9ab14e7a792f3444f3f4d84ab2d6aa2bd45c80de1e3f7580ba3f8b1ba5"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/date-preview.png",
+          "sha256": "df467a107417185e1869bea18f5f02f1602dede43486e220498057b459b59543",
+          "pixelSha256": "65951c9ab14e7a792f3444f3f4d84ab2d6aa2bd45c80de1e3f7580ba3f8b1ba5"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/date-csharp.png",
+          "sha256": "cf67e5d79c584a6f6492636a893298a82b4f2d3c0050ee64b044d6e7730c9461",
+          "pixelSha256": "93407bc22b0cf10ce0deb8d2b61ed21048c2f80b805472874f1c68f358820b82"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "number",
+      "severity": "P2",
+      "width": 160,
+      "height": 28,
+      "perceptualRmse": {
+        "canvas": 0.0253848,
+        "preview": 0.0253848,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/number-backend.png",
+          "sha256": "7f7b1dd3a754f49cad14d91d039fcf71681c5ed49e3bec6c0c4ddc819f03c121",
+          "pixelSha256": "f39a53e9f0029e20f02a1fdd6140524109dfe60df4dfdd1fda69b3c3c642386c"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/number-canvas.png",
+          "sha256": "8b0ea228fbf35d26f9f92acb6d6fa99d908a94e9f2e182771947dc53192abe8c",
+          "pixelSha256": "f36876260cc52eaf8ed42faeaf75d87e6528b273d4ae39946ffd955d2a876b05"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/number-preview.png",
+          "sha256": "8b0ea228fbf35d26f9f92acb6d6fa99d908a94e9f2e182771947dc53192abe8c",
+          "pixelSha256": "f36876260cc52eaf8ed42faeaf75d87e6528b273d4ae39946ffd955d2a876b05"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/number-csharp.png",
+          "sha256": "7f7b1dd3a754f49cad14d91d039fcf71681c5ed49e3bec6c0c4ddc819f03c121",
+          "pixelSha256": "f39a53e9f0029e20f02a1fdd6140524109dfe60df4dfdd1fda69b3c3c642386c"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "field",
+      "severity": "P2",
+      "width": 250,
+      "height": 58,
+      "perceptualRmse": {
+        "canvas": 0.0200621,
+        "preview": 0.0200621,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/field-backend.png",
+          "sha256": "8b5fc39033aba2863bf8f37300f65f7ee6abd5ca00f686f06d115737a5fda44b",
+          "pixelSha256": "d1505c82352750fa8767e6589e69375474d106fc9654672dac4a2ca4657c78f2"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/field-canvas.png",
+          "sha256": "745c6882b4562b8c42c6b441ad20e1fd35b1b55961120140d61ab9f6da5125b3",
+          "pixelSha256": "720b6847b026558a6417ec25c6c49e9dd3372ff9bbae8d4d11dbc12aa0660bf4"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/field-preview.png",
+          "sha256": "745c6882b4562b8c42c6b441ad20e1fd35b1b55961120140d61ab9f6da5125b3",
+          "pixelSha256": "720b6847b026558a6417ec25c6c49e9dd3372ff9bbae8d4d11dbc12aa0660bf4"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/field-csharp.png",
+          "sha256": "8b5fc39033aba2863bf8f37300f65f7ee6abd5ca00f686f06d115737a5fda44b",
+          "pixelSha256": "d1505c82352750fa8767e6589e69375474d106fc9654672dac4a2ca4657c78f2"
+        }
+      ]
+    },
+    {
+      "fixture": "all-elements",
+      "id": "link",
+      "severity": "P2",
+      "width": 250,
+      "height": 32,
+      "perceptualRmse": {
+        "canvas": 0.0206135,
+        "preview": 0.0206135,
+        "csharp": 0
+      },
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "all-elements/link-backend.png",
+          "sha256": "ef84797f1adbe1524b118ea1b66d6237fa84a02ae5fed22e49864f917b49eeed",
+          "pixelSha256": "b9285067fe7107067b5628d7108a85d706393e5a1f0e32b38fd1bbecbbe164cf"
+        },
+        {
+          "surface": "canvas",
+          "file": "all-elements/link-canvas.png",
+          "sha256": "60ba538c14591fdfd0dcca51f4c72193358ee7a471ed7bb16fad8b456db71ad4",
+          "pixelSha256": "634bfe1cec7dac343155eb6e1aac051face7cd7412c551e2908801384952b7d5"
+        },
+        {
+          "surface": "preview",
+          "file": "all-elements/link-preview.png",
+          "sha256": "60ba538c14591fdfd0dcca51f4c72193358ee7a471ed7bb16fad8b456db71ad4",
+          "pixelSha256": "634bfe1cec7dac343155eb6e1aac051face7cd7412c551e2908801384952b7d5"
+        },
+        {
+          "surface": "csharp",
+          "file": "all-elements/link-csharp.png",
+          "sha256": "ef84797f1adbe1524b118ea1b66d6237fa84a02ae5fed22e49864f917b49eeed",
+          "pixelSha256": "b9285067fe7107067b5628d7108a85d706393e5a1f0e32b38fd1bbecbbe164cf"
+        }
+      ]
+    }
+  ]
+}

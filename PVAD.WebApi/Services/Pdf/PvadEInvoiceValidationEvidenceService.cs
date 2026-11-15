@@ -253,7 +253,7 @@ public sealed class PvadEInvoiceValidationEvidenceService(
         {
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             await dbContext.Database.ExecuteSqlRawAsync(
-                "SET LOCAL pxa.e_invoice_retention_purge = 'on'",
+                "SET LOCAL pvad.e_invoice_retention_purge = 'on'",
                 cancellationToken);
             dbContext.EInvoiceValidationRecords.RemoveRange(removable);
             await dbContext.SaveChangesAsync(cancellationToken);

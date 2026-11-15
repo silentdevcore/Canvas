@@ -29,7 +29,6 @@ export interface PdfRevocationEvidenceInspection {
 
 export interface PdfTrustDiagnostic {
   code: string;
-  canonicalCode?: string | null;
   severity: 0 | 1 | 2;
   message: string;
   objectNumber?: number | null;
@@ -167,7 +166,6 @@ export interface PdfA2bConversionPreflightReport {
   originalPreserved: boolean;
   findings: Array<{
     code: string;
-    canonicalCode?: string | null;
     severity: 0 | 1 | 2;
     message: string;
     objectNumber?: number | null;

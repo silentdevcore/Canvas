@@ -1,9 +1,8 @@
 # PVAD MCP Security and Operations
 
-The rename now uses canonical organization claims and `PVAD-MCP` internal delegation
-with explicit legacy readers. Public OAuth scope issuance and existing client/grant
-IDs remain in the legacy phase. See [identity compatibility](pvad-identity-compatibility.md)
-for the accepted signed identity combinations and coordinated rollout requirements.
+MCP uses canonical organization claims, `pvad.*` scopes, PVAD client IDs and the
+`PVAD-MCP` internal delegation only; former-name readers were retired on 2026-11-09
+(see [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md)).
 
 ## Security Boundary
 

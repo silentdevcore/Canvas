@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvedAt": "2026-11-14",
+  "approvedBy": "repository-owner",
+  "approvalSource": "Explicit user confirmation after viewing all three 200% Serif/Mono comparisons.",
+  "scope": "Only the recorded serif-bold, mono-bold and mono-bold-italic crops. Minor raster differences are accepted; P2 metrics and regression thresholds remain unchanged. No approval of future changed pixels or untested platforms is implied.",
+  "fixture": "test-assets/visual-parity/font-families.json",
+  "fixtureSha256": "bd30de85f9369efeef5041ba223ce9bacf20fe26a97029be1b4f2b672226c1c6",
+  "faces": [
+    {
+      "file": "LiberationSerif-Bold.ttf",
+      "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+    },
+    {
+      "file": "LiberationMono-Bold.ttf",
+      "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb"
+    },
+    {
+      "file": "LiberationMono-BoldItalic.ttf",
+      "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130"
+    }
+  ],
+  "cases": [
+    {
+      "id": "serif-bold",
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "serif-bold-backend.png",
+          "sha256": "c565939382cf380150c7ffb0f287fcc91e2fe572854540754ab74bf6324e207e"
+        },
+        {
+          "surface": "canvas",
+          "file": "serif-bold-canvas.png",
+          "sha256": "c6534af2ed60ee9c58dc6a6f3a8195e45f4baefd282c66d0af7e0791c7f10ab8"
+        },
+        {
+          "surface": "preview",
+          "file": "serif-bold-preview.png",
+          "sha256": "c6534af2ed60ee9c58dc6a6f3a8195e45f4baefd282c66d0af7e0791c7f10ab8"
+        },
+        {
+          "surface": "csharp",
+          "file": "serif-bold-csharp.png",
+          "sha256": "8ad9d3d3c17284f9c3fb1629d710c30fbb4a0e0a5cc2d1734068db99bd6023f6"
+        }
+      ]
+    },
+    {
+      "id": "mono-bold",
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "mono-bold-backend.png",
+          "sha256": "049c0a21037bcc434fb89d299ecac416bd2c416cdcbd96a37280cff5bec8ff49"
+        },
+        {
+          "surface": "canvas",
+          "file": "mono-bold-canvas.png",
+          "sha256": "2dbf500a1f178ba895e12dcf37f186dacdb9485e225a00f598b306718d9cd902"
+        },
+        {
+          "surface": "preview",
+          "file": "mono-bold-preview.png",
+          "sha256": "2dbf500a1f178ba895e12dcf37f186dacdb9485e225a00f598b306718d9cd902"
+        },
+        {
+          "surface": "csharp",
+          "file": "mono-bold-csharp.png",
+          "sha256": "1f7d9638394d9f370590daa87516b327c75b6c12f2ca7cab2096339e1d95c543"
+        }
+      ]
+    },
+    {
+      "id": "mono-bold-italic",
+      "crops": [
+        {
+          "surface": "backend",
+          "file": "mono-bold-italic-backend.png",
+          "sha256": "b20969e7df24b4d9d14f770186e6b4a4fb144e7a94dc4fefebd61c8f67f8e08b"
+        },
+        {
+          "surface": "canvas",
+          "file": "mono-bold-italic-canvas.png",
+          "sha256": "72aaac5bd17dc36bf0c6455ea0dde80993823e223c83a5eb5167b571776f5685"
+        },
+        {
+          "surface": "preview",
+          "file": "mono-bold-italic-preview.png",
+          "sha256": "72aaac5bd17dc36bf0c6455ea0dde80993823e223c83a5eb5167b571776f5685"
+        },
+        {
+          "surface": "csharp",
+          "file": "mono-bold-italic-csharp.png",
+          "sha256": "0b49e818790bd9c4b66791e77f7cefc3a2ebbaf154f260fc612118bbfaa7e259"
+        }
+      ]
+    }
+  ]
+}

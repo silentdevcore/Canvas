@@ -36,7 +36,7 @@ public sealed class PdfTrustPostProcessingPipelineTests
                     Validation = new PdfTrustPipelineValidationPolicy { RequirePdfA = true }
                 }));
 
-        Assert.Equal("PXAPDFPIPELINE201", exception.Code);
+        Assert.Equal("PVADPDFPIPELINE201", exception.Code);
         Assert.NotNull(exception.Report);
     }
 
@@ -55,8 +55,8 @@ public sealed class PdfTrustPostProcessingPipelineTests
                 Redaction = new PdfTrustRedactionOptions { Regions = [] }
             }));
 
-        Assert.Equal("PXAPDFPIPELINE101", signing.Code);
-        Assert.Equal("PXAPDFPIPELINE100", redaction.Code);
+        Assert.Equal("PVADPDFPIPELINE101", signing.Code);
+        Assert.Equal("PVADPDFPIPELINE100", redaction.Code);
     }
 
     [Fact]
@@ -120,8 +120,8 @@ public sealed class PdfTrustPostProcessingPipelineTests
     }
 
     [Theory]
-    [InlineData(PdfPadesProfile.BaselineT, "PXAPDFPIPELINE105")]
-    [InlineData(PdfPadesProfile.BaselineLT, "PXAPDFPIPELINE105")]
+    [InlineData(PdfPadesProfile.BaselineT, "PVADPDFPIPELINE105")]
+    [InlineData(PdfPadesProfile.BaselineLT, "PVADPDFPIPELINE105")]
     public async Task PlanValidation_RejectsMissingRuntimeTrustServices(
         PdfPadesProfile profile,
         string expectedCode)
@@ -158,7 +158,7 @@ public sealed class PdfTrustPostProcessingPipelineTests
                 },
                 new PdfTrustPipelineContext { DocumentSigningKey = key }));
 
-        Assert.Equal("PXAPDFPIPELINE104", exception.Code);
+        Assert.Equal("PVADPDFPIPELINE104", exception.Code);
     }
 
     private static PdfTrustPostProcessingPipeline CreatePipeline()
@@ -172,9 +172,9 @@ public sealed class PdfTrustPostProcessingPipelineTests
 
     private static byte[] CreatePdf()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.AddPage().DrawTextFromTop("Trust pipeline", 36, 36, 12);
         return document.ToBytes();
     }

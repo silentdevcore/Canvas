@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "approvedAt": "2026-11-14",
+  "approvedBy": "repository-owner",
+  "approvalSource": "Explicit user confirmation after viewing the 200% short-date comparison.",
+  "scope": "Only the recorded short-height Date crops. Minor browser/PDF raster and subpixel differences are accepted; P2 metrics and regression thresholds remain unchanged. This does not approve future changed pixels or untested platforms.",
+  "fixture": "test-assets/visual-parity/date-layout.json",
+  "fixtureSha256": "778e8052eb633a7413984d61b0fd0d8fbbbf052f7009da53c747606b9c211266",
+  "font": "assets/fonts/liberation/LiberationSans-Regular.ttf",
+  "fontSha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f",
+  "caseId": "short-height",
+  "geometryDrift": 0,
+  "maximumTextDrift": 0.03,
+  "perceptualRmse": 0.0221243,
+  "crops": [
+    {
+      "surface": "backend",
+      "file": "backend.png",
+      "sha256": "abc11d46bf91aab1ff59f05f159abdde86753029c401ce1ce44d5af69ecc5ac1"
+    },
+    {
+      "surface": "canvas",
+      "file": "canvas.png",
+      "sha256": "c60186c2edce663cacd36850602b7e039d831f4368295b684eb195874c9c17e2"
+    },
+    {
+      "surface": "preview",
+      "file": "preview.png",
+      "sha256": "c60186c2edce663cacd36850602b7e039d831f4368295b684eb195874c9c17e2"
+    },
+    {
+      "surface": "csharp",
+      "file": "csharp.png",
+      "sha256": "2f318480b1cbd659bbcdafa51071beeed67f4882637bce2eea29f11022d3cc62"
+    }
+  ]
+}

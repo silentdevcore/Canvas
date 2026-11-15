@@ -53,7 +53,7 @@ internal static class PdfSignatureValidator
                 out var signedRevisionEnd, out var coverageMessage))
         {
             diagnostics.Add(Diagnostic(
-                "PXAPDFTRUST102",
+                "PVADPDFTRUST102",
                 PdfTrustDiagnosticSeverity.Error,
                 coverageMessage,
                 signatureId));
@@ -71,7 +71,7 @@ internal static class PdfSignatureValidator
         if (contentsBytes is null || !TryTrimDer(contentsBytes, out var cms))
         {
             diagnostics.Add(Diagnostic(
-                "PXAPDFTRUST103",
+                "PVADPDFTRUST103",
                 PdfTrustDiagnosticSeverity.Error,
                 "The signature /Contents value does not contain a bounded DER CMS object.",
                 signatureId));
@@ -108,7 +108,7 @@ internal static class PdfSignatureValidator
             if (!TryGetHashAlgorithm(parsed.DigestAlgorithmOid, out var hashAlgorithm, out var digestName))
             {
                 diagnostics.Add(Diagnostic(
-                    "PXAPDFTRUST104",
+                    "PVADPDFTRUST104",
                     PdfTrustDiagnosticSeverity.Warning,
                     $"The CMS digest algorithm '{parsed.DigestAlgorithmOid}' is not supported.",
                     signatureId));
@@ -171,7 +171,7 @@ internal static class PdfSignatureValidator
                     : PdfTrustStatus.Indeterminate;
 
             diagnostics.Add(Diagnostic(
-                integrityStatus == PdfTrustStatus.Valid ? "PXAPDFTRUST110" : "PXAPDFTRUST105",
+                integrityStatus == PdfTrustStatus.Valid ? "PVADPDFTRUST110" : "PVADPDFTRUST105",
                 integrityStatus == PdfTrustStatus.Valid
                     ? PdfTrustDiagnosticSeverity.Info
                     : PdfTrustDiagnosticSeverity.Error,
@@ -182,7 +182,7 @@ internal static class PdfSignatureValidator
             if (!coversWholeDocument)
             {
                 diagnostics.Add(Diagnostic(
-                    "PXAPDFTRUST111",
+                    "PVADPDFTRUST111",
                     PdfTrustDiagnosticSeverity.Info,
                     "The signature covers an earlier complete PDF revision; later incremental revisions exist.",
                     signatureId));
@@ -191,7 +191,7 @@ internal static class PdfSignatureValidator
             if (certificateStatus == PdfTrustStatus.Indeterminate)
             {
                 diagnostics.Add(Diagnostic(
-                    "PXAPDFTRUST112",
+                    "PVADPDFTRUST112",
                     PdfTrustDiagnosticSeverity.Warning,
                     "The signer certificate is cryptographically bound, but its chain is not trusted by the current host trust store.",
                     signatureId));
@@ -199,7 +199,7 @@ internal static class PdfSignatureValidator
             else if (certificateStatus == PdfTrustStatus.Invalid)
             {
                 diagnostics.Add(Diagnostic(
-                    "PXAPDFTRUST135",
+                    "PVADPDFTRUST135",
                     PdfTrustDiagnosticSeverity.Error,
                     "The signer certificate is outside its trusted validity period or its certificate chain is invalid.",
                     signatureId));
@@ -209,10 +209,10 @@ internal static class PdfSignatureValidator
             {
                 diagnostics.Add(Diagnostic(
                     certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
-                        ? "PXAPDFTRUST116"
+                        ? "PVADPDFTRUST116"
                         : certificateValidation.RevocationStatus == PdfTrustStatus.Valid
-                            ? "PXAPDFTRUST115"
-                            : "PXAPDFTRUST117",
+                            ? "PVADPDFTRUST115"
+                            : "PVADPDFTRUST117",
                     certificateValidation.RevocationStatus == PdfTrustStatus.Invalid
                         ? PdfTrustDiagnosticSeverity.Error
                         : certificateValidation.RevocationStatus == PdfTrustStatus.Valid
@@ -230,7 +230,7 @@ internal static class PdfSignatureValidator
             if (timestamp.Status != PdfTrustStatus.NotApplicable)
             {
                 diagnostics.Add(Diagnostic(
-                    timestamp.Status == PdfTrustStatus.Invalid ? "PXAPDFTRUST114" : "PXAPDFTRUST113",
+                    timestamp.Status == PdfTrustStatus.Invalid ? "PVADPDFTRUST114" : "PVADPDFTRUST113",
                     timestamp.Status == PdfTrustStatus.Invalid
                         ? PdfTrustDiagnosticSeverity.Error
                         : timestamp.Status == PdfTrustStatus.Valid
@@ -249,10 +249,10 @@ internal static class PdfSignatureValidator
             {
                 diagnostics.Add(Diagnostic(
                     timestamp.RevocationStatus == PdfTrustStatus.Invalid
-                        ? "PXAPDFTRUST119"
+                        ? "PVADPDFTRUST119"
                         : timestamp.RevocationStatus == PdfTrustStatus.Valid
-                            ? "PXAPDFTRUST118"
-                            : "PXAPDFTRUST120",
+                            ? "PVADPDFTRUST118"
+                            : "PVADPDFTRUST120",
                     timestamp.RevocationStatus == PdfTrustStatus.Invalid
                         ? PdfTrustDiagnosticSeverity.Error
                         : timestamp.RevocationStatus == PdfTrustStatus.Valid
@@ -278,10 +278,10 @@ internal static class PdfSignatureValidator
             {
                 diagnostics.Add(Diagnostic(
                     embeddedStatus == PdfTrustStatus.Valid
-                        ? "PXAPDFTRUST123"
+                        ? "PVADPDFTRUST123"
                         : embeddedStatus == PdfTrustStatus.Invalid
-                            ? "PXAPDFTRUST124"
-                            : "PXAPDFTRUST125",
+                            ? "PVADPDFTRUST124"
+                            : "PVADPDFTRUST125",
                     embeddedStatus == PdfTrustStatus.Valid
                         ? PdfTrustDiagnosticSeverity.Info
                         : embeddedStatus == PdfTrustStatus.Invalid
@@ -335,7 +335,7 @@ internal static class PdfSignatureValidator
         catch (Exception exception) when (exception is AsnContentException or CryptographicException or InvalidDataException)
         {
             diagnostics.Add(Diagnostic(
-                "PXAPDFTRUST106",
+                "PVADPDFTRUST106",
                 PdfTrustDiagnosticSeverity.Error,
                 $"The CMS signature could not be decoded or verified: {exception.GetType().Name}.",
                 signatureId));
@@ -418,14 +418,14 @@ internal static class PdfSignatureValidator
                         ? PdfTrustStatus.Valid
                         : PdfTrustStatus.Indeterminate;
                 diagnostics.Add(Diagnostic(
-                    "PXAPDFTRUST126",
+                    "PVADPDFTRUST126",
                     PdfTrustDiagnosticSeverity.Info,
                     "The RFC 3161 document timestamp message imprint and signed PDF byte ranges are cryptographically valid.",
                     signatureId));
                 if (!coversWholeDocument)
                 {
                     diagnostics.Add(Diagnostic(
-                        "PXAPDFTRUST127",
+                        "PVADPDFTRUST127",
                         PdfTrustDiagnosticSeverity.Info,
                         "The document timestamp protects an earlier complete PDF revision; later incremental revisions exist.",
                         signatureId));
@@ -433,7 +433,7 @@ internal static class PdfSignatureValidator
                 if (timestampStatus != PdfTrustStatus.Valid)
                 {
                     diagnostics.Add(Diagnostic(
-                        "PXAPDFTRUST128",
+                        "PVADPDFTRUST128",
                         timestampStatus == PdfTrustStatus.Invalid
                             ? PdfTrustDiagnosticSeverity.Error
                             : PdfTrustDiagnosticSeverity.Warning,
@@ -470,7 +470,7 @@ internal static class PdfSignatureValidator
         catch (Exception exception) when (exception is CryptographicException or AsnContentException)
         {
             diagnostics.Add(Diagnostic(
-                "PXAPDFTRUST129",
+                "PVADPDFTRUST129",
                 PdfTrustDiagnosticSeverity.Error,
                 $"The RFC 3161 document timestamp could not be verified: {exception.GetType().Name}.",
                 signatureId));

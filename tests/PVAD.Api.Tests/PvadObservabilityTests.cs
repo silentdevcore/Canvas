@@ -56,7 +56,7 @@ public sealed class PvadObservabilityTests
         activity.SetTag("http.url", "https://example.test/import?api_key=secret");
         activity.SetTag("url.query", "token=secret");
         activity.SetTag("http.request.header.authorization", "Bearer secret");
-        activity.SetTag("http.request.header.cookie", "PXA.Session=secret");
+        activity.SetTag("http.request.header.cookie", "__Host-PVAD.Session=secret");
         activity.SetTag("user.email", "person@example.test");
         activity.SetTag("custom.api-key", "secret");
         activity.SetTag("document.id", "customer-document");
@@ -98,7 +98,7 @@ public sealed class PvadObservabilityTests
         PvadTelemetry.RecordJobEnqueued("document.import");
         PvadTelemetry.RecordJobQueueDuration("document.import", TimeSpan.FromSeconds(3));
         PvadTelemetry.RecordJobProcessed("document.import", "completed", TimeSpan.FromSeconds(2));
-        PvadTelemetry.RecordDependencyHealth("pxa-database", true, TimeSpan.FromMilliseconds(25));
+        PvadTelemetry.RecordDependencyHealth("pvad-database", true, TimeSpan.FromMilliseconds(25));
         PvadTelemetry.RecordServiceHeartbeat(
             DateTimeOffset.FromUnixTimeSeconds(1_750_000_000));
         PvadTelemetry.RecordMailQueue(4, TimeSpan.FromMinutes(3));
@@ -151,6 +151,8 @@ public sealed class PvadObservabilityTests
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.jobs.processed");
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.jobs.duration");
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.health");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.health" &&
+            value.Tags.Any(tag => tag.Key == "dependency.name" && Equals(tag.Value, "pvad-database")));
         Assert.Contains(recordedMeasurements, value => value.Name == "pvad.dependencies.healthcheck.duration");
         Assert.Contains(
             recordedMeasurements,
@@ -488,21 +490,17 @@ public sealed class PvadObservabilityTests
             value => value?.Contains("must-not-appear", StringComparison.Ordinal) == true);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Json_console_log_contains_resource_and_trace_fields_without_secret_values(bool legacy)
+    [Fact]
+    public void Json_console_log_contains_resource_and_trace_fields_without_secret_values()
     {
         var settings = Options.Create(new PvadObservabilityOptions
             {
-                ServiceName = "pxa-test",
-                ServiceNamespace = "PowerDoxAutomation",
+                ServiceName = "pvad-test",
+                ServiceNamespace = "PVAD.Testing",
             });
         var environment = new TestHostEnvironment { EnvironmentName = Environments.Production };
-        PvadJsonConsoleFormatter formatter = legacy
-            ? new LegacyPvadJsonConsoleFormatter(settings, environment)
-            : new PvadJsonConsoleFormatter(settings, environment);
-        Assert.Equal(legacy ? "pxa-json" : "pvad-json", formatter.Name);
+        PvadJsonConsoleFormatter formatter = new PvadJsonConsoleFormatter(settings, environment);
+        Assert.Equal("pvad-json", formatter.Name);
         var attributes = new List<KeyValuePair<string, object?>>
         {
             new("{OriginalFormat}", "Operation completed with {Outcome}"),
@@ -511,7 +509,7 @@ public sealed class PvadObservabilityTests
         };
         var entry = new LogEntry<IReadOnlyList<KeyValuePair<string, object?>>>(
             LogLevel.Information,
-            "PXA.Test",
+            "PVAD.Test",
             new EventId(42, "TestCompleted"),
             attributes,
             new InvalidOperationException("must-not-appear"),
@@ -525,8 +523,8 @@ public sealed class PvadObservabilityTests
 
         using var document = JsonDocument.Parse(output.ToString());
         var root = document.RootElement;
-        Assert.Equal("pxa-test", root.GetProperty("service.name").GetString());
-        Assert.Equal("PowerDoxAutomation", root.GetProperty("service.namespace").GetString());
+        Assert.Equal("pvad-test", root.GetProperty("service.name").GetString());
+        Assert.Equal("PVAD.Testing", root.GetProperty("service.namespace").GetString());
         Assert.Equal("Production", root.GetProperty("deployment.environment.name").GetString());
         Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("service.version").GetString()));
         Assert.False(string.IsNullOrWhiteSpace(root.GetProperty("service.instance.id").GetString()));
@@ -733,13 +731,13 @@ public sealed class PvadObservabilityTests
             "document.import",
             1,
             traceParent,
-            "pxa=correlated");
+            "pvad=correlated");
 
         Assert.NotNull(processing);
         Assert.Equal(traceId, processing.TraceId);
         Assert.Equal(producerSpanId, processing.ParentSpanId);
         Assert.Equal(traceParent, processing.ParentId);
-        Assert.Equal("pxa=correlated", processing.TraceStateString);
+        Assert.Equal("pvad=correlated", processing.TraceStateString);
     }
 
     [Fact]
@@ -831,7 +829,7 @@ public sealed class PvadObservabilityTests
                                 y = 0,
                                 width = 200,
                                 height = 30,
-                                content = "PXA remains available",
+                                content = "PVAD remains available",
                             },
                         },
                     },
@@ -842,7 +840,7 @@ public sealed class PvadObservabilityTests
         response.EnsureSuccessStatusCode();
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
         Assert.Contains(
-            "PXA remains available",
+            "PVAD remains available",
             await response.Content.ReadAsStringAsync(),
             StringComparison.Ordinal);
     }
@@ -851,7 +849,6 @@ public sealed class PvadObservabilityTests
     public void PostgreSql_metrics_use_a_safe_data_source_name()
     {
         Assert.Equal("pvad-database", PersistenceServiceCollectionExtensions.DataSourceName);
-        Assert.Equal("pxa-database", PersistenceServiceCollectionExtensions.LegacyDataSourceName);
         Assert.DoesNotContain(
             "Password",
             PersistenceServiceCollectionExtensions.DataSourceName,

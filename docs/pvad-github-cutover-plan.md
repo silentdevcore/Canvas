@@ -1,5 +1,11 @@
 # PVAD GitHub Protection and Environment Cutover
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 This document combines an operator preparation plan with dated execution records.
 Only the explicitly recorded develop check activation was authorized and applied;
 it is not permission for further GitHub changes, artifact publication or deployment.
@@ -60,7 +66,7 @@ existing production protections and bindings unchanged; do not remove reviews or
 enable a bypass to work around the missing reviewer.
 
 The repeatable offline reviewer is
-[`reviewCiChecks`](../tools/configuration/rename-ci-check-review.mjs). It accepts
+`reviewCiChecks` (`tools/configuration/rename-ci-check-review.mjs`, removed 2026-11-09). It accepts
 parsed CI YAML, the observed `requiredStatusChecks` metadata, and an explicit
 `main` or `develop` target. It preserves check-source App IDs and returns separate
 required/proposed rows, dependencies and blockers. It makes no network calls,

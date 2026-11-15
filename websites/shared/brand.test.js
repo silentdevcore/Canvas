@@ -1,8 +1,24 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import test from 'node:test';
 import { pvadBrand } from './brand.js';
 import { renderPvadFooter } from './footer.js';
+
+test('current public website sources contain no former product names', () => {
+  const root = new URL('../../', import.meta.url);
+  const files = execFileSync('git', ['ls-files', '-z', '--',
+    'websites/PVAD.Company', 'websites/PVAD.Documentation', 'websites/PVAD.Demo',
+  ], { cwd: root, encoding: 'utf8' }).split('\0').filter(file =>
+    /\/src\//.test(file) && !/\.test\./.test(file)
+    || /\.html$/.test(file) && !file.includes('/public/'));
+  assert.ok(files.length > 25);
+  for (const file of files) {
+    const absolute = new URL(file, root);
+    assert.ok(fs.lstatSync(absolute).isFile(), file);
+    assert.doesNotMatch(fs.readFileSync(absolute, 'utf8'), /pxa|power[\s_-]*dox|renamed to PVAD/i, file);
+  }
+});
 
 test('owned website and Designer styles use canonical technical symbols', () => {
   const visit = directory => {

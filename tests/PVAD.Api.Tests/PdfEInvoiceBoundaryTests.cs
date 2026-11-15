@@ -11,7 +11,7 @@ namespace PVAD.Api.Tests;
 /// <remarks>
 /// <para>
 /// A limit is only real if both sides of it are tested: the largest accepted value and the smallest
-/// rejected one. These are the pairs PXA can judge without any official artifact - description
+/// rejected one. These are the pairs PVAD can judge without any official artifact - description
 /// length, Unicode segmentation, line count, currency minor units, rounding, attachment naming and
 /// the reserved filenames.
 /// </para>
@@ -80,7 +80,7 @@ public sealed class PdfEInvoiceBoundaryTests
         var generated = Generate(Invoice([Line(1, new string('A', 4_097))]));
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV109");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV109");
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public sealed class PdfEInvoiceBoundaryTests
         var generated = Generate(Invoice(lines));
 
         Assert.False(generated.IsGenerated);
-        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV107");
+        Assert.Contains(generated.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV107");
     }
 
     // ── Currency minor units and rounding ────────────────────────────────────
@@ -160,14 +160,14 @@ public sealed class PdfEInvoiceBoundaryTests
     [Fact]
     public void Negative_line_values_are_refused_because_credit_notes_are_not_supported()
     {
-        // PXA issues invoices (type code 380) only. A negative price or quantity would silently
+        // PVAD issues invoices (type code 380) only. A negative price or quantity would silently
         // produce something that is not a credit note either, so both are refused outright.
         Assert.Contains(
             Generate(Invoice([Line(1, "Credit", 1, -100m)])).Diagnostics,
-            diagnostic => diagnostic.Code == "PXAEINV114");
+            diagnostic => diagnostic.Code == "PVADEINV114");
         Assert.Contains(
             Generate(Invoice([Line(1, "Credit", -1m, 100m)])).Diagnostics,
-            diagnostic => diagnostic.Code == "PXAEINV113");
+            diagnostic => diagnostic.Code == "PVADEINV113");
     }
 
     [Fact]
@@ -277,8 +277,8 @@ public sealed class PdfEInvoiceBoundaryTests
         InvoiceNumber = "BOUNDARY-1",
         IssueDate = new DateOnly(2026, 9, 27),
         Currency = "EUR",
-        Seller = new("PXA Synthetic Seller GmbH", Address: new("Hauptstrasse 1", "Berlin", "10115", "DE")),
-        Buyer = new("PXA Synthetic Buyer AG", Address: new("Buyer Street 2", "Munich", "80331", "DE")),
+        Seller = new("PVAD Synthetic Seller GmbH", Address: new("Hauptstrasse 1", "Berlin", "10115", "DE")),
+        Buyer = new("PVAD Synthetic Buyer AG", Address: new("Buyer Street 2", "Munich", "80331", "DE")),
         Lines = lines
     };
 

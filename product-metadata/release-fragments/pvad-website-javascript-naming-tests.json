@@ -1,0 +1,11 @@
+{
+  "id": "pvad-website-javascript-naming-tests",
+  "impact": "none",
+  "components": ["admin", "company", "demo", "documentation"],
+  "category": "improved",
+  "summary": "Aligned website test terminology and expanded current and compatibility diagnostic coverage.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "Only test inputs, test labels and internal review records change. Runtime aliases, stable diagnostic values, original validation evidence and published releases remain unchanged."
+}

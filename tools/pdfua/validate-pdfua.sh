@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-. "$(dirname "$0")/../configuration/environment.sh"
-pvad_environment_alias PVAD_PDFUA_REPORT_DIR PXA_PDFUA_REPORT_DIR "${PVAD_PDFUA_REPORT_DIR+x}" "${PVAD_PDFUA_REPORT_DIR-}" "${PXA_PDFUA_REPORT_DIR+x}" "${PXA_PDFUA_REPORT_DIR-}"
-pvad_environment_alias PVAD_VERAPDF_IMAGE PXA_VERAPDF_IMAGE "${PVAD_VERAPDF_IMAGE+x}" "${PVAD_VERAPDF_IMAGE-}" "${PXA_VERAPDF_IMAGE+x}" "${PXA_VERAPDF_IMAGE-}"
 
 readonly IMAGE="${PVAD_VERAPDF_IMAGE:-ghcr.io/verapdf/cli:v1.31.166}"
 readonly REPORT_DIRECTORY="${PVAD_PDFUA_REPORT_DIR:-artifacts/pdfua}"
@@ -33,14 +30,16 @@ for input in "$@"; do
   report_name="${input_name%.pdf}-ua1-verapdf.xml"
   report_path="$report_root/$report_name"
 
+  validator_status=0
   docker run --rm --platform linux/amd64 \
     -v "$input_directory:/input:ro" \
     "$IMAGE" \
     --format xml \
     --flavour ua1 \
-    "/input/$input_name" > "$report_path"
+    "/input/$input_name" > "$report_path" || validator_status=$?
 
-  if grep -q 'isCompliant="true"' "$report_path" &&
+  if [[ "$validator_status" -eq 0 ]] &&
+     grep -q 'isCompliant="true"' "$report_path" &&
      ! grep -q 'isCompliant="false"' "$report_path"; then
     echo "PASS $input PDF/UA-1 ($report_path)"
   else

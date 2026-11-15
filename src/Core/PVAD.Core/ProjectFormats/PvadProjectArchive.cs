@@ -112,7 +112,7 @@ public static class PvadProjectArchive
                 leaveOpen: false,
                 entryNameEncoding: Encoding.UTF8);
             if (archive.Entries.Count is 0 || archive.Entries.Count > effectiveLimits.MaximumEntries)
-                throw Error("PXAPROJECT005", "The project package contains an unsupported number of entries.");
+                throw Error("PVADPROJECT005", "The project package contains an unsupported number of entries.");
 
             var entries = new Dictionary<string, ZipArchiveEntry>(StringComparer.Ordinal);
             var normalizedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -121,28 +121,28 @@ public static class PvadProjectArchive
                 budget.ThrowIfExceeded();
                 ValidatePath(entry.FullName);
                 if (!normalizedPaths.Add(entry.FullName) || !entries.TryAdd(entry.FullName, entry))
-                    throw Error("PXAPROJECT004", "The project package contains duplicate paths.");
+                    throw Error("PVADPROJECT004", "The project package contains duplicate paths.");
                 if (IsSymlink(entry))
-                    throw Error("PXAPROJECT003", "The project package contains an unsupported symbolic link.");
+                    throw Error("PVADPROJECT003", "The project package contains an unsupported symbolic link.");
                 if (entry.Length > effectiveLimits.MaximumEntryBytes)
-                    throw Error("PXAPROJECT005", "A project entry exceeds its size limit.");
+                    throw Error("PVADPROJECT005", "A project entry exceeds its size limit.");
             }
 
             if (!entries.TryGetValue(PvadProjectFormat.MimeTypeEntry, out var mimeEntry) ||
                 !entries.TryGetValue(PvadProjectFormat.ManifestEntry, out var manifestEntry) ||
                 !entries.ContainsKey(PvadProjectFormat.DocumentEntry))
-                throw Error("PXAPROJECT008", "The project package is missing required envelope entries.");
+                throw Error("PVADPROJECT008", "The project package is missing required envelope entries.");
 
             var mimeBytes = ReadEntryBounded(mimeEntry, 256, budget);
             var mediaType = Encoding.ASCII.GetString(mimeBytes);
             if (!PvadProjectFormat.AcceptsMediaType(expectedKind, mediaType))
-                throw Error("PXAPROJECT002", "The project package format does not match the requested project type.");
+                throw Error("PVADPROJECT002", "The project package format does not match the requested project type.");
 
             var manifestBytes = ReadEntryBounded(manifestEntry, effectiveLimits.MaximumEntryBytes, budget);
             var manifest = PvadCanonicalJson.Deserialize<PvadProjectManifest>(
                 manifestBytes, effectiveLimits.MaximumJsonDepth);
             if (manifest.MediaType != mediaType)
-                throw Error("PXAPROJECT002", "The project MIME entry does not match its manifest.");
+                throw Error("PVADPROJECT002", "The project MIME entry does not match its manifest.");
             ValidateManifestEnvelope(manifest, expectedKind, entries, effectiveLimits, budget);
             return manifest;
         }
@@ -152,7 +152,7 @@ public static class PvadProjectArchive
         }
         catch (InvalidDataException)
         {
-            throw Error("PXAPROJECT001", "The file is not a valid PVAD project package.");
+            throw Error("PVADPROJECT001", "The file is not a valid PVAD project package.");
         }
     }
 
@@ -184,10 +184,10 @@ public static class PvadProjectArchive
             cancellationToken.ThrowIfCancellationRequested();
             ValidateAsset(asset, limits);
             if (!assetIds.Add(asset.Id))
-                throw Error("PXAPROJECT004", "The project contains a duplicate asset ID.");
+                throw Error("PVADPROJECT004", "The project contains a duplicate asset ID.");
             var path = AssetPath(asset.Kind, asset.Id, asset.ContentType);
             if (!entries.TryAdd(path, asset.Content.ToArray()))
-                throw Error("PXAPROJECT004", "The project contains a duplicate package path.");
+                throw Error("PVADPROJECT004", "The project contains a duplicate package path.");
             assetDescriptors.Add(new PvadProjectAssetDescriptor
             {
                 Id = asset.Id,
@@ -203,7 +203,7 @@ public static class PvadProjectArchive
         if (options.CodeWorkspace is not null)
         {
             if (kind != PvadProjectKind.Pdf)
-                throw Error("PXAPROJECT016", "Code Workspace components are supported only by PVADP projects.");
+                throw Error("PVADPROJECT016", "Code Workspace components are supported only by PVADP projects.");
             ValidateCodeWorkspace(options.CodeWorkspace, limits);
             var bytes = PvadCanonicalJson.Serialize(options.CodeWorkspace);
             entries.Add(PvadProjectFormat.CodeWorkspaceEntry, bytes);
@@ -262,7 +262,7 @@ public static class PvadProjectArchive
         }
         var result = output.ToArray();
         if (result.LongLength > PvadProjectReadLimits.DefaultMaximumCompressedBytes)
-            throw Error("PXAPROJECT005", "The generated project package exceeds its compressed-size limit.");
+            throw Error("PVADPROJECT005", "The generated project package exceeds its compressed-size limit.");
         return result;
     }
 
@@ -297,13 +297,13 @@ public static class PvadProjectArchive
         {
             RejectPdfSecrets(pdf);
             if (!StringComparer.Ordinal.Equals(pdf.Id, validated.Manifest.DocumentId))
-                throw Error("PXAPROJECT013", "The PDF project document ID does not match its manifest.");
+                throw Error("PVADPROJECT013", "The PDF project document ID does not match its manifest.");
         }
         else if (document is SpreadsheetDto spreadsheet)
         {
             RejectSpreadsheetSecrets(spreadsheet);
             if (!StringComparer.Ordinal.Equals(spreadsheet.Id, validated.Manifest.DocumentId))
-                throw Error("PXAPROJECT013", "The Spreadsheet project document ID does not match its manifest.");
+                throw Error("PVADPROJECT013", "The Spreadsheet project document ID does not match its manifest.");
         }
 
         var assets = validated.Manifest.Assets
@@ -358,7 +358,7 @@ public static class PvadProjectArchive
                 leaveOpen: false,
                 entryNameEncoding: Encoding.UTF8);
             if (archive.Entries.Count is 0 || archive.Entries.Count > limits.MaximumEntries)
-                throw Error("PXAPROJECT005", "The project package contains an unsupported number of entries.");
+                throw Error("PVADPROJECT005", "The project package contains an unsupported number of entries.");
 
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var entries = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
@@ -368,17 +368,17 @@ public static class PvadProjectArchive
                 budget.ThrowIfExceeded();
                 ValidatePath(entry.FullName);
                 if (!paths.Add(entry.FullName))
-                    throw Error("PXAPROJECT004", "The project package contains duplicate paths.");
+                    throw Error("PVADPROJECT004", "The project package contains duplicate paths.");
                 if (IsSymlink(entry))
-                    throw Error("PXAPROJECT003", "The project package contains an unsupported symbolic link.");
+                    throw Error("PVADPROJECT003", "The project package contains an unsupported symbolic link.");
                 if (entry.Length > limits.MaximumEntryBytes || expandedTotal > limits.MaximumExpandedBytes - entry.Length)
-                    throw Error("PXAPROJECT005", "The project package exceeds its expanded-size limit.");
+                    throw Error("PVADPROJECT005", "The project package exceeds its expanded-size limit.");
                 if (entry.CompressedLength > 0 && entry.Length > 1_048_576 &&
                     entry.Length / (double)entry.CompressedLength > limits.MaximumCompressionRatio)
-                    throw Error("PXAPROJECT005", "The project package exceeds its compression-ratio limit.");
+                    throw Error("PVADPROJECT005", "The project package exceeds its compression-ratio limit.");
                 var content = ReadEntryBounded(entry, limits.MaximumEntryBytes, budget);
                 if (entry.FullName.StartsWith("assets/", StringComparison.Ordinal) && LooksLikeArchive(content))
-                    throw Error("PXAPROJECT011", "Nested archives are not accepted as project assets.");
+                    throw Error("PVADPROJECT011", "Nested archives are not accepted as project assets.");
                 entries.Add(entry.FullName, content);
                 expandedTotal += content.LongLength;
             }
@@ -388,12 +388,12 @@ public static class PvadProjectArchive
             RequireEntry(entries, PvadProjectFormat.DocumentEntry);
             var mediaType = Encoding.ASCII.GetString(entries[PvadProjectFormat.MimeTypeEntry]);
             if (!PvadProjectFormat.AcceptsMediaType(expectedKind, mediaType))
-                throw Error("PXAPROJECT002", "The project package format does not match the requested project type.");
+                throw Error("PVADPROJECT002", "The project package format does not match the requested project type.");
 
             var manifest = PvadCanonicalJson.Deserialize<PvadProjectManifest>(
                 entries[PvadProjectFormat.ManifestEntry], limits.MaximumJsonDepth);
             if (manifest.MediaType != mediaType)
-                throw Error("PXAPROJECT002", "The project MIME entry does not match its manifest.");
+                throw Error("PVADPROJECT002", "The project MIME entry does not match its manifest.");
             ValidateManifest(manifest, expectedKind, entries, limits, budget);
             return new ValidatedArchive(manifest, entries, archiveBytes, limits, budget);
         }
@@ -403,7 +403,7 @@ public static class PvadProjectArchive
         }
         catch (InvalidDataException)
         {
-            throw Error("PXAPROJECT001", "The file is not a valid PVAD project package.");
+            throw Error("PVADPROJECT001", "The file is not a valid PVAD project package.");
         }
     }
 
@@ -428,27 +428,27 @@ public static class PvadProjectArchive
             budget.ThrowIfExceeded();
             ValidateAssetDescriptor(asset);
             if (!assetIds.Add(asset.Id) || !expectedPaths.Add(asset.Path))
-                throw Error("PXAPROJECT004", "The project manifest contains duplicate assets.");
+                throw Error("PVADPROJECT004", "The project manifest contains duplicate assets.");
             if (!entries.TryGetValue(asset.Path, out var content))
-                throw Error("PXAPROJECT008", "A declared project asset is missing.");
+                throw Error("PVADPROJECT008", "A declared project asset is missing.");
             if (content.LongLength != asset.Length || Sha256(content) != asset.Sha256)
-                throw Error("PXAPROJECT007", "A project asset failed integrity validation.");
+                throw Error("PVADPROJECT007", "A project asset failed integrity validation.");
             ValidateAssetContent(asset.ContentType, content, limits);
         }
         AddAndValidateComponents(manifest, entries, expectedPaths, limits, budget);
         if (!expectedPaths.SetEquals(entries.Keys))
-            throw Error("PXAPROJECT008", "The project package contains undeclared entries.");
+            throw Error("PVADPROJECT008", "The project package contains undeclared entries.");
 
         var payload = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var entry in entries.Where(item => item.Key != PvadProjectFormat.ManifestEntry))
         {
             budget.ThrowIfExceeded();
             if (!manifest.EntryChecksums.TryGetValue(entry.Key, out var checksum) || checksum != Sha256(entry.Value))
-                throw Error("PXAPROJECT007", "A project entry failed integrity validation.");
+                throw Error("PVADPROJECT007", "A project entry failed integrity validation.");
             payload.Add(entry.Key, entry.Value);
         }
         if (manifest.EntryChecksums.Count != payload.Count || manifest.ContentHash != ContentHash(payload))
-            throw Error("PXAPROJECT007", "The project package content hash is invalid.");
+            throw Error("PVADPROJECT007", "The project package content hash is invalid.");
     }
 
     private static void ValidateManifestEnvelope(
@@ -471,20 +471,20 @@ public static class PvadProjectArchive
             budget.ThrowIfExceeded();
             ValidateAssetDescriptor(asset);
             if (!assetIds.Add(asset.Id) || !expectedPaths.Add(asset.Path))
-                throw Error("PXAPROJECT004", "The project manifest contains duplicate assets.");
+                throw Error("PVADPROJECT004", "The project manifest contains duplicate assets.");
             if (!entries.TryGetValue(asset.Path, out var entry) || entry.Length != asset.Length)
-                throw Error("PXAPROJECT008", "A declared project asset is missing or has an invalid length.");
+                throw Error("PVADPROJECT008", "A declared project asset is missing or has an invalid length.");
         }
         AddAndValidateComponentEnvelopes(manifest, entries, expectedPaths, limits, budget);
         if (!expectedPaths.SetEquals(entries.Keys))
-            throw Error("PXAPROJECT008", "The project package contains undeclared entries.");
+            throw Error("PVADPROJECT008", "The project package contains undeclared entries.");
 
         var payloadPaths = expectedPaths.Where(path => path != PvadProjectFormat.ManifestEntry).ToHashSet(StringComparer.Ordinal);
         if (manifest.EntryChecksums.Count != payloadPaths.Count ||
             !payloadPaths.SetEquals(manifest.EntryChecksums.Keys) ||
             manifest.EntryChecksums.Values.Any(checksum => !IsSha256(checksum)) ||
             !IsSha256(manifest.ContentHash))
-            throw Error("PXAPROJECT007", "The project manifest contains invalid integrity metadata.");
+            throw Error("PVADPROJECT007", "The project manifest contains invalid integrity metadata.");
     }
 
     private static void ValidateManifestIdentity(
@@ -493,15 +493,14 @@ public static class PvadProjectArchive
         PvadProjectReadLimits limits)
     {
         if (manifest.Assets is null || manifest.Components is null || manifest.EntryChecksums is null)
-            throw Error("PXAPROJECT008", "The project manifest is incomplete.");
+            throw Error("PVADPROJECT008", "The project manifest is incomplete.");
         manifest.RequiredFeatures ??= [];
         manifest.Diagnostics ??= [];
-        var legacy = manifest.Magic == PvadProjectFormat.LegacyMagic(kind);
-        if (manifest.Magic != (legacy ? PvadProjectFormat.LegacyMagic(kind) : PvadProjectFormat.Magic(kind)) ||
-            manifest.FormatId != (legacy ? PvadProjectFormat.LegacyFormatId(kind) : PvadProjectFormat.FormatId(kind)) ||
-            manifest.MediaType != (legacy ? PvadProjectFormat.LegacyMediaType(kind) : PvadProjectFormat.MediaType(kind)) ||
+        if (manifest.Magic != PvadProjectFormat.Magic(kind) ||
+            manifest.FormatId != PvadProjectFormat.FormatId(kind) ||
+            manifest.MediaType != PvadProjectFormat.MediaType(kind) ||
             manifest.EntryDocument != PvadProjectFormat.DocumentEntry)
-            throw Error("PXAPROJECT002", "The project manifest format is invalid or mismatched.");
+            throw Error("PVADPROJECT002", "The project manifest format is invalid or mismatched.");
         ValidateSupportedVersion(manifest.EnvelopeVersion, "envelope");
         ValidateSupportedVersion(manifest.DocumentSchemaVersion, "document schema", kind);
         RequireBounded(manifest.DocumentId, 200, "document ID");
@@ -511,10 +510,10 @@ public static class PvadProjectArchive
         if (!PvadProjectVersionPolicy.IsProductVersionAtLeast(
                 PvadProjectFormat.CurrentProductVersion,
                 manifest.MinimumPvadVersion))
-            throw Error("PXAPROJECT014",
+            throw Error("PVADPROJECT014",
                 $"The project requires PVAD {manifest.MinimumPvadVersion} or newer.");
         if (manifest.ModifiedAtUtc < manifest.CreatedAtUtc)
-            throw Error("PXAPROJECT008", "The project modification time cannot precede its creation time.");
+            throw Error("PVADPROJECT008", "The project modification time cannot precede its creation time.");
         ValidateCapabilitiesAndDiagnostics(manifest);
         ValidateExtensionData([manifest.Extensions], limits);
     }
@@ -575,13 +574,13 @@ public static class PvadProjectArchive
         foreach (var (sheet, index) in workbook.Sheets.Select((sheet, index) => (sheet, index)))
         {
             if (sheet.Cells.Any(cell => IsExternalFormula(cell.Formula)))
-                AddDiagnostic(diagnostics, "PXAPROJECT_EXTERNAL_LINK", "warning",
+                AddDiagnostic(diagnostics, "PVADPROJECT_EXTERNAL_LINK", "warning",
                     "The worksheet contains an external workbook reference that requires review.", $"sheets[{index}]");
             if (ContainsExtensionMarker(sheet.Extensions, "macro", "vba"))
-                AddDiagnostic(diagnostics, "PXAPROJECT_MACRO_PRESERVED", "warning",
+                AddDiagnostic(diagnostics, "PVADPROJECT_MACRO_PRESERVED", "warning",
                     "Macro metadata is preserved as inert extension data and is never executed.", $"sheets[{index}]");
             if (ContainsExtensionMarker(sheet.Extensions, "provider"))
-                AddDiagnostic(diagnostics, "PXAPROJECT_PROVIDER_EXTENSION", "warning",
+                AddDiagnostic(diagnostics, "PVADPROJECT_PROVIDER_EXTENSION", "warning",
                     "Provider-specific worksheet metadata may require review.", $"sheets[{index}]");
         }
         return diagnostics;
@@ -623,11 +622,11 @@ public static class PvadProjectArchive
     private static void ValidateCapabilitiesAndDiagnostics(PvadProjectManifest manifest)
     {
         if (manifest.RequiredFeatures.Count > 128 || manifest.Diagnostics.Count > 512)
-            throw Error("PXAPROJECT005", "The project manifest contains too many requirements or diagnostics.");
+            throw Error("PVADPROJECT005", "The project manifest contains too many requirements or diagnostics.");
         if (manifest.RequiredFeatures.Any(feature =>
                 string.IsNullOrWhiteSpace(feature) || feature.Length > 100 || feature.Any(char.IsControl)) ||
             manifest.RequiredFeatures.Distinct(StringComparer.Ordinal).Count() != manifest.RequiredFeatures.Count)
-            throw Error("PXAPROJECT008", "The project manifest contains invalid feature requirements.");
+            throw Error("PVADPROJECT008", "The project manifest contains invalid feature requirements.");
         foreach (var diagnostic in manifest.Diagnostics)
         {
             if (diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || diagnostic.Code.Length > 80 ||
@@ -636,7 +635,7 @@ public static class PvadProjectArchive
                 string.IsNullOrWhiteSpace(diagnostic.Message) || diagnostic.Message.Length > 1_000 ||
                 diagnostic.Message.Any(char.IsControl) ||
                 diagnostic.Source?.Length > 300 || diagnostic.Source?.Any(char.IsControl) == true)
-                throw Error("PXAPROJECT008", "The project manifest contains an invalid diagnostic.");
+                throw Error("PVADPROJECT008", "The project manifest contains an invalid diagnostic.");
         }
     }
 
@@ -646,7 +645,7 @@ public static class PvadProjectArchive
         ProcessingBudget budget)
     {
         if (bytes.Length < 22 || BinaryPrimitives.ReadUInt32LittleEndian(bytes) != 0x04034b50)
-            throw Error("PXAPROJECT001", "The file is not a ZIP-based PVAD project package.");
+            throw Error("PVADPROJECT001", "The file is not a ZIP-based PVAD project package.");
         var eocd = FindEndOfCentralDirectory(bytes);
         var disk = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(eocd + 4));
         var centralDisk = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(eocd + 6));
@@ -655,7 +654,7 @@ public static class PvadProjectArchive
         var centralOffset = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(eocd + 16));
         if (disk != 0 || centralDisk != 0 || entries == ushort.MaxValue || entries > limits.MaximumEntries ||
             centralOffset > bytes.Length || centralSize > bytes.Length - centralOffset)
-            throw Error("PXAPROJECT005", "The project archive structure exceeds supported limits.");
+            throw Error("PVADPROJECT005", "The project archive structure exceeds supported limits.");
 
         var cursor = checked((int)centralOffset);
         long expandedTotal = 0;
@@ -663,7 +662,7 @@ public static class PvadProjectArchive
         {
             budget.ThrowIfExceeded();
             if (cursor > bytes.Length - 46 || BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(cursor)) != 0x02014b50)
-                throw Error("PXAPROJECT001", "The project archive central directory is invalid.");
+                throw Error("PVADPROJECT001", "The project archive central directory is invalid.");
             var flags = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(cursor + 8));
             var method = BinaryPrimitives.ReadUInt16LittleEndian(bytes.AsSpan(cursor + 10));
             var compressedSize = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(cursor + 20));
@@ -675,32 +674,32 @@ public static class PvadProjectArchive
             var localHeaderOffset = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(cursor + 42));
             var entryLength = 46L + nameLength + extraLength + commentLength;
             if ((flags & 0x41) != 0)
-                throw Error("PXAPROJECT006", "Encrypted project archive entries are not supported.");
+                throw Error("PVADPROJECT006", "Encrypted project archive entries are not supported.");
             if (method is not 0 and not 8)
-                throw Error("PXAPROJECT006", "The project archive uses an unsupported compression method.");
+                throw Error("PVADPROJECT006", "The project archive uses an unsupported compression method.");
             if (((externalAttributes >> 16) & 0xF000) == 0xA000)
-                throw Error("PXAPROJECT003", "The project archive contains a symbolic link.");
+                throw Error("PVADPROJECT003", "The project archive contains a symbolic link.");
             if (entryLength > bytes.Length - cursor)
-                throw Error("PXAPROJECT001", "The project archive entry metadata is truncated.");
+                throw Error("PVADPROJECT001", "The project archive entry metadata is truncated.");
             var nameBytes = bytes.AsSpan(cursor + 46, nameLength);
             if (nameBytes.ContainsAnyExceptInRange((byte)0x20, (byte)0x7e))
-                throw Error("PXAPROJECT003", "Project package paths must use printable ASCII characters.");
+                throw Error("PVADPROJECT003", "Project package paths must use printable ASCII characters.");
             var name = Encoding.ASCII.GetString(nameBytes);
             if (index == 0 && (name != PvadProjectFormat.MimeTypeEntry || method != 0))
-                throw Error("PXAPROJECT002", "The project mimetype must be the first uncompressed package entry.");
+                throw Error("PVADPROJECT002", "The project mimetype must be the first uncompressed package entry.");
             if (centralOffset < 4 || localHeaderOffset > int.MaxValue || localHeaderOffset > centralOffset - 4 ||
                 BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(checked((int)localHeaderOffset))) != 0x04034b50)
-                throw Error("PXAPROJECT001", "The project archive local entry header is invalid.");
+                throw Error("PVADPROJECT001", "The project archive local entry header is invalid.");
             if (expandedSize > limits.MaximumEntryBytes || expandedTotal > limits.MaximumExpandedBytes - expandedSize)
-                throw Error("PXAPROJECT005", "The project archive declares unsupported entry sizes.");
+                throw Error("PVADPROJECT005", "The project archive declares unsupported entry sizes.");
             if (compressedSize > 0 && expandedSize > 1_048_576 &&
                 expandedSize / (double)compressedSize > limits.MaximumCompressionRatio)
-                throw Error("PXAPROJECT005", "The project archive exceeds its compression-ratio limit.");
+                throw Error("PVADPROJECT005", "The project archive exceeds its compression-ratio limit.");
             expandedTotal += expandedSize;
             cursor += checked((int)entryLength);
         }
         if (cursor != checked((int)(centralOffset + centralSize)))
-            throw Error("PXAPROJECT001", "The project archive central directory length is invalid.");
+            throw Error("PVADPROJECT001", "The project archive central directory length is invalid.");
     }
 
     private static int FindEndOfCentralDirectory(byte[] bytes)
@@ -714,13 +713,13 @@ public static class PvadProjectArchive
             if (index + 22 + commentLength == bytes.Length)
                 return index;
         }
-        throw Error("PXAPROJECT001", "The project archive is incomplete or invalid.");
+        throw Error("PVADPROJECT001", "The project archive is incomplete or invalid.");
     }
 
     private static byte[] ReadBounded(Stream source, long maximumBytes, ProcessingBudget budget)
     {
         if (!source.CanRead)
-            throw Error("PXAPROJECT001", "The project stream cannot be read.");
+            throw Error("PVADPROJECT001", "The project stream cannot be read.");
         using var output = new MemoryStream();
         var buffer = new byte[81_920];
         long total = 0;
@@ -731,7 +730,7 @@ public static class PvadProjectArchive
             if (read == 0)
                 break;
             if (total > maximumBytes - read)
-                throw Error("PXAPROJECT005", "The project package exceeds its compressed-size limit.");
+                throw Error("PVADPROJECT005", "The project package exceeds its compressed-size limit.");
             output.Write(buffer, 0, read);
             total += read;
         }
@@ -754,12 +753,12 @@ public static class PvadProjectArchive
             if (read == 0)
                 break;
             if (total > maximumBytes - read)
-                throw Error("PXAPROJECT005", "A project entry exceeds its size limit.");
+                throw Error("PVADPROJECT005", "A project entry exceeds its size limit.");
             output.Write(buffer, 0, read);
             total += read;
         }
         if (total != entry.Length)
-            throw Error("PXAPROJECT001", "A project archive entry is truncated.");
+            throw Error("PVADPROJECT001", "A project archive entry is truncated.");
         return output.ToArray();
     }
 
@@ -779,17 +778,17 @@ public static class PvadProjectArchive
             path != path.Normalize(NormalizationForm.FormC) ||
             path.Split('/').Any(segment => segment is "" or "." or ".." || segment.Length > 100 ||
                 segment.Any(char.IsControl)))
-            throw Error("PXAPROJECT003", "The project package contains an unsafe path.");
+            throw Error("PVADPROJECT003", "The project package contains an unsafe path.");
     }
 
     private static void ValidateAsset(PvadProjectAsset asset, PvadProjectReadLimits limits)
     {
         if (!IsSafeId(asset.Id))
-            throw Error("PXAPROJECT008", "A project asset ID is invalid.");
+            throw Error("PVADPROJECT008", "A project asset ID is invalid.");
         if (string.IsNullOrWhiteSpace(asset.FileName) || asset.FileName.Length > 200 || !IsSafeFileName(asset.FileName))
-            throw Error("PXAPROJECT003", "A project asset filename is invalid.");
+            throw Error("PVADPROJECT003", "A project asset filename is invalid.");
         if (asset.Content is null || asset.Content.LongLength > 20 * 1024 * 1024)
-            throw Error("PXAPROJECT005", "A project asset exceeds its size limit.");
+            throw Error("PVADPROJECT005", "A project asset exceeds its size limit.");
         ValidateAssetKind(asset.Kind, asset.ContentType);
         ValidateAssetContent(asset.ContentType, asset.Content, limits);
     }
@@ -806,7 +805,7 @@ public static class PvadProjectArchive
             string.IsNullOrWhiteSpace(asset.FileName) || asset.FileName.Length > 200 ||
             !IsSafeFileName(asset.FileName) ||
             asset.Length < 0 || !IsSha256(asset.Sha256))
-            throw Error("PXAPROJECT008", "A project asset descriptor is invalid.");
+            throw Error("PVADPROJECT008", "A project asset descriptor is invalid.");
         ValidatePath(asset.Path);
     }
 
@@ -833,7 +832,7 @@ public static class PvadProjectArchive
             _ => false,
         };
         if (!valid)
-            throw Error("PXAPROJECT010", "The project asset kind and content type are incompatible.");
+            throw Error("PVADPROJECT010", "The project asset kind and content type are incompatible.");
     }
 
     private static void ValidateAssetContent(
@@ -857,10 +856,10 @@ public static class PvadProjectArchive
             _ => false,
         };
         if (!valid)
-            throw Error("PXAPROJECT010", "A project asset does not match an allowed content type.");
+            throw Error("PVADPROJECT010", "A project asset does not match an allowed content type.");
         if (TryReadRasterDimensions(contentType, content, out var width, out var height) &&
             (width <= 0 || height <= 0 || width > limits.MaximumImagePixels / height))
-            throw Error("PXAPROJECT005", "A project image exceeds its decoded-pixel limit.");
+            throw Error("PVADPROJECT005", "A project image exceeds its decoded-pixel limit.");
     }
 
     private static bool TryReadRasterDimensions(
@@ -875,7 +874,7 @@ public static class PvadProjectArchive
         {
             case "image/png":
                 if (content.Length < 24 || !content.Slice(12, 4).SequenceEqual("IHDR"u8))
-                    throw Error("PXAPROJECT010", "A PNG project asset has an invalid header.");
+                    throw Error("PVADPROJECT010", "A PNG project asset has an invalid header.");
                 width = BinaryPrimitives.ReadUInt32BigEndian(content.Slice(16, 4));
                 height = BinaryPrimitives.ReadUInt32BigEndian(content.Slice(20, 4));
                 return true;
@@ -883,7 +882,7 @@ public static class PvadProjectArchive
                 return TryReadJpegDimensions(content, out width, out height);
             case "image/gif":
                 if (content.Length < 10)
-                    throw Error("PXAPROJECT010", "A GIF project asset has an invalid header.");
+                    throw Error("PVADPROJECT010", "A GIF project asset has an invalid header.");
                 width = BinaryPrimitives.ReadUInt16LittleEndian(content.Slice(6, 2));
                 height = BinaryPrimitives.ReadUInt16LittleEndian(content.Slice(8, 2));
                 return true;
@@ -923,7 +922,7 @@ public static class PvadProjectArchive
             }
             offset += segmentLength;
         }
-        throw Error("PXAPROJECT010", "A JPEG project asset has no valid image dimensions.");
+        throw Error("PVADPROJECT010", "A JPEG project asset has no valid image dimensions.");
     }
 
     private static bool IsJpegStartOfFrame(byte marker) =>
@@ -934,7 +933,7 @@ public static class PvadProjectArchive
         width = 0;
         height = 0;
         if (content.Length < 30)
-            throw Error("PXAPROJECT010", "A WebP project asset has an invalid header.");
+            throw Error("PVADPROJECT010", "A WebP project asset has an invalid header.");
         var chunk = content.Slice(12, 4);
         if (chunk.SequenceEqual("VP8X"u8))
         {
@@ -955,7 +954,7 @@ public static class PvadProjectArchive
             height = BinaryPrimitives.ReadUInt16LittleEndian(content.Slice(28, 2)) & 0x3fff;
             return true;
         }
-        throw Error("PXAPROJECT010", "A WebP project asset has no valid image dimensions.");
+        throw Error("PVADPROJECT010", "A WebP project asset has no valid image dimensions.");
     }
 
     private static bool IsSafeSvg(ReadOnlySpan<byte> content)
@@ -1045,7 +1044,7 @@ public static class PvadProjectArchive
             PvadProjectAssetKinds.Preview => "previews",
             PvadProjectAssetKinds.Source => "sources",
             PvadProjectAssetKinds.Data => "data",
-            _ => throw Error("PXAPROJECT010", "The project asset kind is not supported."),
+            _ => throw Error("PVADPROJECT010", "The project asset kind is not supported."),
         };
         return $"assets/{folder}/{id}{ExtensionFor(contentType)}";
     }
@@ -1063,7 +1062,7 @@ public static class PvadProjectArchive
         "font/woff2" => ".woff2",
         "application/pdf" => ".pdf",
         "application/json" => ".json",
-        _ => throw Error("PXAPROJECT010", "The project asset content type is not supported."),
+        _ => throw Error("PVADPROJECT010", "The project asset content type is not supported."),
     };
 
     private static void RejectPdfSecrets(DesignExportDto document)
@@ -1071,13 +1070,13 @@ public static class PvadProjectArchive
         if (!string.IsNullOrEmpty(document.PageSettings?.Encryption?.UserPassword) ||
             !string.IsNullOrEmpty(document.PageSettings?.Encryption?.OwnerPassword) ||
             !string.IsNullOrEmpty(document.PageSettings?.Protection?.PasswordHash))
-            throw Error("PXAPROJECT012", "Project packages cannot contain document passwords or password hashes.");
+            throw Error("PVADPROJECT012", "Project packages cannot contain document passwords or password hashes.");
     }
 
     private static void RejectSpreadsheetSecrets(SpreadsheetDto document)
     {
         if (document.Sheets.Any(sheet => !string.IsNullOrEmpty(sheet.Protection?.Password)))
-            throw Error("PXAPROJECT012", "Project packages cannot contain spreadsheet passwords.");
+            throw Error("PVADPROJECT012", "Project packages cannot contain spreadsheet passwords.");
     }
 
     private static string ContentHash(IReadOnlyDictionary<string, byte[]> entries)
@@ -1126,20 +1125,20 @@ public static class PvadProjectArchive
     private static void RequireEntry(IReadOnlyDictionary<string, byte[]> entries, string path)
     {
         if (!entries.ContainsKey(path))
-            throw Error("PXAPROJECT008", $"The project package is missing {path}.");
+            throw Error("PVADPROJECT008", $"The project package is missing {path}.");
     }
 
     private static string RequireBounded(string value, int maximumLength, string field)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length > maximumLength || value.Any(char.IsControl))
-            throw Error("PXAPROJECT008", $"The project {field} is invalid.");
+            throw Error("PVADPROJECT008", $"The project {field} is invalid.");
         return value;
     }
 
     private static string RequireVersion(string value)
     {
         if (!PvadProjectVersionPolicy.IsCanonicalProductVersion(value))
-            throw Error("PXAPROJECT008", "The project version is invalid.");
+            throw Error("PVADPROJECT008", "The project version is invalid.");
         return value;
     }
 
@@ -1158,9 +1157,9 @@ public static class PvadProjectArchive
     private static void ValidateWriteOptions(PvadProjectWriteOptions options)
     {
         if (options.ModifiedAtUtc < options.CreatedAtUtc)
-            throw Error("PXAPROJECT008", "The project modification time cannot precede its creation time.");
+            throw Error("PVADPROJECT008", "The project modification time cannot precede its creation time.");
         if (options.Assets.Count > 250)
-            throw Error("PXAPROJECT005", "The project contains too many assets.");
+            throw Error("PVADPROJECT005", "The project contains too many assets.");
     }
 
     private static void ValidateCodeWorkspace(
@@ -1169,10 +1168,10 @@ public static class PvadProjectArchive
     {
         if (workspace.SchemaVersion != PvadCodeWorkspaceProjectComponent.CurrentSchemaVersion ||
             workspace.Revision < 0 || workspace.BaseTemplateRevision < 0)
-            throw Error("PXAPROJECT016", "The Code Workspace component schema is unsupported.");
+            throw Error("PVADPROJECT016", "The Code Workspace component schema is unsupported.");
         if (workspace.SourceMap is { } sourceMap &&
             sourceMap.ValueKind is not (JsonValueKind.Array or JsonValueKind.Object or JsonValueKind.Null))
-            throw Error("PXAPROJECT016", "The Code Workspace source map is invalid.");
+            throw Error("PVADPROJECT016", "The Code Workspace source map is invalid.");
         byte[] bytes;
         try
         {
@@ -1188,10 +1187,10 @@ public static class PvadProjectArchive
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
-            throw Error("PXAPROJECT016", "The Code Workspace component contains invalid JSON.");
+            throw Error("PVADPROJECT016", "The Code Workspace component contains invalid JSON.");
         }
         if (bytes.LongLength > 10 * 1024 * 1024)
-            throw Error("PXAPROJECT005", "The Code Workspace component exceeds its 10 MiB size limit.");
+            throw Error("PVADPROJECT005", "The Code Workspace component exceeds its 10 MiB size limit.");
     }
 
     private static void AddAndValidateComponents(
@@ -1202,14 +1201,14 @@ public static class PvadProjectArchive
         ProcessingBudget budget)
     {
         if (manifest.Components.Count > 1)
-            throw Error("PXAPROJECT016", "The project contains unsupported duplicate components.");
+            throw Error("PVADPROJECT016", "The project contains unsupported duplicate components.");
         foreach (var component in manifest.Components)
         {
             budget.ThrowIfExceeded();
             ValidateComponentDescriptor(component);
             if (!expectedPaths.Add(component.Path) || !entries.TryGetValue(component.Path, out var content) ||
                 content.LongLength != component.Length || Sha256(content) != component.Sha256)
-                throw Error("PXAPROJECT007", "A project component failed integrity validation.");
+                throw Error("PVADPROJECT007", "A project component failed integrity validation.");
             var workspace = PvadCanonicalJson.Deserialize<PvadCodeWorkspaceProjectComponent>(content, limits.MaximumJsonDepth);
             ValidateCodeWorkspace(workspace, limits);
         }
@@ -1223,14 +1222,14 @@ public static class PvadProjectArchive
         ProcessingBudget budget)
     {
         if (manifest.Components.Count > 1)
-            throw Error("PXAPROJECT016", "The project contains unsupported duplicate components.");
+            throw Error("PVADPROJECT016", "The project contains unsupported duplicate components.");
         foreach (var component in manifest.Components)
         {
             budget.ThrowIfExceeded();
             ValidateComponentDescriptor(component);
             if (!expectedPaths.Add(component.Path) || !entries.TryGetValue(component.Path, out var entry) ||
                 entry.Length != component.Length || entry.Length > limits.MaximumEntryBytes)
-                throw Error("PXAPROJECT008", "A declared project component is missing or has an invalid length.");
+                throw Error("PVADPROJECT008", "A declared project component is missing or has an invalid length.");
         }
     }
 
@@ -1241,7 +1240,7 @@ public static class PvadProjectArchive
             component.SchemaVersion != PvadCodeWorkspaceProjectComponent.CurrentSchemaVersion ||
             component.SecurityClassification != PvadProjectComponentKinds.ConfidentialSource ||
             component.Length < 0 || component.Length > 10 * 1024 * 1024 || !IsSha256(component.Sha256))
-            throw Error("PXAPROJECT016", "A project component descriptor is invalid.");
+            throw Error("PVADPROJECT016", "A project component descriptor is invalid.");
         ValidatePath(component.Path);
     }
 
@@ -1295,7 +1294,7 @@ public static class PvadProjectArchive
                 pdf.PageSettings?.Extensions,
             };
             if (pdf.Pages.Count > limits.MaximumPages)
-                throw Error("PXAPROJECT005", "The PDF project exceeds its page limit.");
+                throw Error("PVADPROJECT005", "The PDF project exceeds its page limit.");
             long elements = pdf.SharedElements.Count;
             var pageIds = new HashSet<string>(StringComparer.Ordinal);
             var elementIds = new HashSet<string>(StringComparer.Ordinal);
@@ -1304,7 +1303,7 @@ public static class PvadProjectArchive
             {
                 RequireBounded(style.Id, 200, "named style ID");
                 if (!styleIds.Add(style.Id))
-                    throw Error("PXAPROJECT004", "The PDF project contains a duplicate named style ID.");
+                    throw Error("PVADPROJECT004", "The PDF project contains a duplicate named style ID.");
             }
             extensions.AddRange(pdf.SharedElements.Select(element => element.Extensions));
             foreach (var page in pdf.Pages)
@@ -1312,24 +1311,24 @@ public static class PvadProjectArchive
                 cancellationToken.ThrowIfCancellationRequested();
                 RequireBounded(page.Id, 200, "page ID");
                 if (!pageIds.Add(page.Id))
-                    throw Error("PXAPROJECT004", "The PDF project contains a duplicate page ID.");
+                    throw Error("PVADPROJECT004", "The PDF project contains a duplicate page ID.");
                 extensions.Add(page.Extensions);
                 extensions.AddRange(page.Elements.Select(element => element.Extensions));
                 foreach (var element in page.Elements)
                 {
                     ValidateElementContent(element);
                     if (!elementIds.Add(element.Id))
-                        throw Error("PXAPROJECT004", "The PDF project contains a duplicate element ID.");
+                        throw Error("PVADPROJECT004", "The PDF project contains a duplicate element ID.");
                 }
                 elements += page.Elements.Count;
                 if (elements > limits.MaximumElements)
-                    throw Error("PXAPROJECT005", "The PDF project exceeds its element limit.");
+                    throw Error("PVADPROJECT005", "The PDF project exceeds its element limit.");
             }
             foreach (var element in pdf.SharedElements)
             {
                 ValidateElementContent(element);
                 if (!elementIds.Add(element.Id))
-                    throw Error("PXAPROJECT004", "The PDF project contains a duplicate element ID.");
+                    throw Error("PVADPROJECT004", "The PDF project contains a duplicate element ID.");
             }
             ValidateExtensionData(extensions, limits);
         }
@@ -1342,7 +1341,7 @@ public static class PvadProjectArchive
                 spreadsheet.Extensions,
             };
             if (spreadsheet.Sheets.Count > limits.MaximumSheets)
-                throw Error("PXAPROJECT005", "The Spreadsheet project exceeds its sheet limit.");
+                throw Error("PVADPROJECT005", "The Spreadsheet project exceeds its sheet limit.");
             long cells = 0;
             long formulas = 0;
             var sheetIds = new HashSet<string>(StringComparer.Ordinal);
@@ -1353,12 +1352,12 @@ public static class PvadProjectArchive
                 RequireBounded(sheet.Id, 200, "worksheet ID");
                 RequireBounded(sheet.Name, 200, "worksheet name");
                 if (!sheetIds.Add(sheet.Id))
-                    throw Error("PXAPROJECT004", "The Spreadsheet project contains a duplicate worksheet ID.");
+                    throw Error("PVADPROJECT004", "The Spreadsheet project contains a duplicate worksheet ID.");
                 foreach (var image in sheet.Images)
                 {
                     RequireBounded(image.Id, 200, "worksheet image ID");
                     if (!imageIds.Add(image.Id))
-                        throw Error("PXAPROJECT004", "The Spreadsheet project contains a duplicate image ID.");
+                        throw Error("PVADPROJECT004", "The Spreadsheet project contains a duplicate image ID.");
                 }
                 extensions.Add(sheet.Extensions);
                 extensions.AddRange(sheet.Cells.Select(cell => cell.Extensions));
@@ -1366,7 +1365,7 @@ public static class PvadProjectArchive
                 cells += sheet.Cells.Count;
                 formulas += sheet.Cells.Count(cell => !string.IsNullOrWhiteSpace(cell.Formula));
                 if (cells > limits.MaximumCells || formulas > limits.MaximumFormulas)
-                    throw Error("PXAPROJECT005", "The Spreadsheet project exceeds its cell or formula limit.");
+                    throw Error("PVADPROJECT005", "The Spreadsheet project exceeds its cell or formula limit.");
             }
             ValidateExtensionData(extensions, limits);
         }
@@ -1404,7 +1403,7 @@ public static class PvadProjectArchive
         var hasForbiddenControl = value.Any(character => char.IsControl(character) &&
             !(allowLineBreaks && character is '\r' or '\n' or '\t'));
         if (value.Length > maximumLength || hasForbiddenControl)
-            throw Error("PXAPROJECT008", $"The project {field} is invalid.");
+            throw Error("PVADPROJECT008", $"The project {field} is invalid.");
     }
 
     private static void ValidateExtensionData(
@@ -1422,12 +1421,12 @@ public static class PvadProjectArchive
                 if (string.IsNullOrWhiteSpace(name) || name.Length > 128 || name.Any(char.IsControl) ||
                     value.ValueKind == System.Text.Json.JsonValueKind.Undefined ||
                     IsSensitiveExtensionName(name) || ContainsUnsafeExtensionValue(value))
-                    throw Error("PXAPROJECT008", "The project contains invalid extension data.");
+                    throw Error("PVADPROJECT008", "The project contains invalid extension data.");
                 propertyCount++;
                 byteCount += Encoding.UTF8.GetByteCount(name);
                 byteCount += Encoding.UTF8.GetByteCount(value.GetRawText());
                 if (propertyCount > limits.MaximumExtensionProperties || byteCount > limits.MaximumExtensionBytes)
-                    throw Error("PXAPROJECT005", "The project exceeds its forward-compatible extension-data limit.");
+                    throw Error("PVADPROJECT005", "The project exceeds its forward-compatible extension-data limit.");
             }
         }
     }
@@ -1506,7 +1505,7 @@ public static class PvadProjectArchive
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (Stopwatch.GetTimestamp() >= deadline)
-                throw Error("PXAPROJECT005", "The project package exceeds its processing-time limit.");
+                throw Error("PVADPROJECT005", "The project package exceeds its processing-time limit.");
         }
     }
 }

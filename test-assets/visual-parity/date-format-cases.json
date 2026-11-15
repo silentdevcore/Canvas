@@ -1,0 +1,828 @@
+{
+  "version": 1,
+  "instant": "2026-11-13T12:04:05.120Z",
+  "cases": [
+    {
+      "id": "default-static",
+      "input": {},
+      "expected": "",
+      "warnings": []
+    },
+    {
+      "id": "static-verbatim",
+      "input": {
+        "dateMode": "static",
+        "content": "13/11/2026",
+        "dateFormat": "yyyy"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "static-empty",
+      "input": {
+        "dateMode": "static",
+        "content": "",
+        "fallbackText": "Missing"
+      },
+      "expected": "",
+      "warnings": []
+    },
+    {
+      "id": "static-fallback",
+      "input": {
+        "dateMode": "static",
+        "fallbackText": "Missing"
+      },
+      "expected": "Missing",
+      "warnings": []
+    },
+    {
+      "id": "default-render",
+      "input": {
+        "dateMode": "render"
+      },
+      "expected": "2026-11-13",
+      "warnings": []
+    },
+    {
+      "id": "utc",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "UTC"
+      },
+      "expected": "2026-11-13 12:04:05.120 +00:00",
+      "warnings": []
+    },
+    {
+      "id": "berlin",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13 13:04:05.120 +01:00",
+      "warnings": []
+    },
+    {
+      "id": "new-york",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "America/New_York"
+      },
+      "expected": "2026-11-13 07:04:05.120 -05:00",
+      "warnings": []
+    },
+    {
+      "id": "quarter-offset",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "Asia/Kathmandu"
+      },
+      "expected": "2026-11-13 17:49:05.120 +05:45",
+      "warnings": []
+    },
+    {
+      "id": "half-offset",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "America/St_Johns"
+      },
+      "expected": "2026-11-13 08:34:05.120 -03:30",
+      "warnings": []
+    },
+    {
+      "id": "next-day",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "Pacific/Kiritimati"
+      },
+      "expected": "2026-11-14 02:04:05.120 +14:00",
+      "warnings": []
+    },
+    {
+      "id": "windows-alias",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff zzz",
+        "timezone": "W. Europe Standard Time"
+      },
+      "expected": "2026-11-13 13:04:05.120 +01:00",
+      "warnings": []
+    },
+    {
+      "id": "spring-before",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-03-29 01:59:59 +01:00",
+      "warnings": [],
+      "instant": "2026-03-29T00:59:59Z"
+    },
+    {
+      "id": "spring-after",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-03-29 03:00:00 +02:00",
+      "warnings": [],
+      "instant": "2026-03-29T01:00:00Z"
+    },
+    {
+      "id": "fall-before",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-10-25 02:59:59 +02:00",
+      "warnings": [],
+      "instant": "2026-10-25T00:59:59Z"
+    },
+    {
+      "id": "fall-after",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-10-25 02:00:00 +01:00",
+      "warnings": [],
+      "instant": "2026-10-25T01:00:00Z"
+    },
+    {
+      "id": "year-boundary",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2027-01-01 00:30:00 +01:00",
+      "warnings": [],
+      "instant": "2026-12-31T23:30:00Z"
+    },
+    {
+      "id": "leap-day",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss zzz",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2024-02-29 13:00:00 +01:00",
+      "warnings": [],
+      "instant": "2024-02-29T12:00:00Z"
+    },
+    {
+      "id": "long-en-US",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "en-US"
+      },
+      "expected": "Friday, November 13, 2026",
+      "warnings": []
+    },
+    {
+      "id": "long-de-DE",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "de-DE"
+      },
+      "expected": "Freitag, 13. November 2026",
+      "warnings": []
+    },
+    {
+      "id": "long-fr-FR",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "fr-FR"
+      },
+      "expected": "vendredi 13 novembre 2026",
+      "warnings": []
+    },
+    {
+      "id": "long-es-ES",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "es-ES"
+      },
+      "expected": "viernes, 13 de noviembre de 2026",
+      "warnings": []
+    },
+    {
+      "id": "long-it-IT",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "it-IT"
+      },
+      "expected": "venerdì 13 novembre 2026",
+      "warnings": []
+    },
+    {
+      "id": "long-ar-EG",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "ar-EG"
+      },
+      "expected": "الجمعة، 13 نوفمبر 2026",
+      "warnings": []
+    },
+    {
+      "id": "short-en-US",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "en-US"
+      },
+      "expected": "11/13/2026",
+      "warnings": []
+    },
+    {
+      "id": "short-en-GB",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "en-GB"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "short-de-DE",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "de-DE"
+      },
+      "expected": "13.11.2026",
+      "warnings": []
+    },
+    {
+      "id": "short-fr-FR",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "fr-FR"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "short-es-ES",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "es-ES"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "short-it-IT",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "it-IT"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "short-ar-EG",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "d",
+        "locale": "ar-EG"
+      },
+      "expected": "13/11/2026",
+      "warnings": []
+    },
+    {
+      "id": "sortable",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "s",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13T13:04:05",
+      "warnings": []
+    },
+    {
+      "id": "roundtrip",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "O",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13T13:04:05.120+01:00",
+      "warnings": []
+    },
+    {
+      "id": "universal",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "u",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13 12:04:05Z",
+      "warnings": []
+    },
+    {
+      "id": "rfc",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "R",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "Fri, 13 Nov 2026 12:04:05 GMT",
+      "warnings": []
+    },
+    {
+      "id": "percent",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "%M",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "11",
+      "warnings": []
+    },
+    {
+      "id": "escaped",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy\\y MM\\M dd\\d",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026y 11M 13d",
+      "warnings": []
+    },
+    {
+      "id": "quoted",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd 'at' HH:mm",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13 at 13:04",
+      "warnings": []
+    },
+    {
+      "id": "fraction",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "HH:mm:ss.FFF",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "13:04:05.12",
+      "warnings": []
+    },
+    {
+      "id": "offsets",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "z zz zzz K",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "+1 +01 +01:00 +01:00",
+      "warnings": []
+    },
+    {
+      "id": "iso-unquoted",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-ddTHH:mm:ss",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": "2026-11-13T13:04:05",
+      "warnings": []
+    },
+    {
+      "id": "zero-fraction",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "HH:mm:ss.FFF"
+      },
+      "expected": "12:00:00",
+      "warnings": [],
+      "instant": "2026-11-13T12:00:00Z"
+    },
+    {
+      "id": "invalid-format",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "MMMMM"
+      },
+      "expected": "2026-11-13",
+      "warnings": [
+        "dateFormatFallback"
+      ]
+    },
+    {
+      "id": "unterminated",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy 'oops"
+      },
+      "expected": "2026-11-13",
+      "warnings": [
+        "dateFormatFallback"
+      ]
+    },
+    {
+      "id": "invalid-locale",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "D",
+        "locale": "invalid_locale"
+      },
+      "expected": "Friday, November 13, 2026",
+      "warnings": [
+        "dateLocaleFallback"
+      ]
+    },
+    {
+      "id": "unsupported-locale",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyy-MM-dd",
+        "locale": "ja-JP"
+      },
+      "expected": "2026-11-13",
+      "warnings": [
+        "dateLocaleFallback"
+      ]
+    },
+    {
+      "id": "invalid-timezone",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "HH:mm",
+        "timezone": "invalid/zone"
+      },
+      "expected": "12:04",
+      "warnings": [
+        "dateTimezoneFallback"
+      ]
+    },
+    {
+      "id": "unmapped-windows-zone",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "HH:mm",
+        "timezone": "China Standard Time"
+      },
+      "expected": "12:04",
+      "warnings": [
+        "dateTimezoneFallback"
+      ]
+    },
+    {
+      "id": "date-only-zone-independent",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-11-13",
+        "timezone": "America/New_York"
+      },
+      "expected": "2026-11-13",
+      "warnings": []
+    },
+    {
+      "id": "timestamp-binding",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-11-13T12:04:05.1200000+02:00",
+        "timezone": "UTC",
+        "dateFormat": "yyyy-MM-dd HH:mm:ss.fff"
+      },
+      "expected": "2026-11-13 10:04:05.120",
+      "warnings": []
+    },
+    {
+      "id": "binding-missing",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-ambiguous",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "11/13/2026"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-invalid-day",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-02-30"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-invalid-hour",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-11-13T24:00:00Z"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-no-offset",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-11-13T12:00:00"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-invalid-offset",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "2026-11-13T12:00:00+15:00"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-invalid-year",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "content": "0000-01-01"
+      },
+      "expected": "{{ Invoice.Date }}",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "binding-fallback",
+      "input": {
+        "dateMode": "binding",
+        "binding": "Invoice.Date",
+        "fallbackText": "No date"
+      },
+      "expected": "No date",
+      "warnings": [
+        "dateBindingUnresolved"
+      ]
+    },
+    {
+      "id": "period-en-US",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "en-US"
+      },
+      "expected": "12 12 P PM",
+      "warnings": []
+    },
+    {
+      "id": "period-de-DE",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "de-DE"
+      },
+      "expected": "12 12 P PM",
+      "warnings": []
+    },
+    {
+      "id": "period-fr-FR",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "fr-FR"
+      },
+      "expected": "12 12 P PM",
+      "warnings": []
+    },
+    {
+      "id": "period-es-ES",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "es-ES"
+      },
+      "expected": "12 12 p p. m.",
+      "warnings": []
+    },
+    {
+      "id": "period-it-IT",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "it-IT"
+      },
+      "expected": "12 12 P PM",
+      "warnings": []
+    },
+    {
+      "id": "period-ar-EG",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "h hh t tt",
+        "locale": "ar-EG"
+      },
+      "expected": "12 12 م م",
+      "warnings": []
+    },
+    {
+      "id": "all-numeric-tokens",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "y yy yyy yyyy M MM d dd H HH h hh m mm s ss"
+      },
+      "expected": "26 26 2026 2026 11 11 13 13 12 12 12 12 4 04 5 05",
+      "warnings": []
+    },
+    {
+      "id": "abbreviated-month",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "dd MMM yy"
+      },
+      "expected": "13 Nov 26",
+      "warnings": []
+    },
+    {
+      "id": "fraction-widths",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "f ff fff F FF FFF"
+      },
+      "expected": "1 12 120 1 12 12",
+      "warnings": []
+    },
+    {
+      "id": "standard-t",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "t"
+      },
+      "expected": "12:04 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-T",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "T"
+      },
+      "expected": "12:04:05 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-g",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "g"
+      },
+      "expected": "11/13/2026 12:04 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-G",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "G"
+      },
+      "expected": "11/13/2026 12:04:05 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-f",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "f"
+      },
+      "expected": "Friday, November 13, 2026 12:04 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-F",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "F"
+      },
+      "expected": "Friday, November 13, 2026 12:04:05 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-U",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "U"
+      },
+      "expected": "Friday, November 13, 2026 12:04:05 PM",
+      "warnings": []
+    },
+    {
+      "id": "standard-m",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "m"
+      },
+      "expected": "November 13",
+      "warnings": []
+    },
+    {
+      "id": "standard-M",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "M"
+      },
+      "expected": "November 13",
+      "warnings": []
+    },
+    {
+      "id": "standard-y",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "y"
+      },
+      "expected": "November 2026",
+      "warnings": []
+    },
+    {
+      "id": "standard-Y",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "Y"
+      },
+      "expected": "November 2026",
+      "warnings": []
+    },
+    {
+      "id": "standard-o",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "o"
+      },
+      "expected": "2026-11-13T12:04:05.120+00:00",
+      "warnings": []
+    },
+    {
+      "id": "standard-r",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "r"
+      },
+      "expected": "Fri, 13 Nov 2026 12:04:05 GMT",
+      "warnings": []
+    },
+    {
+      "id": "too-long-format",
+      "input": {
+        "dateMode": "render",
+        "dateFormat": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+      },
+      "expected": "2026-11-13",
+      "warnings": [
+        "dateFormatFallback"
+      ]
+    }
+  ]
+}

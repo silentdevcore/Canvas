@@ -4,10 +4,9 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import pdfViewerEn from '../locales/en/pdfViewer.json';
 import pdfViewerDe from '../locales/de/pdfViewer.json';
-import { readMigratedStorage } from '../utils/storageMigration';
 
 try {
-  readMigratedStorage(localStorage, 'pvad_locale', 'pxa_locale');
+  localStorage.getItem('pvad_locale');
 } catch {
   // Browser language detection remains available when storage is blocked.
 }

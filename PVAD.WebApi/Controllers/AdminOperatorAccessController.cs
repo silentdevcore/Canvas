@@ -31,7 +31,7 @@ public sealed class AdminOperatorAccessController(
 
         var digest = SHA256.HashData(Encoding.UTF8.GetBytes(subject));
         PVAD.WebApi.Infrastructure.PvadResponseHeaders.Set(Response, "Operator",
-            $"pxa-{Convert.ToHexString(digest)[..24].ToLowerInvariant()}");
+            $"pvad-{Convert.ToHexString(digest)[..24].ToLowerInvariant()}");
         return NoContent();
     }
 }

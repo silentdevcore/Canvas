@@ -7,6 +7,13 @@ import { DesignerAuthContextProvider } from '@/auth/DesignerAuthGate';
 import { designerPermissions } from '@/auth/designerPermissions';
 import allElementsFixture from '../../../test-assets/visual-parity/all-elements.json';
 import mixedLayoutFixture from '../../../test-assets/page-layout/mixed-layout.json';
+import styledTablesFixture from '../../../test-assets/visual-parity/styled-tables.json';
+import sharedRendererFixture from '../../../test-assets/visual-parity/shared-renderer.json';
+import imageFitFixture from '../../../test-assets/visual-parity/image-fit.json';
+import dateFormatFixture from '../../../test-assets/visual-parity/date-format.json';
+import historicalDateFixture from '../../../test-assets/visual-parity/date-historical.json';
+import dateLayoutFixture from '../../../test-assets/visual-parity/date-layout.json';
+import fontFamiliesFixture from '../../../test-assets/visual-parity/font-families.json';
 import eInvoiceFixture from '../../../test-assets/visual-parity/e-invoice.json';
 import eInvoiceMultiPageFixture from '../../../test-assets/visual-parity/e-invoice-multipage.json';
 import eInvoiceLongDescriptionFixture from '../../../test-assets/visual-parity/e-invoice-long-description.json';
@@ -43,6 +50,13 @@ export default function VisualParityPage() {
   const fixtures: Record<string, unknown> = {
     'all-elements': allElementsFixture,
     'mixed-layout': mixedLayoutFixture,
+    'styled-tables': styledTablesFixture,
+    'shared-renderer': sharedRendererFixture,
+    'image-fit': imageFitFixture,
+    'date-format': dateFormatFixture,
+    'date-historical': historicalDateFixture,
+    'date-layout': dateLayoutFixture,
+    'font-families': fontFamiliesFixture,
     'e-invoice': eInvoiceFixture,
     'e-invoice-multipage': eInvoiceMultiPageFixture,
     'e-invoice-long-description': eInvoiceLongDescriptionFixture,
@@ -50,6 +64,7 @@ export default function VisualParityPage() {
   };
   const selectedFixture = fixtures[search.get('fixture') ?? ''] ?? allElementsFixture;
   const design = selectedFixture as unknown as Fixture;
+  const editorPageIndex = Math.max(0, Math.min(design.pages.length - 1, Number.parseInt(search.get('page') ?? '0', 10) || 0));
   const template: Template = {
     id: design.id,
     name: design.name,
@@ -65,7 +80,7 @@ export default function VisualParityPage() {
         showMarginGuide: false,
         showSafeArea: false,
       }),
-      currentPreviewLanguage: 'en',
+      currentPreviewLanguage: design.pageSettings.targetLanguage || design.pageSettings.systemLanguage || 'en',
       selectedElementId: null,
     });
     document.documentElement.dataset.visualParity = 'true';
@@ -75,14 +90,14 @@ export default function VisualParityPage() {
 
   if (!ready) return null;
 
-  if (surface === 'canvas') {
+  if (surface === 'canvas' || surface === 'editor') {
     return (
       <DesignerAuthContextProvider user={parityUser}>
       <SimplePvadSurface
         template={template}
-        elements={design.pages[0]?.elements ?? []}
+        elements={design.pages[editorPageIndex]?.elements ?? []}
         pages={design.pages}
-        currentPageIndex={0}
+        currentPageIndex={editorPageIndex}
         sharedElements={design.sharedElements ?? []}
         onElementAdd={noop}
         onElementUpdate={noop}
@@ -99,7 +114,7 @@ export default function VisualParityPage() {
         onSharedElementUpdate={noop}
         onSharedElementDelete={noop}
         onTemplateRename={noop}
-        visualParityMode
+        visualParityMode={surface !== 'editor'}
       />
       </DesignerAuthContextProvider>
     );

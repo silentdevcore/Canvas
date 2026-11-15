@@ -50,16 +50,16 @@
     "markdownImport": "Importazione Markdown",
     "importIssue": "Problema di importazione",
     "markdownCodes": {
-      "PXA-MD-001": "Sono state rimosse destinazioni di collegamenti Markdown non sicure.",
-      "PXA-MD-002": "È stata rimossa un’immagine incorporata non valida o non supportata.",
-      "PXA-MD-003": "Le immagini inserite nel testo non sono supportate e sono state omesse.",
-      "PXA-MD-004": "È stato ignorato un blocco Markdown non supportato.",
-      "PXA-MD-005": "La formattazione è stata semplificata durante la suddivisione di un paragrafo troppo grande.",
-      "PXA-MD-006": "È stato ignorato un valore YAML front matter non valido.",
-      "PXA-MD-100": "Il documento Markdown è stato suddiviso su più pagine.",
-      "PXA-MD-201": "Non è stato possibile risolvere un’immagine relativa senza un URL di base delle risorse.",
-      "PXA-MD-202": "Un’immagine è stata rifiutata perché sono supportate solo risorse HTTP(S).",
-      "PXA-MD-203": "Non è stato possibile scaricare o convalidare un’immagine remota."
+      "PVAD-MD-001": "Sono state rimosse destinazioni di collegamenti Markdown non sicure.",
+      "PVAD-MD-002": "È stata rimossa un’immagine incorporata non valida o non supportata.",
+      "PVAD-MD-003": "Le immagini inserite nel testo non sono supportate e sono state omesse.",
+      "PVAD-MD-004": "È stato ignorato un blocco Markdown non supportato.",
+      "PVAD-MD-005": "La formattazione è stata semplificata durante la suddivisione di un paragrafo troppo grande.",
+      "PVAD-MD-006": "È stato ignorato un valore YAML front matter non valido.",
+      "PVAD-MD-100": "Il documento Markdown è stato suddiviso su più pagine.",
+      "PVAD-MD-201": "Non è stato possibile risolvere un’immagine relativa senza un URL di base delle risorse.",
+      "PVAD-MD-202": "Un’immagine è stata rifiutata perché sono supportate solo risorse HTTP(S).",
+      "PVAD-MD-203": "Non è stato possibile scaricare o convalidare un’immagine remota."
     }
   },
   "help": {
@@ -511,6 +511,12 @@
   "warnings": {
     "pageRangeNeeded": "L'intervallo selezionato richiede un valore di intervallo di pagine.",
     "bindingPathNeeded": "La modalità di associazione richiede un percorso di associazione dati.",
+    "dateFormatFallback": "Formato data non supportato; viene utilizzato il formato ISO.",
+    "dateLocaleFallback": "Lingua della data non supportata; viene utilizzato l’inglese.",
+    "dateTimezoneFallback": "Fuso orario della data sconosciuto; viene utilizzato UTC.",
+    "dateHistoricalTimezoneFallback": "Questa data storica non rientra nell'intervallo supportato per i fusi orari; viene usato UTC.",
+    "dateBindingUnresolved": "L’associazione della data manca o non contiene una data ISO valida.",
+    "dateLayoutOverflow": "Il contenuto della data supera le dimensioni del campo. Aumentare la larghezza o l’altezza.",
     "drawPathNeeded": "L'elemento di disegno richiede dati di percorso SVG.",
     "opacityRange": "L'opacità dovrebbe essere compresa tra 0 e 1."
   },
@@ -601,15 +607,15 @@
     "exportBlocked": "Correggi gli errori PDF/UA prima dell’esportazione.",
     "scopes": { "None": "Nessuno", "Row": "Riga", "Column": "Colonna", "Both": "Riga e colonna" },
     "diagnostics": {
-      "PXAPDFUA002": "Imposta un titolo nei metadati di esportazione.", "PXAPDFUA003": "Seleziona una lingua del documento.",
-      "PXAPDFUA004": "La crittografia non è ancora supportata per l’esportazione PDF/UA.", "PXAPDFUA005": "Assegna la semantica o marca l’elemento come decorativo.",
-      "PXAPDFUA007": "Aggiungi un testo alternativo significativo.", "PXAPDFUA009": "Seleziona l’ambito riga o colonna dell’intestazione.",
-      "PXAPDFUA010": "Questo link o campo modulo non dispone di un’annotazione PDF interattiva supportata.", "PXAPDFUA011": "Un ID intestazione associato non esiste.",
-      "PXAPDFUA013": "L’elemento padre selezionato non esiste più.", "PXAPDFUA014": "La gerarchia logica contiene un ciclo.", "PXAPDFUA015": "Usa un tag lingua BCP 47 valido.",
-      "PXAPDFUA016": "L’ordine di lettura non può essere negativo.", "PXAPDFUA017": "Aggiungi un testo link significativo.",
-      "PXAPDFUA018": "Aggiungi un’etichetta modulo accessibile.", "PXAPDFUA019": "Marca la prima riga come intestazione.",
-      "PXAPDFUA020": "La tabella richiede una struttura completa di righe e celle.", "PXAPDFUA021": "Seleziona un ruolo strutturale.", "PXAPDFUA022": "Un gruppo di opzioni richiede almeno due opzioni univoche e al massimo un valore selezionato.", "PXAPDFUA023": "Imposta un ordine di lettura esplicito per un focus da tastiera prevedibile.", "PXAPDFUA024": "Questa posizione di focus è assegnata anche a un altro controllo interattivo.",
-      "PXAPDFUA025": "Usa un ruolo personalizzato distinto con lettere, numeri, punti, trattini o caratteri di sottolineatura.", "PXAPDFUA026": "Questo ruolo personalizzato corrisponde a ruoli standard in conflitto.", "PXAPDFUA027": "Usa un URI namespace assoluto solo insieme a un ruolo personalizzato.", "PXAPDFUA028": "Questo ruolo personalizzato usa namespace di origine in conflitto."
+      "PVADPDFUA002": "Imposta un titolo nei metadati di esportazione.", "PVADPDFUA003": "Seleziona una lingua del documento.",
+      "PVADPDFUA004": "La crittografia non è ancora supportata per l’esportazione PDF/UA.", "PVADPDFUA005": "Assegna la semantica o marca l’elemento come decorativo.",
+      "PVADPDFUA007": "Aggiungi un testo alternativo significativo.", "PVADPDFUA009": "Seleziona l’ambito riga o colonna dell’intestazione.",
+      "PVADPDFUA010": "Questo link o campo modulo non dispone di un’annotazione PDF interattiva supportata.", "PVADPDFUA011": "Un ID intestazione associato non esiste.",
+      "PVADPDFUA013": "L’elemento padre selezionato non esiste più.", "PVADPDFUA014": "La gerarchia logica contiene un ciclo.", "PVADPDFUA015": "Usa un tag lingua BCP 47 valido.",
+      "PVADPDFUA016": "L’ordine di lettura non può essere negativo.", "PVADPDFUA017": "Aggiungi un testo link significativo.",
+      "PVADPDFUA018": "Aggiungi un’etichetta modulo accessibile.", "PVADPDFUA019": "Marca la prima riga come intestazione.",
+      "PVADPDFUA020": "La tabella richiede una struttura completa di righe e celle.", "PVADPDFUA021": "Seleziona un ruolo strutturale.", "PVADPDFUA022": "Un gruppo di opzioni richiede almeno due opzioni univoche e al massimo un valore selezionato.", "PVADPDFUA023": "Imposta un ordine di lettura esplicito per un focus da tastiera prevedibile.", "PVADPDFUA024": "Questa posizione di focus è assegnata anche a un altro controllo interattivo.",
+      "PVADPDFUA025": "Usa un ruolo personalizzato distinto con lettere, numeri, punti, trattini o caratteri di sottolineatura.", "PVADPDFUA026": "Questo ruolo personalizzato corrisponde a ruoli standard in conflitto.", "PVADPDFUA027": "Usa un URI namespace assoluto solo insieme a un ruolo personalizzato.", "PVADPDFUA028": "Questo ruolo personalizzato usa namespace di origine in conflitto."
     }
   },
   "layers": {

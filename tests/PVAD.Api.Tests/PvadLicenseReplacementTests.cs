@@ -79,7 +79,7 @@ public sealed class PvadLicenseReplacementTests
         var validator = new PvadOfflineLicenseValidator(harness.Signer);
         var validation = validator.Validate(replacement, subscription, DateTimeOffset.UtcNow);
         Assert.True(validation.Valid, validation.Code);
-        Assert.Equal("PXA_LICENSE_REPLACED", validator.Validate(previous, subscription, DateTimeOffset.UtcNow).Code);
+        Assert.Equal("PVAD_LICENSE_REPLACED", validator.Validate(previous, subscription, DateTimeOffset.UtcNow).Code);
         Assert.Single(await db.AuditEvents.Where(value => value.Action == "licenses.replace").ToArrayAsync());
         Assert.Single(await db.MailOutboxMessages.ToArrayAsync());
         var replay = await controller.ReplaceLicense(before.Id, new("Technical rename"), default);
@@ -217,7 +217,7 @@ public sealed class PvadLicenseReplacementTests
             var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             var license = new OfflineLicense
             {
-                OrganizationId = org.Id, SubscriptionId = subscription.Id, LicenseNumber = "PXA-SYNTHETIC-1",
+                OrganizationId = org.Id, SubscriptionId = subscription.Id, LicenseNumber = "PVAD-SYNTHETIC-1",
                 EnvelopeJson = "", Signature = "", KeyId = Signer.KeyId, Algorithm = "ECDSA_P256_SHA256",
                 ValidFrom = now.AddDays(-1), ValidUntil = now.AddDays(10), IssuedAt = now,
                 InstanceLimit = 2, IssuedByUserId = UserId,
@@ -256,7 +256,7 @@ public sealed class PvadLicenseReplacementTests
     {
         private readonly string privateKey;
         public string PublicKeyPem { get; }
-        public string KeyId => "pxa-synthetic-retained-key";
+        public string KeyId => "pvad-synthetic-retained-key";
         public MemorySigner()
         {
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);

@@ -98,213 +98,160 @@ public sealed class PdfFlowContext
 
         options ??= PdfTableOptions.Default;
 
-        if (options.RowHeight <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options), "RowHeight must be greater than zero.");
-        }
-
-        var width = CurrentPage.Width - _options.MarginLeft - _options.MarginRight;
+        var width = ContentWidth;
         var topY = CurrentY;
-        var columnCount = rows[0].Count;
-
-        if (columnCount == 0)
-        {
-            throw new ArgumentException("Table rows must contain at least one column.", nameof(rows));
-        }
-
-        for (var i = 1; i < rows.Count; i++)
-        {
-            if (rows[i].Count != columnCount)
-            {
-                throw new ArgumentException("All table rows must have the same number of columns.", nameof(rows));
-            }
-        }
-
-        var hasHeader = options.HasHeaderRow;
-        var hasFooter = options.HasFooterRow;
-        var repeatFooterOnEachChunk = options.RepeatFooterOnEachChunk;
-        var headerRow = hasHeader ? rows[0] : null;
-        var footerRow = hasFooter ? rows[^1] : null;
-        var dataStartIndex = hasHeader ? 1 : 0;
-        var dataCount = rows.Count - dataStartIndex - (hasFooter ? 1 : 0);
-        var dataRows = rows.Skip(dataStartIndex).Take(Math.Max(0, dataCount)).ToList();
-        var isFirstChunk = true;
-
-        var maxRowsPerFreshPage = (int)Math.Floor((CurrentPage.Height - _options.MarginTop - _options.MarginBottom) / options.RowHeight);
-        if (hasHeader && dataRows.Count > 0 && maxRowsPerFreshPage < 2)
-        {
-            throw new InvalidOperationException("Flow table cannot fit both header and data row within current page/margin settings.");
-        }
-
-        var dataIndex = 0;
+        var heights = CurrentPage.MeasureSimpleTableRows(width, rows, options);
+        var chunks = PlanTableChunks(heights, options);
         PdfTableLayoutResult? lastChunk = null;
-
-        while (dataIndex < dataRows.Count || (hasHeader && dataRows.Count == 0 && lastChunk is null))
+        var totalHeight = 0d;
+        foreach (var chunk in chunks)
         {
-            var availableRows = (int)Math.Floor((CurrentY - _options.MarginBottom) / options.RowHeight);
-
-            if (availableRows <= 0)
+            if (chunk.NewPage) NextPage();
+            if (options.ShowContinuationMarkers && lastChunk is not null)
             {
-                NextPage();
-                continue;
+                DrawTableContinuation(options.ContinuationHeaderText, options);
             }
-
-            List<IReadOnlyList<string>> chunkRows;
-
-            if (hasHeader)
-            {
-                var minRequiredRows = 1 + (hasFooter ? 1 : 0);
-
-                if (availableRows < minRequiredRows + (dataRows.Count > 0 ? 1 : 0) && dataRows.Count > 0)
-                {
-                    NextPage();
-                    continue;
-                }
-
-                var footerRowsThisChunk = hasFooter && (repeatFooterOnEachChunk || dataIndex == 0) ? 1 : 0;
-                var maxDataRows = Math.Max(availableRows - 1 - footerRowsThisChunk, 0);
-                var rowsToTake = Math.Min(maxDataRows, dataRows.Count - dataIndex);
-                chunkRows = new List<IReadOnlyList<string>>(rowsToTake + 2)
-                {
-                    headerRow!
-                };
-
-                for (var i = 0; i < rowsToTake; i++)
-                {
-                    chunkRows.Add(dataRows[dataIndex + i]);
-                }
-
-                var isFinalChunk = dataIndex + rowsToTake >= dataRows.Count;
-
-                if (hasFooter && (repeatFooterOnEachChunk || isFinalChunk))
-                {
-                    chunkRows.Add(footerRow!);
-                }
-
-                dataIndex += rowsToTake;
-
-                if (rowsToTake == 0 && dataRows.Count > 0)
-                {
-                    NextPage();
-                    continue;
-                }
-            }
-            else
-            {
-                var rowsToTake = Math.Min(availableRows, dataRows.Count - dataIndex);
-
-                if (rowsToTake <= 0)
-                {
-                    NextPage();
-                    continue;
-                }
-
-                chunkRows = new List<IReadOnlyList<string>>(rowsToTake);
-
-                for (var i = 0; i < rowsToTake; i++)
-                {
-                    chunkRows.Add(dataRows[dataIndex + i]);
-                }
-
-                dataIndex += rowsToTake;
-            }
-
-            var chunkOptions = new PdfTableOptions
-            {
-                RowHeight = options.RowHeight,
-                AutoRowHeight = options.AutoRowHeight,
-                CellPadding = options.CellPadding,
-                CellPaddingLeft = options.CellPaddingLeft,
-                CellPaddingRight = options.CellPaddingRight,
-                CellPaddingTop = options.CellPaddingTop,
-                CellPaddingBottom = options.CellPaddingBottom,
-                HasHeaderRow = hasHeader,
-                HasFooterRow = hasFooter,
-                RepeatFooterOnEachChunk = repeatFooterOnEachChunk,
-                RowHeights = options.RowHeights,
-                RowLineHeights = options.RowLineHeights,
-                ColumnWidths = options.ColumnWidths,
-                MinColumnWidth = options.MinColumnWidth,
-                MaxColumnWidth = options.MaxColumnWidth,
-                ColumnAlignments = options.ColumnAlignments,
-                ColumnVerticalAlignments = options.ColumnVerticalAlignments,
-                ColumnValueFormatters = options.ColumnValueFormatters,
-                CellAlignment = options.CellAlignment,
-                CellVerticalAlignment = options.CellVerticalAlignment,
-                WrapCellText = options.WrapCellText,
-                FontSize = options.FontSize,
-                CellLineHeight = options.CellLineHeight,
-                Font = options.Font,
-                FontFamily = options.FontFamily,
-                Bold = options.Bold,
-                Italic = options.Italic,
-                TextColor = options.TextColor,
-                HeaderFillColor = options.HeaderFillColor,
-                FooterFillColor = options.FooterFillColor,
-                AlternateRowFillColor = options.AlternateRowFillColor,
-                CellCornerRadius = options.CellCornerRadius,
-                BorderColor = options.BorderColor,
-                BorderLineWidth = options.BorderLineWidth,
-                DrawOuterBorder = options.DrawOuterBorder,
-                DrawInnerVerticalBorders = options.DrawInnerVerticalBorders,
-                DrawInnerHorizontalBorders = options.DrawInnerHorizontalBorders,
-                OuterBorderColor = options.OuterBorderColor,
-                InnerBorderColor = options.InnerBorderColor,
-                OuterBorderLineWidth = options.OuterBorderLineWidth,
-                InnerBorderLineWidth = options.InnerBorderLineWidth,
-                OuterBorderStrokeStyle = options.OuterBorderStrokeStyle,
-                InnerBorderStrokeStyle = options.InnerBorderStrokeStyle
-            };
-
-            if (!isFirstChunk && options.ShowContinuationMarkers)
-            {
-                EnsureSpace(options.ContinuationFontSize + _options.LineSpacing);
-                CurrentPage.DrawText(options.ContinuationHeaderText, _options.MarginLeft, CurrentY, new PdfDrawTextOptions
-                {
-                    FontSize = options.ContinuationFontSize,
-                    FontFamily = options.FontFamily,
-                    FillColor = options.TextColor ?? PdfColor.Gray
-                });
-                CurrentY -= options.ContinuationFontSize + _options.LineSpacing;
-            }
-
+            var chunkRows = chunk.Indices.Select(index => rows[index]).ToArray();
+            var chunkOptions = SliceTableOptions(options, chunk, heights);
             lastChunk = CurrentPage.DrawSimpleTable(_options.MarginLeft, CurrentY, width, chunkRows, chunkOptions);
+            totalHeight += lastChunk.Height;
             CurrentY = lastChunk.BottomY - _options.ParagraphSpacing;
-
-            if (dataIndex < dataRows.Count)
-            {
-                if (options.ShowContinuationMarkers)
-                {
-                    EnsureSpace(options.ContinuationFontSize + _options.LineSpacing);
-                    CurrentPage.DrawText(options.ContinuationFooterText, _options.MarginLeft, CurrentY, new PdfDrawTextOptions
-                    {
-                        FontSize = options.ContinuationFontSize,
-                        FontFamily = options.FontFamily,
-                        FillColor = options.TextColor ?? PdfColor.Gray
-                    });
-                    CurrentY -= options.ContinuationFontSize + _options.LineSpacing;
-                }
-
-                NextPage();
-            }
-
-            isFirstChunk = false;
-        }
-
-        if (lastChunk is null)
-        {
-            throw new InvalidOperationException("Table rendering failed.");
+            if (options.ShowContinuationMarkers && !chunk.IsFinal)
+                DrawTableContinuation(options.ContinuationFooterText, options);
         }
 
         return new PdfTableLayoutResult
         {
-            X = _options.MarginLeft,
-            TopY = topY,
-            Width = width,
-            Height = rows.Count * options.RowHeight,
-            BottomY = lastChunk.BottomY,
-            RowCount = rows.Count,
-            ColumnCount = columnCount
+            X = _options.MarginLeft, TopY = topY, Width = width, Height = totalHeight,
+            BottomY = lastChunk!.BottomY, RowCount = rows.Count, ColumnCount = rows[0].Count
+        };
+    }
+
+    private sealed record TableChunk(int[] Indices, int DataOffset, bool NewPage, bool IsFinal, bool HasFooter);
+
+    private List<TableChunk> PlanTableChunks(double[] heights, PdfTableOptions options)
+    {
+        if (heights.Any(height => !double.IsFinite(height) || height <= 0))
+            throw new ArgumentOutOfRangeException(nameof(options), "Measured table row heights must be finite and positive.");
+        if (options.HasHeaderRow && options.HasFooterRow && heights.Length < 2)
+            throw new ArgumentException("Header and footer require separate rows.", nameof(options));
+        var freshHeight = _options.PageHeight - _options.MarginTop - _options.MarginBottom;
+        var available = CurrentY - _options.MarginBottom;
+        var marker = options.ShowContinuationMarkers ? options.ContinuationFontSize + _options.LineSpacing : 0;
+        if (!double.IsFinite(freshHeight) || freshHeight <= 0 || !double.IsFinite(available)
+            || !double.IsFinite(marker) || marker < 0 || options.ShowContinuationMarkers && options.ContinuationFontSize <= 0
+            || !double.IsFinite(_options.ParagraphSpacing) || _options.ParagraphSpacing < 0)
+            throw new ArgumentOutOfRangeException(nameof(options), "Flow table margins, spacing and continuation size must define a finite printable area.");
+        var headerHeight = options.HasHeaderRow ? heights[0] : 0;
+        var footerHeight = options.HasFooterRow ? heights[^1] : 0;
+        var start = options.HasHeaderRow ? 1 : 0;
+        var end = heights.Length - (options.HasFooterRow ? 1 : 0);
+        var chunks = new List<TableChunk>();
+        var newPage = false;
+
+        // Plan every chunk before painting: an oversized row must not leave a partial table.
+        while (start < end || chunks.Count == 0)
+        {
+            var headerMarker = chunks.Count > 0 ? marker : 0;
+            var bestEnd = -1;
+            var dataHeight = 0d;
+            if (start == end && headerHeight + footerHeight + headerMarker <= available)
+                bestEnd = end;
+            for (var candidate = start; candidate < end; candidate++)
+            {
+                dataHeight += heights[candidate];
+                var isFinal = candidate + 1 == end;
+                var total = headerMarker + headerHeight + dataHeight
+                    + (options.HasFooterRow && (options.RepeatFooterOnEachChunk || isFinal) ? footerHeight : 0)
+                    + (!isFinal && options.ShowContinuationMarkers ? _options.ParagraphSpacing + marker : 0);
+                if (total <= available) bestEnd = candidate + 1;
+                if (headerMarker + headerHeight + dataHeight > available) break;
+            }
+            if (bestEnd < 0)
+            {
+                if (newPage || available >= freshHeight)
+                    throw new InvalidOperationException($"Flow table row {start} cannot fit on a fresh page with its header, footer and continuation markers. Reduce its content, font size or padding, or increase the page size.");
+                available = freshHeight;
+                newPage = true;
+                continue;
+            }
+            var final = bestEnd == end;
+            var footer = options.HasFooterRow && (options.RepeatFooterOnEachChunk || final);
+            var indices = new List<int>();
+            if (options.HasHeaderRow) indices.Add(0);
+            for (var index = start; index < bestEnd; index++) indices.Add(index);
+            if (footer) indices.Add(heights.Length - 1);
+            chunks.Add(new TableChunk(indices.ToArray(), start - (options.HasHeaderRow ? 1 : 0), newPage, final, footer));
+            if (final) break;
+            start = bestEnd;
+            newPage = true;
+            available = freshHeight;
+        }
+        return chunks;
+    }
+
+    private void DrawTableContinuation(string text, PdfTableOptions options)
+    {
+        CurrentPage.DrawText(text, _options.MarginLeft, CurrentY, new PdfDrawTextOptions
+        {
+            FontSize = options.ContinuationFontSize, FontFamily = options.FontFamily,
+            FillColor = options.TextColor ?? PdfColor.Gray
+        });
+        CurrentY -= options.ContinuationFontSize + _options.LineSpacing;
+    }
+
+    private static PdfTableOptions SliceTableOptions(PdfTableOptions options, TableChunk chunk, double[] heights)
+    {
+        var rowMap = chunk.Indices.Select((original, local) => (original, local))
+            .ToDictionary(pair => pair.original, pair => pair.local);
+        return new PdfTableOptions
+        {
+            RowHeight = options.RowHeight,
+            AutoRowHeight = false,
+            CellPadding = options.CellPadding,
+            CellPaddingLeft = options.CellPaddingLeft,
+            CellPaddingRight = options.CellPaddingRight,
+            CellPaddingTop = options.CellPaddingTop,
+            CellPaddingBottom = options.CellPaddingBottom,
+            HasHeaderRow = options.HasHeaderRow,
+            HasFooterRow = chunk.HasFooter,
+            RepeatFooterOnEachChunk = options.RepeatFooterOnEachChunk,
+            RowHeights = chunk.Indices.Select(index => heights[index]).ToArray(),
+            RowLineHeights = options.RowLineHeights is null ? null : chunk.Indices.Select(index => options.RowLineHeights[index]).ToArray(),
+            CellStyles = options.CellStyles?.Where(cell => rowMap.ContainsKey(cell.Row))
+                .Select(cell => cell.AtRow(rowMap[cell.Row])).ToArray(),
+            DataRowOffset = options.DataRowOffset + chunk.DataOffset,
+            ColumnWidths = options.ColumnWidths,
+            MinColumnWidth = options.MinColumnWidth,
+            MaxColumnWidth = options.MaxColumnWidth,
+            ColumnAlignments = options.ColumnAlignments,
+            ColumnVerticalAlignments = options.ColumnVerticalAlignments,
+            ColumnValueFormatters = options.ColumnValueFormatters,
+            CellAlignment = options.CellAlignment,
+            CellVerticalAlignment = options.CellVerticalAlignment,
+            WrapCellText = options.WrapCellText,
+            FontSize = options.FontSize,
+            CellLineHeight = options.CellLineHeight,
+            Font = options.Font,
+            FontFamily = options.FontFamily,
+            Bold = options.Bold,
+            Italic = options.Italic,
+            TextColor = options.TextColor,
+            HeaderFillColor = options.HeaderFillColor,
+            FooterFillColor = options.FooterFillColor,
+            AlternateRowFillColor = options.AlternateRowFillColor,
+            CellCornerRadius = options.CellCornerRadius,
+            BorderColor = options.BorderColor,
+            BorderLineWidth = options.BorderLineWidth,
+            DrawOuterBorder = options.DrawOuterBorder,
+            DrawInnerVerticalBorders = options.DrawInnerVerticalBorders,
+            DrawInnerHorizontalBorders = options.DrawInnerHorizontalBorders,
+            OuterBorderColor = options.OuterBorderColor,
+            InnerBorderColor = options.InnerBorderColor,
+            OuterBorderLineWidth = options.OuterBorderLineWidth,
+            InnerBorderLineWidth = options.InnerBorderLineWidth,
+            OuterBorderStrokeStyle = options.OuterBorderStrokeStyle,
+            InnerBorderStrokeStyle = options.InnerBorderStrokeStyle
         };
     }
 

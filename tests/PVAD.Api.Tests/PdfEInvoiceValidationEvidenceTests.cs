@@ -261,7 +261,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
             Assert.IsType<OkObjectResult>(matching.Result).Value));
         Assert.Empty(Assert.IsAssignableFrom<IReadOnlyList<PvadEInvoiceValidationEvidence>>(
             Assert.IsType<OkObjectResult>(other.Result).Value));
-        Assert.Equal("PXAEINVAPI030", Assert.IsType<ProblemDetails>(
+        Assert.Equal("PVADEINVAPI030", Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(malformed.Result).Value).Extensions["code"]);
     }
 
@@ -272,7 +272,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
 
         var result = await CreateController(dbContext).ValidationRecord(Guid.NewGuid(), CancellationToken.None);
 
-        Assert.Equal("PXAEINVAPI031", Assert.IsType<ProblemDetails>(
+        Assert.Equal("PVADEINVAPI031", Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(result.Result).Value).Extensions["code"]);
     }
 
@@ -290,7 +290,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
         Assert.Equal("application/json", file.ContentType);
         Assert.Equal("pvad-e-invoice-validation-evidence.json", file.FileDownloadName);
         var json = Encoding.UTF8.GetString(file.FileContents);
-        Assert.Contains("pxa.e-invoice.validation-evidence/1", json, StringComparison.Ordinal);
+        Assert.Contains("pvad.e-invoice.validation-evidence/1", json, StringComparison.Ordinal);
         Assert.Contains(Sha256(InvoiceXml), json, StringComparison.Ordinal);
         Assert.Contains("\"conformanceStatus\": \"notEvaluated\"", json, StringComparison.Ordinal);
     }
@@ -335,7 +335,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
             Xml(Encoding.UTF8.GetBytes("<rsm:CrossIndustryInvoice xmlns:rsm=\"urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100\" />")),
             CancellationToken.None);
 
-        Assert.Equal("PXAEINVAPI032", Assert.IsType<ProblemDetails>(
+        Assert.Equal("PVADEINVAPI032", Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(result.Result).Value).Extensions["code"]);
         Assert.Equal(1, await dbContext.EInvoiceValidationRecords.CountAsync());
     }
@@ -357,7 +357,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
         Assert.Equal("attach", record.Operation);
         Assert.Equal(Sha256(InvoiceXml), record.DocumentSha256);
         Assert.NotNull(record.ContainerSha256);
-        Assert.Equal(record.Id.ToString(), controller.Response.Headers["PXA-Validation-Record"]);
+        Assert.Equal(record.Id.ToString(), controller.Response.Headers["PVAD-Validation-Record"]);
     }
 
     [Fact]
@@ -387,7 +387,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
 
         var problem = Assert.IsType<ObjectResult>(history.Result);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, problem.StatusCode);
-        Assert.Equal("PXAEINVAPI034", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
+        Assert.Equal("PVADEINVAPI034", Assert.IsType<ProblemDetails>(problem.Value).Extensions["code"]);
     }
 
     [Theory]
@@ -432,7 +432,7 @@ public sealed class PdfEInvoiceValidationEvidenceTests
         isConformanceValidated,
         "CII",
         "urn:factur-x.eu:1p0:basic",
-        [new("PXAEINV000", "information", "Structural recognition succeeded.")],
+        [new("PVADEINV000", "information", "Structural recognition succeeded.")],
         conformanceStatus,
         artifactSetId,
         artifactSetSha256);

@@ -19,9 +19,9 @@ public abstract class BasePdfConverter : ICodeConverter
     public virtual byte[] GeneratePreview(string sourceCode)
     {
         var converted = ConvertCode(sourceCode);
-#pragma warning disable PXA0001 // Converter preview replays generated PVAD.Pdf migration output.
+#pragma warning disable PVAD0001 // Converter preview replays generated PVAD.Pdf migration output.
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
 
         // Count AddPage() calls so the preview has the right number of pages
         var pageCount = Math.Max(1, Regex.Matches(converted, @"document\.AddPage\(\)").Count);

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PVAD.Importer.Graphics;
+using PVAD.Importer.Objects;
 using PVAD.Importer.Redaction;
 using PVAD.Importer.Signing;
 using PVAD.Importer.Trust;
@@ -35,7 +36,7 @@ public sealed class PdfTrustVisualArtifactTests
                     Y = 700,
                     Width = 180,
                     Height = 64,
-                    Title = "PXA Trust Signature"
+                    Title = "PVAD Trust Signature"
                 }
             }).Bytes;
         await AssertPdfTrustSignatureAsync(signed);
@@ -70,10 +71,33 @@ public sealed class PdfTrustVisualArtifactTests
         WritePair("pdf-ua-1", sourceForPdfUa, pdfUa);
     }
 
+    [Theory]
+    [InlineData("signature", "PVAD Trust visual signature")]
+    [InlineData("redaction", "PVAD Trust visual redaction")]
+    [InlineData("pdf-a-2b", "PVAD Trust visual PDF/A")]
+    [InlineData("pdf-ua-1", "PVAD Trust visual PDF/UA")]
+    public async Task Generated_visual_documents_use_current_metadata(string operation, string title)
+    {
+        var document = operation switch
+        {
+            "signature" => CreateBasicDocument(),
+            "redaction" => CreateRedactionDocument(),
+            "pdf-a-2b" => CreateArchivalDocument(),
+            "pdf-ua-1" => CreateAccessibleDocument(),
+            _ => throw new ArgumentOutOfRangeException(nameof(operation))
+        };
+        await using var stream = new MemoryStream(document.ToBytes(), writable: false);
+        var imported = await new PdfImporter().LoadAsync(stream);
+
+        Assert.Equal(title, Assert.IsType<PdfString>(imported.Metadata["Title"]).ToLatin1String());
+        if (operation == "pdf-a-2b")
+            Assert.Equal("PVAD QA", Assert.IsType<PdfString>(imported.Metadata["Author"]).ToLatin1String());
+    }
+
     private static PdfDocument CreateBasicDocument()
     {
         var document = PVAD.Generator.Pdf.CreateDocument();
-        document.Info.Title = "PXA Trust visual signature";
+        document.Info.Title = "PVAD Trust visual signature";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = document.Info.CreationDate;
         var page = document.AddPage();
@@ -86,7 +110,7 @@ public sealed class PdfTrustVisualArtifactTests
     private static PdfDocument CreateRedactionDocument()
     {
         var document = PVAD.Generator.Pdf.CreateDocument();
-        document.Info.Title = "PXA Trust visual redaction";
+        document.Info.Title = "PVAD Trust visual redaction";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = document.Info.CreationDate;
         var page = document.AddPage();
@@ -100,8 +124,8 @@ public sealed class PdfTrustVisualArtifactTests
     {
         var document = PVAD.Generator.Pdf.CreateDocument();
         document.FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
-        document.Info.Title = "PXA Trust visual PDF/A";
-        document.Info.Author = "PXA QA";
+        document.Info.Title = "PVAD Trust visual PDF/A";
+        document.Info.Author = "PVAD QA";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = document.Info.CreationDate;
         document.AddPage().DrawText("PDF/A visual baseline", 40, 760, new PdfDrawTextOptions { Language = "en" });
@@ -113,7 +137,7 @@ public sealed class PdfTrustVisualArtifactTests
         var document = PVAD.Generator.Pdf.CreateDocument();
         document.Language = "en-US";
         document.FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
-        document.Info.Title = "PXA Trust visual PDF/UA";
+        document.Info.Title = "PVAD Trust visual PDF/UA";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = document.Info.CreationDate;
         var page = document.AddPage();
@@ -160,7 +184,7 @@ public sealed class PdfTrustVisualArtifactTests
     {
         using var rsa = RSA.Create(2048);
         var request = new CertificateRequest(
-            "CN=PXA PDF Trust Visual Test",
+            "CN=PVAD PDF Trust Visual Test",
             rsa,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);

@@ -72,7 +72,7 @@ public sealed class EInvoiceConformanceValidatorTests
         Assert.Equal("valid", report.ConformanceStatus);
         Assert.Equal("factur-x-1.09.2-en16931-test", report.ValidatorArtifactSetId);
         Assert.Matches("^[0-9a-f]{64}$", report.ValidatorArtifactSetSha256);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV019");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV019");
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public sealed class EInvoiceConformanceValidatorTests
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("invalid", report.ConformanceStatus);
         Assert.Contains(report.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAEINV024" && diagnostic.Message.Contains("Business rule failed."));
+            diagnostic.Code == "PVADEINV024" && diagnostic.Message.Contains("Business rule failed."));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV022");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV022");
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV026");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV026");
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("unavailable", report.ConformanceStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV021");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV021");
     }
 
     private static PvadEInvoiceOptions Options() => new()
@@ -159,7 +159,7 @@ public sealed class EInvoiceConformanceValidatorTests
 
         public static ArtifactFixture Create(string schematron)
         {
-            var root = Path.Combine(Path.GetTempPath(), "pxa-einvoice-" + Guid.NewGuid().ToString("N"));
+            var root = Path.Combine(Path.GetTempPath(), "pvad-einvoice-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
             var schemaPath = Path.Combine(root, "invoice.xsd");
             var schematronPath = Path.Combine(root, "rules.xsl");
@@ -186,7 +186,7 @@ public sealed class EInvoiceConformanceValidatorTests
                     UpstreamVersion = "synthetic-test-1",
                     RetrievedOn = new DateOnly(2026, 9, 1),
                     LicenseReview = PvadEInvoiceLicenseReviewState.Approved,
-                    LicenseReviewedBy = "PXA synthetic test reviewer",
+                    LicenseReviewedBy = "PVAD synthetic test reviewer",
                     LicenseReviewedOn = new DateOnly(2026, 9, 2),
                     SupportedProfiles = ["EN 16931"],
                     UpdatePolicy = "Updated with the synthetic test contract.",

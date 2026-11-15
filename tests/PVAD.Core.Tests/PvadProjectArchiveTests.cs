@@ -11,9 +11,8 @@ namespace PVAD.Core.Tests;
 public sealed class PvadProjectArchiveTests
 {
     [Theory]
-    [InlineData("{\"minimumPxaVersion\":\"1.0.0\",\"minimumPvadVersion\":\"1.0.0\"}")]
-    [InlineData("{\"minimumPvadVersion\":\"1.0.0\",\"minimumPxaVersion\":\"1.0.0\"}")]
-    public void Equal_version_aliases_are_accepted_and_only_canonical_version_is_written(string json)
+    [InlineData("{\"minimumPvadVersion\":\"1.0.0\"}")]
+    public void Only_the_canonical_version_key_is_read_and_written(string json)
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var manifest = JsonSerializer.Deserialize<PvadProjectManifest>(json, options)!;
@@ -43,38 +42,38 @@ public sealed class PvadProjectArchiveTests
     public void Mime_entry_must_match_the_manifests_identity_generation(bool inspect)
     {
         var bytes = PvadProjectArchive.WritePdf(PdfDesign());
-        var changed = Rewrite(bytes, "mimetype", Encoding.ASCII.GetBytes(PvadProjectFormat.LegacyMediaType(PvadProjectKind.Pdf)));
+        var changed = Rewrite(bytes, "mimetype", Encoding.ASCII.GetBytes("application/vnd.powerdox.pxap+zip"));
         var error = Assert.Throws<PvadProjectFormatException>(() =>
         {
             if (inspect) PvadProjectArchive.Inspect(new MemoryStream(changed), PvadProjectKind.Pdf);
             else PvadProjectArchive.ReadPdf(new MemoryStream(changed));
         });
-        Assert.Equal("PXAPROJECT002", error.Code);
+        Assert.Equal("PVADPROJECT002", error.Code);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void Conflicting_minimum_version_aliases_are_rejected_in_both_read_paths(bool inspect)
+    public void Newer_minimum_versions_are_rejected_in_both_read_paths(bool inspect)
     {
         var bytes = PvadProjectArchive.WritePdf(PdfDesign());
         using var zip = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
         using var stream = zip.GetEntry("manifest.json")!.Open();
         var manifest = JsonNode.Parse(stream)!;
-        manifest["minimumPxaVersion"] = "999.0.0";
+        manifest["minimumPvadVersion"] = "999.0.0";
         var changed = Rewrite(bytes, "manifest.json", JsonSerializer.SerializeToUtf8Bytes(manifest));
         var error = Assert.Throws<PvadProjectFormatException>(() =>
         {
             if (inspect) PvadProjectArchive.Inspect(new MemoryStream(changed), PvadProjectKind.Pdf);
             else PvadProjectArchive.ReadPdf(new MemoryStream(changed));
         });
-        Assert.Equal("PXAPROJECT008", error.Code);
+        Assert.Equal("PVADPROJECT014", error.Code);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void Mixed_identity_generations_are_rejected_even_when_the_document_is_unchanged(bool inspect)
+    public void Former_identity_is_rejected_even_when_the_document_is_unchanged(bool inspect)
     {
         var bytes = PvadProjectArchive.WritePdf(PdfDesign());
         var changed = RewriteManifest(bytes, manifest => manifest.Magic = "PXA-PXAP-1");
@@ -83,7 +82,7 @@ public sealed class PvadProjectArchiveTests
             if (inspect) PvadProjectArchive.Inspect(new MemoryStream(changed), PvadProjectKind.Pdf);
             else PvadProjectArchive.ReadPdf(new MemoryStream(changed));
         });
-        Assert.Equal("PXAPROJECT002", error.Code);
+        Assert.Equal("PVADPROJECT002", error.Code);
     }
 
     private static readonly DateTimeOffset Created = new(2026, 9, 30, 8, 0, 0, TimeSpan.Zero);
@@ -117,7 +116,7 @@ public sealed class PvadProjectArchiveTests
                 [
                     new PvadProjectDiagnostic
                     {
-                        Code = "PXAPROJECT_TEST_LOSS",
+                        Code = "PVADPROJECT_TEST_LOSS",
                         Severity = "warning",
                         Message = "A synthetic legacy property was simplified.",
                     },
@@ -136,8 +135,8 @@ public sealed class PvadProjectArchiveTests
         Assert.True(result.Report.IsLossy);
         Assert.Equal(["1.0", "2.0"], result.Report.Steps.Select(step => step.FromVersion));
         Assert.Equal(["2.0", "2.1"], result.Report.Steps.Select(step => step.ToVersion));
-        Assert.Contains(result.Report.Diagnostics, item => item.Code == "PXAPROJECT_UPGRADED");
-        Assert.Contains(result.Report.Diagnostics, item => item.Code == "PXAPROJECT_TEST_LOSS");
+        Assert.Contains(result.Report.Diagnostics, item => item.Code == "PVADPROJECT_UPGRADED");
+        Assert.Contains(result.Report.Diagnostics, item => item.Code == "PVADPROJECT_TEST_LOSS");
     }
 
     [Theory]
@@ -153,7 +152,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() => PvadProjectUpgradePipeline.Upgrade(
             PvadProjectKind.Pdf, source, target, "{}"u8, 32, steps));
 
-        Assert.Equal("PXAPROJECT008", error.Code);
+        Assert.Equal("PVADPROJECT008", error.Code);
     }
 
     [Fact]
@@ -191,7 +190,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() => PvadProjectUpgradePipeline.Upgrade(
             PvadProjectKind.Pdf, "1.0", "2.0", "{}"u8, 32, steps));
 
-        Assert.Equal("PXAPROJECT015", error.Code);
+        Assert.Equal("PVADPROJECT015", error.Code);
     }
 
     [Fact]
@@ -313,8 +312,8 @@ public sealed class PvadProjectArchiveTests
         var workbookError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.WriteSpreadsheet(workbook));
 
-        Assert.Equal("PXAPROJECT004", pdfError.Code);
-        Assert.Equal("PXAPROJECT004", workbookError.Code);
+        Assert.Equal("PVADPROJECT004", pdfError.Code);
+        Assert.Equal("PVADPROJECT004", workbookError.Code);
     }
 
     [Fact]
@@ -337,18 +336,18 @@ public sealed class PvadProjectArchiveTests
     [Fact]
     public async Task Atomic_file_helpers_replace_complete_packages_and_leave_no_temporary_file()
     {
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-project-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {
-            var path = Path.Combine(directory, "project.pxap");
+            var path = Path.Combine(directory, "project.pvadp");
             await File.WriteAllTextAsync(path, "previous-content");
 
             await PvadProjectArchive.WritePdfFileAtomicallyAsync(path, PdfDesign());
 
             await using var stream = File.OpenRead(path);
             Assert.Equal(PdfDesign().Id, PvadProjectArchive.ReadPdf(stream).Document.Id);
-            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxap.*.tmp"));
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pvadp.*.tmp"));
         }
         finally
         {
@@ -359,11 +358,11 @@ public sealed class PvadProjectArchiveTests
     [Fact]
     public async Task Cancelled_atomic_file_write_preserves_existing_destination()
     {
-        var directory = Path.Combine(Path.GetTempPath(), $"pxa-project-{Guid.NewGuid():N}");
+        var directory = Path.Combine(Path.GetTempPath(), $"pvad-project-{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
         try
         {
-            var path = Path.Combine(directory, "project.pxas");
+            var path = Path.Combine(directory, "project.pvads");
             var original = Encoding.UTF8.GetBytes("previous-content");
             await File.WriteAllBytesAsync(path, original);
             using var cancellation = new CancellationTokenSource();
@@ -374,7 +373,7 @@ public sealed class PvadProjectArchiveTests
                     path, CompleteSpreadsheet(), cancellationToken: cancellation.Token));
 
             Assert.Equal(original, await File.ReadAllBytesAsync(path));
-            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pxas.*.tmp"));
+            Assert.Empty(Directory.EnumerateFiles(directory, ".project.pvads.*.tmp"));
         }
         finally
         {
@@ -421,7 +420,7 @@ public sealed class PvadProjectArchiveTests
                 CodeWorkspace = new PvadCodeWorkspaceProjectComponent(),
             }));
 
-        Assert.Equal("PXAPROJECT016", error.Code);
+        Assert.Equal("PVADPROJECT016", error.Code);
     }
 
     [Fact]
@@ -443,8 +442,15 @@ public sealed class PvadProjectArchiveTests
     }
 
     [Theory]
-    [InlineData("minimal.pxap", PvadProjectKind.Pdf, "pxap")]
-    [InlineData("minimal.pxas", PvadProjectKind.Spreadsheet, "pxas")]
+    [InlineData("minimal.pxap", PvadProjectKind.Pdf)]
+    [InlineData("minimal.pxas", PvadProjectKind.Spreadsheet)]
+    public void Former_reference_archives_are_retained_evidence_but_not_readable(string fileName, PvadProjectKind kind)
+    {
+        var bytes = File.ReadAllBytes(Path.Combine(FindRepositoryRoot(), "docs", "fixtures", "native-projects", fileName));
+        Assert.Throws<PvadProjectFormatException>(() => PvadProjectArchive.Inspect(new MemoryStream(bytes), kind));
+    }
+
+    [Theory]
     [InlineData("minimal.pvadp", PvadProjectKind.Pdf, "pvadp")]
     [InlineData("minimal.pvads", PvadProjectKind.Spreadsheet, "pvads")]
     public void Published_reference_fixtures_are_valid_synthetic_projects(
@@ -459,8 +465,7 @@ public sealed class PvadProjectArchiveTests
         var manifest = PvadProjectArchive.Inspect(stream, kind);
 
         Assert.Equal(formatId, manifest.FormatId);
-        Assert.True(manifest.DocumentId.StartsWith("pxa", StringComparison.Ordinal) ||
-            manifest.DocumentId.StartsWith("pvad", StringComparison.Ordinal));
+        Assert.StartsWith("pvad", manifest.DocumentId, StringComparison.Ordinal);
         Assert.Equal(DateTimeOffset.UnixEpoch, manifest.CreatedAtUtc);
         using var packageStream = new MemoryStream(bytes);
         byte[] Regenerate()
@@ -619,7 +624,7 @@ public sealed class PvadProjectArchiveTests
                     [
                         new ElementDto
                         {
-                            Id = "title-1", Type = "text", Content = "Hello PXAP",
+                            Id = "title-1", Type = "text", Content = "Hello PVADP",
                             X = 36, Y = 42, Width = 220, Height = 30,
                         },
                     ],
@@ -649,7 +654,7 @@ public sealed class PvadProjectArchiveTests
         Assert.Equal(PvadProjectFormat.PvadpFormatId, package.Manifest.FormatId);
         Assert.Equal(PvadProjectFormat.PvadpMediaType, package.Manifest.MediaType);
         Assert.Equal("pdf-project-1", package.Document.Id);
-        Assert.Equal("Hello PXAP", package.Document.Pages[0].Elements[0].Content);
+        Assert.Equal("Hello PVADP", package.Document.Pages[0].Elements[0].Content);
         Assert.Equal("en-CH", package.Manifest.Locale);
         Assert.Single(package.Assets);
         Assert.Equal("logo-primary", package.Assets[0].Id);
@@ -697,6 +702,20 @@ public sealed class PvadProjectArchiveTests
         AssertJsonEquivalent(workbook, package.Document);
     }
 
+    [Theory]
+    [InlineData("https://pvade.com/schemas/pvad-workbook.schema.json")]
+    public void Pvads_roundtrip_preserves_the_schema_hint(string schema)
+    {
+        var workbook = CompleteSpreadsheet();
+        workbook.Schema = schema;
+
+        var package = PvadProjectArchive.ReadSpreadsheet(
+            new MemoryStream(PvadProjectArchive.WriteSpreadsheet(workbook)));
+
+        Assert.Equal(schema, package.Document.Schema);
+        AssertJsonEquivalent(workbook, package.Document);
+    }
+
     [Fact]
     public void Pdf_manifest_records_the_capabilities_required_by_the_document()
     {
@@ -723,7 +742,7 @@ public sealed class PvadProjectArchiveTests
         [
             new ImportDiagnosticDto
             {
-                Code = "PXASHEET_IMPORT_REVIEW",
+                Code = "PVADSHEET_IMPORT_REVIEW",
                 Severity = "warning",
                 Message = "Imported workbook content requires review.",
                 Source = "workbook",
@@ -755,13 +774,13 @@ public sealed class PvadProjectArchiveTests
             PvadProjectCapabilities.SpreadsheetValidation,
         }, package.Manifest.RequiredFeatures);
         Assert.Contains(package.Manifest.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXASHEET_IMPORT_REVIEW" && diagnostic.Source == "workbook");
+            diagnostic.Code == "PVADSHEET_IMPORT_REVIEW" && diagnostic.Source == "workbook");
         Assert.Contains(package.Manifest.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAPROJECT_EXTERNAL_LINK" && diagnostic.Source == "sheets[0]");
+            diagnostic.Code == "PVADPROJECT_EXTERNAL_LINK" && diagnostic.Source == "sheets[0]");
         Assert.Contains(package.Manifest.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAPROJECT_MACRO_PRESERVED" && diagnostic.Source == "sheets[0]");
+            diagnostic.Code == "PVADPROJECT_MACRO_PRESERVED" && diagnostic.Source == "sheets[0]");
         Assert.Contains(package.Manifest.Diagnostics, diagnostic =>
-            diagnostic.Code == "PXAPROJECT_PROVIDER_EXTENSION" && diagnostic.Source == "sheets[0]");
+            diagnostic.Code == "PVADPROJECT_PROVIDER_EXTENSION" && diagnostic.Source == "sheets[0]");
     }
 
     [Fact]
@@ -838,7 +857,7 @@ public sealed class PvadProjectArchiveTests
                 ],
             }));
 
-        Assert.Equal("PXAPROJECT010", error.Code);
+        Assert.Equal("PVADPROJECT010", error.Code);
     }
 
     [Fact]
@@ -854,7 +873,7 @@ public sealed class PvadProjectArchiveTests
                 ],
             }));
 
-        Assert.Equal("PXAPROJECT003", error.Code);
+        Assert.Equal("PVADPROJECT003", error.Code);
     }
 
     [Fact]
@@ -880,8 +899,8 @@ public sealed class PvadProjectArchiveTests
         var richTextError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.WritePdf(richText));
 
-        Assert.Equal("PXAPROJECT008", metadataError.Code);
-        Assert.Equal("PXAPROJECT008", richTextError.Code);
+        Assert.Equal("PVADPROJECT008", metadataError.Code);
+        Assert.Equal("PVADPROJECT008", richTextError.Code);
     }
 
     [Theory]
@@ -896,7 +915,7 @@ public sealed class PvadProjectArchiveTests
                 Assets = [new PvadProjectAsset(id, $"{id}.bin", contentType, [1, 2, 3], PvadProjectAssetKinds.Data)],
             }));
 
-        Assert.Equal("PXAPROJECT010", error.Code);
+        Assert.Equal("PVADPROJECT010", error.Code);
     }
 
     [Fact]
@@ -911,7 +930,7 @@ public sealed class PvadProjectArchiveTests
                 Assets = [new PvadProjectAsset("svg", "svg.svg", "image/svg+xml", svg)],
             }));
 
-        Assert.Equal("PXAPROJECT010", error.Code);
+        Assert.Equal("PVADPROJECT010", error.Code);
     }
 
     [Theory]
@@ -925,7 +944,7 @@ public sealed class PvadProjectArchiveTests
 
         var error = Assert.Throws<PvadProjectFormatException>(() => PvadProjectArchive.WritePdf(design));
 
-        Assert.Equal("PXAPROJECT008", error.Code);
+        Assert.Equal("PVADPROJECT008", error.Code);
     }
 
     [Fact]
@@ -974,7 +993,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadSpreadsheet(new MemoryStream(bytes)));
 
-        Assert.Equal("PXAPROJECT002", error.Code);
+        Assert.Equal("PVADPROJECT002", error.Code);
     }
 
     [Fact]
@@ -986,7 +1005,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(tampered)));
 
-        Assert.Equal("PXAPROJECT007", error.Code);
+        Assert.Equal("PVADPROJECT007", error.Code);
     }
 
     [Fact]
@@ -1000,7 +1019,7 @@ public sealed class PvadProjectArchiveTests
         Assert.Equal(PvadProjectFormat.PvadpFormatId, manifest.FormatId);
         var validationError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(tampered)));
-        Assert.Equal("PXAPROJECT007", validationError.Code);
+        Assert.Equal("PVADPROJECT007", validationError.Code);
     }
 
     [Fact]
@@ -1009,14 +1028,14 @@ public sealed class PvadProjectArchiveTests
         var traversal = ArchiveWithEntries(("../document.json", "{}"u8.ToArray()));
         var traversalError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(traversal)));
-        Assert.Equal("PXAPROJECT003", traversalError.Code);
+        Assert.Equal("PVADPROJECT003", traversalError.Code);
 
         var duplicate = ArchiveWithEntries(
             ("manifest.json", "{}"u8.ToArray()),
             ("Manifest.json", "{}"u8.ToArray()));
         var duplicateError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(duplicate)));
-        Assert.Equal("PXAPROJECT004", duplicateError.Code);
+        Assert.Equal("PVADPROJECT004", duplicateError.Code);
     }
 
     [Fact]
@@ -1029,7 +1048,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(invalid)));
 
-        Assert.Equal("PXAPROJECT009", error.Code);
+        Assert.Equal("PVADPROJECT009", error.Code);
     }
 
     [Fact]
@@ -1041,12 +1060,12 @@ public sealed class PvadProjectArchiveTests
             {
                 MaximumCompressionRatio = 5,
             }));
-        Assert.Equal("PXAPROJECT005", bombError.Code);
+        Assert.Equal("PVADPROJECT005", bombError.Code);
 
         var nested = ArchiveWithEntries(("assets/archive.png", [0x50, 0x4b, 0x03, 0x04, 0x00]));
         var nestedError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(nested)));
-        Assert.Equal("PXAPROJECT011", nestedError.Code);
+        Assert.Equal("PVADPROJECT011", nestedError.Code);
     }
 
     [Fact]
@@ -1068,7 +1087,7 @@ public sealed class PvadProjectArchiveTests
         var error = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(future)));
 
-        Assert.Equal("PXAPROJECT014", error.Code);
+        Assert.Equal("PVADPROJECT014", error.Code);
     }
 
     [Fact]
@@ -1088,9 +1107,9 @@ public sealed class PvadProjectArchiveTests
                 MaximumCompressedBytes = valid.Length - 1,
             }));
 
-        Assert.Equal("PXAPROJECT009", malformedError.Code);
-        Assert.Equal("PXAPROJECT001", truncatedError.Code);
-        Assert.Equal("PXAPROJECT005", oversizedError.Code);
+        Assert.Equal("PVADPROJECT009", malformedError.Code);
+        Assert.Equal("PVADPROJECT001", truncatedError.Code);
+        Assert.Equal("PVADPROJECT005", oversizedError.Code);
     }
 
     [Fact]
@@ -1102,15 +1121,15 @@ public sealed class PvadProjectArchiveTests
         var futureSchema = RewriteManifest(valid, manifest => manifest.DocumentSchemaVersion = "1.1");
         var futureApplication = RewriteManifest(valid, manifest => manifest.MinimumPvadVersion = "999.0.0");
 
-        Assert.Equal("PXAPROJECT007", Assert.Throws<PvadProjectFormatException>(() =>
+        Assert.Equal("PVADPROJECT007", Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(invalidHash))).Code);
-        Assert.Equal("PXAPROJECT008", Assert.Throws<PvadProjectFormatException>(() =>
+        Assert.Equal("PVADPROJECT008", Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(oldUnsupportedSchema))).Code);
-        Assert.Equal("PXAPROJECT014", Assert.Throws<PvadProjectFormatException>(() =>
+        Assert.Equal("PVADPROJECT014", Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(futureSchema))).Code);
         var applicationError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(futureApplication)));
-        Assert.Equal("PXAPROJECT014", applicationError.Code);
+        Assert.Equal("PVADPROJECT014", applicationError.Code);
         Assert.Contains("999.0.0", applicationError.Message, StringComparison.Ordinal);
     }
 
@@ -1136,7 +1155,7 @@ public sealed class PvadProjectArchiveTests
             Encryption = new PdfEncryptionDto { Enabled = true, OwnerPassword = "must-not-leave-memory" },
         };
         var pdfError = Assert.Throws<PvadProjectFormatException>(() => PvadProjectArchive.WritePdf(pdf));
-        Assert.Equal("PXAPROJECT012", pdfError.Code);
+        Assert.Equal("PVADPROJECT012", pdfError.Code);
 
         var workbook = new SpreadsheetDto
         {
@@ -1146,7 +1165,7 @@ public sealed class PvadProjectArchiveTests
         };
         var sheetError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.WriteSpreadsheet(workbook));
-        Assert.Equal("PXAPROJECT012", sheetError.Code);
+        Assert.Equal("PVADPROJECT012", sheetError.Code);
     }
 
     [Fact]
@@ -1159,7 +1178,7 @@ public sealed class PvadProjectArchiveTests
                 Assets = [new PvadProjectAsset("fake-image", "looks-safe.png", "image/png", "not a png"u8.ToArray())],
             }));
 
-        Assert.Equal("PXAPROJECT010", error.Code);
+        Assert.Equal("PVADPROJECT010", error.Code);
     }
 
     [Fact]
@@ -1176,7 +1195,7 @@ public sealed class PvadProjectArchiveTests
                 Assets = [new PvadProjectAsset("oversized", "oversized.png", "image/png", oversizedPng)],
             }));
 
-        Assert.Equal("PXAPROJECT005", error.Code);
+        Assert.Equal("PVADPROJECT005", error.Code);
     }
 
     [Fact]
@@ -1207,7 +1226,7 @@ public sealed class PvadProjectArchiveTests
                 MaximumProcessingDuration = TimeSpan.FromMilliseconds(1),
             }));
 
-        Assert.Equal("PXAPROJECT005", error.Code);
+        Assert.Equal("PVADPROJECT005", error.Code);
     }
 
     [Fact]
@@ -1219,7 +1238,7 @@ public sealed class PvadProjectArchiveTests
 
         var readError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(bytes), new PvadProjectReadLimits { MaximumPages = 1 }));
-        Assert.Equal("PXAPROJECT005", readError.Code);
+        Assert.Equal("PVADPROJECT005", readError.Code);
 
         var workbook = new SpreadsheetDto
         {
@@ -1242,7 +1261,7 @@ public sealed class PvadProjectArchiveTests
         var formulaError = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadSpreadsheet(new MemoryStream(workbookBytes),
                 new PvadProjectReadLimits { MaximumFormulas = 1 }));
-        Assert.Equal("PXAPROJECT005", formulaError.Code);
+        Assert.Equal("PVADPROJECT005", formulaError.Code);
     }
 
     [Fact]
@@ -1314,7 +1333,7 @@ public sealed class PvadProjectArchiveTests
                 MaximumExtensionProperties = 1,
             }));
 
-        Assert.Equal("PXAPROJECT005", error.Code);
+        Assert.Equal("PVADPROJECT005", error.Code);
     }
 
     [Fact]
@@ -1331,7 +1350,7 @@ public sealed class PvadProjectArchiveTests
 
         var error = Assert.Throws<PvadProjectFormatException>(() =>
             PvadProjectArchive.ReadPdf(new MemoryStream(output.ToArray())));
-        Assert.Equal("PXAPROJECT002", error.Code);
+        Assert.Equal("PVADPROJECT002", error.Code);
     }
 
     private static DesignExportDto CompletePdfDesign() => new()
@@ -1390,7 +1409,7 @@ public sealed class PvadProjectArchiveTests
             },
             Metadata = new PdfMetadataDto
             {
-                Title = "Metadata title", Author = "PXA", Subject = "Roundtrip", Keywords = "pxa,test",
+                Title = "Metadata title", Author = "PVAD", Subject = "Roundtrip", Keywords = "pvad,test",
             },
             NamedStyles =
             [
@@ -1449,7 +1468,7 @@ public sealed class PvadProjectArchiveTests
         VisibleExpression = "{{showChart}}",
         Accessibility = new AccessibilityPropertiesDto
         {
-            Role = "Figure", CustomRole = "Chart", NamespaceUri = "urn:pxa:test", IsArtifact = false,
+            Role = "Figure", CustomRole = "Chart", NamespaceUri = "urn:pvad:test", IsArtifact = false,
             ParentElementId = "section-1", ReadingOrder = 3, Language = "en", AlternateText = "Sales chart",
             ActualText = "Sales increased", TableHeaderScope = "Column", TableHeaderIds = ["header-1"],
         },
@@ -1464,7 +1483,7 @@ public sealed class PvadProjectArchiveTests
         Placeholder = "Enter a name",
         Required = true,
         SignatureLabel = "Approved by",
-        QrValue = "PXA-ROUNDTRIP",
+        QrValue = "PVAD-ROUNDTRIP",
         QrSize = 128,
         BarcodeValue = "1234567890",
         BarcodeType = "code128",
@@ -1577,7 +1596,7 @@ public sealed class PvadProjectArchiveTests
             Recognition = new ChartRecognitionDto
             {
                 Status = "review", Confidence = 0.82, SourceKind = "vector",
-                SourceAssetId = "chart-source", DiagnosticCode = "PXACHART001",
+                SourceAssetId = "chart-source", DiagnosticCode = "PVADCHART001",
             },
         },
         ChartType = "combo",
@@ -1627,7 +1646,7 @@ public sealed class PvadProjectArchiveTests
 
     private static SpreadsheetDto CompleteSpreadsheet() => new()
     {
-        Schema = "https://powerdoxautomation.com/schemas/pxa-workbook.schema.json",
+        Schema = "https://pvade.com/schemas/pvad-workbook.schema.json",
         SchemaVersion = SpreadsheetDto.CurrentSchemaVersion,
         Id = "complete-workbook",
         Name = "Complete workbook",
@@ -1669,7 +1688,7 @@ public sealed class PvadProjectArchiveTests
                 PageSetup = new PageSetupDto
                 {
                     Orientation = "landscape", PaperSize = "A4", PrintArea = "A1:D20",
-                    Header = "PXA", Footer = "Page &P", FitToWidth = 1, FitToHeight = 2,
+                    Header = "PVAD", Footer = "Page &P", FitToWidth = 1, FitToHeight = 2,
                     Scale = 90, Margins = new MarginsDto { Top = 10, Right = 11, Bottom = 12, Left = 13 },
                     RowPageBreaks = [20], ColPageBreaks = [4],
                 },

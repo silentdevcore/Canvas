@@ -1,5 +1,11 @@
 # PVAD Technical Rename Migration Notes
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 The technical source rename is complete on `develop`. This is an upgrade guide,
 not a released upgrade announcement or production cutover approval. The current
 product version remains 1.1.0; the next Major release must be prepared and reviewed
@@ -34,6 +40,29 @@ Preserve the existing mount, permissions and backup; do not delete, regenerate o
 blindly rename production keys. Validate recovery with the deployment owner before
 cutover. Local restart tests use isolated synthetic keyrings and do not approve
 access to real customer key material.
+
+## Protected Data Re-Protection (Hard Cut)
+
+The hard cut changes the Data Protection application discriminator from `{E}` to
+`PVAD`. Stored mail outbox payloads and cached revocation evidence that were
+protected before the cut stay unreadable until they are converted once. Before any
+background consumer starts, the WebApi refuses to activate while entries still need
+conversion (`conversion-required`) or cannot be read with the configured keyring
+(`mail-unreadable`, `revocation-cache-unreadable`). This keeps unreadable mail from
+being retried into Dead Letter.
+
+1. Stop mail delivery and every other WebApi instance that writes the database.
+2. Back up the database and the Data Protection keyring directory.
+3. Run the WebApi once with `--reprotect-protected-data --dry-run`. The JSON report
+   lists current, convertible and unreadable entries; the log names only entry IDs.
+4. If entries are unreadable, restore the missing key from the keyring backup and
+   repeat the dry run. The maintenance mode stays available while startup is refused.
+5. Run it once with `--reprotect-protected-data`. Each entry is verified after
+   re-protection; repeating the run converts nothing further. Exit code `2` means
+   entries are still unreadable.
+6. Start the WebApi normally. It starts only when every entry is readable canonically.
+
+Rollback: restore the database and keyring backups and start the previous release.
 
 ## Retained Files And Worker Paths
 

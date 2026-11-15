@@ -34,6 +34,19 @@ public static partial class PdfRichTextRenderer
         double baseFontSize,
         PdfColor baseColor,
         double? baseLineHeight = null)
+        => Render(page, html, x, firstBaselineY, maxWidth, baseFontSize, baseColor, baseLineHeight, fontFamily: null);
+
+    /// <summary>Renders rich text with an explicit base font family, retaining inline bold and italic styles.</summary>
+    public static double Render(
+        PdfPage page,
+        string html,
+        double x,
+        double firstBaselineY,
+        double maxWidth,
+        double baseFontSize,
+        PdfColor baseColor,
+        double? baseLineHeight,
+        PdfFontFamily? fontFamily)
     {
         var paragraphs = ParseHtml(html, baseFontSize, baseColor);
         var currentY = firstBaselineY;
@@ -46,7 +59,7 @@ public static partial class PdfRichTextRenderer
             var maxFontSize = para.Max(s => s.FontSize);
             var lineH = baseLineHeight ?? maxFontSize * 1.35;
 
-            var lines = WrapParagraph(para, maxWidth);
+            var lines = WrapParagraph(para, maxWidth, fontFamily);
 
             foreach (var line in lines)
             {
@@ -60,20 +73,21 @@ public static partial class PdfRichTextRenderer
                     // PdfPage.DrawText rejects whitespace-only text; advance cursor instead.
                     if (string.IsNullOrWhiteSpace(word))
                     {
-                        cx += SpanWidth(word, span.FontSize, span.Bold);
+                        cx += SpanWidth(word, span.FontSize, span.Bold, fontFamily);
                         continue;
                     }
 
                     page.DrawText(word, cx, currentY, new PdfDrawTextOptions
                     {
                         FontSize = span.FontSize,
+                        FontFamily = fontFamily,
                         Bold = span.Bold,
                         Italic = span.Italic,
                         Underline = span.Underline,
                         Strikethrough = span.Strikethrough,
                         FillColor = span.Color
                     });
-                    var wordWidth = SpanWidth(word, span.FontSize, span.Bold);
+                    var wordWidth = SpanWidth(word, span.FontSize, span.Bold, fontFamily);
                     if (span.Href is not null)
                     {
                         page.AddWebLink(
@@ -259,7 +273,7 @@ public static partial class PdfRichTextRenderer
     // ── Word-wrap ─────────────────────────────────────────────────────────────
 
     private static List<List<(SpanRun Span, string Word)>> WrapParagraph(
-        List<SpanRun> spans, double maxWidth)
+        List<SpanRun> spans, double maxWidth, PdfFontFamily? fontFamily)
     {
         var lines = new List<List<(SpanRun, string)>>();
         var currentLine = new List<(SpanRun, string)>();
@@ -274,7 +288,7 @@ public static partial class PdfRichTextRenderer
             {
                 if (string.IsNullOrEmpty(part)) continue;
 
-                var partW = SpanWidth(part, span.FontSize, span.Bold);
+                var partW = SpanWidth(part, span.FontSize, span.Bold, fontFamily);
 
                 // Line break when word exceeds limit — but never break on a leading space
                 if (lineWidth + partW > maxWidth && currentLine.Count > 0 && part.Trim().Length > 0)
@@ -287,7 +301,7 @@ public static partial class PdfRichTextRenderer
                     if (!string.IsNullOrEmpty(trimmed))
                     {
                         currentLine.Add((span, trimmed));
-                        lineWidth = SpanWidth(trimmed, span.FontSize, span.Bold);
+                        lineWidth = SpanWidth(trimmed, span.FontSize, span.Bold, fontFamily);
                     }
                 }
                 else
@@ -307,10 +321,10 @@ public static partial class PdfRichTextRenderer
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>Approximate width of text — mirrors the PDF engine's internal estimator.</summary>
-    private static double SpanWidth(string text, double fontSize, bool bold)
+    private static double SpanWidth(string text, double fontSize, bool bold, PdfFontFamily? fontFamily)
     {
-        // Helvetica: 0.52 avg char width factor; bold slightly wider
-        var factor = bold ? 0.57 : 0.52;
+        // Courier keeps fixed pitch across styles; other families retain the legacy estimator.
+        var factor = fontFamily == PdfFontFamily.Courier ? 0.6 : bold ? 0.57 : 0.52;
         return text.Length * fontSize * factor;
     }
 

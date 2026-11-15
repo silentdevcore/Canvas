@@ -61,7 +61,7 @@ internal static class PdfShadowObjectAnalyzer
             {
                 reported++;
                 diagnostics.Add(new PdfTrustDiagnostic(
-                    "PXAPDFTRUST150",
+                    "PVADPDFTRUST150",
                     PdfTrustDiagnosticSeverity.Error,
                     $"Object {id.Number} {id.Generation} R is defined at offset {offset}, which no cross-reference revision references.",
                     id.Number,
@@ -72,7 +72,7 @@ internal static class PdfShadowObjectAnalyzer
         if (duplicates > reported)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST151",
+                "PVADPDFTRUST151",
                 PdfTrustDiagnosticSeverity.Error,
                 $"{duplicates} object definitions are not referenced by any cross-reference revision."));
         }

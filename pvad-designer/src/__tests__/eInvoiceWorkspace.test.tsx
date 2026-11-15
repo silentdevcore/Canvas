@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 /**
- * EINV-05: the Electronic Invoice workspace in PXA Designer.
+ * EINV-05: the Electronic Invoice workspace in PVADE Designer.
  *
  * The page is mounted for real - store, autosave hook, projection and all - so what these tests
  * assert is the behaviour a user gets, not a mock of it. Only the network and the auth/feature
@@ -381,11 +381,11 @@ describe('diagnostics and validation states', () => {
     await click(testId('einvoice-empty').querySelector('button'));
 
     const diagnostics = testId('einvoice-diagnostics');
-    expect(diagnostics.querySelector('[data-code="PXAEINV100"]')).toBeTruthy();
+    expect(diagnostics.querySelector('[data-code="PVADEINV100"]')).toBeTruthy();
     expect(diagnostics.textContent).toContain('PVADEINV100');
     expect(diagnostics.textContent).not.toContain('PXAEINV100');
 
-    const invoiceNumberFinding = diagnostics.querySelector('[data-code="PXAEINV100"]');
+    const invoiceNumberFinding = diagnostics.querySelector('[data-code="PVADEINV100"]');
     await click(invoiceNumberFinding!.querySelector('button'));
     await flush();
 
@@ -708,7 +708,7 @@ describe('generation, download and viewer handoff', () => {
         isConformanceValidated: false,
         syntax: 'CII',
         guidelineIdentifier: 'urn:factur-x.eu:1p0:en16931',
-        diagnostics: [{ code: 'PXAEINV000', severity: 'information', message: 'Recognised.' }],
+        diagnostics: [{ code: 'PVADEINV000', severity: 'information', message: 'Recognised.' }],
         conformanceStatus: 'notEvaluated',
         validatorArtifactSetId: null,
         validatorArtifactSetSha256: null,
@@ -814,7 +814,7 @@ describe('generation, download and viewer handoff', () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 422,
-      json: async () => ({ title: 'Rejected', detail: 'Too many lines', code: 'PXAEINVAPI011' }),
+      json: async () => ({ title: 'Rejected', detail: 'Too many lines', code: 'PVADEINVAPI011' }),
     } as unknown as Response);
     await render();
     await fillValidInvoice();

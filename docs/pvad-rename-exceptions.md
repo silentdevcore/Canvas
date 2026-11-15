@@ -1,5 +1,43 @@
 # PVAD Rename Classification And Historical Exceptions
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
+## Scoped Retention Corrections - 2026-11-08
+
+The [closeout audit](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#repository-closeout-audit---2026-11-08)
+corrects two prior broad explanations. Author/description in the editable
+comprehensive RDL fixture are current synthetic metadata, not a legacy reader
+contract. The local Alertmanager mail probe's synthetic runbook marker is not
+an installed production runbook ID. Both are normalized with regression checks.
+The exact dashboard link, established operational IDs, original vendor templates,
+all prior review notes and signed/hash-pinned evidence remain unchanged. These
+corrections do not authorize blanket changes to either source directory.
+
+## Public Catalog Wrapper Review - 2026-11-08
+
+The [public website review](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md#public-websites-output-review---2026-11-08)
+narrows the earlier retention decision for the positive and negative PAdES HTML
+catalog wrappers: current titles, headings and introductory prose use PVADE or
+neutral descriptions. Download links, classifications and underlying evidence
+remain exact. These navigational wrappers are not signed or hash-pinned by the
+corpus manifests. Original wrapper text remains in Git; PDFs, certificates,
+revocation evidence, validator reports and manifest provenance are not edited.
+This clarification supersedes only the wrapper-presentation wording below,
+not the original evidence or compatibility boundaries.
+
+## Grafana Default Selection - 2026-11-06
+
+Fresh local installations now use canonical PVAD provider/folder names. The
+original provider is retained only for explicitly selected compatibility and
+existing bind mounts; it is not the new-installation default. Shared datasource
+and dashboard UIDs, installed folder permissions and original evidence remain
+unchanged. See the [profile selection and focused verification](pvad-grafana-provider-cutover.md)
+before interpreting the older operational-binding decisions below.
+
 ## Current Source Corrections - 2026-11-05
 
 The [remaining code checklist](../checklists/PVAD.Remaining-Code-Naming-Cleanup.md)

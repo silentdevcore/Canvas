@@ -14,7 +14,7 @@ internal static class PvadCanonicalJson
     public static byte[] Serialize<T>(T value)
     {
         var node = JsonSerializer.SerializeToNode(value, SerializerOptions)
-            ?? throw new PvadProjectFormatException("PXAPROJECT009", "The project JSON could not be serialized.");
+            ?? throw new PvadProjectFormatException("PVADPROJECT009", "The project JSON could not be serialized.");
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = false });
         WriteNode(writer, node);
@@ -33,7 +33,7 @@ internal static class PvadCanonicalJson
         }
         catch (JsonException)
         {
-            throw new PvadProjectFormatException("PXAPROJECT009", "The project contains invalid or unsupported JSON.");
+            throw new PvadProjectFormatException("PVADPROJECT009", "The project contains invalid or unsupported JSON.");
         }
     }
 

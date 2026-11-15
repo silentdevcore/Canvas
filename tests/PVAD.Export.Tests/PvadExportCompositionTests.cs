@@ -64,8 +64,8 @@ public sealed class PvadExportCompositionTests
 
     private static DesignExportDto CreateDesign() => new()
     {
-        Id = "pxa-export",
-        Name = "PXA Export",
+        Id = "pvad-export",
+        Name = "PVAD Export",
         Pages =
         [
             new PageDto
@@ -81,7 +81,7 @@ public sealed class PvadExportCompositionTests
                         Y = 24,
                         Width = 160,
                         Height = 32,
-                        Content = "Power Dox Automation",
+                        Content = "PVADE",
                     },
                     new ElementDto
                     {
@@ -94,7 +94,7 @@ public sealed class PvadExportCompositionTests
                         Name = "Data",
                         CellData =
                         [
-                            ["Product", "PXA"],
+                            ["Product", "PVADE"],
                             ["Status", "Active"],
                         ],
                     },

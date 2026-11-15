@@ -9,9 +9,9 @@ public sealed class PvadSystemOperatorAccessTests
     [Fact]
     public void Explicit_operator_allowlist_is_case_insensitive_and_deny_by_default()
     {
-        var access = CreateAccess(true, "operator@powerdoxautomation.com");
+        var access = CreateAccess(true, "operator@pvad.example.test");
 
-        Assert.True(access.IsAuthorized(CreateUser("OPERATOR@powerdoxautomation.com")));
+        Assert.True(access.IsAuthorized(CreateUser("OPERATOR@pvad.example.test")));
         Assert.False(access.IsAuthorized(CreateUser("administrator@customer.test")));
         Assert.False(access.IsAuthorized(CreateUser(null)));
     }

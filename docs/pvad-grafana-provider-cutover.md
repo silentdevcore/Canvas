@@ -1,38 +1,47 @@
-# Grafana Provider Rename Preparation
+# Grafana Provider And Backup Rehearsal
 
-The installed dashboard provider and folder retain their historical identities.
-This is a persisted placement and authorization boundary, not just a display label.
-Datasource display labels already use PVAD; dashboard and datasource UIDs remain
-stable. This preparation does not migrate a running Grafana installation.
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays were retired. Since 2026-11-11 the former provider profile, its
+> offline rename candidate and the folder-rename cutover rehearsal are removed as well
+> (owner decision C on review finding R5). Earlier reports under `artifacts/rename/`
+> remain historical evidence. See the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist.
 
-## Offline Candidate
+Every installation uses the PVAD provider and folder from
+`deploy/observability/grafana/profiles/current/dashboards.yml`. Compose mounts this
+file separately from the shared datasource directory. There is no second provider
+generation and no migration of folder placement or permissions. Dashboard and
+datasource UIDs stay stable.
+
+## Offline Inventory
 
 ```bash
-node tools/configuration/rename-grafana-provider.mjs
-node --test tools/configuration/rename-grafana-provider.test.mjs
+node tools/configuration/grafana-inventory.mjs
+node --test tools/configuration/grafana-inventory.test.mjs
 ```
 
-The generator writes only ignored files under
-`artifacts/rename/grafana-provider/`:
+The provider must match the reviewed current profile exactly. A different
+organization, provider name, folder, explicit folder UID, provisioning policy or
+any additional provider fails closed. Validation never edits the file, and
+validating it again gives the same result.
 
-- `dashboards.candidate.yml`: provider and folder labels changed to PVAD.
-- `dashboards.original.yml`: exact original provisioning bytes.
-- `report.json`: source checksum, preserved boundaries and outstanding gates.
-- `inventory.json`: dashboard/datasource identities, cross-references, alert
-  dashboard and runbook references, and exact checksums for the 17 current
-  provisioning, dashboard, rule and operator-integration sources.
+The CLI writes only ignored files under `artifacts/grafana-inventory/`:
 
-The report pins the inventory and candidate bytes with separate SHA-256 values.
-Preparation fails if the provisioning source changes during generation. The
-inventory is deterministic for the same source bytes and exports only selected
+- `report.json`: provider path and SHA-256, plus the inventory SHA-256.
+- `inventory.json`: dashboard and datasource identities, cross-references, alert
+  dashboard and runbook references, and exact checksums of the provider and the
+  shared provisioning, dashboard, rule and operator-integration sources.
+
+The inventory is deterministic for the same source bytes. It exports only selected
 metadata, not datasource connection settings, credential fields or queries.
+Preparation fails if the provider changes during generation.
 
 The source checks reject duplicate identities, unresolved nested datasource
 references, alert links to unknown dashboards, active datasource deletion and
-datasources outside the expected organization. Unknown provisioning policies
-still require explicit review. Variable-based or built-in datasource references,
-recording rules and additional organizations are not supported by this bounded
-inventory; do not weaken validation to activate an unreviewed configuration.
+datasources outside the expected organization. Variable-based or built-in
+datasource references, recording rules and additional organizations are not
+supported by this bounded inventory. Do not weaken validation to activate an
+unreviewed configuration.
 
 The current inventory covers five dashboards, three datasources and 37 alerts.
 All 34 existing dashboard links resolve and their runbook identifiers are retained.
@@ -42,54 +51,15 @@ This reference check does not evaluate PromQL/LogQL or validate runbook contents
 Use the separate [monitoring validation](pvad-monitoring-identity-migration.md#offline-validation)
 for metric/rule semantics.
 
-The active provisioning, Compose mounts, datasource configuration, dashboards,
-database and volumes are untouched. Source drift, extra providers, explicit folder
-UIDs or changed provisioning policies require manual review. There is no apply
-command. The report always records `deploymentAuthorized: false`.
-The inventory separately records `liveStateInspected: false`: source identities
-and checksums are not an inventory of installed folders, users or permissions.
+There is no apply command. The report always records `deploymentAuthorized: false`,
+and the inventory records `liveStateInspected: false`: source identities and
+checksums are not an inventory of installed folders, users or permissions.
 
-## Before Activation
-
-1. Identify the Grafana instance, organization and storage backend. Inventory
-   dashboards by UID, current folder UID, folder permissions, direct dashboard
-   permissions, teams, service accounts and saved links. Use metadata only; do not
-   export credentials into the repository.
-2. Stop concurrent writers and capture an approved, consistent Grafana database
-   backup plus provisioning and plugin configuration. Demonstrate restoration in
-   an isolated instance. A provisioning file is not a database backup.
-3. Decide explicitly whether to rename an existing folder in place or move
-   dashboards into a new folder. The generated candidate alone does neither
-   safely: folder names do not prove folder identity or equivalent permissions.
-   Resolve any existing PVAD folder collision before proceeding.
-4. In staging, test the chosen placement strategy with the pinned Grafana image.
-   Check provisioning logs, duplicate or stale dashboards, UIDs, saved links,
-   datasource queries, operator access and denied non-operator access. Compare
-   effective permissions before and after; do not inherit broader access.
-5. Record operator approval and a rollback window before changing the active
-   source or mounting a candidate. Do not run competing provisioning generations
-   against the same database.
-6. Rehearse rollback of both provisioning and persisted state. Merely restoring
-   the original YAML does not restore moved dashboards or folder permissions;
-   `disableDeletion` is not a rollback mechanism. Verify access and dashboard
-   inventory again after restoration.
-
-Regenerate the candidate immediately before an approved rehearsal and compare
-its recorded source checksums with the reviewed files. A changed hash requires
-review and regeneration; passing a source inventory does not waive any step
-above. Do not store live database dumps, credentials or operator identities in
-the generated source inventory. Keep backups in the protected operator store.
-
-The offline tests do not establish live cutover, permission migration, restore
-or production approval. The isolated rehearsal below tests a narrower synthetic
-case, not installed customer state. The local development owner remains
-responsible for approving and exercising deployment-specific steps.
-
-## Isolated SQLite Rehearsal
+## Isolated SQLite Backup Rehearsal
 
 ```bash
-node --test tools/configuration/grafana-cutover-smoke.test.mjs
-node tools/configuration/grafana-cutover-smoke.mjs
+node --test tools/configuration/grafana-backup-smoke.test.mjs
+node tools/configuration/grafana-backup-smoke.mjs
 ```
 
 The runner requires the Compose-selected Grafana image to be cached locally and
@@ -100,30 +70,30 @@ managed dashboard definitions. Existing provisioning, databases and volumes are
 never mounted. Temporary credentials travel through environment/stdin, not the
 command line or result report.
 
-The rehearsal creates two synthetic Viewer accounts and grants only one explicit
+The rehearsal provisions the validated current provider and checks the PVAD
+folder. It creates two synthetic Viewer accounts and grants only one explicit
 folder access. It checks all dashboard reads for allow/deny behavior, folder ACLs,
-datasource IDs and dashboard content. It rejects a target-folder collision,
-stops the writer, archives the full SQLite data directory and verifies its hash.
-A deliberately damaged archive must fail integrity validation before extraction.
+datasource IDs and dashboard content.
 
-The chosen lab strategy renames the original folder in place, then restarts with
-the canonical provider candidate pinned to the captured folder UID. This extra
-UID pin exists only in temporary lab configuration: it is not silently added to
-the offline candidate or active provisioning. The runner checks that no duplicate
-folder remains and that content, UID and tested permissions are unchanged.
+It stops the writer, archives the full SQLite data directory and verifies its
+hash. A deliberately damaged archive must fail integrity validation before
+extraction. A restart with the unchanged provider must keep folder identity,
+content and permissions. A post-backup annotation is then written.
 
-Restoration uses another synthetic volume and the original provisioning. The
-restored folder, ACLs, dashboards and datasources must equal the pre-cutover
-snapshot. A post-backup annotation must be absent after restore: this explicitly
-tests point-in-time recovery, not automatic preservation of later writes.
+Restoration uses another synthetic volume. The restored folder, ACLs, dashboards
+and datasources must equal the pre-backup snapshot. The post-backup annotation
+must be absent: this tests point-in-time recovery, not automatic preservation of
+later writes. A separate fresh volume must then contain exactly one PVAD folder,
+the same five dashboard and three datasource identities, and reject invalid
+authentication.
 
-The result is written to `artifacts/rename/grafana-rehearsal/report.json` with
-the image ID, source-inventory hash, backup hash, matching baseline/restore
-hashes, scope limits and ownership-checked cleanup result. A new run first marks
-the result as running and records failure if it fails; an older passing report
-is not presented as the latest result. Synthetic backup volumes and temporary
-configuration are removed after the run, so the report is evidence of a drill,
-not a retained operational backup.
+The result is written to `artifacts/grafana-backup-rehearsal/report.json`. It
+contains the image ID, source-inventory hash, provider hash, backup hash, matching
+baseline/restore hashes, fresh-install checks, scope limits and the
+ownership-checked cleanup result. A new run first marks the result as running and
+records failure if it fails. Synthetic backup volumes and temporary configuration
+are removed after the run, so the report is evidence of a drill, not a retained
+operational backup.
 
 Handled failures also attempt ownership-checked cleanup. Forced process or
 Docker-daemon termination can still leave labeled synthetic resources; inspect
@@ -224,7 +194,8 @@ login uses the real form, CSRF validator, Identity password checker and persiste
 sessions. No API or authorization responses are mocked. Inherited application
 credentials and configuration are excluded from child-process environments.
 
-Grafana uses the repository's actual provisioning and dashboard definitions.
+Standalone and integrated execution both use the current provider and shared
+datasource definitions. Grafana uses the repository's actual dashboard definitions.
 Its proxy allowlist contains only the gateway address in the newly allocated
 private subnet. Auth proxy, disabled Basic/anonymous login and disabled Grafana
 login tokens follow the Compose policy. Gateway, datasource, dashboard, folder

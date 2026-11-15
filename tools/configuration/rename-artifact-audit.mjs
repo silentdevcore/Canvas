@@ -17,14 +17,21 @@ export function inspectArtifact(path, bytes) {
     review: 'required', ...(path.includes('AdminDocumentation/') ? { visibility: 'protected-admin' } : {}) };
 }
 
+export function findFormerShortNameMatches(source) {
+  return [...source.matchAll(/pxa/gi)].map(match => ({ offset: match.index, token: match[0] }));
+}
+
 export function inspectOldNames(path, source) {
   const findings = [];
   for (const [index, line] of source.split('\n').entries()) {
-    const tokens = [...new Set([...line.matchAll(/PXA[\w.-]*|Pxa[\w.]*|pxa[\w.-]*|PowerDox[\w.]*|Canvas[\w.]*|canvas[\w.-]*/g)].map(match => match[0]))];
+    const tokens = [...new Set([
+      ...findFormerShortNameMatches(line).map(match => match.token),
+      ...[...line.matchAll(/PowerDox[\w.]*|Canvas[\w.]*|canvas[\w.-]*/g)].map(match => match[0]),
+    ])];
     if (!tokens.length) continue;
     // Never copy source lines: they may contain customer data, credentials or URLs.
     findings.push({ path, line: index + 1, lineHash: sha256(line), tokens: tokens.map(token =>
-      /^(?:PXA|Pxa|pxa|PowerDox)/.test(token) ? token.slice(0, 3) : token.startsWith('Canvas') ? 'Canvas' : 'canvas'),
+      /^(?:pxa|powerdox)/i.test(token) ? token.slice(0, 3) : token.startsWith('Canvas') ? 'Canvas' : 'canvas'),
     classification: 'review-required' });
   }
   return findings;

@@ -63,14 +63,14 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             var application = await manager.FindByClientIdAsync(dynamicClientId!);
             Assert.NotNull(application);
             var permissions = await manager.GetPermissionsAsync(application!);
-            Assert.Contains("scp:pxa.docs.read", permissions);
+            Assert.Contains("scp:pvad.docs.read", permissions);
             Assert.Contains("scp:pvad.docs.read", permissions);
             Assert.DoesNotContain("scp:pvad.templates.write", permissions);
         }
         var advertisedScopes = discovery.GetProperty("scopes_supported").EnumerateArray()
             .Select(value => value.GetString()).ToArray();
         Assert.Contains("pvad.docs.read", advertisedScopes);
-        Assert.Contains("pxa.docs.read", advertisedScopes);
+        Assert.Contains("pvad.docs.read", advertisedScopes);
 
         var unsafeRegistration = await client.PostAsJsonAsync("/connect/register", new
         {
@@ -89,7 +89,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             ["client_id"] = dynamicClientId!,
             ["redirect_uri"] = "http://127.0.0.1:45678/oauth/callback",
             ["response_type"] = "code",
-            ["scope"] = "pxa.docs.read",
+            ["scope"] = "pvad.docs.read",
             ["code_challenge"] = challenge,
             ["code_challenge_method"] = "S256",
             ["state"] = "oauth-test-state",
@@ -100,25 +100,17 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             "http://localhost:5178/login?returnUrl=",
             authorizeResponse.Headers.Location?.ToString(),
             StringComparison.Ordinal);
-        var canonicalAuthorizeResponse = await client.GetAsync(authorizePath.Replace("pxa.docs.read", "pvad.docs.read"));
-        Assert.Equal(HttpStatusCode.Redirect, canonicalAuthorizeResponse.StatusCode);
-        Assert.StartsWith("http://localhost:5178/login?returnUrl=", canonicalAuthorizeResponse.Headers.Location?.ToString());
-
-        var missingPkce = await client.GetAsync(
-            authorizePath.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
-                .Replace("&code_challenge_method=S256", string.Empty));
-        Assert.Equal(HttpStatusCode.BadRequest, missingPkce.StatusCode);
+        foreach (var path in new[] { authorizePath })
+        {
+            var missingPkce = await client.GetAsync(
+                path.Replace($"&code_challenge={Uri.EscapeDataString(challenge)}", string.Empty)
+                    .Replace("&code_challenge_method=S256", string.Empty));
+            Assert.Equal(HttpStatusCode.BadRequest, missingPkce.StatusCode);
+        }
     }
 
     [PostgreSqlFact]
-    public Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once() =>
-        ExerciseServiceAccountLifecycleAsync(legacyClient: false);
-
-    [PostgreSqlFact]
-    public Task Retained_legacy_service_account_can_exchange_both_scope_generations_and_be_revoked() =>
-        ExerciseServiceAccountLifecycleAsync(legacyClient: true);
-
-    private static async Task ExerciseServiceAccountLifecycleAsync(bool legacyClient)
+    public async Task Service_account_and_key_lifecycle_reveals_the_secret_exactly_once()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
@@ -147,38 +139,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var oauthClientId = key.GetProperty("oAuthClientId").GetString();
         Assert.Equal($"pvad-sa-{keyId:N}", oauthClientId);
 
-        if (legacyClient)
-        {
-            // Seed the pre-rename registration before issuing any tokens.
-            await using var legacyScope = factory.Services.CreateAsyncScope();
-            var manager = legacyScope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-            var legacyDb = legacyScope.ServiceProvider.GetRequiredService<PvadDbContext>();
-            var application = (OpenIddictEntityFrameworkCoreApplication)(await manager.FindByClientIdAsync(oauthClientId!))!;
-            oauthClientId = PvadOAuthClients.LegacyForApiKey(keyId);
-            application.ClientId = oauthClientId;
-            await manager.UpdateAsync(application);
-            (await legacyDb.ApiKeys.SingleAsync(value => value.Id == keyId)).OAuthClientId = oauthClientId;
-            await legacyDb.SaveChangesAsync();
-        }
-
         using var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
-        {
-            Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = oauthClientId!,
-                ["client_secret"] = secret!,
-                ["scope"] = "pxa.docs.read pxa.templates.read",
-            }),
-        };
-        var tokenResponse = await client.SendAsync(tokenRequest);
-        Assert.Equal(HttpStatusCode.OK, tokenResponse.StatusCode);
-        var token = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("Bearer", token.GetProperty("token_type").GetString(), ignoreCase: true);
-        var accessToken = token.GetProperty("access_token").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(accessToken));
-
-        using var canonicalTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -188,10 +149,24 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
                 ["scope"] = "pvad.docs.read pvad.templates.read",
             }),
         };
-        var canonicalTokenResponse = await client.SendAsync(canonicalTokenRequest);
-        Assert.Equal(HttpStatusCode.OK, canonicalTokenResponse.StatusCode);
-        var canonicalToken = await canonicalTokenResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.False(string.IsNullOrWhiteSpace(canonicalToken.GetProperty("access_token").GetString()));
+        var tokenResponse = await client.SendAsync(tokenRequest);
+        Assert.Equal(HttpStatusCode.OK, tokenResponse.StatusCode);
+        var token = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Bearer", token.GetProperty("token_type").GetString(), ignoreCase: true);
+        var accessToken = token.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        using var formerScopeRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "client_credentials",
+                ["client_id"] = oauthClientId!,
+                ["client_secret"] = secret!,
+                ["scope"] = "pxa.docs.read pxa.templates.read",
+            }),
+        };
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.SendAsync(formerScopeRequest)).StatusCode);
 
         using var forbiddenScopeRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
         {
@@ -230,7 +205,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             HttpMethod.Get, "/api/pvad/v1/mcp/templates");
         templateRequest.Headers.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "PXA-MCP",
+                "PVAD-MCP",
                 CreateMcpDelegation(accountId, organizationId));
         var templateResponse = await client.SendAsync(templateRequest);
         Assert.Equal(HttpStatusCode.OK, templateResponse.StatusCode);
@@ -242,7 +217,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             HttpMethod.Get, $"/api/pvad/v1/mcp/templates/{foreignTemplate.Id}");
         foreignTemplateRequest.Headers.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "PXA-MCP",
+                "PVAD-MCP",
                 CreateMcpDelegation(accountId, organizationId));
         Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(foreignTemplateRequest)).StatusCode);
 
@@ -261,17 +236,20 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             await GetCsrfAsync(client), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeKey)).StatusCode);
 
-        using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
+        foreach (var requestedScope in new[] { "pvad.docs.read", "pvad.docs.read" })
         {
-            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            using var revokedTokenRequest = new HttpRequestMessage(HttpMethod.Post, "/connect/token")
             {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = oauthClientId!,
-                ["client_secret"] = secret!,
-                ["scope"] = "pxa.docs.read",
-            }),
-        };
-        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(revokedTokenRequest)).StatusCode);
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "client_credentials",
+                    ["client_id"] = oauthClientId!,
+                    ["client_secret"] = secret!,
+                    ["scope"] = requestedScope,
+                }),
+            };
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(revokedTokenRequest)).StatusCode);
+        }
 
         using var revokeAccount = CreateCsrfRequest(
             HttpMethod.Post, $"/api/pvad/v1/account/service-accounts/{accountId}/revoke",
@@ -408,10 +386,10 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
             builder.ConfigureAppConfiguration((_, configuration) =>
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
-                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pvade.test",
                     ["OAuth:McpDelegationSecret"] = "test-delegation-secret-at-least-32-bytes",
                 }));
             builder.ConfigureServices(services =>
@@ -463,7 +441,7 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
     private static HttpRequestMessage CreateCsrfRequest(HttpMethod method, string path, string token, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", token);
+        request.Headers.Add("X-PVAD-CSRF", token);
         return request;
     }
 
@@ -473,11 +451,11 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var payload = JsonSerializer.SerializeToUtf8Bytes(new
         {
-            iss = "pxa-mcp-server",
-            aud = "pxa-api",
+            iss = "pvad-mcp-server",
+            aud = "pvad-api",
             sub = subjectId.ToString(),
             org = organizationId.ToString(),
-            scope = new[] { "pxa.templates.read" },
+            scope = new[] { "pvad.templates.read" },
             iat = now,
             exp = now + 30,
             jti = Guid.NewGuid().ToString(),

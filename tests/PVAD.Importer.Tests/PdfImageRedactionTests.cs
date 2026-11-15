@@ -196,7 +196,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("do not match", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("do not match", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("components", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("components", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("standalone file header", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("standalone file header", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("multiple page-information", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("multiple page-information", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("symbol dictionary", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("symbol dictionary", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public sealed class PdfImageRedactionTests
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
         Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding =>
-            finding.Code == "PXAPDFREDACT204" && finding.Message.Contains("pattern dictionary", StringComparison.Ordinal));
+            finding.Code == "PVADPDFREDACT204" && finding.Message.Contains("pattern dictionary", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -514,7 +514,7 @@ public sealed class PdfImageRedactionTests
             [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
-        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding => finding.Code == "PXAPDFREDACT204");
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding => finding.Code == "PVADPDFREDACT204");
     }
 
     [Fact]
@@ -528,7 +528,7 @@ public sealed class PdfImageRedactionTests
             [new PdfRedactionRegion(1, new PdfRectangle(50, 50, 100, 200))]);
 
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
-        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding => finding.Code == "PXAPDFREDACT209");
+        Assert.Contains(report.Regions.SelectMany(region => region.Findings), finding => finding.Code == "PVADPDFREDACT209");
     }
 
     [Theory]
@@ -551,13 +551,12 @@ public sealed class PdfImageRedactionTests
                 findings
             ]);
 
-        Assert.Contains(findings, finding => finding.Code == "PXAPDFREDACT304");
+        Assert.Contains(findings, finding => finding.Code == "PVADPDFREDACT304");
     }
 
     [Theory]
     [InlineData("PVADRedacted")]
-    [InlineData("PXARedacted")]
-    public async Task Verification_accepts_zeroed_pixels_in_both_marker_generations(string marker)
+    public async Task Verification_accepts_zeroed_pixels_with_the_current_marker(string marker)
     {
         var samples = Samples.ToArray();
         Array.Clear(samples, 0, 6);
@@ -572,12 +571,12 @@ public sealed class PdfImageRedactionTests
     }
 
     [Fact]
-    public async Task Repeated_redaction_replaces_the_legacy_marker_without_restoring_pixels()
+    public async Task Repeated_redaction_keeps_one_current_marker_without_restoring_pixels()
     {
         var samples = Samples.ToArray();
         Array.Clear(samples, 0, 6);
         Array.Clear(samples, 12, 6);
-        var source = CreateImagePdf(samples, redactionMarker: "PXARedacted");
+        var source = CreateImagePdf(samples, redactionMarker: "PVADRedacted");
 
         var result = await ApplyAsync(source, new PdfRectangle(150, 50, 100, 200));
 

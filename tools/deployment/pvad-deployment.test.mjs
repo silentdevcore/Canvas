@@ -106,7 +106,7 @@ test('verifies an immutable stable release and every required artifact digest', 
   assert.ok(release.assets.every(asset => asset.name.startsWith('pvad-')));
 });
 
-test('historical releases retain their complete PXA artifact set without mixed-name fallback', () => {
+test('historical releases retain their complete original artifact set without mixed-name fallback', () => {
   const args = {
     version, repositoryVersion: version,
     releaseManifest: { releases: [{ version, channel: 'stable' }] },
@@ -124,14 +124,6 @@ test('historical releases retain their complete PXA artifact set without mixed-n
     [...canonical, canonical[0]],
   ]) assert.throws(() => verifyReleaseContract({ ...args, releaseMetadata: releaseMetadata({ assets }) }),
     /mixed|ambiguous|duplicate/);
-});
-
-test('old command delegates to canonical validation without changing versions or deploying', () => {
-  for (const name of ['pvad', 'pxa']) {
-    const output = execFileSync(process.execPath, [new URL(`./${name}-deployment.mjs`, import.meta.url).pathname,
-      'request', '--version', version, '--environment', 'staging', '--operation', 'deploy'], { encoding: 'utf8' });
-    assert.match(output, /Validated deploy request for PVAD 1\.1\.0 in staging/);
-  }
 });
 
 test('release archives and new container producers use canonical names without changing historical readers', async () => {

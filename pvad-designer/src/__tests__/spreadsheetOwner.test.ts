@@ -5,7 +5,7 @@ beforeEach(() => localStorage.clear());
 afterEach(async () => { await configureSpreadsheetOwner(null, null); });
 
 test('isolates drafts by user and organization and restores the matching owner', async () => {
-  localStorage.setItem('pxa-spreadsheet', '{"state":{"name":"Unassigned"}}');
+  localStorage.setItem('pvad-spreadsheet', '{"state":{"name":"Unassigned"}}');
   await configureSpreadsheetOwner('a', 'one');
   expect(useSpreadsheetStore.getState().name).toBe('Workbook');
   useSpreadsheetStore.setState({ name: 'A one' });
@@ -18,7 +18,7 @@ test('isolates drafts by user and organization and restores the matching owner',
   expect(useSpreadsheetStore.getState().name).toBe('A one');
   await configureSpreadsheetOwner('a', 'two');
   expect(useSpreadsheetStore.getState().name).toBe('A two');
-  expect(localStorage.getItem('pxa-spreadsheet')).toContain('Unassigned');
+  expect(localStorage.getItem('pvad-spreadsheet')).toContain('Unassigned');
 });
 
 test('no owner means no persistence and no prior workbook content in memory', async () => {

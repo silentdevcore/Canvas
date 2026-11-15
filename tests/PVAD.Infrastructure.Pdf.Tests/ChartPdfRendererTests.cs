@@ -18,9 +18,9 @@ public sealed class ChartPdfRendererTests
     [InlineData(PvadChartTypes.Combo)]
     public void Render_UsesVectorOutput_ForCoreChartTypes(string chartType)
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(595, 842);
         var element = CreateChart(chartType);
 
@@ -37,9 +37,9 @@ public sealed class ChartPdfRendererTests
     [Fact]
     public void Render_ProducesDiagnosedEmptyState_WithoutDemoData()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(595, 842);
         var element = new ElementDto
         {
@@ -52,16 +52,16 @@ public sealed class ChartPdfRendererTests
         var pdf = Encoding.Latin1.GetString(document.ToBytes());
 
         Assert.Equal(ChartRenderMode.Empty, result.Mode);
-        Assert.StartsWith("PXACHART001", result.Diagnostic, StringComparison.Ordinal);
+        Assert.StartsWith("PVADCHART001", result.Diagnostic, StringComparison.Ordinal);
         Assert.Contains("No chart data", pdf, StringComparison.Ordinal);
     }
 
     [Fact]
     public void Render_FormatsDataLabelsWithChartLocale()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(595, 842);
         var element = CreateChart(PvadChartTypes.Bar);
         element.Chart!.Locale = "de-DE";
@@ -76,9 +76,9 @@ public sealed class ChartPdfRendererTests
     [Fact]
     public void Render_MaximumSupportedPointCount_RemainsBounded()
     {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(595, 842);
         var element = new ElementDto
         {

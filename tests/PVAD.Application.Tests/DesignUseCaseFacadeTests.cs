@@ -20,7 +20,7 @@ public sealed class DesignUseCaseFacadeTests
         Assert.Equal("Copy", clone.Name);
         Assert.NotEqual(design.Id, clone.Id);
         Assert.NotEqual(design.Pages[0].Elements[0].Id, clone.Pages[0].Elements[0].Id);
-        Assert.Equal("Hello PXA", clone.Pages[0].Elements[0].Content);
+        Assert.Equal("Hello PVAD", clone.Pages[0].Elements[0].Content);
     }
 
     [Fact]
@@ -49,13 +49,13 @@ public sealed class DesignUseCaseFacadeTests
         var result = new FindAndReplaceUseCase().Execute(new FindAndReplaceRequest
         {
             Design = design,
-            Find = "PXA",
-            Replace = "Power Dox Automation",
+            Find = "PVAD",
+            Replace = "PVADE",
         });
 
         Assert.IsType<DesignExportDto>(result.Design);
         Assert.Equal(1, result.ReplacementCount);
-        Assert.Equal("Hello Power Dox Automation", result.Design.Pages[0].Elements[0].Content);
+        Assert.Equal("Hello PVADE", result.Design.Pages[0].Elements[0].Content);
         Assert.Contains("text-1", result.AffectedElementIds);
     }
 
@@ -74,7 +74,7 @@ public sealed class DesignUseCaseFacadeTests
                     {
                         Id = "text-1",
                         Type = "text",
-                        Content = "Hello PXA",
+                        Content = "Hello PVAD",
                         Width = 100,
                         Height = 20,
                     }

@@ -168,7 +168,7 @@
   "rejections": [
     {
       "kind": "internal-ticket",
-      "summary": "Resolved internal ticket PXA-431 before publication.",
+      "summary": "Resolved internal ticket PVAD-431 before publication.",
       "errorPattern": "internal ticket reference"
     },
     {

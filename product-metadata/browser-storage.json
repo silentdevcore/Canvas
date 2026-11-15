@@ -8,8 +8,7 @@
       "id": "public.storage-notice",
       "mechanism": "cookie",
       "keys": [
-        "PVAD.StorageNotice",
-        "PXA.StorageNotice"
+        "PVAD.StorageNotice"
       ],
       "applications": [
         "account",
@@ -33,9 +32,7 @@
       "mechanism": "cookie",
       "keys": [
         "__Host-PVAD.Session",
-        "PVAD.Session.Development",
-        "__Host-PXA.Session",
-        "PXA.Session.Development"
+        "PVAD.Session.Development"
       ],
       "applications": [
         "account",
@@ -43,7 +40,7 @@
       ],
       "owner": "PVAD Identity",
       "category": "strictly-necessary",
-      "purpose": "Authenticates the current Account or Admin browser session. Canonical PVAD cookies replace previous-generation cookies through validated migration; legacy reads remain supported.",
+      "purpose": "Authenticates the current Account or Admin browser session.",
       "data": "Protected authentication ticket; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "8 hours with sliding renewal",
       "optional": false,
@@ -57,16 +54,14 @@
       "mechanism": "cookie",
       "keys": [
         "__Host-PVAD.Designer.Session",
-        "PVAD.Designer.Session.Development",
-        "__Host-PXA.Designer.Session",
-        "PXA.Designer.Session.Development"
+        "PVAD.Designer.Session.Development"
       ],
       "applications": [
         "designer"
       ],
       "owner": "PVAD Identity",
       "category": "strictly-necessary",
-      "purpose": "Authenticates the isolated Designer browser session. Canonical PVAD cookies replace previous-generation cookies through validated migration; legacy reads remain supported.",
+      "purpose": "Authenticates the isolated Designer browser session.",
       "data": "Protected authentication ticket; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "8 hours with sliding renewal",
       "optional": false,
@@ -80,9 +75,7 @@
       "mechanism": "cookie",
       "keys": [
         "__Host-PVAD.Antiforgery",
-        "PVAD.Antiforgery.Development",
-        "__Host-PXA.Antiforgery",
-        "PXA.Antiforgery.Development"
+        "PVAD.Antiforgery.Development"
       ],
       "applications": [
         "account",
@@ -91,7 +84,7 @@
       ],
       "owner": "PVAD Security",
       "category": "strictly-necessary",
-      "purpose": "Protects authenticated state-changing requests against cross-site request forgery. Canonical PVAD cookies replace previous-generation cookies through validated migration; legacy reads remain supported.",
+      "purpose": "Protects authenticated state-changing requests against cross-site request forgery.",
       "data": "Opaque anti-forgery token; HttpOnly and unavailable to application JavaScript.",
       "lifetime": "Browser session",
       "optional": false,
@@ -104,8 +97,7 @@
       "id": "preference.locale",
       "mechanism": "localStorage",
       "keys": [
-        "pvad_locale",
-        "pxa_locale"
+        "pvad_locale"
       ],
       "applications": [
         "account",
@@ -127,8 +119,7 @@
       "id": "designer.auth-transaction",
       "mechanism": "sessionStorage",
       "keys": [
-        "pvad.designer.auth-transaction",
-        "pxa.designer.auth-transaction"
+        "pvad.designer.auth-transaction"
       ],
       "applications": [
         "designer"
@@ -148,8 +139,7 @@
       "id": "designer.migration-handoff",
       "mechanism": "sessionStorage",
       "keys": [
-        "pvad_migration_designer_handoff",
-        "pxa_migration_designer_handoff"
+        "pvad_migration_designer_handoff"
       ],
       "applications": [
         "designer"
@@ -219,9 +209,8 @@
         "pvad-spreadsheet:v1:"
       ],
       "recoveryOnlyKeys": [
-        "pxa-spreadsheet",
-        "canvas-spreadsheet",
-        "pvad-spreadsheet"
+        "pvad-spreadsheet",
+        "canvas-spreadsheet"
       ],
       "applications": [
         "designer"
@@ -244,8 +233,7 @@
       "id": "designer.code-draft",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-code-editor-draft-v2",
-        "pxa-code-editor-draft-v2"
+        "pvad-code-editor-draft-v2"
       ],
       "applications": [
         "designer"
@@ -266,8 +254,7 @@
       "id": "designer.element-groups",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-designer-element-groups-v1",
-        "pxa-designer-element-groups-v1"
+        "pvad-designer-element-groups-v1"
       ],
       "applications": [
         "designer"
@@ -287,8 +274,7 @@
       "id": "designer.recent-content",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-designer-recent-content-v1",
-        "pxa-designer-recent-content-v1"
+        "pvad-designer-recent-content-v1"
       ],
       "applications": [
         "designer"
@@ -308,8 +294,7 @@
       "id": "designer.element-favorites-cache",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-designer-element-favorites-v1:",
-        "pxa-designer-element-favorites-v1:"
+        "pvad-designer-element-favorites-v1:"
       ],
       "applications": [
         "designer"
@@ -329,8 +314,7 @@
       "id": "designer.export-format",
       "mechanism": "localStorage",
       "keys": [
-        "pvad_export_format",
-        "pxa_export_format"
+        "pvad_export_format"
       ],
       "applications": [
         "designer"
@@ -350,8 +334,7 @@
       "id": "designer.pdf-sidebar",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-designer:pdf-sidebar-collapsed",
-        "pxa-designer:pdf-sidebar-collapsed"
+        "pvad-designer:pdf-sidebar-collapsed"
       ],
       "applications": [
         "designer"
@@ -372,8 +355,7 @@
       "id": "designer.spreadsheet-sidebar",
       "mechanism": "localStorage",
       "keys": [
-        "pvad-designer:spreadsheet-sidebar-collapsed",
-        "pxa-designer:spreadsheet-sidebar-collapsed"
+        "pvad-designer:spreadsheet-sidebar-collapsed"
       ],
       "applications": [
         "designer"

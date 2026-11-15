@@ -36,7 +36,7 @@ internal static class PdfRedactionResourceInspector
                 if (reason is not null)
                 {
                     findings.Add(new PdfRedactionFinding(
-                        "PXAPDFREDACT210",
+                        "PVADPDFREDACT210",
                         PdfRedactionCapability.ReviewRequired,
                         $"Pattern '{name}' paints inside the region but cannot be removed safely. {reason}",
                         pageNumber,
@@ -49,7 +49,7 @@ internal static class PdfRedactionResourceInspector
         if (transparencyGroups > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT211",
+                "PVADPDFREDACT211",
                 PdfRedactionCapability.ReviewRequired,
                 $"{transparencyGroups} transparency group(s) apply to this page; group compositing can make covered content visible through content that is not itself covered.",
                 pageNumber,
@@ -60,7 +60,7 @@ internal static class PdfRedactionResourceInspector
         if (softMaskStates > 0)
         {
             findings.Add(new PdfRedactionFinding(
-                "PXAPDFREDACT212",
+                "PVADPDFREDACT212",
                 PdfRedactionCapability.ReviewRequired,
                 $"{softMaskStates} graphics state(s) on this page set a soft mask, which changes what the page actually paints.",
                 pageNumber,

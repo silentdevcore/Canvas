@@ -56,7 +56,7 @@ test('capability client rejects a response that does not match the API contract'
 
   const result = await client.listExportFormats();
   assert.equal(result.data, undefined);
-  assert.equal(result.diagnostic?.code, 'PXAMCP044');
+  assert.equal(result.diagnostic?.code, 'PVADMCP044');
 });
 
 test('template client delegates the caller token and validates tenant-scoped results', async () => {
@@ -89,7 +89,7 @@ test('template client delegates the caller token and validates tenant-scoped res
   const result = await client.listTemplates({
     subject: 'ce2af823-2c7c-4bf8-91bc-d07e2ebd1799',
     organizationId: '9daec2bd-0e7c-4a1f-a6ed-493b08e74e70',
-    scopes: ['pxa.templates.read'],
+    scopes: ['pvad.templates.read'],
   }, {
     search: 'Invoice',
     page: 2,
@@ -104,4 +104,25 @@ test('template client delegates the caller token and validates tenant-scoped res
   assert.match(observedUrl, /search=Invoice/);
   assert.equal(result.data?.items[0].name, 'Invoice');
   assert.equal(result.data?.total, 11);
+});
+
+test('legacy template grants produce only canonical scopes in the delegated request', async () => {
+  let observedAuthorization = '';
+  const client = new PvadApiClient({
+    apiUrl: 'https://api.example.test',
+    delegationSecret: 'synthetic-delegation-key-at-least-32-bytes',
+    fetchImplementation: (async (_input, init) => {
+      observedAuthorization = new Headers(init?.headers).get('authorization') ?? '';
+      return Response.json({ items: [], page: 1, pageSize: 10, total: 0 });
+    }) as typeof fetch,
+  });
+
+  const result = await client.listTemplates({
+    subject: 'synthetic-user', organizationId: 'synthetic-organization', scopes: ['pvad.templates.read'],
+  }, {});
+
+  assert.equal(result.diagnostic, undefined);
+  assert.match(observedAuthorization, /^PVAD-MCP /);
+  const payload = JSON.parse(Buffer.from(observedAuthorization.slice('PVAD-MCP '.length).split('.')[0], 'base64url').toString('utf8'));
+  assert.deepEqual(payload.scope, ['pvad.templates.read']);
 });

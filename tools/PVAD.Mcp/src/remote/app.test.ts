@@ -18,7 +18,7 @@ const verifier: OAuthTokenVerifier = {
     return {
       token,
       clientId: 'client-1',
-      scopes: ['pxa.docs.read'],
+      scopes: ['pvad.docs.read'],
       expiresAt: Math.floor(Date.now() / 1000) + 300,
       resource: new URL('http://127.0.0.1/mcp'),
       extra: { subject: 'user-1', organizationId: 'organization-1' },
@@ -26,26 +26,28 @@ const verifier: OAuthTokenVerifier = {
   },
 };
 
-test('canonical scope grants pass the HTTP bearer gate and access context stays canonical', async () => {
-  const running = await listen({ verifier: {
-    async verifyAccessToken(token) {
-      const auth = await verifier.verifyAccessToken(token);
-      return { ...auth, scopes: ['pvad.docs.read'] };
-    },
-  } });
-  const client = new Client({ name: 'canonical-scope-test', version: '1.0.0' });
-  try {
-    await client.connect(new StreamableHTTPClientTransport(new URL('/mcp', running.baseUrl), {
-      requestInit: { headers: { authorization: 'Bearer valid-token' } },
-    }));
-    const result = await client.callTool({ name: 'get_access_context', arguments: {} });
-    const data = (result.structuredContent as { data: { scopes: string[] } }).data;
-    assert.deepEqual(data.scopes, ['pvad.docs.read']);
-  } finally {
-    await client.close();
-    await close(running.server);
-  }
-});
+for (const scope of ['pvad.docs.read', 'pvad.docs.read']) {
+  test(`${scope} grants pass the HTTP bearer gate and access context stays canonical`, async () => {
+    const running = await listen({ verifier: {
+      async verifyAccessToken(token) {
+        const auth = await verifier.verifyAccessToken(token);
+        return { ...auth, scopes: [scope] };
+      },
+    } });
+    const client = new Client({ name: 'scope-compatibility-test', version: '1.0.0' });
+    try {
+      await client.connect(new StreamableHTTPClientTransport(new URL('/mcp', running.baseUrl), {
+        requestInit: { headers: { authorization: 'Bearer valid-token' } },
+      }));
+      const result = await client.callTool({ name: 'get_access_context', arguments: {} });
+      const data = (result.structuredContent as { data: { scopes: string[] } }).data;
+      assert.deepEqual(data.scopes, ['pvad.docs.read']);
+    } finally {
+      await client.close();
+      await close(running.server);
+    }
+  });
+}
 
 async function listen(options: RemoteMcpAppOptions = {}): Promise<{ server: Server; baseUrl: URL }> {
   const config: RemoteMcpConfig = {
@@ -56,7 +58,7 @@ async function listen(options: RemoteMcpAppOptions = {}): Promise<{ server: Serv
     jwksUri: new URL('http://127.0.0.1:5178/.well-known/jwks.json'),
     allowedOrigins: new Set(['https://client.example.test']),
     allowedHosts: new Set(['127.0.0.1']),
-    organizationClaim: 'pxa_organization',
+    organizationClaim: 'pvad_organization',
     requestLimit: '11mb',
     requestsPerMinute: 120,
     apiUrl: new URL('http://127.0.0.1:5086'),
@@ -106,7 +108,7 @@ test('readiness fails closed when a required dependency is unavailable', async (
     jwksUri: new URL('http://127.0.0.1:5178/.well-known/jwks.json'),
     allowedOrigins: new Set(),
     allowedHosts: new Set(['127.0.0.1']),
-    organizationClaim: 'pxa_organization',
+    organizationClaim: 'pvad_organization',
     requestLimit: '11mb',
     requestsPerMinute: 120,
     apiUrl: new URL('http://127.0.0.1:5086'),
@@ -208,7 +210,7 @@ test('authenticated Streamable HTTP client receives its tenant context', async (
     assert.equal(remotePreview.isError, true);
     assert.equal((remotePreview.structuredContent as {
       diagnostics: Array<{ code: string }>;
-    }).diagnostics[0].code, 'PXAMCP032');
+    }).diagnostics[0].code, 'PVADMCP032');
 
     const metrics = await (await fetch(new URL('/metrics', running.baseUrl))).text();
     assert.match(metrics, /pvad_mcp_tool_calls_total\{tool="get_access_context",status="200"\} 1/);

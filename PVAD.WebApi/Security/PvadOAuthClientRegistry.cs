@@ -64,7 +64,7 @@ public sealed class PvadOAuthClientRegistry(
         [
             OpenIddictConstants.Permissions.Endpoints.Token,
             OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
-            .. PvadScopeCompatibility.ReadOnlyScopes.Select(scope =>
+            .. PvadOAuthScopes.ReadOnly.Select(scope =>
                 OpenIddictConstants.Permissions.Prefixes.Scope + scope),
         ]);
         await applicationManager.CreateAsync(descriptor, cancellationToken);
@@ -77,11 +77,8 @@ public sealed class PvadOAuthClientRegistry(
         if (!settings.Enabled)
             return;
 
-        foreach (var clientId in new[] { GetServiceAccountClientId(apiKeyId), PvadOAuthClients.LegacyForApiKey(apiKeyId) })
-        {
-            var application = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
-            if (application is not null)
-                await applicationManager.DeleteAsync(application, cancellationToken);
-        }
+        var application = await applicationManager.FindByClientIdAsync(GetServiceAccountClientId(apiKeyId), cancellationToken);
+        if (application is not null)
+            await applicationManager.DeleteAsync(application, cancellationToken);
     }
 }

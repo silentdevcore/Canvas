@@ -182,7 +182,92 @@ dependency manifest.
 The native ImageConversion/OCR cases remain outside this maintenance matrix;
 their previously recorded platform limitation is not claimed fixed.
 
-Frontend:
+### Full API Diagnostics
+
+The API assembly already disables test parallelization. For a complete local run,
+use the [serial run settings](tools/dependencies/api-serial.runsettings), enable
+PostgreSQL tests, and do not supply a test filter. The native ImageConversion/OCR
+cases are included in this run, unlike the focused maintenance matrix above.
+Docker and the existing native OCR prerequisites must be available.
+Install Designer development dependencies first (`npm ci` in `pvad-designer`);
+the result auditor uses its existing XML parser without adding another package.
+Configuration workflow contracts additionally require PowerShell (`pwsh`) for
+syntax-only parsing of Windows steps, alongside Bash; they never execute those
+installation scripts. GitHub-hosted CI runners provide these shells.
+
+The recommended complete command is:
+
+```bash
+node tools/dependencies/api-full-validation.mjs
+```
+
+This POSIX-local runner rebuilds current sources, discovers the full catalog,
+runs without a filter, reconciles TRX names and counters (including the exact
+late theory expansion), checks the assembly hash, and removes its owned temporary
+storage. It allowlists inherited environment variables so customer credentials,
+bootstrap settings and installed storage paths cannot become test configuration.
+The default database connection is deliberately replaced with unreachable
+loopback port 1. Every database-backed test must explicitly supply its own
+Testcontainer connection, preventing fallback to the repository's normal local
+database configuration.
+Each invocation creates a fresh private directory under
+`artifacts/api-full-validation/`; logs, discovery, TRX and `verified-results.json`
+are retained there. A failure or hang produces a failing exit status, not an
+approval. Run Node contracts with `node --test tools/dependencies/api-full-validation.test.mjs`.
+
+The following commands explain the underlying phases for manual diagnosis.
+They do not themselves sanitize inherited environment values; use an isolated
+shell with no application credentials, or prefer the runner above.
+
+Build the current source first:
+
+```bash
+dotnet build tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore \
+  --disable-build-servers -m:1 -t:Rebuild -p:UseSharedCompilation=false \
+  -p:SkipOcrWorkerPackaging=true -p:SkipCodeWorkerPackaging=true
+```
+
+Use a fresh results directory and private temporary storage/key paths. Run with a
+clean environment: do not inherit bootstrap credentials or customer connection
+strings. Testcontainers creates the PostgreSQL stores; never point this run at an
+installed database.
+
+```bash
+run_dir="artifacts/api-full-validation/$(date -u +%Y%m%dT%H%M%SZ)"
+test_root="$(mktemp -d)"
+mkdir -p "$run_dir"
+PVAD_RUN_POSTGRES_TESTS=1 \
+DataProtection__KeysDirectory="$test_root/keys" \
+Storage__RootPath="$test_root/objects" \
+PdfViewer__AnnotationStoragePath="$test_root/viewer" \
+PdfTrust__RevocationEvidence__CacheDirectory="$test_root/cache" \
+Licensing__PrivateKeyPath="$test_root/licensing/private.pem" \
+Licensing__PublicKeyPath="$test_root/licensing/public.pem" \
+dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-build \
+  --settings tools/dependencies/api-serial.runsettings \
+  --results-directory "$run_dir" --logger 'trx;LogFileName=api-full.trx' \
+  --logger 'console;verbosity=detailed' --diag "$run_dir/vstest-diag.log" \
+  --blame-hang --blame-hang-timeout 180s --blame-hang-dump-type mini
+```
+
+The 40-minute session budget is not a per-test allowance. Three minutes without
+test progress triggers hang diagnostics and a failing run, rather than hiding a
+blocked test. Existing application, worker, and test-specific limits remain
+unchanged. Keep diagnostics and dumps private; they may contain synthetic tokens
+or key material. Remove only this run's temporary storage after all owned test
+processes have stopped.
+
+Record discovery separately with `--list-tests`, then reconcile it with the TRX
+results. Compare names as well as counters; no missing, duplicate, skipped,
+failed, or aborted case may be counted as passed. Account explicitly for late
+theory enumeration: `PvadApplicationLifetimeTests.UnexpectedFailures` supplies
+four non-serializable exception objects. Discovery reports its theory once,
+while execution reports all four variants. Verify each expected exception type;
+do not compare discovery and execution counts blindly or allow arbitrary extras.
+The VSTest diagnostic log records active tests and individual start/end events;
+TRX records each completed case's start, end, duration, and outcome.
+
+### Frontend
 
 For Admin bundler maintenance, run its 26 Node contracts, production build and
 full npm audit, then `node tools/dependencies/admin-tooling-smoke.mjs` from the

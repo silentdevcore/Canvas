@@ -68,7 +68,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status422UnprocessableEntity,
-                "PXAEINVAPI011",
+                "PVADEINVAPI011",
                 "The invoice contains too many lines for synchronous PDF creation",
                 $"A PDF invoice may contain up to {MaximumPdfInvoiceLines} lines.");
         }
@@ -80,7 +80,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status422UnprocessableEntity,
-                "PXAEINVAPI012",
+                "PVADEINVAPI012",
                 "The generated PDF is too large",
                 $"Generated PDF invoices may contain up to {MaximumGeneratedPdfBytes} bytes.");
         }
@@ -112,7 +112,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI002",
+                "PVADEINVAPI002",
                 "The electronic-invoice standard is not supported",
                 "Use FacturX, ZUGFeRD, or XRechnung.");
         }
@@ -165,7 +165,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI003",
+                "PVADEINVAPI003",
                 "The PDF attachments could not be inspected",
                 exception.Message);
         }
@@ -192,7 +192,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI004",
+                "PVADEINVAPI004",
                 "An attachment name is required",
                 "Inspect the PDF first and submit one exact associated-file name.");
         }
@@ -210,7 +210,7 @@ public sealed class PdfEInvoicesController(
             {
                 return InvoiceProblem(
                     StatusCodes.Status404NotFound,
-                    "PXAEINVAPI005",
+                    "PVADEINVAPI005",
                     "The associated file was not found",
                     "Use an exact filename returned by the inspect operation.");
             }
@@ -218,7 +218,7 @@ public sealed class PdfEInvoicesController(
             {
                 return InvoiceProblem(
                     StatusCodes.Status400BadRequest,
-                    "PXAEINVAPI006",
+                    "PVADEINVAPI006",
                     "The associated file failed integrity checks",
                     "Its declared size or PDF checksum does not match the extracted bytes.");
             }
@@ -232,7 +232,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI003",
+                "PVADEINVAPI003",
                 "The PDF attachments could not be extracted",
                 exception.Message);
         }
@@ -329,7 +329,7 @@ public sealed class PdfEInvoicesController(
                 detail: "The embedded invoice would contradict the visible document. Review it, or approve the attachment explicitly with allowInconsistentPdf.",
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAEINVAPI021",
+                    ["code"] = "PVADEINVAPI021",
                     ["consistency"] = consistency
                 });
         }
@@ -382,7 +382,7 @@ public sealed class PdfEInvoicesController(
                 detail: exception.Message,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAEINVAPI022",
+                    ["code"] = "PVADEINVAPI022",
                     ["preflight"] = exception.Preflight,
                     ["consistency"] = consistency
                 });
@@ -417,7 +417,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI030",
+                "PVADEINVAPI030",
                 "The validation history filter is not valid",
                 exception.Message);
         }
@@ -439,7 +439,7 @@ public sealed class PdfEInvoicesController(
         return record is null
             ? InvoiceProblem(
                 StatusCodes.Status404NotFound,
-                "PXAEINVAPI031",
+                "PVADEINVAPI031",
                 "The validation record was not found",
                 "It does not exist in this organization, or its retention window has closed.")
             : Ok(record);
@@ -475,14 +475,14 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI030",
+                "PVADEINVAPI030",
                 "The validation history filter is not valid",
                 exception.Message);
         }
 
         var payload = JsonSerializer.SerializeToUtf8Bytes(
             new PvadEInvoiceValidationEvidenceExport(
-                "pxa.e-invoice.validation-evidence/1",
+                "pvad.e-invoice.validation-evidence/1",
                 DateTimeOffset.UtcNow,
                 records.Count,
                 records),
@@ -518,7 +518,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status404NotFound,
-                "PXAEINVAPI031",
+                "PVADEINVAPI031",
                 "The validation record was not found",
                 "It does not exist in this organization, or its retention window has closed.");
         }
@@ -529,7 +529,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status409Conflict,
-                "PXAEINVAPI032",
+                "PVADEINVAPI032",
                 "The uploaded document is not the one that was validated",
                 "Revalidation compares verdicts for identical bytes; upload the document whose SHA-256 matches the stored record.");
         }
@@ -537,7 +537,7 @@ public sealed class PdfEInvoicesController(
         {
             return InvoiceProblem(
                 StatusCodes.Status409Conflict,
-                "PXAEINVAPI033",
+                "PVADEINVAPI033",
                 "The stored record cannot be revalidated",
                 $"Standard '{previous.Standard}' is no longer supported by this build.");
         }
@@ -570,7 +570,7 @@ public sealed class PdfEInvoicesController(
 
     private ObjectResult EvidenceUnavailable() => InvoiceProblem(
         StatusCodes.Status503ServiceUnavailable,
-        "PXAEINVAPI034",
+        "PVADEINVAPI034",
         "Historical validation evidence is not available",
         "This deployment has no evidence store configured.");
 
@@ -643,7 +643,7 @@ public sealed class PdfEInvoicesController(
         {
             return new(Problem: InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI002",
+                "PVADEINVAPI002",
                 "The electronic-invoice standard is not supported",
                 "Use FacturX, ZUGFeRD, or XRechnung."));
         }
@@ -666,7 +666,7 @@ public sealed class PdfEInvoicesController(
                     "The invoice XML failed structural validation.",
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAEINVAPI020",
+                    ["code"] = "PVADEINVAPI020",
                     ["diagnostics"] = validation.Diagnostics
                 }));
         }
@@ -680,7 +680,7 @@ public sealed class PdfEInvoicesController(
         {
             return new(Problem: InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI023",
+                "PVADEINVAPI023",
                 "The invoice attachment could not be described",
                 exception.Message));
         }
@@ -721,7 +721,7 @@ public sealed class PdfEInvoicesController(
         {
             return new(Problem: InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI025",
+                "PVADEINVAPI025",
                 "The attachment filename is not accepted",
                 "Use a plain ASCII .xml filename of up to 120 characters without path separators."));
         }
@@ -729,7 +729,7 @@ public sealed class PdfEInvoicesController(
         {
             return new(Problem: InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI026",
+                "PVADEINVAPI026",
                 "A reserved invoice filename cannot be used for unrecognized XML",
                 $"'{fileName}' is reserved for a maintained standard. Storing unrecognized XML under it would assert a conformance PVAD has not established."));
         }
@@ -740,7 +740,7 @@ public sealed class PdfEInvoicesController(
         {
             return new(Problem: InvoiceProblem(
                 StatusCodes.Status409Conflict,
-                "PXAEINVAPI028",
+                "PVADEINVAPI028",
                 "The XML is already a recognized electronic invoice",
                 "Use the normal invoice attachment mode with its standard, version, and profile instead of preserving it as unknown XML."));
         }
@@ -753,7 +753,7 @@ public sealed class PdfEInvoicesController(
                 detail: "Preservation still requires well-formed XML within the size limit and without DTDs or external entities.",
                 extensions: new Dictionary<string, object?>
                 {
-                    ["code"] = "PXAEINVAPI027",
+                    ["code"] = "PVADEINVAPI027",
                     ["diagnostics"] = recognition.Diagnostics
                 }));
         }
@@ -794,7 +794,7 @@ public sealed class PdfEInvoicesController(
     /// <summary>Recognition failures that mean the XML itself is unsafe or unreadable.</summary>
     private static readonly HashSet<string> UnsafeXmlCodes = new(StringComparer.Ordinal)
     {
-        "PXAEINV001", "PXAEINV002", "PXAEINV003", "PXAEINV004"
+        "PVADEINV001", "PVADEINV002", "PVADEINV003", "PVADEINV004"
     };
 
     private static bool IsSafePreservedFileName(string value) =>
@@ -815,7 +815,7 @@ public sealed class PdfEInvoicesController(
 
     private ObjectResult AttachmentInputProblem(Exception exception) => InvoiceProblem(
         StatusCodes.Status400BadRequest,
-        "PXAEINVAPI024",
+        "PVADEINVAPI024",
         "The invoice could not be attached to the PDF",
         exception.Message);
 
@@ -828,21 +828,21 @@ public sealed class PdfEInvoicesController(
     private ActionResult? ValidateXmlUpload(IFormFile? file)
     {
         if (file is null || file.Length == 0)
-            return InvoiceProblem(StatusCodes.Status400BadRequest, "PXAEINVAPI001", "Invoice XML is required", "Upload a non-empty XML file in the 'file' field.");
+            return InvoiceProblem(StatusCodes.Status400BadRequest, "PVADEINVAPI001", "Invoice XML is required", "Upload a non-empty XML file in the 'file' field.");
         if (file.Length > MaximumXmlBytes)
-            return InvoiceProblem(StatusCodes.Status413PayloadTooLarge, "PXAEINVAPI007", "Invoice XML is too large", $"Invoice XML may contain up to {MaximumXmlBytes} bytes.");
+            return InvoiceProblem(StatusCodes.Status413PayloadTooLarge, "PVADEINVAPI007", "Invoice XML is too large", $"Invoice XML may contain up to {MaximumXmlBytes} bytes.");
         return null;
     }
 
     private ActionResult? ValidatePdfUpload(IFormFile? file)
     {
         if (file is null || file.Length == 0)
-            return InvoiceProblem(StatusCodes.Status400BadRequest, "PXAEINVAPI008", "A PDF is required", "Upload a non-empty PDF in the 'file' field.");
+            return InvoiceProblem(StatusCodes.Status400BadRequest, "PVADEINVAPI008", "A PDF is required", "Upload a non-empty PDF in the 'file' field.");
         if (file.Length > MaximumPdfBytes)
-            return InvoiceProblem(StatusCodes.Status413PayloadTooLarge, "PXAEINVAPI009", "The PDF is too large", $"PDF files may contain up to {MaximumPdfBytes} bytes.");
+            return InvoiceProblem(StatusCodes.Status413PayloadTooLarge, "PVADEINVAPI009", "The PDF is too large", $"PDF files may contain up to {MaximumPdfBytes} bytes.");
         if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
             !file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase))
-            return InvoiceProblem(StatusCodes.Status400BadRequest, "PXAEINVAPI010", "The upload is not a PDF", "Use a .pdf file or the application/pdf content type.");
+            return InvoiceProblem(StatusCodes.Status400BadRequest, "PVADEINVAPI010", "The upload is not a PDF", "Use a .pdf file or the application/pdf content type.");
         return null;
     }
 
@@ -851,7 +851,6 @@ public sealed class PdfEInvoicesController(
             extensions: new Dictionary<string, object?>
             {
                 ["code"] = code,
-                ["canonicalCode"] = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode(code),
             });
 
     private ObjectResult GenerationProblem(
@@ -864,7 +863,7 @@ public sealed class PdfEInvoicesController(
                 "The supplied invoice data could not be processed.",
             extensions: new Dictionary<string, object?>
             {
-                ["code"] = diagnostics.FirstOrDefault(static item => item.Severity == "error")?.Code ?? "PXAEINVAPI013",
+                ["code"] = diagnostics.FirstOrDefault(static item => item.Severity == "error")?.Code ?? "PVADEINVAPI013",
                 ["diagnostics"] = diagnostics
             });
 
@@ -881,7 +880,7 @@ public sealed class PdfEInvoicesController(
         {
             problem = InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI014",
+                "PVADEINVAPI014",
                 "Invoice data is required",
                 "Submit standard, version, profile, and a typed invoice document.");
             return false;
@@ -890,7 +889,7 @@ public sealed class PdfEInvoicesController(
         {
             problem = InvoiceProblem(
                 StatusCodes.Status400BadRequest,
-                "PXAEINVAPI002",
+                "PVADEINVAPI002",
                 "The electronic-invoice standard is not supported",
                 "Use FacturX, ZUGFeRD, or XRechnung.");
             return false;

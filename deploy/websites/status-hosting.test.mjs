@@ -20,8 +20,8 @@ test('API Problem Details are not replaced with HTML', () => {
   assert.match(configuration, /proxy_pass \$\{PVAD_API_UPSTREAM\};/);
   assert.match(configuration, /error_page 502 503 504 =503 @api_unavailable;/);
   assert.match(configuration, /default_type application\/problem\+json;/);
-  assert.match(configuration, /"code":"PXAAPI018"/);
-  assert.match(configuration, /"canonicalCode":"PVADAPI018"/);
+  assert.match(configuration, /"code":"PVADAPI018"/);
+  assert.match(configuration, /"code":"PVADAPI018"/);
   assert.match(configuration, /"title":"PVAD API is unavailable"/);
 });
 

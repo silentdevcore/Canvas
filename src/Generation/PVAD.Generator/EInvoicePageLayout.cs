@@ -27,7 +27,7 @@ namespace PVAD.Generator;
 public static class EInvoicePageLayout
 {
     /// <summary>The contract version both implementations are pinned to.</summary>
-    public const string ContractVersion = "pxa.e-invoice.pagination/1";
+    public const string ContractVersion = "pvad.e-invoice.pagination/1";
 
     public const double PageWidth = 595;
     public const double PageHeight = 842;
@@ -81,7 +81,7 @@ public static class EInvoicePageLayout
     /// A description longer than this many fragments is refused rather than rendered.
     /// </summary>
     /// <remarks>
-    /// Unreachable for a valid invoice: <c>PXAEINV109</c> caps a description at 4 096 characters,
+    /// Unreachable for a valid invoice: <c>EInvoice.ValidateDocument</c> caps a description at 4 096 characters,
     /// which is at most four fragments even when every character is full-em. It exists so that an
     /// unbounded description fails closed with a stable diagnostic instead of producing a document
     /// of unbounded length.

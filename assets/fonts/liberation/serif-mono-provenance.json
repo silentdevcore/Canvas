@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "version": "2.1.5",
+  "source": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz",
+  "archiveSha256": "7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0",
+  "license": "SIL Open Font License 1.1",
+  "licenseFile": "LICENSE",
+  "browserLicense": "pvad-designer/public/licenses/Liberation-2.1.5.LICENSE.txt",
+  "browserLicenseSha256": "a0c060f758d33ee59a674cd7b45914a560d0a5935968af5e87b0c6981fd89ddc",
+  "browserLicenseNormalization": "Only trailing whitespace and the redundant final blank line were removed; the upstream license text is unchanged.",
+  "scope": "Eight unmodified Serif and Mono faces. Existing Sans files and approved visual references are unchanged.",
+  "faces": [
+    {
+      "family": "Serif",
+      "style": "Regular",
+      "file": "LiberationSerif-Regular.ttf",
+      "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74"
+    },
+    {
+      "family": "Serif",
+      "style": "Bold",
+      "file": "LiberationSerif-Bold.ttf",
+      "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce"
+    },
+    {
+      "family": "Serif",
+      "style": "Italic",
+      "file": "LiberationSerif-Italic.ttf",
+      "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e"
+    },
+    {
+      "family": "Serif",
+      "style": "BoldItalic",
+      "file": "LiberationSerif-BoldItalic.ttf",
+      "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7"
+    },
+    {
+      "family": "Mono",
+      "style": "Regular",
+      "file": "LiberationMono-Regular.ttf",
+      "sha256": "f2b83c763e8afd21709333370bed4774337fae82267937e2b5aea7e2fbd922c1"
+    },
+    {
+      "family": "Mono",
+      "style": "Bold",
+      "file": "LiberationMono-Bold.ttf",
+      "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb"
+    },
+    {
+      "family": "Mono",
+      "style": "Italic",
+      "file": "LiberationMono-Italic.ttf",
+      "sha256": "605c01c711b44480a7508d349dfbf3264e81fa43d69e61cfa7d10b86e764c4d1"
+    },
+    {
+      "family": "Mono",
+      "style": "BoldItalic",
+      "file": "LiberationMono-BoldItalic.ttf",
+      "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130"
+    }
+  ]
+}

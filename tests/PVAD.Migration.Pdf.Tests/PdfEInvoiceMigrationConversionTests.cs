@@ -4,16 +4,16 @@ using PVAD.Migration.Pdf;
 namespace PVAD.Migration.Pdf.Tests;
 
 /// <summary>
-/// Representative source-to-PXA conversions for every electronic-invoice provider family.
+/// Representative source-to-PVAD conversions for every electronic-invoice provider family.
 /// </summary>
 /// <remarks>
 /// <para>
 /// The catalog tests prove the table is complete and honest. These prove it answers: given code a
-/// customer actually has, the migration names the PXA equivalent, says whether a human has to
-/// confirm it, and reports what PXA cannot carry across instead of dropping it.
+/// customer actually has, the migration names the PVAD equivalent, says whether a human has to
+/// confirm it, and reports what PVAD cannot carry across instead of dropping it.
 /// </para>
 /// <para>
-/// The snippets are short, PXA-authored paraphrases of public SDK call shapes - no customer code and
+/// The snippets are short, PVAD-authored paraphrases of public SDK call shapes - no customer code and
 /// no vendor source. Nothing here asserts that migrated output is conformant: conformance is
 /// established by the pinned official artifact sets, which remain outstanding.
 /// </para>
@@ -57,7 +57,7 @@ public sealed class PdfEInvoiceMigrationConversionTests
 
         foreach (var capability in mapped)
         {
-            // A snippet that names every marker PXA recognises for this capability.
+            // A snippet that names every marker PVAD recognises for this capability.
             var source = SnippetFor(profile.DisplayName, capability.DetectedApiMarkers);
             var findings = PdfEInvoiceMigrationCatalog.Analyze(providerKey, source);
             var finding = Assert.Single(findings, item => item.Capability == capability.Capability);
@@ -69,7 +69,7 @@ public sealed class PdfEInvoiceMigrationConversionTests
             Assert.Equal(capability.DocumentationPath, finding.DocumentationPath);
             Assert.Equal(capability.DetectedApiMarkers.OrderBy(static marker => marker, StringComparer.Ordinal),
                 finding.MatchedMarkers.OrderBy(static marker => marker, StringComparer.Ordinal));
-            // A mapped capability always names the PXA API that replaces it.
+            // A mapped capability always names the PVAD API that replaces it.
             Assert.False(string.IsNullOrWhiteSpace(finding.PvadEquivalent));
             Assert.NotEqual(PdfTrustMigrationDisposition.Unsupported, finding.Disposition);
         }
@@ -141,7 +141,7 @@ public sealed class PdfEInvoiceMigrationConversionTests
     [Fact]
     public void Invoice_generation_from_a_real_call_shape_always_needs_review()
     {
-        // iText is the one registered provider with generation APIs PXA maps.
+        // iText is the one registered provider with generation APIs PVAD maps.
         var source = """
             var writer = new PdfWriter(stream);
             var pdf = new PdfADocument(writer, PdfAConformanceLevel.PDF_A_3B, outputIntent);
@@ -197,7 +197,7 @@ public sealed class PdfEInvoiceMigrationConversionTests
         }
 
         // The reserved `factur-x.xml` filename says the source is producing a Factur-X invoice.
-        // Aspose registers no generation API PXA can map, so that intent is reported as unsupported
+        // Aspose registers no generation API PVAD can map, so that intent is reported as unsupported
         // rather than passed over because only the attachment call was recognised.
         var facturX = findings[PdfEInvoiceCapability.FacturX];
         Assert.Equal(PdfTrustMigrationDisposition.Unsupported, facturX.Disposition);

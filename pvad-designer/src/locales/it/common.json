@@ -63,7 +63,7 @@
     "maturity": { "alpha": "Alfa", "beta": "Beta", "stable": "Stabile" },
     "changeCategories": { "added": "Aggiunto", "improved": "Migliorato", "fixed": "Corretto", "security": "Sicurezza", "deprecated": "Obsoleto", "breaking": "Incompatibile" },
     "notificationCategories": { "System": "Sistema", "Security": "Sicurezza", "Subscription": "Abbonamento", "ActionRequired": "Azione richiesta", "Legal": "Legale" },
-    "decisions": { "PXA_DESIGNER_ALPHA_NOT_ALLOWED": "La tua organizzazione non consente questa funzione Alfa.", "PXA_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Attiva questa funzione Alfa prima dell'uso.", "PXA_DESIGNER_FEATURE_DISABLED": "Questa funzione è disattivata.", "PXA_DESIGNER_FEATURE_ENABLED": "La funzione è disponibile.", "PXA_DESIGNER_FEATURE_UNKNOWN": "Questa funzione non è disponibile in questa versione del Designer." }
+    "decisions": { "PVAD_DESIGNER_ALPHA_NOT_ALLOWED": "La tua organizzazione non consente questa funzione Alfa.", "PVAD_DESIGNER_ALPHA_OPT_IN_REQUIRED": "Attiva questa funzione Alfa prima dell'uso.", "PVAD_DESIGNER_FEATURE_DISABLED": "Questa funzione è disattivata.", "PVAD_DESIGNER_FEATURE_ENABLED": "La funzione è disponibile.", "PVAD_DESIGNER_FEATURE_UNKNOWN": "Questa funzione non è disponibile in questa versione del Designer." }
   },
   "features": {
     "releaseNotes": { "title": "Note di versione", "description": "Consulta le funzioni del Designer aggiunte, migliorate e corrette." },

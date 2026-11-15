@@ -150,9 +150,9 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 
     private PvadPdfDocument CreateDocument(PdfDocumentModel source)
     {
-#pragma warning disable PXA0001 // Importer regeneration bridge targets the PVAD.Pdf implementation .
+#pragma warning disable PVAD0001 // Importer regeneration bridge targets the PVAD.Pdf implementation .
         var document = new PvadPdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         ApplyMetadata(document, source.Metadata);
 
         foreach (var pageModel in source.Pages)

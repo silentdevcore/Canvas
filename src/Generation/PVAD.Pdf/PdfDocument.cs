@@ -50,7 +50,7 @@ public sealed class PdfDocument
     /// <param name="defaultFont">The standard font used by pages and text drawing unless overridden.</param>
     [Obsolete(
         "Direct PVAD.Pdf.PdfDocument construction is discouraged. Use PVAD.Generator.Pdf.CreateDocument(...) for new code.",
-        DiagnosticId = "PXA0001")]
+        DiagnosticId = "PVAD0001")]
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
     {
         DefaultFont = defaultFont;

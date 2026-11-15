@@ -28,8 +28,6 @@ server {
         proxy_set_header Content-Length "";
         proxy_set_header Cookie $http_cookie;
         proxy_set_header Authorization "";
-        proxy_set_header X-PXA-API-Key "";
-        proxy_set_header X-PXA-Application "";
         proxy_set_header X-PVAD-API-Key "";
         proxy_set_header X-PVAD-Application "";
         proxy_set_header X-Forwarded-Host $host;
@@ -50,7 +48,7 @@ server {
 
     location /operator/grafana/ {
         auth_request /_pvad_operator_auth;
-        auth_request_set $pvad_operator $upstream_http_x_pxa_operator;
+        auth_request_set $pvad_operator $upstream_http_x_pvad_operator;
 
         proxy_pass http://pvad-grafana:3000;
         proxy_http_version 1.1;

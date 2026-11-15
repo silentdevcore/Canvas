@@ -9,24 +9,24 @@ const root = resolve(import.meta.dirname, '../..');
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const { load } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
 
-test('dashboard display titles and tags are canonical while physical links remain stable', () => {
+test('dashboard titles, tags and physical identifiers are canonical', () => {
   for (const name of ['browser-health', 'infrastructure', 'platform-overview', 'document-operations', 'operations']) {
     const dashboard = JSON.parse(read(`deploy/observability/grafana/dashboards/pvad-${name}.json`));
     assert.match(dashboard.title, /^PVADE /);
     assert.ok(dashboard.tags.includes('PVAD'));
     assert.ok(!dashboard.tags.some(tag => /pxa/i.test(tag)));
-    assert.equal(dashboard.uid, `pxa-${name}`);
+    assert.equal(dashboard.uid, `pvad-${name}`);
     for (const panel of dashboard.panels)
-      if (panel.datasource?.uid) assert.match(panel.datasource.uid, /^pxa-(?:prometheus|loki)$/);
+      if (panel.datasource?.uid) assert.match(panel.datasource.uid, /^pvad-(?:prometheus|loki)$/);
   }
-  const provider = load(read('deploy/observability/grafana/provisioning/dashboards/dashboards.yml')).providers[0];
-  assert.equal(provider.name, 'PXA');
-  assert.equal(provider.folder, 'PXA');
+  const provider = load(read('deploy/observability/grafana/profiles/current/dashboards.yml')).providers[0];
+  assert.equal(provider.name, 'PVAD');
+  assert.equal(provider.folder, 'PVAD');
   assert.equal(provider.disableDeletion, true);
   const sources = load(read('deploy/observability/grafana/provisioning/datasources/datasources.yml')).datasources;
   for (const source of sources) {
     assert.match(source.name, /^PVAD /);
-    assert.match(source.uid, /^pxa-(?:prometheus|loki|tempo)$/);
+    assert.match(source.uid, /^pvad-(?:prometheus|loki|tempo)$/);
   }
 });
 

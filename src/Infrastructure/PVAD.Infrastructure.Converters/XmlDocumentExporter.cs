@@ -14,9 +14,6 @@ public sealed class XmlDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design) => ExportDocument(design, "PvadDocument");
 
-    /// <summary>Produces the historical XML envelope for integrations migrating their root-name contract.</summary>
-    public byte[] ExportLegacy(DesignExportDto design) => ExportDocument(design, "PxaDocument");
-
     private static byte[] ExportDocument(DesignExportDto design, string rootName)
     {
         var ps = design.PageSettings ?? new PageSettingsDto();

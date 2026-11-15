@@ -225,6 +225,16 @@ describe('Code workspace', () => {
     expect(container.textContent).toContain('lang.csharpBase64');
   });
 
+  test('projects workspace failure text without changing errors or editor source', async () => {
+    const failure = new Error('PVADCODE042: The code execution worker returned no result.');
+    getMock.mockRejectedValueOnce(failure);
+    const { container } = await renderWorkspace();
+    expect(container.querySelector('[role="alert"]')?.textContent)
+      .toBe('PVADCODE042: The code execution worker returned no result.');
+    expect(container.querySelector('[data-testid="draft"]')?.textContent).toBe(JSON.stringify(initialDesign, null, 2));
+    expect(failure.message).toBe('PVADCODE042: The code execution worker returned no result.');
+  });
+
   const comparison = () => ({
     templateRevision: 8, workspaceRevision: 1, baseTemplateRevision: 4,
     templateDesign: changedDesign,

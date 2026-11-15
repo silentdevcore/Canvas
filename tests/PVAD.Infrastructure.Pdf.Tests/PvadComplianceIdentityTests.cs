@@ -50,7 +50,7 @@ public sealed class PvadComplianceIdentityTests
         var report = PdfCompliancePreflight.Validate(document, options);
         Assert.True(report.IsValid);
         Assert.StartsWith("PVAD ", report.Validator);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA000");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA000");
         var bytes = document.ToBytes(options);
         var text = Encoding.ASCII.GetString(bytes);
         Assert.Contains("PVAD sRGB output intent", text);
@@ -70,7 +70,39 @@ public sealed class PvadComplianceIdentityTests
             AccessibilityProfile = PdfAccessibilityProfile.PdfUa1,
         });
         Assert.StartsWith("PVAD ", PdfAccessibilityPreflight.ValidatorName);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFUA002");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFUA002");
+    }
+
+    [Theory]
+    [InlineData(PdfComplianceProfile.PdfA2B, "list")]
+    [InlineData(PdfComplianceProfile.PdfA3B, "list")]
+    [InlineData(PdfComplianceProfile.PdfA2B, "radio")]
+    [InlineData(PdfComplianceProfile.PdfA3B, "radio")]
+    [InlineData(PdfComplianceProfile.PdfA2B, "signature")]
+    [InlineData(PdfComplianceProfile.PdfA3B, "signature")]
+    [InlineData(PdfComplianceProfile.PdfA2B, "button")]
+    [InlineData(PdfComplianceProfile.PdfA3B, "button")]
+    public void ArchivalPreflight_RejectsAllUnsupportedInteractiveWidgetFamilies(PdfComplianceProfile profile, string kind)
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        switch (kind)
+        {
+            case "list": page.AddListBox("choice", 20, 650, 100, 50, ["PDF"], ["PDF"]); break;
+            case "radio":
+                page.AddRadioButton("choice", "Yes", 0, 20, 650, 14, 14, true);
+                page.AddRadioButton("choice", "No", 1, 20, 630, 14, 14);
+                break;
+            case "signature": page.AddSignatureField("approval", 20, 650, 100, 24); break;
+            case "button": page.AddPushButton("reset", "Reset", 20, 650, 100, 24, "reset"); break;
+            default: throw new ArgumentOutOfRangeException(nameof(kind));
+        }
+        var options = new PdfSaveOptions { ComplianceProfile = profile };
+        var report = PdfCompliancePreflight.Validate(document, options);
+        Assert.False(report.IsValid);
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA004");
+        Assert.Throws<PdfComplianceException>(() => document.ToBytes(options));
+        Assert.NotEmpty(document.ToBytes());
     }
 
     private static uint Read(byte[] bytes, int offset) => BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(offset, 4));

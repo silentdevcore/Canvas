@@ -200,9 +200,11 @@ public sealed class AdminSystemControllerTests
         using var operatorAccess = await systemClient.GetAsync(
             "/api/pvad/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
-        var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PXA-Operator"));
-        Assert.Equal(operatorName, Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator")));
-        Assert.Matches("^pxa-[a-f0-9]{24}$", operatorName);
+        var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PVAD-Operator"));
+        var identityHeader = Assert.Single(operatorAccess.Headers.Where(header =>
+            header.Key.EndsWith("-Operator", StringComparison.OrdinalIgnoreCase)));
+        Assert.Equal("X-PVAD-Operator", identityHeader.Key, ignoreCase: true);
+        Assert.Matches("^pvad-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
 
         using var catalogResponse = await systemClient.GetAsync(
@@ -245,7 +247,7 @@ public sealed class AdminSystemControllerTests
                 builder.ConfigureAppConfiguration((_, configuration) =>
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["ConnectionStrings:PvadDatabase"] = connectionString,
                         ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                         ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pvad.test",
                         ["Mail:Transport"] = "Disabled",
@@ -382,7 +384,7 @@ public sealed class AdminSystemControllerTests
         {
             Content = JsonContent.Create(new { identifier, password }),
         };
-        request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
+        request.Headers.Add("X-PVAD-CSRF", csrf.GetProperty("token").GetString());
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(request)).StatusCode);
     }
 
@@ -396,7 +398,7 @@ public sealed class AdminSystemControllerTests
         var request = new HttpRequestMessage(method, path);
         if (body is not null)
             request.Content = JsonContent.Create(body);
-        request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
+        request.Headers.Add("X-PVAD-CSRF", csrf.GetProperty("token").GetString());
         return await client.SendAsync(request);
     }
 

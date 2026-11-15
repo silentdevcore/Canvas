@@ -59,7 +59,7 @@ public static class PvadOAuthServiceCollectionExtensions
                 options.AllowAuthorizationCodeFlow();
                 options.AllowClientCredentialsFlow();
                 options.RequireProofKeyForCodeExchange();
-                options.RegisterScopes(PvadScopeCompatibility.SupportedScopes);
+                options.RegisterScopes(PvadOAuthScopes.All);
                 options.SetAccessTokenLifetime(TimeSpan.FromMinutes(10));
                 options.SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(2));
                 options.DisableAccessTokenEncryption();

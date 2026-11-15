@@ -40,26 +40,26 @@ public static class PageLayoutResolver
     public static IReadOnlyList<ImportDiagnosticDto> Validate(PageSettingsDto? documentSettings, PageLayoutDto? pageLayout, string source)
     {
         var diagnostics = new List<ImportDiagnosticDto>();
-        AddInvalidDimension(pageLayout?.Width, "width", "PXALAYOUT001");
-        AddInvalidDimension(pageLayout?.Height, "height", "PXALAYOUT002");
+        AddInvalidDimension(pageLayout?.Width, "width", "PVADLAYOUT001");
+        AddInvalidDimension(pageLayout?.Height, "height", "PVADLAYOUT002");
         var requestedOrientation = pageLayout?.Orientation ?? documentSettings?.Orientation;
         if (requestedOrientation is not null
             && !requestedOrientation.Equals("portrait", StringComparison.OrdinalIgnoreCase)
             && !requestedOrientation.Equals("landscape", StringComparison.OrdinalIgnoreCase))
-            Add("PXALAYOUT003", $"Unknown orientation '{requestedOrientation}' was normalized.");
+            Add("PVADLAYOUT003", $"Unknown orientation '{requestedOrientation}' was normalized.");
 
         var width = Positive(pageLayout?.Width) ?? Positive(documentSettings?.Width) ?? DefaultWidth;
         var height = Positive(pageLayout?.Height) ?? Positive(documentSettings?.Height) ?? DefaultHeight;
         if (requestedOrientation?.Equals("landscape", StringComparison.OrdinalIgnoreCase) == true && width < height
             || requestedOrientation?.Equals("portrait", StringComparison.OrdinalIgnoreCase) == true && width > height)
-            Add("PXALAYOUT004", "Page dimensions were swapped to match the requested orientation.");
+            Add("PVADLAYOUT004", "Page dimensions were swapped to match the requested orientation.");
 
         var margins = pageLayout?.Margins ?? documentSettings?.Margins;
         if (margins is not null && new[] { margins.Top, margins.Right, margins.Bottom, margins.Left }.Any(value => value < 0))
-            Add("PXALAYOUT005", "Negative page margins were clamped to zero.");
+            Add("PVADLAYOUT005", "Negative page margins were clamped to zero.");
         var bleed = pageLayout?.BleedSize ?? documentSettings?.BleedSize ?? 0;
         if (bleed < 0 || bleed >= Math.Min(width, height) / 2)
-            Add("PXALAYOUT006", "The page bleed was clamped to the supported page bounds.");
+            Add("PVADLAYOUT006", "The page bleed was clamped to the supported page bounds.");
         return diagnostics;
 
         void AddInvalidDimension(double? value, string name, string code)

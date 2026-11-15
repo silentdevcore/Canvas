@@ -87,7 +87,7 @@ public sealed class EInvoiceFixtureCorpusTests
     [Fact]
     public void Every_fixture_records_its_provenance_and_licence()
     {
-        Assert.Equal("pxa.e-invoice.fixture-corpus/1", Manifest.Schema);
+        Assert.Equal("pvad.e-invoice.fixture-corpus/1", Manifest.Schema);
         foreach (var fixture in Manifest.Fixtures)
         {
             Assert.False(string.IsNullOrWhiteSpace(fixture.License), $"{fixture.Id} needs a licence.");
@@ -111,7 +111,7 @@ public sealed class EInvoiceFixtureCorpusTests
             Manifest.Fixtures.Select(item => item.Provenance));
         foreach (var fixture in Manifest.Fixtures)
         {
-            Assert.Equal("pxa-authored", fixture.Provenance);
+            Assert.Equal("pvad-authored", fixture.Provenance);
         }
     }
 

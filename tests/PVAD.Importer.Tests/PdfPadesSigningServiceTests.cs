@@ -277,8 +277,8 @@ public sealed class PdfPadesSigningServiceTests
     }
 
     [Theory]
-    [InlineData(PdfTrustStatus.Valid, PdfTrustStatus.Valid, "PXAPDFTRUST115")]
-    [InlineData(PdfTrustStatus.Invalid, PdfTrustStatus.Invalid, "PXAPDFTRUST116")]
+    [InlineData(PdfTrustStatus.Valid, PdfTrustStatus.Valid, "PVADPDFTRUST115")]
+    [InlineData(PdfTrustStatus.Invalid, PdfTrustStatus.Invalid, "PVADPDFTRUST116")]
     public async Task Inspect_ShouldApplyValidatedApplicationRevocationEvidence(
         PdfTrustStatus evidenceStatus,
         PdfTrustStatus expectedSignatureStatus,
@@ -365,7 +365,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(2, report.Signatures.Count);
         Assert.All(report.Signatures, signature => Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus));
         Assert.DoesNotContain(report.Diagnostics, diagnostic =>
-            diagnostic.Code is "PXAPDFTRUST131" or "PXAPDFTRUST132" or "PXAPDFTRUST133" or "PXAPDFTRUST134");
+            diagnostic.Code is "PVADPDFTRUST131" or "PVADPDFTRUST132" or "PVADPDFTRUST133" or "PVADPDFTRUST134");
         Assert.False(report.Signatures[0].CoversWholeDocument);
         Assert.True(report.Signatures[1].CoversWholeDocument);
         Assert.Equal(first.RevisionCount + 1, second.RevisionCount);
@@ -380,7 +380,7 @@ public sealed class PdfPadesSigningServiceTests
             fixture.Key,
             new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
         var modified = result.Bytes.ToArray();
-        var textOffset = modified.AsSpan().IndexOf("PXA PAdES fixture"u8);
+        var textOffset = modified.AsSpan().IndexOf("PVAD PAdES fixture"u8);
         Assert.True(textOffset >= 0);
         modified[textOffset] ^= 1;
 
@@ -390,7 +390,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST105");
     }
 
     [Fact]
@@ -410,8 +410,8 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFXREF005");
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFXREF005");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST102");
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST133");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST133");
     }
 
     [Fact]
@@ -478,7 +478,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST131");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST131");
     }
 
     [Fact]
@@ -524,7 +524,7 @@ public sealed class PdfPadesSigningServiceTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST134");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST134");
     }
 
     [Theory]
@@ -556,7 +556,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST102");
     }
 
     [Theory]
@@ -570,7 +570,7 @@ public sealed class PdfPadesSigningServiceTests
             fixture.Key,
             new PdfSigningOptions { FieldName = "Approval", SigningTime = fixture.SigningTime });
         var modified = mutation == "signed-content"
-            ? MutateFirstOccurrence(result.Bytes, "PXA PAdES fixture"u8)
+            ? MutateFirstOccurrence(result.Bytes, "PVAD PAdES fixture"u8)
             : MutateCmsSignatureValue(result.Bytes);
 
         await using var stream = new MemoryStream(modified);
@@ -579,7 +579,7 @@ public sealed class PdfPadesSigningServiceTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.IntegrityStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST105");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST105");
     }
 
     [Fact]
@@ -623,14 +623,14 @@ public sealed class PdfPadesSigningServiceTests
                     Y = 80,
                     Width = 220,
                     Height = 72,
-                    Title = "PXA approval"
+                    Title = "PVAD approval"
                 }
             });
 
         var widget = ParseWidget(result.Bytes, "VisibleApproval");
         Assert.Equal([72d, 80d, 292d, 152d], widget.Rectangle);
         Assert.Equal("Page", widget.PageType);
-        Assert.Contains("PXA approval", widget.AppearanceContent, StringComparison.Ordinal);
+        Assert.Contains("PVAD approval", widget.AppearanceContent, StringComparison.Ordinal);
         Assert.Contains("PVAD PDF Signing Test", widget.AppearanceContent, StringComparison.Ordinal);
         Assert.Contains("Approved for release", widget.AppearanceContent, StringComparison.Ordinal);
 
@@ -827,7 +827,7 @@ public sealed class PdfPadesSigningServiceTests
         using var fixture = SigningFixture.Create();
         using var timestampAuthority = TestTimestampAuthority.Create(fixture.SigningTime.AddSeconds(5));
         var result = await new PdfDocumentTimestampService().AddAsync(CreatePdf(), timestampAuthority);
-        var textOffset = result.Bytes.AsSpan().IndexOf("PXA PAdES fixture"u8);
+        var textOffset = result.Bytes.AsSpan().IndexOf("PVAD PAdES fixture"u8);
         Assert.True(textOffset >= 0);
         result.Bytes[textOffset] ^= 0x01;
 
@@ -917,7 +917,7 @@ public sealed class PdfPadesSigningServiceTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA PAdES fixture", 40, 40);
+        document.AddPage().DrawText("PVAD PAdES fixture", 40, 40);
         return document.ToBytes();
     }
 

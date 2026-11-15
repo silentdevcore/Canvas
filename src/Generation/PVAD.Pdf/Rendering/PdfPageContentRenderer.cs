@@ -37,7 +37,7 @@ internal static class PdfPageContentRenderer
             switch (element)
             {
                 case TextElement textElement:
-                    RenderText(sb, textElement, fontResourceNames, embeddedFontResourceNames);
+                    RenderText(sb, textElement, fontResourceNames, embeddedFontResourceNames, opacityResourceNames);
                     break;
 
                 case LineElement lineElement:
@@ -85,7 +85,8 @@ internal static class PdfPageContentRenderer
         StringBuilder sb,
         TextElement element,
         IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames,
-        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames)
+        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames,
+        IReadOnlyDictionary<double, string>? opacityResourceNames)
     {
         string fontResourceName;
         bool useEmbedded;
@@ -102,6 +103,12 @@ internal static class PdfPageContentRenderer
             useEmbedded = false;
         }
 
+        if (opacityResourceNames is not null && opacityResourceNames.TryGetValue(element.Opacity, out var opacityName))
+            sb.Append($"/{opacityName} gs\n");
+        var shaped = useEmbedded && element.EmbeddedFont!.IsRtlCapable
+            ? element.EmbeddedFont.Shape(element.Text) : null;
+        if (shaped is not null)
+            sb.Append($"/Span << /ActualText <FEFF{Convert.ToHexString(Encoding.BigEndianUnicode.GetBytes(element.Text))}> >> BDC\n");
         sb.Append("BT\n");
         sb.AppendFormat(CultureInfo.InvariantCulture, "/{0} {1} Tf\n", fontResourceName, FormatNumber(element.FontSize));
         sb.Append((element.FillColor ?? PdfColor.Black).ToFillColorOperator());
@@ -130,7 +137,26 @@ internal static class PdfPageContentRenderer
                 FormatNumber(element.Y));
         }
 
-        if (useEmbedded)
+        if (shaped is not null)
+        {
+            var scale = element.FontSize / element.EmbeddedFont!.UnitsPerEm;
+            var horizontalScale = element.HorizontalScalingPercent / 100;
+            var radians = element.RotationDegrees * Math.PI / 180;
+            var cos = Math.Cos(radians);
+            var sin = Math.Sin(radians);
+            var advance = 0d;
+            foreach (var glyph in shaped)
+            {
+                var dx = (advance + glyph.OffsetX) * scale * horizontalScale;
+                var dy = glyph.OffsetY * scale;
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} {2} {3} {4} {5} Tm\n<{6:X4}> Tj\n",
+                    FormatNumber(cos), FormatNumber(sin), FormatNumber(-sin), FormatNumber(cos),
+                    FormatNumber(element.X + dx * cos - dy * sin),
+                    FormatNumber(element.Y + dx * sin + dy * cos), glyph.Id);
+                advance += glyph.Advance;
+            }
+        }
+        else if (useEmbedded)
         {
             var displayText = element.TextDirection == "rtl"
                 ? ReverseForRtl(element.Text)
@@ -150,6 +176,9 @@ internal static class PdfPageContentRenderer
             : EstimateTextWidth(element.Text, element.FontSize, element.Font);
 
         var scaledTextWidth = textWidth * (element.HorizontalScalingPercent / 100.0);
+
+        if (element.Underline || element.Strikethrough)
+            sb.Append((element.FillColor ?? PdfColor.Black).ToStrokeColorOperator()).Append('\n');
 
         if (element.Underline)
         {
@@ -172,6 +201,7 @@ internal static class PdfPageContentRenderer
         }
 
         sb.Append("ET\n");
+        if (shaped is not null) sb.Append("EMC\n");
     }
 
     private static string EncodeAsHexGlyphIds(string text, PdfEmbeddedFont font)

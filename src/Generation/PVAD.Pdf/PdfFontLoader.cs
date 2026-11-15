@@ -28,7 +28,6 @@ public sealed class PdfFontLoader
     ];
 
     private const string LegacyFallbackFontFile = "NotoSans-Regular.ttf";
-    private const string DefaultRegularFontFile = "LiberationSans-Regular.ttf";
 
     private readonly string _fontsDirectory;
     private readonly Dictionary<string, PdfEmbeddedFont?> _cache = new(StringComparer.Ordinal);
@@ -48,12 +47,16 @@ public sealed class PdfFontLoader
 
     /// <summary>
     /// Tries to load a packaged font matching the requested language and style.
-    /// Script-specific Noto fonts take precedence; Latin text uses Liberation Sans.
+    /// Script-specific Noto fonts take precedence; Latin text uses the requested Liberation family.
     /// </summary>
     public bool TryLoad(string? language, bool bold, bool italic, out PdfEmbeddedFont? font)
+        => TryLoad(language, bold, italic, PdfFontFamily.Helvetica, out font);
+
+    /// <summary>Loads a matching family without silently substituting a different Latin face.</summary>
+    public bool TryLoad(string? language, bool bold, bool italic, PdfFontFamily family, out PdfEmbeddedFont? font)
     {
         font = null;
-        foreach (var fileName in ResolveFileNames(language, bold, italic))
+        foreach (var fileName in ResolveFileNames(language, bold, italic, family))
         {
             lock (_lock)
             {
@@ -80,7 +83,7 @@ public sealed class PdfFontLoader
     public static bool IsRtl(string? language) =>
         language is not null && RtlLanguages.Contains(language.Split('-')[0]);
 
-    private static IEnumerable<string> ResolveFileNames(string? language, bool bold, bool italic)
+    private static IEnumerable<string> ResolveFileNames(string? language, bool bold, bool italic, PdfFontFamily family)
     {
         var primary = language?.Split('-')[0] ?? string.Empty;
 
@@ -93,15 +96,16 @@ public sealed class PdfFontLoader
             }
         }
 
-        yield return (bold, italic) switch
+        var prefixName = family switch { PdfFontFamily.Times => "LiberationSerif", PdfFontFamily.Courier => "LiberationMono", _ => "LiberationSans" };
+        yield return prefixName + ((bold, italic) switch
         {
-            (true, true) => "LiberationSans-BoldItalic.ttf",
-            (true, false) => "LiberationSans-Bold.ttf",
-            (false, true) => "LiberationSans-Italic.ttf",
-            _ => DefaultRegularFontFile
-        };
+            (true, true) => "-BoldItalic.ttf",
+            (true, false) => "-Bold.ttf",
+            (false, true) => "-Italic.ttf",
+            _ => "-Regular.ttf"
+        });
 
-        if (bold || italic) yield return DefaultRegularFontFile;
-        yield return LegacyFallbackFontFile;
+        if (bold || italic) yield return prefixName + "-Regular.ttf";
+        if (family == PdfFontFamily.Helvetica) yield return LegacyFallbackFontFile;
     }
 }

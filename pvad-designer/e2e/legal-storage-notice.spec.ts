@@ -49,7 +49,7 @@ test('Company footer can reopen storage settings without creating optional conse
   page,
 }) => {
   await page.context().addCookies([{
-    name: 'PXA.StorageNotice',
+    name: 'PVAD.StorageNotice',
     value: '2026-08',
     url: 'http://localhost:5173',
   }]);
@@ -60,4 +60,23 @@ test('Company footer can reopen storage settings without creating optional conse
   const notice = page.locator('[data-pvad-storage-notice]');
   await expect(notice).toBeVisible();
   await expect(notice.getByRole('button', { name: /accept all|reject all|customize/i })).toHaveCount(0);
+});
+
+test('a legacy storage acknowledgement migrates and still allows reopening settings', async ({
+  context,
+  page,
+}) => {
+  await context.addCookies([{
+    name: 'PVAD.StorageNotice',
+    value: '2026-08',
+    url: 'http://localhost:5173',
+  }]);
+  await page.goto('http://localhost:5173/');
+  await expect(page.locator('[data-pvad-storage-notice]')).toHaveCount(0);
+  await expect.poll(async () => (await context.cookies()).some(cookie =>
+    cookie.name === 'PVAD.StorageNotice' && cookie.value === '2026-08')).toBe(true);
+  expect((await context.cookies()).find(cookie => cookie.name === 'PVAD.StorageNotice')?.value).toBe('2026-08');
+
+  await page.getByRole('button', { name: 'Storage settings' }).click();
+  await expect(page.locator('[data-pvad-storage-notice]')).toBeVisible();
 });

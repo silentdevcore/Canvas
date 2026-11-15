@@ -19,9 +19,9 @@ namespace PVAD.Api.Tests;
 public sealed class PdfViewerRedactionControllerTests : IDisposable
 {
     [Theory]
-    [InlineData(1, 409, "PXAPDFREDACTVIEWER001")]
-    [InlineData(2, 409, "PXAPDFREDACTVIEWER002")]
-    [InlineData(3, 503, "PXAPDFREDACTVIEWER003")]
+    [InlineData(1, 409, "PVADPDFREDACTVIEWER001")]
+    [InlineData(2, 409, "PVADPDFREDACTVIEWER002")]
+    [InlineData(3, 503, "PVADPDFREDACTVIEWER003")]
     public async Task RedactionFailures_AddAliasesWithoutReturningPdf(int mode, int status, string code)
     {
         var response = await CreateController(new FailureApplier(mode)).Redact(
@@ -30,13 +30,12 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
         Assert.Equal(status, failure.StatusCode);
         using var json = System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(failure.Value));
         Assert.Equal(code, json.RootElement.GetProperty("code").GetString());
-        Assert.Equal("PVAD" + code[3..], json.RootElement.GetProperty("canonicalCode").GetString());
         Assert.True(json.RootElement.TryGetProperty("error", out _));
         Assert.False(json.RootElement.TryGetProperty("bytes", out _));
     }
 
     private readonly string _storageRoot =
-        Path.Combine(Path.GetTempPath(), "pxa-viewer-redaction-tests", Guid.NewGuid().ToString("N"));
+        Path.Combine(Path.GetTempPath(), "pvad-viewer-redaction-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
     public async Task Redact_SplitsAPartiallyCoveredTextRun()
@@ -52,7 +51,7 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
 
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
         Assert.DoesNotContain("Source PDF", System.Text.Encoding.Latin1.GetString(file.FileContents), StringComparison.Ordinal);
     }
 
@@ -69,8 +68,8 @@ public sealed class PdfViewerRedactionControllerTests : IDisposable
 
         var file = Assert.IsType<FileContentResult>(response);
         Assert.Equal("application/pdf", file.ContentType);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Audit"].ToString().Length);
-        Assert.Equal(64, controller.Response.Headers["PXA-Redaction-Result-Sha256"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Audit"].ToString().Length);
+        Assert.Equal(64, controller.Response.Headers["PVAD-Redaction-Result-Sha256"].ToString().Length);
 
         var content = System.Text.Encoding.Latin1.GetString(file.FileContents);
         Assert.DoesNotContain("Source PDF", content, StringComparison.Ordinal);

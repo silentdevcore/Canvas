@@ -23,14 +23,13 @@ jobs:
         run: npm ci --prefix pvad-designer --ignore-scripts
       - name: Reject legacy names in every tracked Markdown file
         run: node tools/configuration/markdown-path-audit.mjs --all --check
-      - name: Validate exact JSON naming and compatibility boundaries
-        run: node tools/configuration/json-naming-audit.mjs --check
-      - name: Validate reviewed rename exceptions
-        run: node tools/configuration/rename-residual-review.mjs
+      - name: Reject former product names outside the reviewed allowlist
+        run: node tools/configuration/former-name-guard.mjs
 
       - name: Test version tooling
         run: |
           node --test tools/configuration/*.test.mjs
+          node --test tools/dependencies/api-full-validation.test.mjs
           node --test tools/visual-parity/image-tools.test.mjs tools/visual-parity/trust-baseline.test.mjs
           node -e 'require("node:assert/strict").match(process.version, /^v22\./)'
           node --test tools/versioning/pvad-version.test.mjs
@@ -39,7 +38,7 @@ jobs:
           node --test tools/deployment/pvad-deployment.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pvad-version.mjs check
-      - name: Validate canonical and legacy telemetry queries
+      - name: Validate canonical telemetry queries
         run: |
           node tools/configuration/pvad-telemetry-contract.mjs artifacts/rename-pvad/observability/dashboard-queries.json artifacts/rename-pvad/observability/identity-tests.json
           docker run --rm --network none --read-only \
@@ -69,6 +68,7 @@ jobs:
           node tools/pdf-trust/validate-standards-baseline.mjs
           node tools/pdf-trust/validate-external-evidence.mjs
           node --test tools/pdf-trust/*.test.mjs
+          node --test tools/pdf-trust-pades-interop/*.test.mjs
       - name: Validate document fidelity corpus and reviewed baseline
         run: |
           node tools/document-fidelity/fidelity.mjs validate
@@ -265,12 +265,12 @@ jobs:
           --no-build
           --filter "FullyQualifiedName~PVAD.Api.Tests.VersionControllerTests.|FullyQualifiedName~PVAD.Api.Tests.DesignerProductExperienceTests.|FullyQualifiedName~PVAD.Api.Tests.OperatorDocumentationContractTests."
           -p:SkipOcrWorkerPackaging=true
-      - name: Test canonical and legacy security headers
+      - name: Test canonical security headers and rejection of former names
         run: >
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PvadSecurityHeaderMiddlewareTests|FullyQualifiedName~PvadHeaderPipelineTests|FullyQualifiedName~PvadApiKeyHeaderIntegrationTests|FullyQualifiedName~PvadApiKeySchemeCompatibilityTests|FullyQualifiedName~PvadAuthorizationPathCompatibilityTests|FullyQualifiedName~PvadDataProtectionCompatibilityTests|FullyQualifiedName~PvadCookieCompatibilityTests|FullyQualifiedName~PvadCookieConfigurationTests|FullyQualifiedName~PvadAntiforgeryCookieCompatibilityTests|FullyQualifiedName~PvadClaimCompatibilityTests|FullyQualifiedName~PvadOAuthScopeCatalogTests|FullyQualifiedName~PvadOAuthScopeMigrationTests|FullyQualifiedName~PvadMcpDelegationCompatibilityTests|FullyQualifiedName~DesignerProductExperienceTests|FullyQualifiedName~PvadApiPrefixIntegrationTests"
+          --filter "FullyQualifiedName~PvadSecurityHeaderMiddlewareTests|FullyQualifiedName~PvadCookieSecurityTests|FullyQualifiedName~PvadClaimValidationTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~PvadHeaderPipelineTests|FullyQualifiedName~PvadApiKeyHeaderIntegrationTests|FullyQualifiedName~PvadApiKeySchemeCompatibilityTests|FullyQualifiedName~PvadAuthorizationPathCompatibilityTests|FullyQualifiedName~PvadCookieConfigurationTests|FullyQualifiedName~PvadOAuthScopeCatalogTests|FullyQualifiedName~PvadMcpDelegationCompatibilityTests|FullyQualifiedName~DesignerProductExperienceTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Test PostgreSQL legal deployment contract
         env:
@@ -288,16 +288,16 @@ jobs:
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once|FullyQualifiedName~PvadOAuthScopeMigrationTests.PostgreSql_store_preserves_credentials_and_grants"
+          --filter "FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.OAuth_discovery_and_public_PKCE_authorization_are_available|FullyQualifiedName~AccountServiceAccountsAndSecurityControllerTests.Service_account_and_key_lifecycle_reveals_the_secret_exactly_once"
           -p:SkipOcrWorkerPackaging=true
-      - name: Test retained licenses and background job compatibility
+      - name: Test licenses and background jobs
         env:
           PVAD_RUN_POSTGRES_TESTS: "1"
         run: >
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~PvadJobCutoverCompatibilityTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
+          --filter "FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~PvadLicenseRenameCompatibilityTests|FullyQualifiedName~PvadOfflineLicenseValidatorTests|FullyQualifiedName~PvadJobProcessorTests|FullyQualifiedName~AccountSubscriptionAndLicensesControllerTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Verify local EF tooling and unchanged database model
         env:
@@ -599,6 +599,72 @@ jobs:
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
       - name: Restore PDF Trust visual operation dependencies
         run: dotnet restore tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj
+      - name: Enforce packaged font family parity
+        id: font-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/font-families.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: |
+          node --test tools/visual-parity/font-families.test.mjs
+          node tools/visual-parity/run.mjs
+      - name: Preserve font family parity evidence
+        if: always() && steps.font-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/font-family-parity
+          fi
+      - name: Enforce date formatting parity
+        id: date-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-format.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: node tools/visual-parity/run.mjs
+      - name: Preserve date parity evidence
+        if: always() && steps.date-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-format-parity
+          fi
+      - name: Enforce historical date boundary parity
+        id: historical-date-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-historical.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: |
+          node --test tools/visual-parity/fixture-layout.test.mjs
+          node tools/visual-parity/run.mjs
+      - name: Preserve historical date parity evidence
+        if: always() && steps.historical-date-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-historical-parity
+          fi
+      - name: Enforce date paragraph layout parity
+        id: date-layout-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/date-layout.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: node tools/visual-parity/run.mjs
+      - name: Preserve date layout parity evidence
+        if: always() && steps.date-layout-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/date-layout-parity
+          fi
+      - name: Enforce image fit and focus parity
+        id: image-parity
+        env:
+          PVAD_VISUAL_PARITY_FIXTURE: test-assets/visual-parity/image-fit.json
+          PVAD_VISUAL_PARITY_ENFORCE: true
+        run: |
+          node --test tools/visual-parity/fixture-layout.test.mjs
+          node tools/visual-parity/run.mjs
+      - name: Preserve image parity evidence before the catalog run
+        if: always() && steps.image-parity.outcome != 'skipped'
+        run: |
+          if [ -d artifacts/visual-parity ]; then
+            cp -R artifacts/visual-parity artifacts/image-fit-parity
+          fi
       - name: Enforce approved visual parity
         working-directory: pvad-designer
         run: npm run test:visual-parity:ci
@@ -620,6 +686,41 @@ jobs:
         with:
           name: pvad-visual-parity-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/visual-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-image-fit-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/image-fit-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-format-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-format-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-historical-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-historical-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-font-family-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/font-family-parity
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: pvad-date-layout-parity-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/date-layout-parity
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -787,7 +888,16 @@ jobs:
           PVAD_BUILD_TIME: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
         run: node tools/versioning/pvad-build-consistency.mjs verify-container-metadata pvad-webapi:sbom "$GITHUB_SHA" "$PVAD_BUILD_TIME"
       - name: Verify fail-closed production startup exits independently
+        id: startup_rejection
         run: node tools/configuration/production-startup-smoke.mjs --image pvad-webapi:sbom
+      - name: Preserve production startup verification result
+        if: always() && (steps.startup_rejection.outcome == 'success' || steps.startup_rejection.outcome == 'failure')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pvad-startup-rejection-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/sbom/webapi-startup/report.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Generate WebApi and Designer SPDX SBOMs
         run: |
           VERSION="$(cat VERSION)"

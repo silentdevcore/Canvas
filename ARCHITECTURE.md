@@ -58,7 +58,7 @@ WebApi, or vendor migration providers.
 
 - Presentation layer and composition root.
 - Wires concrete infrastructure, importer, migration, template, auth, and PDF viewer services.
-- Exposes canonical `/api/pvad/v1` routes and documented neutral routes; legacy [compatibility entry `compat-459d9a5f43b0`](docs/reference/compatibility-identifiers.v1.json) adapters remain during the compatibility window.
+- Exposes canonical `/api/pvad/v1` routes and documented neutral routes; former-name route adapters were retired on 2026-11-09.
 
 ## Rendering Infrastructure
 

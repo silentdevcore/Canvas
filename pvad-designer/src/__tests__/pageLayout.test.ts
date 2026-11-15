@@ -118,14 +118,14 @@ describe('per-page layout', () => {
 
     useEditorStore.getState().openProject(imported, {
       ...DEFAULT_PAGE_SETTINGS,
-      metadata: { title: 'Portable project', author: 'PXA', subject: '', keywords: '' },
+      metadata: { title: 'Portable project', author: 'PVAD', subject: '', keywords: '' },
       activeLanguages: ['en', 'de'],
     });
 
     const opened = useEditorStore.getState();
     expect(opened.currentTemplate).toEqual(imported);
     expect(opened.pageSettings).toMatchObject({
-      metadata: { title: 'Portable project', author: 'PXA' },
+      metadata: { title: 'Portable project', author: 'PVAD' },
       activeLanguages: ['en', 'de'],
     });
     opened.undo();

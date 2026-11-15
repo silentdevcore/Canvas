@@ -1,5 +1,11 @@
 # PVADE Local Observability
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 This optional Docker Compose profile provides the local and On-Premise evaluation stack for PVAD
 telemetry:
 
@@ -30,17 +36,26 @@ trace/log cross-links. Active datasources are updated in place, not deleted by
 the provisioning deletion list. That list retains only the obsolete historical
 Alertmanager datasource. Inspect provisioning logs and saved dashboard queries
 after deployment; name-based custom queries may need manual updates.
-The dashboard provider identity and existing legacy folder are intentionally retained
-until dashboard placement and folder permissions can be migrated explicitly.
-An [offline provider rename candidate and cutover guide](../../docs/pvad-grafana-provider-cutover.md)
-prepare the remaining folder/provider labels without changing installed state.
-See the [infrastructure mapping](../../docs/pvad-infrastructure-mapping.md) before
-an upgrade. Stop old writers first, preserve the installed project name and keys,
-and never run both generations on the same storage. Configuration checks are not
-runtime cutover tests. Scripts select that same project through
+Every installation uses `grafana/profiles/current/dashboards.yml`, whose provider
+and folder are both PVAD. Compose mounts this provider file separately from the
+shared datasource directory. Since the 2026-11-11 hard cut there is no second
+provider generation and no folder-rename transition. The
+[provider and backup guide](../../docs/pvad-grafana-provider-cutover.md) covers the
+offline inventory and the isolated backup/restore rehearsal.
+Scripts select that same project through
 `COMPOSE_PROJECT_NAME`; explicit container overrides remain available.
 
 ## Start
+
+The startup examples below are for a fresh installation. For an existing Grafana
+installation, retain its project/storage bindings and review the explicit provider
+selection without starting or restarting services:
+
+```bash
+node tools/configuration/pvad-compose.mjs -f docker-compose.yml \
+  -f deploy/rename/docker-compose.grafana-legacy.yml \
+  --profile observability config
+```
 
 Start the WebApi with OTLP export and an explicitly allowlisted development operator:
 

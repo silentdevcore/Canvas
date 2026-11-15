@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
@@ -6,6 +7,44 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const source = fs.readFileSync(path.join(root, 'websites/PVAD.Documentation/src/main.js'), 'utf8');
+
+for (const [relative, manifestName, heading] of [
+  ['pades', 'pades-corpus.json', 'PVADE PAdES Interoperability Corpus'],
+  ['pades/negative', 'negative-corpus.json', 'PVADE PAdES Negative Trust Corpus'],
+]) {
+  test(`${relative} uses current catalog branding without changing validation evidence`, () => {
+    const directory = path.join(root, 'websites/PVAD.Documentation/public/downloads/pdf-trust', relative);
+    const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
+    assert.ok(html.includes(`<title>${heading}</title>`));
+    assert.ok(html.includes(`<h1>${heading}</h1>`));
+    assert.doesNotMatch(html.replace(/<[^>]+>/g, ''), /pxa|power\s*dox/i);
+    assert.match(html, /Downloads retain their original filenames and recorded producer identities/);
+    const links = [...html.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
+    assert.ok(links.includes(manifestName));
+    for (const link of links) assert.ok(fs.existsSync(path.resolve(directory, link)), link);
+
+    const manifest = JSON.parse(fs.readFileSync(path.join(directory, manifestName), 'utf8'));
+    function verifyArtifact(artifact) {
+      const bytes = fs.readFileSync(path.join(directory, artifact.file));
+      assert.equal(createHash('sha256').update(bytes).digest('hex'), artifact.sha256, artifact.file);
+      if (artifact.fileSizeBytes !== undefined) assert.equal(bytes.length, artifact.fileSizeBytes, artifact.file);
+    }
+    for (const entry of manifest.entries) {
+      const pdf = typeof entry.pdf === 'string'
+        ? { file: entry.pdf, sha256: entry.sha256, fileSizeBytes: entry.fileSizeBytes } : entry.pdf;
+      for (const artifact of [pdf, ...Object.values(entry.reports)]) {
+        assert.ok(links.includes(artifact.file), artifact.file);
+        verifyArtifact(artifact);
+      }
+      assert.ok(html.includes(entry.expectedIndication ?? entry.expectedSubIndication));
+    }
+    if (Array.isArray(manifest.trustEvidence)) manifest.trustEvidence.forEach(verifyArtifact);
+    else {
+      verifyArtifact({ file: manifest.trustEvidence.rootCertificate, sha256: manifest.trustEvidence.rootCertificateSha256 });
+      verifyArtifact({ file: manifest.trustEvidence.crl, sha256: manifest.trustEvidence.crlSha256 });
+    }
+  });
+}
 
 test('PDF Trust documentation separates integrity, trust, and revocation', () => {
   assert.match(source, /PAdES B-B, B-T, B-LT, and B-LTA/);

@@ -14,6 +14,27 @@ Keep new code inside the smallest project boundary that owns the feature, and up
 
 ## Pattern A - Output Renderer / Export Format
 
+### Designer Canvas And Live Preview
+
+Printable frontend content belongs to
+`pvad-designer/src/components/Rendering/DocumentElementRenderer.tsx`. Its typed
+dispatch covers every `ElementType`; do not add parallel rendering branches
+to `SimplePvadSurface` or `LivePreview`. Keep interaction chrome in the editor.
+Share localized display-field resolution through `documentContent.ts`, without
+rewriting stable IDs or the canonical document. New types require registry,
+Documentation, shared-dispatch, backend and visual-fixture coverage. Run the
+coverage contract and real Canvas/Preview/PDF comparisons after changes.
+See [Designer Preview](docs/guides/PVAD.Designer-Preview.md) for user-facing
+behavior and explicit parity limits.
+
+Date output uses `product-metadata/designer-date-formatting.json`, embedded in
+Core and consumed by the shared frontend renderer. Extend formats only with
+shared Jest/.NET vectors and a frozen-clock PDF comparison. Arabic/numeric
+output requires directional runs before shaping, as explained by the
+[HarfBuzz integration boundary](https://harfbuzz.github.io/what-harfbuzz-doesnt-do.html).
+Keep logical ActualText, glyph-cluster mappings and the packaged third-party
+notices intact when changing this path.
+
 ### 1. Create or choose the infrastructure project
 
 Use an existing infrastructure project when the format belongs to an established adapter family:

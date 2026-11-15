@@ -1,0 +1,10 @@
+{
+  "id": "designer-cross-platform-text-metrics",
+  "impact": "patch",
+  "components": ["designer", "documentation"],
+  "category": "fixed",
+  "summary": "Document text now keeps fractional character widths on Linux. The interactive Designer uses the same typography rules as Preview and PDF exports.",
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"],
+  "breaking": false
+}

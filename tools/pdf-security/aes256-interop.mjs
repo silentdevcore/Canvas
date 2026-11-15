@@ -12,7 +12,7 @@ const reportPath = path.resolve(readPvadEnvironment('PVAD_AES256_REPORT') ?? pat
   root, 'artifacts/pdf-security/aes256-interop.json'));
 const userPassword = readPvadEnvironment('PVAD_AES256_USER_PASSWORD') ?? 'PXA-reader-ä漢字';
 const ownerPassword = readPvadEnvironment('PVAD_AES256_OWNER_PASSWORD') ?? 'PXA-owner-ßЖ';
-const wrongPassword = 'PXA-intentionally-wrong';
+const wrongPassword = 'PVAD-intentionally-wrong';
 const qpdfImage = readPvadEnvironment('PVAD_AES256_QPDF_IMAGE') ?? 'pvad-pdf-trust-external-tools:1';
 
 if (!fs.existsSync(fixture)) throw new Error(`AES-256 fixture not found: ${fixture}`);

@@ -19,7 +19,7 @@ import { notify } from '@/notifications/toast';
 
 const mockToast = toast as typeof toast & jest.Mock;
 
-describe('PXA toast notifications', () => {
+describe('PVADE toast notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

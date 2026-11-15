@@ -199,9 +199,9 @@ static byte[] CreateRedactionRiskPdf()
 
 static PdfDocument CreateDocument(string title)
 {
-#pragma warning disable PXA0001
+#pragma warning disable PVAD0001
     var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
     document.Info.Title = title;
     document.Info.Author = "PVAD synthetic test corpus";
     document.Info.CreationDate = new DateTimeOffset(2026, 1, 15, 10, 0, 0, TimeSpan.Zero);

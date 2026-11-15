@@ -223,7 +223,7 @@ function fixtureEnvelope(
   return {
     id,
     name,
-    // The standard and version the projected document represents. PXA makes no conformance
+    // The standard and version the projected document represents. PVAD makes no conformance
     // claim here; this only records which maintained layout the fixture came from.
     category: 'invoice',
     description: 'Factur-X 1.09.2 EN 16931 hybrid invoice projected from the canonical PVAD invoice model.',
@@ -274,12 +274,12 @@ function buildProjectedFixture(
  *
  * `VisualParityArtifactTests` reads this to render the dedicated hybrid PDF with
  * `EInvoice.CreatePdf`. Without it the parity run could only compare the Designer against a
- * DesignExport PDF of the projection, which says nothing about the hybrid invoice PXA actually
+ * DesignExport PDF of the projection, which says nothing about the hybrid invoice PVAD actually
  * issues.
  */
 function sidecarFor(invoice: EInvoiceDocument): Record<string, unknown> {
   return {
-    schema: 'pxa.e-invoice.parity-invoice/1',
+    schema: 'pvad.e-invoice.parity-invoice/1',
     standard: 'FacturX',
     profile: 'EN 16931',
     invoice,

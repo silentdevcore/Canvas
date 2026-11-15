@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "package": "NodaTime",
+  "version": "3.3.7",
+  "packageSha256": "19a0721939061e86911c01efb044a148d5ad40558fe46fe5fd02bf5baf81d243",
+  "source": "https://github.com/nodatime/nodatime",
+  "sourceCommit": "cee37f17fcb462d0d17c3374844e253c96e4a7cd",
+  "license": "Apache-2.0",
+  "licenseFile": "NodaTime-LICENSE.txt",
+  "licenseSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+  "noticeFile": "NodaTime-NOTICE.txt",
+  "noticeSha256": "b20873f8469e39d5d09bfbafa9ceb101d555cf8de61f8c2a31394161d3b4c6dd",
+  "timezoneDatabase": "TZDB: 2026f (mapping: 49)",
+  "scope": "Operating-system-independent IANA timezone offsets for Designer date formatting. The pre-1973 UTC boundary remains unchanged. Browser timezone-data compatibility still needs validation."
+}

@@ -20,7 +20,7 @@ public sealed class PvadApiKeyHeaderIntegrationTests
 {
     public static IEnumerable<object[]> KeyCases()
     {
-        foreach (var header in new[] { "X-PVAD-API-Key", "X-PXA-API-Key", "Authorization" })
+        foreach (var header in new[] { "X-PVAD-API-Key", "X-PVAD-API-Key", "Authorization" })
         foreach (var legacy in new[] { false, true })
         foreach (var state in new[] { "active", "revoked", "expired", "disabled-service", "suspended-organization", "closed-organization" })
             yield return [header, legacy, state];
@@ -53,8 +53,8 @@ public sealed class PvadApiKeyHeaderIntegrationTests
         var account = new ServiceAccount { Name = "Synthetic service", OrganizationId = organization.Id };
         var generated = PvadApiKeySecret.Create();
         Assert.StartsWith("pvad_", generated.Secret);
-        var value = legacy ? generated.Secret.Replace("pvad_", "pxa_", StringComparison.Ordinal) : generated.Secret;
-        var secret = (Secret: value, Prefix: legacy ? generated.Prefix.Replace("pvad_", "pxa_", StringComparison.Ordinal) : generated.Prefix,
+        var value = legacy ? generated.Secret.Replace("pvad_", "pvad_", StringComparison.Ordinal) : generated.Secret;
+        var secret = (Secret: value, Prefix: legacy ? generated.Prefix.Replace("pvad_", "pvad_", StringComparison.Ordinal) : generated.Prefix,
             Hash: PvadApiKeySecret.Hash(value));
         var key = new ApiKey { Name = "Synthetic key", OrganizationId = organization.Id,
             ServiceAccountId = account.Id, Prefix = secret.Prefix, SecretHash = secret.Hash };
@@ -107,7 +107,7 @@ public sealed class PvadApiKeySchemeCompatibilityTests(PvadApiTestFactory factor
 {
     [Theory]
     [InlineData("PVAD-MCP synthetic.invalid")]
-    [InlineData("PXA-MCP synthetic.invalid")]
+    [InlineData("PVAD-MCP synthetic.invalid")]
     public void Combined_authentication_selects_the_delegation_handler_for_both_envelope_generations(string authorization)
     {
         var context = new DefaultHttpContext();
@@ -119,7 +119,7 @@ public sealed class PvadApiKeySchemeCompatibilityTests(PvadApiTestFactory factor
 
     [Theory]
     [InlineData("Bearer pvad_synthetic.invalid")]
-    [InlineData("Bearer pxa_synthetic.invalid")]
+    [InlineData("Bearer pvad_synthetic.invalid")]
     public void Combined_authentication_routes_both_key_generations_to_the_key_handler(string authorization)
     {
         var context = new DefaultHttpContext();

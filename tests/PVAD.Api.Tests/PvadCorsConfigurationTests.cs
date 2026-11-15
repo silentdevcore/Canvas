@@ -56,7 +56,7 @@ public sealed class PvadCorsConfigurationTests
 
     [Theory]
     [InlineData("/api/pvad/v1/version")]
-    [InlineData("/api/pxa/v1/version")]
+    [InlineData("/api/pvad/v1/version")]
     public async Task Actual_api_accepts_only_the_configured_origin_for_both_route_generations(string path)
     {
         using var factory = new PvadApiTestFactory().WithWebHostBuilder(builder =>

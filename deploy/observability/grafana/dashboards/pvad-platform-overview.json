@@ -8,7 +8,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -57,7 +57,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "min({__name__=~\"(pvad|pxa)_dependencies_health\"})",
+          "expr": "min({__name__=~\"pvad_dependencies_health\"})",
           "legendFormat": "Dependencies",
           "range": true,
           "refId": "A"
@@ -69,7 +69,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -154,7 +154,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -239,7 +239,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -312,7 +312,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate({__name__=~\"(pvad|pxa)_jobs_processed_total\"}[5m])) by (job_type, outcome)",
+          "expr": "sum(rate({__name__=~\"pvad_jobs_processed_total\"}[5m])) by (job_type, outcome)",
           "legendFormat": "{{job_type}} / {{job_outcome}}",
           "range": true,
           "refId": "A"
@@ -324,7 +324,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "pxa-loki"
+        "uid": "pvad-loki"
       },
       "gridPos": {
         "h": 10,
@@ -346,7 +346,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{service_name=~\"(pvad|pxa)-webapi\"}",
+          "expr": "{service_name=~\"pvad-webapi\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -357,7 +357,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "pxa-prometheus"
+        "uid": "pvad-prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -433,6 +433,6 @@
   },
   "timezone": "browser",
   "title": "PVADE Platform Overview",
-  "uid": "pxa-platform-overview",
+  "uid": "pvad-platform-overview",
   "version": 2
 }

@@ -41,7 +41,7 @@ jest.mock('@/product/ProductExperienceProvider', () => ({
       version: '1.1.0',
       publishedAt: '2026-08-03',
       channel: 'stable',
-      title: 'PXA 1.1.0',
+      title: 'PVAD 1.1.0',
       summary: 'A release that has already been read.',
       documentationPath: '/releases/1.1.0',
       components: ['designer'],
@@ -79,13 +79,13 @@ describe('ProductExperiencePanel release history', () => {
     });
 
     const release = [...container.querySelectorAll('button')]
-      .find(button => button.textContent === 'PXA 1.1.0');
+      .find(button => button.textContent === 'PVAD 1.1.0');
     expect(release).toBeDefined();
     // Current shell branding must not rewrite historical release content.
     expect(container.querySelector('header small')?.textContent).toBe('PVADE 1.1.0');
     expect(release).toBeInTheDocument();
     expect(release).toBeEnabled();
-    expect(release).toHaveAccessibleName('PXA 1.1.0');
+    expect(release).toHaveAccessibleName('PVAD 1.1.0');
     expect(release?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => release?.click());
@@ -95,13 +95,13 @@ describe('ProductExperiencePanel release history', () => {
     container.remove();
   });
 
-  test('keeps Legal notifications reopenable and links them to PXA Account', async () => {
+  test('keeps Legal notifications reopenable and links them to PVADE Account', async () => {
     mockNotifications.push({
       id: 'a62dd01e-17ce-442c-805a-a67bfde06671',
       category: 'Legal',
       severity: 'Warning',
       title: 'Terms and Conditions updated',
-      message: 'Version 1.2 requires acceptance in PXA Account.',
+      message: 'Version 1.2 requires acceptance in PVADE Account.',
       actionLabel: 'Review legal update',
       actionUrl: '/legal-updates?document=terms',
       dismissible: true,
@@ -125,7 +125,7 @@ describe('ProductExperiencePanel release history', () => {
     const action = [...container.querySelectorAll('a')]
       .find(link => link.textContent === 'Review legal update');
     expect(action?.href).toBe('http://localhost:5178/legal-updates?document=terms');
-    expect(container.textContent).toContain('Version 1.2 requires acceptance in PXA Account.');
+    expect(container.textContent).toContain('Version 1.2 requires acceptance in PVADE Account.');
     expect(action?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => root.unmount());

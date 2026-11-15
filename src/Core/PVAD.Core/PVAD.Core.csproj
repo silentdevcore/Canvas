@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="NodaTime" Version="3.3.7" />
+    <EmbeddedResource Include="../../../product-metadata/designer-date-formatting.json" LogicalName="PVAD.DesignerDateFormatting.json" />
+    <Content Include="../../../assets/licenses/NodaTime-LICENSE.txt" Link="third-party/NodaTime/LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../../assets/licenses/NodaTime-NOTICE.txt" Link="third-party/NodaTime/NOTICE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

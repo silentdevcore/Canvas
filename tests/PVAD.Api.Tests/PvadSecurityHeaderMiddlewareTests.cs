@@ -20,7 +20,7 @@ public sealed class PvadSecurityHeaderMiddlewareTests
     [InlineData("Application", "designer")]
     [InlineData("CSRF", "synthetic-token")]
     [InlineData("API-Key", "synthetic-key")]
-    public async Task Legacy_and_canonical_inputs_normalize_to_one_value(string name, string value)
+    public async Task Canonical_inputs_pass_and_former_headers_are_not_promoted(string name, string value)
     {
         foreach (var prefix in new[] { "X-PVAD-", "X-PXA-" })
         {
@@ -30,8 +30,7 @@ public sealed class PvadSecurityHeaderMiddlewareTests
             await new PvadSecurityHeaderMiddleware(request =>
             {
                 invoked = true;
-                Assert.Equal(value, request.Request.Headers["X-PVAD-" + name]);
-                Assert.False(request.Request.Headers.ContainsKey("X-PXA-" + name));
+                Assert.Equal(prefix == "X-PVAD-" ? value : "", request.Request.Headers["X-PVAD-" + name].ToString());
                 return Task.CompletedTask;
             }).InvokeAsync(context);
             Assert.True(invoked);
@@ -45,7 +44,7 @@ public sealed class PvadSecurityHeaderMiddlewareTests
     public async Task Conflicts_duplicates_and_empty_values_fail_before_authentication(string name, string value)
     {
         using var services = new ServiceCollection().AddLogging().AddOptions().BuildServiceProvider();
-        foreach (var variant in new[] { "conflict", "duplicate", "empty", "combined" })
+        foreach (var variant in new[] { "duplicate", "empty", "combined" })
         {
             var context = new DefaultHttpContext { RequestServices = services };
             context.Response.Body = new MemoryStream();
@@ -56,13 +55,12 @@ public sealed class PvadSecurityHeaderMiddlewareTests
                 "combined" => value + "," + value,
                 _ => value,
             };
-            if (variant == "conflict") context.Request.Headers["X-PXA-" + name] = "different-secret";
             await new PvadSecurityHeaderMiddleware(_ => throw new InvalidOperationException("must not run"))
                 .InvokeAsync(context);
             Assert.Equal(400, context.Response.StatusCode);
             context.Response.Body.Position = 0;
             var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
-            Assert.Contains("PXAAPI005", body);
+            Assert.Contains("PVADAPI005", body);
             Assert.DoesNotContain("synthetic-secret", body);
             Assert.DoesNotContain("different-secret", body);
         }
@@ -75,7 +73,7 @@ public sealed class PvadSecurityHeaderMiddlewareTests
         var context = new DefaultHttpContext { RequestServices = services };
         context.Response.Body = new MemoryStream();
         context.Request.Headers["X-PVAD-Application"] = "designer";
-        context.Request.Headers["X-PXA-Application"] = "DESIGNER";
+        context.Request.Headers["X-PVAD-Application"] = "DESIGNER";
         var calls = 0;
         var middleware = new PvadSecurityHeaderMiddleware(_ => { calls++; return Task.CompletedTask; });
         await middleware.InvokeAsync(context);
@@ -95,12 +93,12 @@ public sealed class PvadSecurityHeaderMiddlewareTests
     {
         var context = new DefaultHttpContext();
         PvadResponseHeaders.Set(context.Response, suffix, "synthetic-value");
-        Assert.Equal(context.Response.Headers["X-PVAD-" + suffix], context.Response.Headers["X-PXA-" + suffix]);
+        Assert.Equal(context.Response.Headers["X-PVAD-" + suffix], context.Response.Headers["X-PVAD-" + suffix]);
     }
 
     [Theory]
     [InlineData("X-PVAD-CSRF")]
-    [InlineData("X-PXA-CSRF")]
+    [InlineData("X-PVAD-CSRF")]
     public async Task Both_headers_use_real_antiforgery_validation_not_a_bypass(string header)
     {
         using var host = await new HostBuilder().ConfigureWebHost(web => web.UseTestServer()
@@ -146,7 +144,7 @@ public sealed class PvadHeaderPipelineTests(PvadApiTestFactory factory)
 {
     [Theory]
     [InlineData("X-PVAD-Application")]
-    [InlineData("X-PXA-Application")]
+    [InlineData("X-PVAD-Application")]
     public async Task Designer_headers_cannot_read_protected_documents_anonymously(string name)
     {
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

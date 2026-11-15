@@ -44,19 +44,10 @@ public static class PvadProjectFormat
     public static string Magic(PvadProjectKind kind) =>
         kind == PvadProjectKind.Pdf ? "PVAD-PVADP-1" : "PVAD-PVADS-1";
 
-    public static string LegacyMagic(PvadProjectKind kind) =>
-        kind == PvadProjectKind.Pdf ? "PXA-PXAP-1" : "PXA-PXAS-1";
-
-    public static string LegacyFormatId(PvadProjectKind kind) => kind == PvadProjectKind.Pdf ? "pxap" : "pxas";
-    public static string LegacyMediaType(PvadProjectKind kind) =>
-        kind == PvadProjectKind.Pdf ? "application/vnd.powerdox.pxap+zip" : "application/vnd.powerdox.pxas+zip";
-
-    public static bool AcceptsMediaType(PvadProjectKind kind, string value) =>
-        value == MediaType(kind) || value == LegacyMediaType(kind);
+    public static bool AcceptsMediaType(PvadProjectKind kind, string value) => value == MediaType(kind);
 
     public static bool AcceptsExtension(string canonicalExtension, string extension) =>
-        extension.Equals(canonicalExtension, StringComparison.OrdinalIgnoreCase) ||
-        extension.Equals(canonicalExtension == PvadpExtension ? ".pxap" : ".pxas", StringComparison.OrdinalIgnoreCase);
+        extension.Equals(canonicalExtension, StringComparison.OrdinalIgnoreCase);
 }
 
 public static class PvadProjectAssetKinds
@@ -109,25 +100,11 @@ public sealed class PvadProjectManifest
     public string EnvelopeVersion { get; set; } = PvadProjectFormat.EnvelopeVersion;
     public string DocumentSchemaVersion { get; set; } = PvadProjectFormat.DocumentSchemaVersion;
     private string? minimumPvadVersion;
-    private string? minimumPxaVersion;
 
     public string MinimumPvadVersion
     {
-        get
-        {
-            if (minimumPvadVersion is not null && minimumPxaVersion is not null && minimumPvadVersion != minimumPxaVersion)
-                throw new PvadProjectFormatException("PXAPROJECT008", "The project contains conflicting minimum product versions.");
-            return minimumPvadVersion ?? minimumPxaVersion ?? PvadProjectFormat.CurrentProductVersion;
-        }
+        get => minimumPvadVersion ?? PvadProjectFormat.CurrentProductVersion;
         set => minimumPvadVersion = value ?? throw new JsonException("Minimum product version cannot be null.");
-    }
-
-    [JsonPropertyName("minimumPxaVersion")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? LegacyMinimumPxaVersion
-    {
-        get => null;
-        set => minimumPxaVersion = value ?? throw new JsonException("Minimum product version cannot be null.");
     }
     public string DocumentId { get; set; } = "";
     public string Title { get; set; } = "";

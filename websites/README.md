@@ -61,8 +61,7 @@ ports above. Production builds retain the legacy host defaults documented in
 - `VITE_PVAD_ACCOUNT_URL`
 - `VITE_PVAD_OPERATOR_URL`
 
-Corresponding [compatibility entry `compat-cf81925cfc3b`](../docs/reference/compatibility-identifiers.v1.json) keys remain compatibility inputs. Matching aliases
-are accepted; conflicting canonical/legacy values are rejected. Listing proposed
+Only these canonical keys are read. Listing proposed
 hosts below does not change the runtime defaults or authorize a DNS cutover.
 
 ## Build

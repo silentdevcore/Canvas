@@ -27,19 +27,17 @@ public sealed class DesignerProjectsControllerTests
             new TestTenantContext(userId, organizationId), auditWriter);
     }
 
-    [Theory]
-    [InlineData("minimal.pxap", true)]
-    [InlineData("minimal.pvadp", false)]
-    public async Task Legacy_import_requires_review_and_save_downloads_a_new_canonical_copy(string fileName, bool legacy)
+    [Fact]
+    public async Task Reference_project_opens_without_review_and_saves_a_canonical_copy()
     {
+        const string fileName = "minimal.pvadp";
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "PVAD.sln"))) root = root.Parent;
         Assert.NotNull(root);
         var path = Path.Combine(root.FullName, "docs", "fixtures", "native-projects", fileName);
         var original = await File.ReadAllBytesAsync(path);
         var opened = await OpenPdf(original, fileName);
-        Assert.Equal(legacy, opened.Compatibility.RequiresReview);
-        Assert.Equal(legacy, opened.Compatibility.Diagnostics.Any(item => item.Code == "PVADPROJECT_LEGACY_FORMAT"));
+        Assert.False(opened.Compatibility.RequiresReview);
         var exported = Assert.IsType<FileContentResult>(await controller.ExportPdf(opened.Document));
         Assert.EndsWith(".pvadp", exported.FileDownloadName, StringComparison.Ordinal);
         using var stream = new MemoryStream(exported.FileContents);
@@ -58,13 +56,43 @@ public sealed class DesignerProjectsControllerTests
         };
 
         var exported = Assert.IsType<FileContentResult>(await controller.ExportPdf(document));
-        var opened = await OpenPdf(exported.FileContents, "annual-report.pxap");
+        var opened = await OpenPdf(exported.FileContents, "annual-report.pvadp");
 
         Assert.Equal(PvadProjectFormat.PvadpMediaType, exported.ContentType);
         Assert.EndsWith(".pvadp", exported.FileDownloadName, StringComparison.Ordinal);
         Assert.Equal(document.Id, opened.Document.Id);
         Assert.Equal(document.Name, opened.Manifest.Title);
         Assert.Equal("pvadp", opened.Manifest.FormatId);
+    }
+
+    [Theory]
+    [InlineData(".pvadp", PvadProjectKind.Pdf)]
+    [InlineData(".pvads", PvadProjectKind.Spreadsheet)]
+    public async Task Canonical_packages_are_readable_with_their_extensions(
+        string extension, PvadProjectKind kind)
+    {
+        if (kind == PvadProjectKind.Pdf)
+        {
+            var document = new DesignExportDto
+            {
+                Id = "extension-pdf", Name = "Extension compatibility",
+                Pages = [new PageDto { Id = "page-1" }],
+            };
+            var opened = await OpenPdf(PvadProjectArchive.WritePdf(document), "compatibility" + extension);
+            Assert.Equal(document.Id, opened.Document.Id);
+            Assert.Equal("pvadp", opened.Manifest.FormatId);
+        }
+        else
+        {
+            var workbook = new SpreadsheetDto
+            {
+                Id = "extension-workbook", Name = "Extension compatibility",
+                Sheets = [new SheetDto { Id = "sheet-1" }],
+            };
+            var opened = await OpenSpreadsheet(PvadProjectArchive.WriteSpreadsheet(workbook), "compatibility" + extension);
+            Assert.Equal(workbook.Id, opened.Document.Id);
+            Assert.Equal("pvads", opened.Manifest.FormatId);
+        }
     }
 
     [Fact]
@@ -87,7 +115,7 @@ public sealed class DesignerProjectsControllerTests
 
         var exported = Assert.IsType<FileContentResult>(await controller.ExportPdfWithWorkspace(
             new PvadPdfProjectExportRequest(document, workspace)));
-        var opened = await OpenPdf(exported.FileContents, "code-project.pxap");
+        var opened = await OpenPdf(exported.FileContents, "code-project.pvadp");
 
         Assert.NotNull(opened.CodeWorkspace);
         Assert.Equal(3, opened.CodeWorkspace.Revision);
@@ -112,7 +140,7 @@ public sealed class DesignerProjectsControllerTests
         };
 
         var exported = Assert.IsType<FileContentResult>(await controller.ExportSpreadsheet(workbook));
-        var opened = await OpenSpreadsheet(exported.FileContents, "forecast.pxas");
+        var opened = await OpenSpreadsheet(exported.FileContents, "forecast.pvads");
 
         Assert.Equal(PvadProjectFormat.PvadsMediaType, exported.ContentType);
         Assert.EndsWith(".pvads", exported.FileDownloadName, StringComparison.Ordinal);
@@ -145,21 +173,19 @@ public sealed class DesignerProjectsControllerTests
         };
 
         var exported = Assert.IsType<FileContentResult>(await controller.ExportSpreadsheet(workbook));
-        var opened = await OpenSpreadsheet(exported.FileContents, "review.pxas");
+        var opened = await OpenSpreadsheet(exported.FileContents, "review.pvads");
 
         Assert.True(opened.Compatibility.RequiresReview);
         Assert.Empty(opened.Compatibility.MissingFeatures);
         Assert.Contains(opened.Compatibility.Diagnostics,
-            diagnostic => diagnostic.Code == "PXAPROJECT_EXTERNAL_LINK");
-        Assert.Contains(opened.Compatibility.Diagnostics,
-            diagnostic => diagnostic.CanonicalCode == "PVADPROJECT_EXTERNAL_LINK");
+            diagnostic => diagnostic.Code == "PVADPROJECT_EXTERNAL_LINK");
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         using var manifest = JsonDocument.Parse(JsonSerializer.Serialize(opened.Manifest, options));
         Assert.All(manifest.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
             Assert.False(diagnostic.TryGetProperty("canonicalCode", out _)));
         using var compatibility = JsonDocument.Parse(JsonSerializer.Serialize(opened.Compatibility, options));
-        Assert.Contains(compatibility.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
-            diagnostic.GetProperty("canonicalCode").GetString() == "PVADPROJECT_EXTERNAL_LINK");
+        Assert.All(compatibility.RootElement.GetProperty("diagnostics").EnumerateArray(), diagnostic =>
+            Assert.False(diagnostic.TryGetProperty("canonicalCode", out _)));
     }
 
     [Fact]
@@ -175,7 +201,7 @@ public sealed class DesignerProjectsControllerTests
         var package = RewriteManifest(exported.FileContents, manifest =>
             manifest.RequiredFeatures.Add("pdf.future-capability"));
 
-        var opened = await OpenPdf(package, "future.pxap");
+        var opened = await OpenPdf(package, "future.pvadp");
 
         Assert.True(opened.Compatibility.RequiresReview);
         Assert.Equal(["pdf.future-capability"], opened.Compatibility.MissingFeatures);
@@ -208,7 +234,7 @@ public sealed class DesignerProjectsControllerTests
         var exported = Assert.IsType<FileContentResult>(await controller.ExportPdf(document));
         var package = PvadProjectArchive.ReadPdf(new MemoryStream(exported.FileContents));
         var packagedImage = package.Document.Pages[0].Elements[0];
-        var opened = await OpenPdf(exported.FileContents, "portable.pxap");
+        var opened = await OpenPdf(exported.FileContents, "portable.pvadp");
 
         Assert.Single(package.Assets);
         Assert.Null(packagedImage.Content);
@@ -240,7 +266,7 @@ public sealed class DesignerProjectsControllerTests
         var exported = Assert.IsType<FileContentResult>(await controller.ExportSpreadsheet(workbook));
         var package = PvadProjectArchive.ReadSpreadsheet(new MemoryStream(exported.FileContents));
         var packagedImage = package.Document.Sheets[0].Images[0];
-        var opened = await OpenSpreadsheet(exported.FileContents, "portable.pxas");
+        var opened = await OpenSpreadsheet(exported.FileContents, "portable.pvads");
 
         Assert.Single(package.Assets);
         Assert.Null(packagedImage.Data);
@@ -296,10 +322,8 @@ public sealed class DesignerProjectsControllerTests
         var spreadsheetProblem = Assert.IsType<ProblemDetails>(
             Assert.IsType<ObjectResult>(await controller.ExportSpreadsheet(spreadsheet)).Value);
 
-        Assert.Equal("PXAPROJECT010", pdfProblem.Extensions["code"]);
-        Assert.Equal("PVADPROJECT010", pdfProblem.Extensions["canonicalCode"]);
-        Assert.Equal("PXAPROJECT010", spreadsheetProblem.Extensions["code"]);
-        Assert.Equal("PVADPROJECT010", spreadsheetProblem.Extensions["canonicalCode"]);
+        Assert.Equal("PVADPROJECT010", pdfProblem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT010", spreadsheetProblem.Extensions["code"]);
     }
 
     [Fact]
@@ -313,12 +337,12 @@ public sealed class DesignerProjectsControllerTests
         };
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(pdf)).FileContents;
 
-        var wrongExtension = await controller.OpenPdf(Form(bytes, "document.pxas"));
-        var confused = await controller.OpenSpreadsheet(Form(bytes, "document.pxas"));
+        var wrongExtension = await controller.OpenPdf(Form(bytes, "document.pvads"));
+        var confused = await controller.OpenSpreadsheet(Form(bytes, "document.pvads"));
 
         Assert.Equal(415, Assert.IsType<ObjectResult>(wrongExtension.Result).StatusCode);
         var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(confused.Result).Value);
-        Assert.Equal("PXAPROJECT002", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT002", problem.Extensions["code"]);
     }
 
     [Fact]
@@ -339,7 +363,7 @@ public sealed class DesignerProjectsControllerTests
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(document)).FileContents;
 
         var action = await controller.OpenPdf(
-            Form(bytes, "import.pxap"), "[\"pdf-project\",\"page-1\",\"title\"]");
+            Form(bytes, "import.pvadp"), "[\"pdf-project\",\"page-1\",\"title\"]");
         var response = Assert.IsType<PvadProjectOpenResponse<DesignExportDto>>(
             Assert.IsType<OkObjectResult>(action.Result).Value);
 
@@ -359,12 +383,12 @@ public sealed class DesignerProjectsControllerTests
         };
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(document)).FileContents;
 
-        var action = await controller.OpenPdf(Form(bytes, "import.pxap"), "not-json");
+        var action = await controller.OpenPdf(Form(bytes, "import.pvadp"), "not-json");
         var result = Assert.IsType<ObjectResult>(action.Result);
         var problem = Assert.IsType<ProblemDetails>(result.Value);
 
         Assert.Equal(400, result.StatusCode);
-        Assert.Equal("PXAPROJECT014", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT014", problem.Extensions["code"]);
     }
 
     [Fact]
@@ -378,7 +402,7 @@ public sealed class DesignerProjectsControllerTests
         };
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(document)).FileContents;
 
-        var result = await controller.InspectPdf(Form(bytes, "inspectable.pxap"));
+        var result = await controller.InspectPdf(Form(bytes, "inspectable.pvadp"));
         var manifest = Assert.IsType<PvadProjectManifest>(Assert.IsType<OkObjectResult>(result.Result).Value);
 
         Assert.Equal("Inspectable", manifest.Title);
@@ -396,7 +420,7 @@ public sealed class DesignerProjectsControllerTests
         };
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportSpreadsheet(workbook)).FileContents;
 
-        var result = await controller.InspectSpreadsheet(Form(bytes, "inspectable.pxas"));
+        var result = await controller.InspectSpreadsheet(Form(bytes, "inspectable.pvads"));
         var manifest = Assert.IsType<PvadProjectManifest>(Assert.IsType<OkObjectResult>(result.Result).Value);
 
         Assert.Equal("Inspectable workbook", manifest.Title);
@@ -414,9 +438,9 @@ public sealed class DesignerProjectsControllerTests
             Pages = [new PageDto { Id = "page-1" }],
         };
         var bytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(document)).FileContents;
-        var valid = await controller.ValidatePdf(Form(bytes, "validated.pxap"));
+        var valid = await controller.ValidatePdf(Form(bytes, "validated.pvadp"));
         bytes[^8] ^= 0x01;
-        var invalid = await controller.ValidatePdf(Form(bytes, "tampered.pxap"));
+        var invalid = await controller.ValidatePdf(Form(bytes, "tampered.pvadp"));
 
         Assert.True(Assert.IsType<PvadProjectValidationResponse>(
             Assert.IsType<OkObjectResult>(valid.Result).Value).Valid);
@@ -433,17 +457,17 @@ public sealed class DesignerProjectsControllerTests
         });
         var truncated = valid[..^12];
 
-        var action = await controller.OpenPdf(Form(truncated, "truncated.pxap"));
+        var action = await controller.OpenPdf(Form(truncated, "truncated.pvadp"));
         var result = Assert.IsType<ObjectResult>(action.Result);
         var problem = Assert.IsType<ProblemDetails>(result.Value);
         var audit = Assert.Single(auditWriter.Entries);
 
         Assert.Equal(400, result.StatusCode);
-        Assert.Equal("PXAPROJECT001", problem.Extensions["code"]);
+        Assert.Equal("PVADPROJECT001", problem.Extensions["code"]);
         Assert.Equal(organizationId, audit.OrganizationId);
         Assert.Equal(userId, audit.UserId);
         Assert.Equal("failed", audit.Record.Outcome);
-        Assert.Equal("PXAPROJECT001", audit.Record.DiagnosticCode);
+        Assert.Equal("PVADPROJECT001", audit.Record.DiagnosticCode);
         Assert.DoesNotContain("truncated", JsonSerializer.Serialize(audit), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -464,12 +488,12 @@ public sealed class DesignerProjectsControllerTests
         var pdfBytes = Assert.IsType<FileContentResult>(await controller.ExportPdf(pdf)).FileContents;
         var sheetBytes = Assert.IsType<FileContentResult>(await controller.ExportSpreadsheet(spreadsheet)).FileContents;
 
-        await controller.OpenPdf(Form(pdfBytes, "private-name.pxap"));
-        await controller.ValidatePdf(Form(pdfBytes, "private-name.pxap"));
-        await controller.InspectPdf(Form(pdfBytes, "private-name.pxap"));
-        await controller.OpenSpreadsheet(Form(sheetBytes, "private-sheet.pxas"));
-        await controller.ValidateSpreadsheet(Form(sheetBytes, "private-sheet.pxas"));
-        await controller.InspectSpreadsheet(Form(sheetBytes, "private-sheet.pxas"));
+        await controller.OpenPdf(Form(pdfBytes, "private-name.pvadp"));
+        await controller.ValidatePdf(Form(pdfBytes, "private-name.pvadp"));
+        await controller.InspectPdf(Form(pdfBytes, "private-name.pvadp"));
+        await controller.OpenSpreadsheet(Form(sheetBytes, "private-sheet.pvads"));
+        await controller.ValidateSpreadsheet(Form(sheetBytes, "private-sheet.pvads"));
+        await controller.InspectSpreadsheet(Form(sheetBytes, "private-sheet.pvads"));
 
         Assert.Equal(8, auditWriter.Entries.Count);
         Assert.All(auditWriter.Entries, entry =>
@@ -480,10 +504,10 @@ public sealed class DesignerProjectsControllerTests
         });
         Assert.Equal(new[]
         {
-            "designer.projects.pxap.export", "designer.projects.pxap.inspect",
-            "designer.projects.pxap.open", "designer.projects.pxap.validate",
-            "designer.projects.pxas.export", "designer.projects.pxas.inspect",
-            "designer.projects.pxas.open", "designer.projects.pxas.validate",
+            "designer.projects.pvadp.export", "designer.projects.pvadp.inspect",
+            "designer.projects.pvadp.open", "designer.projects.pvadp.validate",
+            "designer.projects.pvads.export", "designer.projects.pvads.inspect",
+            "designer.projects.pvads.open", "designer.projects.pvads.validate",
         }, auditWriter.Entries.Select(entry => entry.Record.Action).Order().ToArray());
         var serializedAudit = JsonSerializer.Serialize(auditWriter.Entries);
         Assert.DoesNotContain(secret, serializedAudit);
@@ -507,8 +531,6 @@ public sealed class DesignerProjectsControllerTests
     }
 
     [Theory]
-    [InlineData("pxap", "pvadp")]
-    [InlineData("pxas", "pvads")]
     [InlineData("pvadp", "pvadp")]
     [InlineData("pvads", "pvads")]
     public async Task Project_audit_writer_persists_only_bounded_operational_metadata(string formatId, string canonicalFormatId)
@@ -521,8 +543,8 @@ public sealed class DesignerProjectsControllerTests
         var oldAudit = new PVAD.Domain.Entities.AuditEvent
         {
             OrganizationId = organizationId, ActorUserId = userId,
-            Action = "designer.projects.pxap.open", TargetType = "designer_project", TargetId = "historical-project",
-            Outcome = "succeeded", DetailsJson = "{\"formatId\":\"pxap\"}"
+            Action = "designer.projects.pvadp.open", TargetType = "designer_project", TargetId = "historical-project",
+            Outcome = "succeeded", DetailsJson = "{\"formatId\":\"pvadp\"}"
         };
         dbContext.AuditEvents.Add(oldAudit);
         await dbContext.SaveChangesAsync();
@@ -540,12 +562,13 @@ public sealed class DesignerProjectsControllerTests
         Assert.Equal("succeeded", audit.Outcome);
         using var details = JsonDocument.Parse(audit.DetailsJson!);
         Assert.Equal(formatId, details.RootElement.GetProperty("formatId").GetString());
-        Assert.Equal(canonicalFormatId, details.RootElement.GetProperty("canonicalFormatId").GetString());
+        Assert.Equal(canonicalFormatId, details.RootElement.GetProperty("formatId").GetString());
+        Assert.False(details.RootElement.TryGetProperty("canonicalFormatId", out _));
         Assert.Contains("\"packageBytes\":1234", audit.DetailsJson!);
         Assert.DoesNotContain("fileName", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("content", audit.DetailsJson!, StringComparison.OrdinalIgnoreCase);
         await dbContext.Entry(oldAudit).ReloadAsync();
-        Assert.Equal("{\"formatId\":\"pxap\"}", oldAudit.DetailsJson);
+        Assert.Equal("{\"formatId\":\"pvadp\"}", oldAudit.DetailsJson);
     }
 
     private async Task<PvadProjectOpenResponse<DesignExportDto>> OpenPdf(byte[] bytes, string fileName) =>

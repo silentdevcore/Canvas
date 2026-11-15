@@ -105,8 +105,8 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.DoesNotContain("\"secret\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\"keyHash\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         using var apiClient = CreateClient(factory);
-        apiClient.DefaultRequestHeaders.Add("X-PXA-API-Key", secret);
-        using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pxa/templates")
+        apiClient.DefaultRequestHeaders.Add("X-PVAD-API-Key", secret);
+        using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pvad/templates")
         {
             Content = JsonContent.Create(new { name = "API-key template" }),
         };
@@ -170,7 +170,7 @@ public sealed class AdminSubscriptionsControllerTests
         var denied = await organizationClient.GetFromJsonAsync<JsonElement>(
             "/api/pvad/v1/account/entitlements/api?quantity=801");
         Assert.False(denied.GetProperty("allowed").GetBoolean());
-        Assert.Equal("PXA_ENTITLEMENT_LIMIT_EXCEEDED", denied.GetProperty("code").GetString());
+        Assert.Equal("PVAD_ENTITLEMENT_LIMIT_EXCEEDED", denied.GetProperty("code").GetString());
         Assert.Equal(1200, denied.GetProperty("used").GetInt64());
         Assert.Equal(800, denied.GetProperty("remaining").GetInt64());
         var usage = await organizationClient.GetFromJsonAsync<JsonElement>(
@@ -262,13 +262,13 @@ public sealed class AdminSubscriptionsControllerTests
         var versionMismatch = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate?productVersion=2.0.0");
         Assert.False(versionMismatch.GetProperty("valid").GetBoolean());
-        Assert.Equal("PXA_LICENSE_VERSION_INCOMPATIBLE", versionMismatch.GetProperty("code").GetString());
+        Assert.Equal("PVAD_LICENSE_VERSION_INCOMPATIBLE", versionMismatch.GetProperty("code").GetString());
         var deploymentMismatch = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate?deploymentId=another-deployment");
-        Assert.Equal("PXA_LICENSE_DEPLOYMENT_MISMATCH", deploymentMismatch.GetProperty("code").GetString());
+        Assert.Equal("PVAD_LICENSE_DEPLOYMENT_MISMATCH", deploymentMismatch.GetProperty("code").GetString());
         var instanceLimit = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate?activeInstances=4");
-        Assert.Equal("PXA_LICENSE_INSTANCE_LIMIT_EXCEEDED", instanceLimit.GetProperty("code").GetString());
+        Assert.Equal("PVAD_LICENSE_INSTANCE_LIMIT_EXCEEDED", instanceLimit.GetProperty("code").GetString());
         var download = await systemClient.GetAsync($"/api/pvad/v1/admin/licenses/{licenseId}/download");
         Assert.Equal(HttpStatusCode.OK, download.StatusCode);
         var artifact = await download.Content.ReadAsStringAsync();
@@ -287,7 +287,7 @@ public sealed class AdminSubscriptionsControllerTests
         validation = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pvad/v1/admin/licenses/{licenseId}/validate");
         Assert.False(validation.GetProperty("valid").GetBoolean());
-        Assert.Equal("PXA_LICENSE_REVOKED", validation.GetProperty("code").GetString());
+        Assert.Equal("PVAD_LICENSE_REVOKED", validation.GetProperty("code").GetString());
         var tenantLicenses = await organizationClient.GetFromJsonAsync<JsonElement>("/api/pvad/v1/admin/licenses");
         Assert.Single(tenantLicenses.EnumerateArray());
 
@@ -411,7 +411,7 @@ public sealed class AdminSubscriptionsControllerTests
             builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    ["ConnectionStrings:PvadDatabase"] = connectionString,
                     ["ProductAccess:Enabled"] = "true",
                     ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                     ["AdminSecurity:SystemOperatorEmails:0"] = "system@pvad.test",
@@ -490,7 +490,7 @@ public sealed class AdminSubscriptionsControllerTests
         HttpMethod method, string path, string csrf, object body)
     {
         var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
-        request.Headers.Add("X-PXA-CSRF", csrf);
+        request.Headers.Add("X-PVAD-CSRF", csrf);
         return request;
     }
 

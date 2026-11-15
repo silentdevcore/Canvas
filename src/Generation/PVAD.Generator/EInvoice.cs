@@ -135,14 +135,14 @@ public static partial class EInvoice
             !string.Equals(recognition.Profile, normalizedProfile, StringComparison.Ordinal))
         {
             diagnostics.Add(Error(
-                "PXAEINV015",
+                "PVADEINV015",
                 $"The declared profile '{normalizedProfile}' does not match XML profile '{recognition.Profile}'."));
         }
 
         if (diagnostics.All(static item => item.Severity != "error"))
         {
             diagnostics.Add(new PvadEInvoiceDiagnostic(
-                "PXAEINV000",
+                "PVADEINV000",
                 "information",
                 "The XML passed secure structural recognition. XSD and Schematron conformance have not been evaluated."));
         }
@@ -158,9 +158,9 @@ public static partial class EInvoice
     {
         var diagnostics = new List<PvadEInvoiceDiagnostic>();
         if (xml.IsEmpty)
-            diagnostics.Add(Error("PXAEINV001", "Invoice XML cannot be empty."));
+            diagnostics.Add(Error("PVADEINV001", "Invoice XML cannot be empty."));
         else if (xml.Length > MaximumXmlBytes)
-            diagnostics.Add(Error("PXAEINV002", "Invoice XML cannot exceed " + MaximumXmlBytes + " bytes."));
+            diagnostics.Add(Error("PVADEINV002", "Invoice XML cannot exceed " + MaximumXmlBytes + " bytes."));
         if (diagnostics.Count > 0)
             return new(false, null, null, null, diagnostics);
 
@@ -181,14 +181,14 @@ public static partial class EInvoice
         }
         catch (Exception exception) when (exception is XmlException or InvalidOperationException)
         {
-            diagnostics.Add(Error("PXAEINV003", "Invoice XML is malformed or contains prohibited XML features."));
+            diagnostics.Add(Error("PVADEINV003", "Invoice XML is malformed or contains prohibited XML features."));
             return new(false, null, null, null, diagnostics);
         }
 
         var root = document.Root;
         if (root is null)
         {
-            diagnostics.Add(Error("PXAEINV004", "Invoice XML has no document element."));
+            diagnostics.Add(Error("PVADEINV004", "Invoice XML has no document element."));
             return new(false, null, null, null, diagnostics);
         }
 
@@ -196,7 +196,7 @@ public static partial class EInvoice
         if (syntax is null)
         {
             diagnostics.Add(Error(
-                "PXAEINV005",
+                "PVADEINV005",
                 "Only UN/CEFACT CrossIndustryInvoice and UBL Invoice/CreditNote syntaxes are supported."));
             return new(false, null, null, null, diagnostics);
         }
@@ -205,7 +205,7 @@ public static partial class EInvoice
         if (string.IsNullOrWhiteSpace(guideline))
         {
             diagnostics.Add(Error(
-                "PXAEINV006",
+                "PVADEINV006",
                 "The invoice does not declare a guideline or customization identifier."));
         }
         var semanticData = ExtractSemanticData(document, syntax);
@@ -321,17 +321,17 @@ public static partial class EInvoice
         PvadEInvoiceSemanticData data,
         ICollection<PvadEInvoiceDiagnostic> diagnostics)
     {
-        AddMissing(data.InvoiceNumber, "PXAEINV030", "The invoice number could not be extracted.", diagnostics);
-        AddMissing(data.Currency, "PXAEINV031", "The invoice currency could not be extracted.", diagnostics);
-        AddMissing(data.Seller.Name, "PXAEINV032", "The seller name could not be extracted.", diagnostics);
-        AddMissing(data.Buyer.Name, "PXAEINV033", "The buyer name could not be extracted.", diagnostics);
+        AddMissing(data.InvoiceNumber, "PVADEINV030", "The invoice number could not be extracted.", diagnostics);
+        AddMissing(data.Currency, "PVADEINV031", "The invoice currency could not be extracted.", diagnostics);
+        AddMissing(data.Seller.Name, "PVADEINV032", "The seller name could not be extracted.", diagnostics);
+        AddMissing(data.Buyer.Name, "PVADEINV033", "The buyer name could not be extracted.", diagnostics);
         if (data.TaxInclusiveTotal is null && data.PayableAmount is null)
-            diagnostics.Add(Warning("PXAEINV034", "No invoice total could be extracted."));
+            diagnostics.Add(Warning("PVADEINV034", "No invoice total could be extracted."));
         if (data.TaxExclusiveTotal is { } net && data.TaxTotal is { } tax &&
             data.TaxInclusiveTotal is { } gross && Math.Abs(net + tax - gross) > 0.02m)
         {
             diagnostics.Add(Warning(
-                "PXAEINV035",
+                "PVADEINV035",
                 "Tax-exclusive total plus tax does not equal the tax-inclusive total."));
         }
     }
@@ -430,20 +430,20 @@ public static partial class EInvoice
     {
         if (!Enum.IsDefined(options.Standard))
         {
-            diagnostics.Add(Error("PXAEINV016", "The electronic-invoice standard is not supported."));
+            diagnostics.Add(Error("PVADEINV016", "The electronic-invoice standard is not supported."));
             return;
         }
         if (string.IsNullOrWhiteSpace(options.Version) || options.Version.Length > 32)
-            diagnostics.Add(Error("PXAEINV007", "A version between 1 and 32 characters is required."));
+            diagnostics.Add(Error("PVADEINV007", "A version between 1 and 32 characters is required."));
         if (string.IsNullOrWhiteSpace(options.Profile) || options.Profile.Length > 64)
-            diagnostics.Add(Error("PXAEINV008", "A profile between 1 and 64 characters is required."));
+            diagnostics.Add(Error("PVADEINV008", "A profile between 1 and 64 characters is required."));
 
         var expectedVersion = CurrentVersion(options.Standard);
         if (!string.IsNullOrWhiteSpace(options.Version) &&
             !string.Equals(options.Version.Trim(), expectedVersion, StringComparison.Ordinal))
         {
             diagnostics.Add(Error(
-                "PXAEINV012",
+                "PVADEINV012",
                 $"PVAD currently supports {options.Standard} version '{expectedVersion}', not '{options.Version.Trim()}'."));
         }
 
@@ -455,7 +455,7 @@ public static partial class EInvoice
         if (!string.IsNullOrWhiteSpace(options.Profile) && !validProfile)
         {
             diagnostics.Add(Error(
-                "PXAEINV013",
+                "PVADEINV013",
                 $"Profile '{options.Profile.Trim()}' is not supported for {options.Standard}."));
         }
 
@@ -463,7 +463,7 @@ public static partial class EInvoice
             !string.Equals(options.FileName.Trim(), DefaultFileName(options.Standard), StringComparison.Ordinal))
         {
             diagnostics.Add(Error(
-                "PXAEINV014",
+                "PVADEINV014",
                 $"{options.Standard} invoice XML must use filename '{DefaultFileName(options.Standard)}'."));
         }
     }
@@ -513,7 +513,7 @@ public static partial class EInvoice
             if (syntax != "CII")
             {
                 diagnostics.Add(Error(
-                    "PXAEINV009",
+                    "PVADEINV009",
                     "Factur-X and ZUGFeRD require UN/CEFACT CrossIndustryInvoice syntax."));
                 return;
             }
@@ -523,7 +523,7 @@ public static partial class EInvoice
                 !guideline.Contains("ferd", StringComparison.OrdinalIgnoreCase))
             {
                 diagnostics.Add(Error(
-                    "PXAEINV010",
+                    "PVADEINV010",
                     "The CII guideline identifier does not identify Factur-X or ZUGFeRD."));
             }
             return;
@@ -533,7 +533,7 @@ public static partial class EInvoice
             !guideline.Contains("xrechnung", StringComparison.OrdinalIgnoreCase))
         {
             diagnostics.Add(Error(
-                "PXAEINV011",
+                "PVADEINV011",
                 "The customization identifier does not identify XRechnung."));
         }
     }

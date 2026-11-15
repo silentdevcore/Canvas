@@ -1,5 +1,11 @@
 # License And Background Job Compatibility
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 ## Signed License Inventory
 
 Schema versions 1 and 2 remain supported by `PvadOfflineLicenseValidator`.
@@ -166,7 +172,7 @@ synthetic paired-binary test.
 
 ### Representative Paired-Binary Test
 
-The [job cutover harness](../tools/job-cutover/README.md) builds real PVAD application
+The job cutover harness (`tools/job-cutover/README.md`, removed 2026-11-09) builds real PVAD application
 assemblies from immutable commit `fce423cf8c5f5e71eff6178f712fe4e5eb5af69a` and
 the current PVAD assemblies. The common test driver is compiled separately against
 each generation, with an assembly-identity assertion; production baseline sources

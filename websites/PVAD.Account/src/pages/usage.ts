@@ -1,3 +1,4 @@
+import { displaySystemMessage } from '../../../shared/diagnosticPresentation';
 import { escapeHtml } from '../shell';
 import { getAccountSubscription, getAccountSubscriptionUsage } from '../api';
 import type { ApiError, AccountSubscriptionResponse, AccountSubscriptionUsageResponse } from '../api';
@@ -65,7 +66,7 @@ export function usagePage(): string {
     return `
       <header class="account-page-header"><div><p class="pvad-kicker">Customer workspace</p><h1>Usage</h1></div></header>
       <section class="account-section">
-        <div>${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : '<p>Loading your usage…</p>'}</div>
+        <div>${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : '<p>Loading your usage…</p>'}</div>
       </section>
     `;
   }

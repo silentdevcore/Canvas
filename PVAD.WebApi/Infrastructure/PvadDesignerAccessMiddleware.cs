@@ -42,7 +42,7 @@ public sealed class PvadDesignerAccessMiddleware(RequestDelegate next)
                 StatusCodes.Status401Unauthorized,
                 "Designer session refresh required",
                 "Sign in through PVADE Account again to refresh Designer permissions.",
-                "PXA_DESIGNER_SESSION_EXPIRED");
+                "PVAD_DESIGNER_SESSION_EXPIRED");
             return;
         }
 
@@ -126,7 +126,7 @@ public sealed class PvadDesignerAccessMiddleware(RequestDelegate next)
                     StatusCodes.Status403Forbidden,
                     "Designer permission required",
                     "Your organization role does not allow this Designer operation.",
-                    "PXA_DESIGNER_PERMISSION_REQUIRED",
+                    "PVAD_DESIGNER_PERMISSION_REQUIRED",
                     requiredPermission);
                 return;
             }

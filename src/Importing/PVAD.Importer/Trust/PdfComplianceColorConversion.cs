@@ -42,7 +42,7 @@ internal static class PdfComplianceColorConversion
             {
                 var imageSpace = PdfSrgbColorConverter.Resolve(stream.Dictionary["ColorSpace"], resolve);
                 blocking.Add(new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT010",
+                    "PVADPDFACONVERT010",
                     PdfTrustDiagnosticSeverity.Error,
                     $"Image XObject uses the {Describe(imageSpace)} colour space. {reason}",
                     indirectObject.Id.Number,
@@ -70,7 +70,7 @@ internal static class PdfComplianceColorConversion
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
                 blocking.Add(new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT011",
+                    "PVADPDFACONVERT011",
                     PdfTrustDiagnosticSeverity.Error,
                     "A content stream could not be decoded, so its colour usage cannot be assessed.",
                     holder.Id.Number,
@@ -86,7 +86,7 @@ internal static class PdfComplianceColorConversion
             catch (Exception exception) when (exception is not OutOfMemoryException)
             {
                 blocking.Add(new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT014",
+                    "PVADPDFACONVERT014",
                     PdfTrustDiagnosticSeverity.Error,
                     "A content stream could not be analyzed safely, so colour conversion was blocked.",
                     holder.Id.Number,
@@ -103,7 +103,7 @@ internal static class PdfComplianceColorConversion
                         ? "Content contains an inline image without a demonstrably safe DeviceGray or DeviceRGB colour space."
                         : $"Content uses the colour space resource '/{name}', which cannot be converted to sRGB deterministically.";
                 blocking.Add(new PdfComplianceConversionFinding(
-                    "PXAPDFACONVERT012",
+                    "PVADPDFACONVERT012",
                     PdfTrustDiagnosticSeverity.Error,
                     message,
                     holder.Id.Number,

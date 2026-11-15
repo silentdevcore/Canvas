@@ -61,7 +61,7 @@ public sealed class PdfFacadeTests
 
         Assert.IsType<PdfDocument>(document);
         var page = document.AddPage(300, 180);
-        page.DrawTextFromTop("PXA generator facade", 24, 24, 12);
+        page.DrawTextFromTop("PVAD generator facade", 24, 24, 12);
 
         var bytes = document.ToBytes();
 
@@ -87,7 +87,7 @@ public sealed class PdfFacadeTests
         Assert.False(report.IsConformanceValidated);
         Assert.Equal("CII", report.Syntax);
         Assert.Equal("urn:factur-x.eu:1p0:en16931", report.GuidelineIdentifier);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV000");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV000");
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class PdfFacadeTests
         Assert.Equal("UBL-Invoice", recognition.Syntax);
         Assert.Equal("XRECHNUNG", recognition.Profile);
         Assert.Equal("CHF", recognition.SemanticData?.Currency);
-        Assert.Equal("PXA Customer AG", recognition.SemanticData?.Buyer.Name);
+        Assert.Equal("PVAD Customer AG", recognition.SemanticData?.Buyer.Name);
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == "error");
     }
 
@@ -187,10 +187,10 @@ public sealed class PdfFacadeTests
 
         Assert.False(result.IsGenerated);
         Assert.True(result.Xml.IsEmpty);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV112");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV113");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV115");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV116");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV112");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV113");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV115");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV116");
     }
 
     [Fact]
@@ -283,10 +283,10 @@ public sealed class PdfFacadeTests
     }
 
     [Theory]
-    [InlineData("1.08", "EN 16931", null, "PXAEINV012")]
-    [InlineData("1.09.2", "unknown", null, "PXAEINV013")]
-    [InlineData("1.09.2", "EN 16931", "invoice.xml", "PXAEINV014")]
-    [InlineData("1.09.2", "BASIC", null, "PXAEINV015")]
+    [InlineData("1.08", "EN 16931", null, "PVADEINV012")]
+    [InlineData("1.09.2", "unknown", null, "PVADEINV013")]
+    [InlineData("1.09.2", "EN 16931", "invoice.xml", "PVADEINV014")]
+    [InlineData("1.09.2", "BASIC", null, "PVADEINV015")]
     public void EInvoice_Validate_RejectsInconsistentOptions(
         string version,
         string profile,
@@ -317,7 +317,7 @@ public sealed class PdfFacadeTests
         var exception = Assert.Throws<PdfComplianceException>(() =>
             document.ToBytes(new PdfSaveOptions { ComplianceProfile = PdfComplianceProfile.PdfA2B }));
 
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA007");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA007");
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public sealed class PdfFacadeTests
         });
 
         Assert.False(report.IsStructurallyValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV003");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV003");
     }
 
     [Fact]
@@ -352,7 +352,7 @@ public sealed class PdfFacadeTests
             });
 
         Assert.False(report.IsStructurallyValid);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAEINV011");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADEINV011");
     }
 
     [Fact]
@@ -392,9 +392,9 @@ public sealed class PdfFacadeTests
     [Fact]
     public void DirectPvadPdfConstructor_StillGeneratesPdf()
     {
-#pragma warning disable PXA0001 // This test intentionally verifies the low-level PVAD.Pdf constructor remains usable.
+#pragma warning disable PVAD0001 // This test intentionally verifies the low-level PVAD.Pdf constructor remains usable.
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         var page = document.AddPage(300, 180);
         page.DrawTextFromTop("Direct PVAD.Pdf constructor", 24, 24, 12);
 
@@ -424,7 +424,7 @@ public sealed class PdfFacadeTests
     {
         var design = new DesignExportDto
         {
-            Name = "PXA Word",
+            Name = "PVAD Word",
             Pages =
             [
                 new PageDto
@@ -438,7 +438,7 @@ public sealed class PdfFacadeTests
                             Y = 24,
                             Width = 180,
                             Height = 32,
-                            Content = "PXA generator facade",
+                            Content = "PVAD generator facade",
                         }
                     ]
                 }
@@ -469,20 +469,20 @@ public sealed class PdfFacadeTests
         BuyerReference = "ORDER-42",
         PaymentReference = "INV-2026-100",
         Seller = new(
-            "Power Dox Automation AG",
+            "PVADE Example AG",
             "CHE-SELLER",
             "CHE-123.456.789 MWST",
             "seller@example.test",
             new("Example Street 1", "Zurich", "8000", "CH")),
         Buyer = new(
-            "PXA Customer AG",
+            "PVAD Customer AG",
             "CHE-BUYER",
             null,
             "buyer@example.test",
             new("Customer Street 2", "Bern", "3000", "CH")),
         Lines =
         [
-            new("1", "PXA Premium license", 1, "C62", 120m, 19m),
+            new("1", "PVADE Premium license", 1, "C62", 120m, 19m),
             new("2", "Implementation service", 2, "HUR", 40m, 19m)
         ]
     };

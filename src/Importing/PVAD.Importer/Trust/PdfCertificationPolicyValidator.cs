@@ -97,7 +97,7 @@ internal static class PdfCertificationPolicyValidator
             if (permsReference is not null)
             {
                 diagnostics.Add(new PdfTrustDiagnostic(
-                    "PXAPDFTRUST140",
+                    "PVADPDFTRUST140",
                     PdfTrustDiagnosticSeverity.Error,
                     "The catalog declares /Perms /DocMDP but no signature carries a DocMDP transform.",
                     permsReference.Id.Number,
@@ -112,7 +112,7 @@ internal static class PdfCertificationPolicyValidator
         {
             structuralViolations.Add("The document contains more than one DocMDP certification signature.");
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST141",
+                "PVADPDFTRUST141",
                 PdfTrustDiagnosticSeverity.Error,
                 "The document contains more than one DocMDP certification signature.",
                 declared[0].Id.Number,
@@ -124,7 +124,7 @@ internal static class PdfCertificationPolicyValidator
         {
             structuralViolations.Add("The certification signature is not bound by the catalog /Perms /DocMDP entry.");
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST142",
+                "PVADPDFTRUST142",
                 PdfTrustDiagnosticSeverity.Error,
                 "The DocMDP certification signature is not the signature referenced by the catalog /Perms entry.",
                 signatureId.Number,
@@ -136,7 +136,7 @@ internal static class PdfCertificationPolicyValidator
         if (inspection?.SignedRevisionEndOffset is not { } certifiedRevisionEnd)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST143",
+                "PVADPDFTRUST143",
                 PdfTrustDiagnosticSeverity.Error,
                 "The certified revision boundary could not be resolved for the DocMDP signature.",
                 signatureId.Number,
@@ -151,7 +151,7 @@ internal static class PdfCertificationPolicyValidator
         {
             structuralViolations.Add("The certification signature does not cover the first signed revision.");
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST144",
+                "PVADPDFTRUST144",
                 PdfTrustDiagnosticSeverity.Error,
                 "A certification signature must cover the first signed revision of the document.",
                 signatureId.Number,
@@ -163,7 +163,7 @@ internal static class PdfCertificationPolicyValidator
         {
             structuralViolations.Add($"The DocMDP permission level {level} is invalid.");
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST145",
+                "PVADPDFTRUST145",
                 PdfTrustDiagnosticSeverity.Error,
                 $"The DocMDP transform declares the unsupported permission level {level}.",
                 signatureId.Number,
@@ -204,7 +204,7 @@ internal static class PdfCertificationPolicyValidator
         if (before is null)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST146",
+                "PVADPDFTRUST146",
                 PdfTrustDiagnosticSeverity.Error,
                 "The certified revision could not be reparsed, so DocMDP permissions are indeterminate.",
                 certification.SignatureId.Number,
@@ -223,7 +223,7 @@ internal static class PdfCertificationPolicyValidator
         if (!TryFindChangedObjects(xref, certification.CertifiedRevisionEnd, out var changedIds))
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST149",
+                "PVADPDFTRUST149",
                 PdfTrustDiagnosticSeverity.Error,
                 "The certified revision does not match a parsed cross-reference revision, so DocMDP permissions are indeterminate.",
                 certification.SignatureId.Number,
@@ -266,7 +266,7 @@ internal static class PdfCertificationPolicyValidator
         if (violationCount > 0)
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST147",
+                "PVADPDFTRUST147",
                 PdfTrustDiagnosticSeverity.Error,
                 $"{violationCount} change(s) after the certified revision are not permitted by DocMDP level {certification.Level}.",
                 certification.SignatureId.Number,
@@ -275,7 +275,7 @@ internal static class PdfCertificationPolicyValidator
         else
         {
             diagnostics.Add(new PdfTrustDiagnostic(
-                "PXAPDFTRUST148",
+                "PVADPDFTRUST148",
                 PdfTrustDiagnosticSeverity.Info,
                 $"All changes after the certified revision are permitted by DocMDP level {certification.Level}.",
                 certification.SignatureId.Number,

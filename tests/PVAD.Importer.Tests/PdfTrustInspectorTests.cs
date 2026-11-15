@@ -123,8 +123,8 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal(PdfTrustStatus.Indeterminate, report.PdfA.Status);
         Assert.Equal("PDF/UA-1", report.PdfUa.Profile);
         Assert.Equal(PdfTrustStatus.Indeterminate, report.PdfUa.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST301");
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST401");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST301");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST401");
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal(1, report.Risk.EmbeddedFileCount);
         Assert.True(report.Risk.HasRiskyContent);
         Assert.Equal(PdfTrustStatus.Indeterminate, report.Risk.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST020");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST020");
     }
 
     [Fact]
@@ -167,11 +167,11 @@ public sealed class PdfTrustInspectorTests
             FontLoader = new PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"))
         };
         document.Info.Title = "Archival fixture";
-        document.Info.Author = "PXA QA";
+        document.Info.Author = "PVAD QA";
         document.Info.Subject = "PDF/A-2b interoperability fixture";
-        document.Info.Keywords = "PXA, PDF/A";
-        document.Info.Creator = "PXA tests";
-        document.Info.Producer = "PXA";
+        document.Info.Keywords = "PVAD, PDF/A";
+        document.Info.Creator = "PVAD tests";
+        document.Info.Producer = "PVAD";
         document.Info.CreationDate = new DateTimeOffset(2026, 8, 31, 10, 0, 0, TimeSpan.Zero);
         document.Info.ModificationDate = new DateTimeOffset(2026, 8, 31, 10, 30, 0, TimeSpan.Zero);
         document.AddPage().DrawText("Embedded archival text", 40, 40, new PdfDrawTextOptions
@@ -200,7 +200,7 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal("PDF/A-2b", report.PdfA.Profile);
         Assert.Equal(PdfTrustStatus.Valid, report.PdfA.Status);
         Assert.Equal("PVAD PDF/A-2b/3b structural validator 1.3", report.PdfA.Validator);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST300");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST300");
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public sealed class PdfTrustInspectorTests
             ComplianceProfile = PdfComplianceProfile.PdfA2B
         }));
 
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA003");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA003");
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public sealed class PdfTrustInspectorTests
             ComplianceProfile = PdfComplianceProfile.PdfA2B
         }));
 
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA006");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA006");
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public sealed class PdfTrustInspectorTests
             Encryption = new PdfEncryptionOptions { UserPassword = "reader" }
         }));
 
-        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFA002");
+        Assert.Contains(exception.Report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFA002");
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public sealed class PdfTrustInspectorTests
         Assert.Equal(PdfTrustStatus.Invalid, signature.CoverageStatus);
         Assert.Equal("adbe.pkcs7.detached", signature.SubFilter);
         Assert.Equal([0L, 10L, 20L, 30L], signature.ByteRange);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST102");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST102");
     }
 
     [Fact]
@@ -303,13 +303,13 @@ public sealed class PdfTrustInspectorTests
 
         var report = await InspectAsync(source.Concat(shadowObject).ToArray());
 
-        // A reader resolves nothing here, so PXA must not present the appended bytes as a
+        // A reader resolves nothing here, so PVAD must not present the appended bytes as a
         // signature; it reports them as an unreferenced definition instead.
         Assert.Empty(report.Signatures);
         Assert.Equal(PdfTrustStatus.Invalid, report.StructureStatus);
         var diagnostic = Assert.Single(
             report.Diagnostics,
-            candidate => candidate.Code == "PXAPDFTRUST150");
+            candidate => candidate.Code == "PVADPDFTRUST150");
         Assert.Equal(999, diagnostic.ObjectNumber);
     }
 

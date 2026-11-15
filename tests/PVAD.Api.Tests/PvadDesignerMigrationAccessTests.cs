@@ -18,12 +18,12 @@ public sealed class PvadDesignerMigrationAccessTests
     [InlineData("/spreadsheet/code/aspose", "spreadsheet", "code", "GET")]
     [InlineData("/report/designer/devexpress", "report", "designer", "GET")]
     [InlineData("/pdf/code/nutrient/convert", "pdf", "code", "POST")]
-    public async Task Kind_permissions_work_after_canonical_and_legacy_route_normalization(
+    public async Task Kind_permissions_work_on_canonical_routes(
         string suffix, string domain, string kind, string method)
     {
         var permission = PvadDesignerMigrationPermissions.KindPermission(
             domain, kind, method == "POST" ? "execute" : "read");
-        foreach (var prefix in new[] { PvadLegacyApiMiddleware.CanonicalPrefix, PvadLegacyApiMiddleware.LegacyPrefix })
+        foreach (var prefix in new[] { "/api/pvad/v1" })
         {
             var (allowed, status, csrfCalls, auditCount) = await InvokeAsync(
                 prefix + "/migrations" + suffix, method, permission);
@@ -81,9 +81,7 @@ public sealed class PvadDesignerMigrationAccessTests
         var allowed = false;
         var antiforgery = new TestAntiforgery(rejectCsrf);
         var gate = new PvadDesignerAccessMiddleware(_ => { allowed = true; return Task.CompletedTask; });
-        var aliases = new PvadLegacyApiMiddleware(request =>
-            gate.InvokeAsync(request, new AllowEntitlements(), db, antiforgery));
-        await aliases.InvokeAsync(context);
+        await gate.InvokeAsync(context, new AllowEntitlements(), db, antiforgery);
         return (allowed, context.Response.StatusCode, antiforgery.Calls, await db.AuditEvents.CountAsync());
     }
 

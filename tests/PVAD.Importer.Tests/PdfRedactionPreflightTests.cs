@@ -79,12 +79,12 @@ public sealed class PdfRedactionPreflightTests
     [Fact]
     public async Task Preflight_ShouldNeverEchoCoveredText()
     {
-        var pdf = CreatePdf("CONFIDENTIAL-PXA-SECRET");
+        var pdf = CreatePdf("CONFIDENTIAL-PVAD-SECRET");
 
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, WholePage));
 
         var serialized = System.Text.Json.JsonSerializer.Serialize(report);
-        Assert.DoesNotContain("CONFIDENTIAL-PXA-SECRET", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("CONFIDENTIAL-PVAD-SECRET", serialized, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -105,13 +105,13 @@ public sealed class PdfRedactionPreflightTests
         var appended = new PdfIncrementalUpdateWriter().Append(pdf, [
             new PdfIncrementalObjectUpdate(
                 new PdfObjectId(NextObjectNumber(pdf), 0),
-                new PdfDictionary { ["Type"] = new PdfName("PxaMarker") })
+                new PdfDictionary { ["Type"] = new PdfName("PvadMarker") })
         ]).Bytes;
 
         var report = await PreflightAsync(appended, new PdfRedactionRegion(1, WholePage));
 
         Assert.Equal(2, report.RevisionCount);
-        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PXAPDFREDACT102");
+        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PVADPDFREDACT102");
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
     }
 
@@ -124,8 +124,8 @@ public sealed class PdfRedactionPreflightTests
         var report = await PreflightAsync(withAnnotations, new PdfRedactionRegion(1, WholePage));
 
         var region = Assert.Single(report.Regions);
-        Assert.Contains(region.Findings, static finding => finding.Code == "PXAPDFREDACT207");
-        Assert.Contains(region.Findings, static finding => finding.Code == "PXAPDFREDACT202");
+        Assert.Contains(region.Findings, static finding => finding.Code == "PVADPDFREDACT207");
+        Assert.Contains(region.Findings, static finding => finding.Code == "PVADPDFREDACT202");
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
     }
 
@@ -136,8 +136,8 @@ public sealed class PdfRedactionPreflightTests
 
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, WholePage));
 
-        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PXAPDFREDACT107");
-        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PXAPDFREDACT108");
+        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PVADPDFREDACT107");
+        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PVADPDFREDACT108");
         Assert.Equal(PdfRedactionCapability.ReviewRequired, report.Capability);
     }
 
@@ -148,7 +148,7 @@ public sealed class PdfRedactionPreflightTests
 
         var region = Assert.Single(report.Regions);
         Assert.Equal(PdfRedactionCapability.Unsupported, region.Capability);
-        Assert.Contains(region.Findings, static finding => finding.Code == "PXAPDFREDACT110");
+        Assert.Contains(region.Findings, static finding => finding.Code == "PVADPDFREDACT110");
         Assert.Equal(PdfRedactionCapability.Unsupported, report.Capability);
     }
 
@@ -159,7 +159,7 @@ public sealed class PdfRedactionPreflightTests
 
         Assert.Contains(
             Assert.Single(report.Regions).Findings,
-            static finding => finding.Code == "PXAPDFREDACT111");
+            static finding => finding.Code == "PVADPDFREDACT111");
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public sealed class PdfRedactionPreflightTests
         var report = await PreflightAsync(pdf, new PdfRedactionRegion(1, WholePage));
 
         Assert.Equal(PdfRedactionCapability.Unsupported, report.Capability);
-        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PXAPDFREDACT101");
+        Assert.Contains(report.DocumentFindings, static finding => finding.Code == "PVADPDFREDACT101");
         Assert.Empty(report.Regions);
     }
 
@@ -209,7 +209,7 @@ public sealed class PdfRedactionPreflightTests
 
     private static PdfRectangle WholePage => new(0, 0, 1000, 1000);
 
-    private static byte[] CreatePdf(string text = "PXA redaction preflight fixture")
+    private static byte[] CreatePdf(string text = "PVAD redaction preflight fixture")
     {
         var document = new PdfDocument();
         document.AddPage().DrawText(text, 40, 40);

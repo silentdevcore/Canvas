@@ -93,7 +93,7 @@ public sealed class PdfCrossReferenceParser
             if (table.Entries.Count > 0)
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF008",
+                    "PVADPDFXREF008",
                     "The document has no usable cross-reference data; objects were recovered by scanning."));
             }
         }
@@ -125,7 +125,7 @@ public sealed class PdfCrossReferenceParser
             if (!visited.Add(xrefOffset))
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF003",
+                    "PVADPDFXREF003",
                     "The incremental revision chain contains a cyclic /Prev reference.",
                     xrefOffset));
                 break;
@@ -155,7 +155,7 @@ public sealed class PdfCrossReferenceParser
             if (trailer is null)
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF001",
+                    "PVADPDFXREF001",
                     "A cross-reference revision could not be parsed at the referenced offset.",
                     xrefOffset));
                 break;
@@ -175,7 +175,7 @@ public sealed class PdfCrossReferenceParser
             if (previousValue is not null && previousOffset is null)
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF004",
+                    "PVADPDFXREF004",
                     "The incremental revision trailer contains a non-integer /Prev reference.",
                     xrefOffset));
             }
@@ -196,7 +196,7 @@ public sealed class PdfCrossReferenceParser
             if (previousOffset < 0 || previousOffset >= source.Length)
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF002",
+                    "PVADPDFXREF002",
                     "The incremental revision chain contains an out-of-range /Prev reference.",
                     previousOffset));
                 break;
@@ -229,7 +229,7 @@ public sealed class PdfCrossReferenceParser
             ContainsNonWhitespace(source[checked((int)revisions[^1].EndOffset)..]))
         {
             table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                "PXAPDFXREF005",
+                "PVADPDFXREF005",
                 "The PDF contains non-whitespace bytes after the final complete revision.",
                 revisions[^1].EndOffset));
         }
@@ -257,7 +257,7 @@ public sealed class PdfCrossReferenceParser
         if (hybridOffset < 0 || hybridOffset >= context.Source.Length)
         {
             table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                "PXAPDFXREF009",
+                "PVADPDFXREF009",
                 "The trailer /XRefStm offset of a hybrid-reference file is out of range.",
                 hybridOffset));
             return 0;
@@ -273,7 +273,7 @@ public sealed class PdfCrossReferenceParser
                 out var hybridEntryCount) is null)
         {
             table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                "PXAPDFXREF009",
+                "PVADPDFXREF009",
                 "The trailer /XRefStm of a hybrid-reference file does not reference a cross-reference stream.",
                 hybridOffset));
             return 0;
@@ -295,7 +295,7 @@ public sealed class PdfCrossReferenceParser
                     classic.ObjectStreamIndex != entry.ObjectStreamIndex))
             {
                 table.AddDiagnostic(new PdfCrossReferenceDiagnostic(
-                    "PXAPDFXREF010",
+                    "PVADPDFXREF010",
                     $"Object {entry.Id.Number} {entry.Id.Generation} R is defined differently by the classic table and the /XRefStm of a hybrid-reference file.",
                     hybridOffset));
             }

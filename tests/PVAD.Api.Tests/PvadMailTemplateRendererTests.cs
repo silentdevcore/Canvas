@@ -42,9 +42,9 @@ public sealed class PvadMailTemplateRendererTests
                 Assert.DoesNotContain("Power Dox Automation", rendered.HtmlBody, StringComparison.Ordinal);
                 Assert.DoesNotContain("PXA", rendered.HtmlBody, StringComparison.Ordinal);
                 Assert.DoesNotContain("PXA", rendered.TextBody, StringComparison.Ordinal);
-                Assert.Contains("https://account.pxa.test", rendered.HtmlBody, StringComparison.Ordinal);
-                Assert.Contains("https://designer.pxa.test", rendered.HtmlBody, StringComparison.Ordinal);
-                Assert.Contains("https://support.pxa.test/help", rendered.HtmlBody, StringComparison.Ordinal);
+                Assert.Contains("https://account.pvade.test", rendered.HtmlBody, StringComparison.Ordinal);
+                Assert.Contains("https://designer.pvade.test", rendered.HtmlBody, StringComparison.Ordinal);
+                Assert.Contains("https://support.pvade.test/help", rendered.HtmlBody, StringComparison.Ordinal);
                 Assert.False(string.IsNullOrWhiteSpace(rendered.TextBody));
                 if (locale != "en")
                     Assert.NotEqual(english.Subject, rendered.Subject);
@@ -104,11 +104,11 @@ public sealed class PvadMailTemplateRendererTests
     private static PvadMailTemplateRenderer CreateRenderer() =>
         new(Options.Create(new PvadMailOptions
         {
-            CompanyBaseUrl = "https://company.pxa.test",
-            AccountBaseUrl = "https://account.pxa.test",
-            DesignerBaseUrl = "https://designer.pxa.test",
-            AdminBaseUrl = "https://admin.pxa.test",
-            SupportUrl = "https://support.pxa.test/help",
+            CompanyBaseUrl = "https://company.pvade.test",
+            AccountBaseUrl = "https://account.pvade.test",
+            DesignerBaseUrl = "https://designer.pvade.test",
+            AdminBaseUrl = "https://admin.pvade.test",
+            SupportUrl = "https://support.pvade.test/help",
         }));
 
     private static MailOutboxMessage Message(string templateKey, string locale) => new()
@@ -123,7 +123,7 @@ public sealed class PvadMailTemplateRendererTests
     private static Dictionary<string, string> Payload() => new()
     {
         ["displayName"] = "Taylor",
-        ["actionUrl"] = "https://account.pxa.test/action?token=opaque",
+        ["actionUrl"] = "https://account.pvade.test/action?token=opaque",
         ["trialEndsAt"] = "2026-07-31T00:00:00+00:00",
     };
 }

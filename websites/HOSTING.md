@@ -1,5 +1,11 @@
 # PVADE Websites Hosting Strategy
 
+> **Hard cut (2026-11-09):** Former-name aliases, legacy readers, dual writers and
+> transition overlays described in this document were retired. Current builds read
+> and write PVAD names only; retained evidence and external bindings are listed in the
+> [legacy name retirement](../checklists/PVAD.Legacy-Name-Retirement.md) checklist. Statements below that describe
+> compatibility behavior are kept as dated history.
+
 ## Websites
 
 PVADE uses separate website deployments. Current source link defaults use the
@@ -9,7 +15,7 @@ Subdomain, proxy, callback and mail cutover still require coordinated validation
 ## Proposed Deployment Targets
 
 The following **unverified** origins follow the
-[candidate profile](../deploy/rename/pvade-targets.candidate.json), not a deployed
+[candidate profile](../deploy/pvade-targets.candidate.json), not a deployed
 host inventory. Confirm ownership, DNS, TLS and routing before selecting them.
 
 | Property | Proposed origin (unverified) |
@@ -116,20 +122,8 @@ npm run build
   `Registration:AllowedReturnOrigins` and `DesignerAuthentication:AllowedOrigins`.
   .NET configuration arrays merge by index across providers: a shorter overlay
   does not remove trailing defaults. Verify the complete effective arrays before
-  deployment. For the existing legacy domain layout, these explicit replacements
-  preserve local entries without implicitly trusting both generations:
-
-  ```text
-  Registration__AllowedReturnOrigins__5=https://powerdoxautomation.com
-  Registration__AllowedReturnOrigins__6=https://docs.powerdoxautomation.com
-  Registration__AllowedReturnOrigins__7=https://demos.powerdoxautomation.com
-  Registration__AllowedReturnOrigins__8=https://designer.powerdoxautomation.com
-  Registration__AllowedReturnOrigins__9=https://account.powerdoxautomation.com
-  DesignerAuthentication__AllowedOrigins__2=https://designer.powerdoxautomation.com
-  ```
-
-  These are compatibility examples only, not proof of domain ownership. On-Premise
-  owners must use their actual reviewed origins and inspect merged configuration.
+  deployment. On-Premise owners must use their actual reviewed origins and inspect
+  the merged configuration.
 - The Designer's default Account destination follows the new Account origin;
   existing and On-Premise installations can override it through runtime config
   `__PVAD_CONFIG__.accountUrl` (legacy [compatibility entry `compat-948e7c5f5d66`](../operator-docs/compatibility-identifiers.v1.json) remains supported).

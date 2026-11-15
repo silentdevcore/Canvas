@@ -5,7 +5,8 @@ import test from 'node:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
-import { createExample, findElement, PvadMcpContentRepository } from './content.js';
+import { createExample, elementCatalog, findElement, PvadMcpContentRepository } from './content.js';
+import { toolResult } from './results.js';
 import { createPvadMcpServer, type PvadMcpServerOptions } from './server.js';
 
 async function withClient(
@@ -24,17 +25,14 @@ async function withClient(
   }
 }
 
-test('canonical resources and deprecated resource aliases remain readable', async () => {
+test('canonical resources are readable and former resource URIs are not registered', async () => {
   await withClient({}, async (client) => {
     const resources = (await client.listResources()).resources;
-    assert.equal(resources.length, 10);
-    assert.ok(resources.every(resource => !/pxa|power\s?dox/i.test(resource.title ?? '')));
-    assert.ok(resources.every(resource => !/pxa|power\s?dox/i.test(resource.description ?? '')));
+    assert.equal(resources.length, 5);
+    assert.ok(resources.every(resource => !/pxa|power\s?dox/i.test(`${resource.uri} ${resource.title ?? ''} ${resource.description ?? ''}`)));
     for (const uri of [
       'pvad://schema/design-export', 'pvad://schema/pvad-workbook', 'pvad://openapi',
       'pvad://docs/llms-full', 'pvad://docs/cookbook',
-      'pxa://schema/design-export', 'pxa://schema/pxa-workbook', 'pxa://openapi',
-      'pxa://docs/llms-full', 'pxa://docs/cookbook',
     ]) {
       assert.ok(resources.some((resource) => resource.uri === uri), uri);
       const result = await client.readResource({ uri });
@@ -43,25 +41,59 @@ test('canonical resources and deprecated resource aliases remain readable', asyn
   });
 });
 
-test('resource display names are canonical while aliases return the exact original schema content', async () => {
+test('every catalog element exposes current metadata and exact JSON/CSharp source examples', async () => {
+  await withClient({}, async client => {
+    const tools = (await client.listTools()).tools;
+    for (const tool of tools)
+      assert.doesNotMatch(`${tool.title ?? ''} ${tool.description ?? ''}`, /pxa|power\s?dox/i, tool.name);
+    for (const element of elementCatalog) {
+      const schema = await client.callTool({ name: 'get_element_schema', arguments: { type: element.type } });
+      assert.deepEqual((schema.structuredContent as { data: { element: unknown } }).data.element, element);
+      assert.doesNotMatch(JSON.stringify(element), /pxa|power\s?dox/i, element.type);
+      const json = await client.callTool({ name: 'get_example', arguments: { type: element.type, surface: 'json' } });
+      const example = (json.structuredContent as { data: { example: unknown } }).data.example;
+      assert.deepEqual(example, createExample(element.example, element.label));
+      const csharp = await client.callTool({ name: 'get_example', arguments: { type: element.type, surface: 'csharp' } });
+      const output = csharp.structuredContent as { data: { example?: unknown }; diagnostics: Array<{ code: string }> };
+      if (element.csharpExample) {
+        assert.equal(output.data.example, element.csharpExample);
+        assert.deepEqual(output.diagnostics, []);
+      } else {
+        assert.equal(output.data.example, undefined);
+        assert.equal(output.diagnostics[0].code, 'PVADMCP011');
+      }
+    }
+  });
+});
+
+test('MCP structured results and text payloads preserve customer data and raw diagnostics', () => {
+  const data = { name: 'PVAD supplied title', namespace: 'PVAD.Customer', file: 'PVAD customer.pdf' };
+  const diagnostics = [{ code: 'PVADMCP010', severity: 'error' as const, message: 'PVAD supplied detail', path: '/name' }];
+  const before = JSON.stringify({ data, diagnostics });
+  const result = toolResult(data, diagnostics, true);
+  assert.equal(result.structuredContent.data, data);
+  assert.equal(result.structuredContent.diagnostics, diagnostics);
+  assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+  assert.equal(result.isError, true);
+  assert.equal(JSON.stringify({ data, diagnostics }), before);
+});
+
+test('resources return the exact schema content under canonical display names', async () => {
   const content = new PvadMcpContentRepository();
   await withClient({}, async client => {
     const listed = (await client.listResources()).resources;
     for (const [uri, path] of [
       ['pvad://schema/pvad-workbook', 'docs/schema/pvad-workbook.schema.json'],
-      ['pxa://schema/pxa-workbook', 'docs/schema/pxa-workbook.schema.json'],
       ['pvad://openapi', 'docs/schema/openapi.json'],
-      ['pxa://openapi', 'docs/schema/openapi.json'],
     ]) {
       const resource = listed.find(value => value.uri === uri)!;
       assert.ok(resource);
       const result = await client.readResource({ uri });
       const entry = result.contents[0];
       assert.equal('text' in entry ? entry.text : undefined, content.read(path));
-      if (uri.startsWith('pxa:')) assert.match(resource.description ?? '', /Deprecated compatibility resource/);
+      assert.doesNotMatch(resource.description ?? '', /Deprecated/);
     }
-    for (const uri of ['pvad://docs/llms-full', 'pxa://docs/llms-full'])
-      assert.equal(listed.find(value => value.uri === uri)?.title, 'PVADE AI reference');
+    assert.equal(listed.find(value => value.uri === 'pvad://docs/llms-full')?.title, 'PVADE AI reference');
   });
 });
 
@@ -80,7 +112,7 @@ test('tools return structured content and stable error diagnostics', async () =>
     const diagnostics = (unknown.structuredContent as {
       diagnostics: Array<{ code: string }>;
     }).diagnostics;
-    assert.equal(diagnostics[0].code, 'PXAMCP010');
+    assert.equal(diagnostics[0].code, 'PVADMCP010');
   });
 });
 
@@ -119,7 +151,7 @@ test('render preview rejects a successful non-PDF response', async () => {
     const diagnostics = (rendered.structuredContent as {
       diagnostics: Array<{ code: string }>;
     }).diagnostics;
-    assert.equal(diagnostics[0].code, 'PXAMCP021');
+    assert.equal(diagnostics[0].code, 'PVADMCP021');
   });
 });
 

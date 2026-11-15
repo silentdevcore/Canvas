@@ -80,8 +80,8 @@ test('receiver verifies actual relay signature format, timestamp and payload ide
 const aliasContract = {
   timestampHeader: 'X-PVAD-Webhook-Timestamp', signatureHeader: 'X-PVAD-Webhook-Signature',
   idempotencyHeader: 'X-PVAD-Webhook-Idempotency-Key', alertName: 'SyntheticAlert',
-  legacyHeaders: { timestampHeader: 'X-PXA-Webhook-Timestamp', signatureHeader: 'X-PXA-Webhook-Signature',
-    idempotencyHeader: 'X-PXA-Webhook-Idempotency-Key' },
+  legacyHeaders: { timestampHeader: 'X-PVAD-Webhook-Timestamp', signatureHeader: 'X-PVAD-Webhook-Signature',
+    idempotencyHeader: 'X-PVAD-Webhook-Idempotency-Key' },
 };
 function aliasedHeaders() {
   const { body, headers } = signed();
@@ -90,9 +90,9 @@ function aliasedHeaders() {
     'x-pvad-webhook-signature': headers['x-test-signature'],
     'x-pvad-webhook-idempotency-key': headers['x-test-key'],
   }, previous: {
-    'x-pxa-webhook-timestamp': headers['x-test-time'],
-    'x-pxa-webhook-signature': headers['x-test-signature'],
-    'x-pxa-webhook-idempotency-key': headers['x-test-key'],
+    'x-pvad-webhook-timestamp': headers['x-test-time'],
+    'x-pvad-webhook-signature': headers['x-test-signature'],
+    'x-pvad-webhook-idempotency-key': headers['x-test-key'],
   } };
 }
 
@@ -184,6 +184,11 @@ test('cleanup includes owned backup volumes and rejects unrelated volume ownersh
 test('the lab uses the unchanged relay and real gateway without TLS or authentication bypasses', () => {
   const setup = readFileSync(new URL('./monitoring-operator-lab.mjs', import.meta.url), 'utf8');
   const scenarios = readFileSync(new URL('./monitoring-operator-checks.mjs', import.meta.url), 'utf8');
+  const browser = readFileSync(new URL('./operator-browser-rehearsal.mjs', import.meta.url), 'utf8');
+  assert.match(setup, /type === 'dashboards' \? grafanaProviderPath : grafanaDatasourcePath/);
+  assert.doesNotMatch(setup + scenarios, /'legacy'|folder rename|providers\[0\]\.folder =/);
+  assert.match(browser, /monitoring\?\.grafanaProvisioning/);
+  assert.match(browser, /mount\(grafanaProviderPath, '\/etc\/grafana\/provisioning\/dashboards\/dashboards\.yml'\)/);
   assert.match(setup, /WebhookRelay__Destination=https:\/\/pvad-webhook-receiver:8443\/alerts/);
   assert.match(setup, /SSL_CERT_FILE=\/lab\/receiver\.crt/);
   assert.match(scenarios, /anonymousRequest\.get/);

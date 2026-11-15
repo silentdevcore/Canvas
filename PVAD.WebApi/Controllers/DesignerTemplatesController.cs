@@ -493,17 +493,13 @@ public sealed class DesignerTemplatesController(
             .Where(value => value.Id == template.UpdatedByUserId)
             .Select(value => value.DisplayName)
             .SingleOrDefaultAsync(cancellationToken);
-        var identity = PvadApiProblems.TemplateConflictTypeIdentity(HttpContext);
         return new
         {
-            type = identity.Type,
-            canonicalType = identity.CanonicalType,
-            legacyType = identity.LegacyType,
+            type = PvadApiProblems.TemplateConflictType,
             title = "Template revision conflict",
             status = StatusCodes.Status409Conflict,
             detail = "The template was changed by another session. Reload it before saving again.",
-            code = "PXADESIGNER001",
-            canonicalCode = PVAD.Core.Contracts.PvadDiagnosticAliases.CanonicalCode("PXADESIGNER001"),
+            code = "PVADDESIGNER001",
             currentRevision = template.Revision,
             updatedBy = updater,
             template.UpdatedAt,

@@ -1,6 +1,5 @@
 export interface EInvoiceDiagnostic {
   code: string;
-  canonicalCode?: string | null;
   severity: string;
   message: string;
 }

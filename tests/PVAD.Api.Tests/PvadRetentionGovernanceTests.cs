@@ -16,9 +16,8 @@ public sealed class PvadRetentionGovernanceTests
     [Theory]
     [InlineData("PVAD")]
     [InlineData("PXA")]
-    [InlineData("both")]
     [InlineData("defaults")]
-    public async Task Status_reports_canonical_retention_keys_and_reads_both_input_generations(string input)
+    public async Task Status_reports_canonical_retention_keys_and_ignores_former_inputs(string input)
     {
         using var db = CreateDatabase();
         var values = new Dictionary<string, string?>();
@@ -26,34 +25,16 @@ public sealed class PvadRetentionGovernanceTests
         var expected = new[] { "31d", "62h", "93h", "124h" };
         for (var index = 0; index < suffixes.Length; index++)
         {
-            if (input is "PVAD" or "both") values["PVAD_" + suffixes[index]] = expected[index];
-            if (input is "PXA" or "both") values["PXA_" + suffixes[index]] = expected[index];
+            values[input + "_" + suffixes[index]] = expected[index];
         }
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
         var status = await CreateService(db, configuration).GetStatusAsync(CancellationToken.None);
         var policy = Assert.Single(status.Policies, value => value.Id == "product-observability");
         Assert.Equal(suffixes.Select(suffix => "PVAD_" + suffix), policy.EffectiveConfiguration.Select(value => value.Key));
-        Assert.Equal(input == "defaults" ? ["90d", "720h", "336h", "120h"] : expected,
+        Assert.Equal(input == "PVAD" ? expected : ["90d", "720h", "336h", "120h"],
             policy.EffectiveConfiguration.Select(value => value.Value));
         Assert.False(status.ProductionReady);
         Assert.False(status.ProductionApproved);
-    }
-
-    [Fact]
-    public async Task Status_rejects_conflicting_retention_values_without_disclosing_them()
-    {
-        using var db = CreateDatabase();
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["PVAD_METRIC_RETENTION"] = "current-private-value",
-            ["PXA_METRIC_RETENTION"] = "legacy-private-value",
-        }).Build();
-        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            CreateService(db, configuration).GetStatusAsync(CancellationToken.None));
-        Assert.Contains("PVAD_METRIC_RETENTION", error.Message);
-        Assert.Contains("PXA_METRIC_RETENTION", error.Message);
-        Assert.DoesNotContain("current-private-value", error.Message);
-        Assert.DoesNotContain("legacy-private-value", error.Message);
     }
 
     private static PvadDbContext CreateDatabase() => new(new DbContextOptionsBuilder<PvadDbContext>()
@@ -90,7 +71,7 @@ public sealed class PvadRetentionGovernanceTests
     private sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = environmentName;
-        public string ApplicationName { get; set; } = "PXA.Retention.Tests";
+        public string ApplicationName { get; set; } = "PVAD.Retention.Tests";
         public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
         public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }

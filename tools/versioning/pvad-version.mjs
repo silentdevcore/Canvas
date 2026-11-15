@@ -357,9 +357,7 @@ export async function synchronizeVersions(repoRoot = scriptRoot, requestedVersio
     const path = resolve(repoRoot, relativePath);
     const source = await readFile(path, 'utf8');
     await writeFile(path, source
-      .replaceAll(/ARG PVAD_VERSION=\d+\.\d+\.\d+/g, `ARG PVAD_VERSION=${version}`)
-      .replaceAll(/ARG PVAD_VERSION=\$\{PXA_VERSION:-\d+\.\d+\.\d+\}/g,
-        `ARG PVAD_VERSION=\${PXA_VERSION:-${version}}`));
+      .replaceAll(/ARG PVAD_VERSION=\d+\.\d+\.\d+/g, `ARG PVAD_VERSION=${version}`));
   }
   for (const relativePath of COMPOSE_FILES) {
     const path = resolve(repoRoot, relativePath);
@@ -427,8 +425,7 @@ export async function checkRepository(repoRoot = scriptRoot) {
   }
   for (const relativePath of DOCKERFILES) {
     const source = await readFile(resolve(repoRoot, relativePath), 'utf8');
-    if (!source.includes(`ARG PVAD_VERSION=${version}`) &&
-        !source.includes(`ARG PVAD_VERSION=\${PXA_VERSION:-${version}}`))
+    if (!source.includes(`ARG PVAD_VERSION=${version}`))
       errors.push(`${relativePath} does not default to ${version}.`);
   }
   for (const relativePath of COMPOSE_FILES) {

@@ -9,14 +9,19 @@ trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/bin"
 printf '%%PDF-1.7\n' > "$work/pass.pdf"
 printf '%%PDF-1.7\n' > "$work/fail.pdf"
+printf '%%PDF-1.7\n' > "$work/error.pdf"
 
 cat > "$work/bin/docker" <<'SH'
 #!/usr/bin/env bash
 input="${@: -1}"
-if [[ "$input" == */pass.pdf ]]; then
+if [[ "$input" == */error.pdf ]]; then
+  printf '<report><validationReport isCompliant="true"/></report>\n'
+  exit 2
+elif [[ "$input" == */pass.pdf ]]; then
   printf '<report><validationReport isCompliant="true"/></report>\n'
 else
   printf '<report><validationReport isCompliant="false"/></report>\n'
+  exit 1
 fi
 SH
 chmod +x "$work/bin/docker"
@@ -32,6 +37,22 @@ status=$?
 set -e
 [[ "$status" -eq 1 ]]
 grep -q 'isCompliant="false"' "$work/reports/fail-ua1-verapdf.xml"
+
+set +e
+PATH="$work/bin:$PATH" PVAD_PDFUA_REPORT_DIR="$work/multiple" \
+  "$SCRIPT" "$work/fail.pdf" "$work/pass.pdf" >/dev/null 2>&1
+status=$?
+set -e
+[[ "$status" -eq 1 ]]
+grep -q 'isCompliant="false"' "$work/multiple/fail-ua1-verapdf.xml"
+grep -q 'isCompliant="true"' "$work/multiple/pass-ua1-verapdf.xml"
+
+set +e
+PATH="$work/bin:$PATH" PVAD_PDFUA_REPORT_DIR="$work/reports" \
+  "$SCRIPT" "$work/error.pdf" >/dev/null 2>&1
+status=$?
+set -e
+[[ "$status" -eq 1 ]]
 
 set +e
 PATH="$work/bin:$PATH" PVAD_PDFUA_REPORT_DIR="$work/reports" \

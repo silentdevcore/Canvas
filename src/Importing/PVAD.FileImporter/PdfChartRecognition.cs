@@ -146,9 +146,9 @@ internal static class PdfChartRecognitionEngine
                 Status = status,
                 Confidence = confidence,
                 SourceKind = "pdfVector",
-                DiagnosticCode = exactValues == selected.Length ? "PXA-PDF-CHART-101" : "PXA-PDF-CHART-102"
+                DiagnosticCode = exactValues == selected.Length ? "PVAD-PDF-CHART-101" : "PVAD-PDF-CHART-102"
             }
-        }, consumed, confidence, exactValues == selected.Length ? "PXA-PDF-CHART-101" : "PXA-PDF-CHART-102");
+        }, consumed, confidence, exactValues == selected.Length ? "PVAD-PDF-CHART-101" : "PVAD-PDF-CHART-102");
     }
 
     private static IEnumerable<PdfChartCandidate> DetectLineCharts(IReadOnlyList<PrimitiveObject> primitives)
@@ -178,9 +178,9 @@ internal static class PdfChartRecognitionEngine
                     Status = "reviewRequired",
                     Confidence = 0.66,
                     SourceKind = "pdfVector",
-                    DiagnosticCode = "PXA-PDF-CHART-103"
+                    DiagnosticCode = "PVAD-PDF-CHART-103"
                 }
-            }, new HashSet<PrimitiveObject> { path }, 0.66, "PXA-PDF-CHART-103");
+            }, new HashSet<PrimitiveObject> { path }, 0.66, "PVAD-PDF-CHART-103");
         }
     }
 

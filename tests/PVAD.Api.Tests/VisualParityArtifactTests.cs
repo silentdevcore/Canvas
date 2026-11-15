@@ -29,6 +29,13 @@ public sealed class VisualParityArtifactTests
         Directory.CreateDirectory(outputDirectory);
 
         var source = await File.ReadAllTextAsync(fixturePath);
+        var clockPath = Path.ChangeExtension(fixturePath, null) + ".clock.json";
+        DateTimeOffset? renderInstant = null;
+        if (File.Exists(clockPath))
+        {
+            using var clock = JsonDocument.Parse(await File.ReadAllTextAsync(clockPath));
+            renderInstant = DateTimeOffset.Parse(clock.RootElement.GetProperty("instant").GetString()!, CultureInfo.InvariantCulture);
+        }
         var design = JsonSerializer.Deserialize<DesignExportDto>(source, JsonOptions);
         Assert.NotNull(design);
         var fixtureTypes = design.Pages.SelectMany(page => page.Elements).Select(element => element.Type)
@@ -42,7 +49,7 @@ public sealed class VisualParityArtifactTests
             .Select(match => match.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);
         Assert.Empty(fixtureTypes.Except(mapperTypes));
-        var fontLoader = new PVAD.Pdf.PdfFontLoader(Path.Combine(root, "assets", "fonts", "liberation"));
+        var fontLoader = new PVAD.Pdf.PdfFontLoader(Path.Combine(AppContext.BaseDirectory, "fonts"));
 
         var qrCode = design.Pages.SelectMany(page => page.Elements).SingleOrDefault(element => element.Type == "qrcode");
         if (qrCode is not null)
@@ -59,12 +66,23 @@ public sealed class VisualParityArtifactTests
                     (int)Math.Max(barcode.Width, 1),
                     (int)Math.Max(barcode.Height * 0.7, 1)));
 
-        var backendPdf = DesignJsonMapper.MapToPdfDocument(design, fontLoader)
+        var backendPdf = DesignJsonMapper.MapToPdfDocument(design, fontLoader, renderInstant: renderInstant)
             .ToBytes(DesignJsonMapper.BuildSaveOptions(design));
         AssertPdf(backendPdf);
         await File.WriteAllBytesAsync(Path.Combine(outputDirectory, "backend.pdf"), backendPdf);
+        var parsed = await new PVAD.Importer.PdfImporter().LoadAsync(new MemoryStream(backendPdf));
+        var textMetrics = parsed.Pages.SelectMany((page, index) => page.TextObjects.Select(text => new
+        {
+            Page = index + 1, text.Text, X = text.Transform.E,
+            Baseline = (page.MediaBox?.Height ?? 842) - text.Transform.F,
+            Advance = text.Glyphs.Sum(glyph => glyph.Advance), text.FontSize, text.FontName, text.Bold, text.Italic,
+            Glyphs = text.Glyphs.Select(glyph => new { glyph.Text, glyph.Offset, glyph.Advance }),
+            FontHash = text.EmbeddedFontBytes.IsEmpty ? null
+                : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(text.EmbeddedFontBytes.Span)).ToLowerInvariant()
+        }));
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "text-metrics.json"), JsonSerializer.Serialize(textMetrics, JsonOptions));
 
-        var service = CreatePackagedWorkerService(fontLoader);
+        var service = CreatePackagedWorkerService(fontLoader, renderInstant);
         var conversion = await service.ConvertAsync(
             PvadCodeLanguages.Json, PvadCodeLanguages.CSharpPdf, source, default);
         Assert.DoesNotContain(conversion.Diagnostics, diagnostic => diagnostic.Severity == "error");
@@ -91,7 +109,7 @@ public sealed class VisualParityArtifactTests
     /// <remarks>
     /// The backend PDF above is a DesignExport rendering of the Designer's <em>projection</em>.
     /// Comparing the Canvas to it proves the Designer agrees with itself; it says nothing about the
-    /// hybrid invoice PXA actually issues, which <see cref="EInvoice.CreatePdf"/> renders from the
+    /// hybrid invoice PVAD actually issues, which <see cref="EInvoice.CreatePdf"/> renders from the
     /// canonical invoice through its own layout. This writes that document so the parity run can
     /// compare it as a surface of its own.
     /// </remarks>
@@ -104,7 +122,7 @@ public sealed class VisualParityArtifactTests
         if (!File.Exists(sidecarPath)) return;
 
         var sidecar = JsonDocument.Parse(await File.ReadAllTextAsync(sidecarPath)).RootElement;
-        Assert.Equal("pxa.e-invoice.parity-invoice/1", sidecar.GetProperty("schema").GetString());
+        Assert.Equal("pvad.e-invoice.parity-invoice/1", sidecar.GetProperty("schema").GetString());
         var invoice = sidecar.GetProperty("invoice");
 
         var created = EInvoice.CreatePdf(
@@ -176,13 +194,18 @@ public sealed class VisualParityArtifactTests
         Assert.Equal("%PDF-", System.Text.Encoding.ASCII.GetString(bytes, 0, 5));
     }
 
-    private static PvadCodeConversionService CreatePackagedWorkerService(PVAD.Pdf.PdfFontLoader fontLoader)
+    private static PvadCodeConversionService CreatePackagedWorkerService(PVAD.Pdf.PdfFontLoader fontLoader, DateTimeOffset? instant = null)
     {
         var workerDirectory = Path.GetDirectoryName(typeof(SandboxPolicy).Assembly.Location)!;
         return new PvadCodeConversionService(new PvadCodeWorkerClient(
             new TestEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance), fontLoader);
+            NullLogger<PvadCodeWorkerClient>.Instance), fontLoader, instant is { } value ? new FixedClock(value) : null);
+    }
+
+    private sealed class FixedClock(DateTimeOffset instant) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => instant;
     }
 
     private static string FindRepositoryRoot()
@@ -191,7 +214,7 @@ public sealed class VisualParityArtifactTests
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PVAD.sln")))
             directory = directory.Parent;
         return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Could not locate the PXA repository root.");
+            ?? throw new DirectoryNotFoundException("Could not locate the PVAD repository root.");
     }
 
     private sealed class TestEnvironment : IWebHostEnvironment

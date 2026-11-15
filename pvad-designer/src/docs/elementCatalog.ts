@@ -122,9 +122,9 @@ export const ELEMENT_CATALOG: ElementDoc[] = [
     formatSupport: ALL, bindable: true,
     properties: [
       { name: 'dateMode', type: 'enum', allowedValues: ['static', 'render', 'binding'], default: 'static', description: 'Where the date value comes from.' },
-      { name: 'dateFormat', type: 'string', default: 'dd.MM.yyyy', description: 'Format pattern.' },
-      { name: 'locale', type: 'string', description: 'BCP-47 locale (e.g. "de-DE").' },
-      { name: 'timezone', type: 'string', description: 'IANA timezone id (e.g. "Europe/Berlin").' },
+      { name: 'dateFormat', type: 'string', default: 'yyyy-MM-dd', description: 'Portable .NET-style date pattern or supported standard format.' },
+      { name: 'locale', type: 'string', default: 'en-US', description: 'English, German, French, Spanish, Italian or Arabic locale.' },
+      { name: 'timezone', type: 'string', default: 'UTC', description: 'IANA timezone id (e.g. "Europe/Berlin").' },
       { name: 'fallbackText', type: 'string', description: 'Shown when no value resolves.' },
     ],
     example: { id: 'el1', type: 'date', x: 40, y: 40, width: 160, height: 20, dateMode: 'render', dateFormat: 'dd.MM.yyyy', locale: 'de-DE' },

@@ -79,8 +79,10 @@ public static class DesignJsonMapper
     public static PdfDocument MapToPdfDocument(
         DesignExportDto design,
         PdfFontLoader? fontLoader = null,
-        string? targetLanguage = null)
+        string? targetLanguage = null,
+        DateTimeOffset? renderInstant = null)
     {
+        var instant = renderInstant ?? DateTimeOffset.UtcNow;
         // Query-param language > JSON body targetLanguage > systemLanguage
         targetLanguage ??= design.PageSettings?.TargetLanguage;
 
@@ -94,9 +96,9 @@ public static class DesignJsonMapper
         if (evaluationProps.Count > 0)
             design = ApplyPropertySubstitutions(design, evaluationProps);
 
-#pragma warning disable PXA0001 // Web API mapper targets the PVAD PDF engine behind the API routes.
+#pragma warning disable PVAD0001 // Web API mapper targets the PVAD PDF engine behind the API routes.
         var document = new PdfDocument();
-#pragma warning restore PXA0001
+#pragma warning restore PVAD0001
         document.FontLoader = fontLoader;
         document.Info.Title   = string.IsNullOrWhiteSpace(design.PageSettings?.Metadata?.Title)
             ? design.Name
@@ -223,14 +225,14 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang,
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang, instant,
                     forceArtifact: sharedElementIds.Contains(el.Id));
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang);
+                RenderAccessibleElement(document, page, el, pageHeight, pageNumber, totalPages, effectiveLang, instant);
             }
 
             // Global watermark from page settings
@@ -298,18 +300,18 @@ public static class DesignJsonMapper
 
     private static void RenderAccessibleElement(
         PdfDocument document, PdfPage page, ElementDto element, double pageHeight,
-        int pageIndex, int totalPages, string? effectiveLanguage, bool forceArtifact = false)
+        int pageIndex, int totalPages, string? effectiveLanguage, DateTimeOffset instant, bool forceArtifact = false)
     {
         if (forceArtifact || element.Accessibility?.IsArtifact == true)
         {
             using var artifact = page.BeginArtifact();
-            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
             return;
         }
 
         if (element.Accessibility is not { } source)
         {
-            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+            RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
             return;
         }
 
@@ -343,14 +345,14 @@ public static class DesignJsonMapper
             TableHeaderScope = scope,
             TableHeaderIds = source.TableHeaderIds
         });
-        RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage);
+        RenderElement(document, page, element, pageHeight, pageIndex, totalPages, effectiveLanguage, instant);
     }
 
     private static void RenderElement(
         PdfDocument document,
         PdfPage page, ElementDto el, double pageH,
         int pageIndex, int totalPages,
-        string? effectiveLang = null)
+        string? effectiveLang, DateTimeOffset instant)
     {
         var w    = el.Width;
         var h    = el.Height;
@@ -383,26 +385,7 @@ public static class DesignJsonMapper
             {
                 var text = el.Content ?? "";
                 if (string.IsNullOrWhiteSpace(text)) return;
-                var pad  = GetDouble(style, "padding", 0);
-                var padL = GetDouble(style, "paddingLeft",  pad);
-                var padT = GetDouble(style, "paddingTop",   pad);
-                var padR = GetDouble(style, "paddingRight", pad);
-                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
-
-                // Background fill behind text element
-                var bgStr = GetString(style, "backgroundColor");
-                if (!string.IsNullOrEmpty(bgStr) && bgStr != "transparent")
-                {
-                    var bgC = ParseColor(bgStr);
-                    page.DrawRectangle(elX, RectBottomY(pageH, elY, h), w, h,
-                        lineWidth: 0.01, fill: true, strokeColor: bgC, fillColor: bgC);
-                }
-
-                // Border around text element, including DevExpress-style per-side borders.
-                DrawElementBorder(page, style, elX, RectBottomY(pageH, elY, h), w, h);
-
-                var availW = Math.Max(w - padL - padR, 1);
-                page.DrawParagraph(text, elX + padL, TextY(pageH, elY + padT, opts.FontSize), availW, opts);
+                DrawTextBlock(page, text, style, pageH, elX, elY, w, h, el.Language, el.TextDirection);
                 break;
             }
 
@@ -424,32 +407,18 @@ public static class DesignJsonMapper
                     availW,
                     opts.FontSize,
                     baseColor,
-                    opts.LineHeight);
+                    opts.LineHeight,
+                    opts.FontFamily ?? PdfFontFamily.Helvetica);
                 break;
             }
 
             case "date":
             {
-                string dateText;
-                if (el.DateMode == "render")
-                {
-                    var now = DateTime.UtcNow;
-                    if (!string.IsNullOrEmpty(el.Timezone))
-                    {
-                        try { now = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById(el.Timezone)); }
-                        catch { /* keep UTC */ }
-                    }
-                    var fmt = el.DateFormat ?? "dd.MM.yyyy";
-                    try { dateText = now.ToString(fmt, new CultureInfo(el.Locale ?? "en")); }
-                    catch { dateText = now.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture); }
-                }
-                else
-                {
-                    dateText = el.Content ?? el.FallbackText ?? "";
-                }
-                if (string.IsNullOrWhiteSpace(dateText)) return;
-                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
-                page.DrawParagraph(dateText, elX, TextY(pageH, elY, opts.FontSize), w, opts);
+                var dateText = PVAD.Core.Primitives.DesignerDateFormatter.Format(el.DateMode, el.Content,
+                    el.FallbackText, el.Binding, el.DateFormat, el.Locale, el.Timezone, instant).Text;
+                var arabicDate = Regex.IsMatch(dateText, @"[\u0600-\u06ff]", RegexOptions.None, TimeSpan.FromSeconds(1));
+                DrawTextBlock(page, dateText, style, pageH, elX, elY, w, h,
+                    arabicDate ? "ar" : el.Language, arabicDate ? "rtl" : el.TextDirection);
                 break;
             }
 
@@ -567,32 +536,7 @@ public static class DesignJsonMapper
                 var hasFill = fillStr != "transparent";
                 var fontSize = GetDouble(style, "fontSize", 12);
 
-                page.DrawRectangle(elX, boxY, boxSize, boxSize,
-                    lineWidth: 1.5, fill: hasFill, strokeColor: borderColor,
-                    fillColor: hasFill ? ParseColor(fillStr) : PdfColor.White);
-
                 var state = el.CheckState ?? "empty";
-                var midBoxY = boxY + boxSize / 2;
-
-                if (state == "checked")
-                {
-                    page.DrawLine(elX + 2.5, midBoxY - 0.5, elX + 5.5, midBoxY + 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                    page.DrawLine(elX + 5.5, midBoxY + 3, elX + 11.5, midBoxY - 4,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                }
-                else if (state == "cross")
-                {
-                    page.DrawLine(elX + 3, boxY + 3, elX + boxSize - 3, boxY + boxSize - 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                    page.DrawLine(elX + boxSize - 3, boxY + 3, elX + 3, boxY + boxSize - 3,
-                        lineWidth: 1.5, strokeColor: borderColor);
-                }
-                else if (state == "dot")
-                {
-                    page.DrawCircle(elX + boxSize / 2, midBoxY, 3,
-                        lineWidth: 1, fill: true, strokeColor: borderColor, fillColor: borderColor);
-                }
 
                 var cbLabel = el.FieldLabel ?? "";
                 if (!string.IsNullOrEmpty(cbLabel))
@@ -607,7 +551,13 @@ public static class DesignJsonMapper
                 var checkboxFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
                     : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
                     : Guid.NewGuid().ToString("N");
-                page.AddCheckBox(checkboxFieldName, elX, boxY, boxSize, state == "checked");
+                page.AddCheckBox(new PdfCheckBoxAnnotation
+                {
+                    FieldName = checkboxFieldName, X = elX, Y = boxY, Width = boxSize, Height = boxSize,
+                    IsChecked = state != "empty", CheckStyle = state,
+                    BorderColor = borderColor, BorderWidth = 1.5,
+                    BackgroundColor = hasFill ? ParseColor(fillStr) : null
+                });
                 break;
             }
 
@@ -832,14 +782,23 @@ public static class DesignJsonMapper
                 var text = el.Content ?? "";
                 if (string.IsNullOrWhiteSpace(text)) return;
                 var fontSize = GetDouble(style, "fontSize", 48) * Math.Max(GetDouble(style, "scale", 1), 0.1);
-                var rotation = GetDouble(style, "rotation", 45);
+                var rotation = GetDouble(style, "rotation", 0);
                 if (rotation == 0) rotation = ParseRotation(GetString(style, "transform"));
-                page.DrawText(text, elX + w / 2, pageH - elY - h / 2, new PdfDrawTextOptions
+                var options = new PdfDrawTextOptions
                 {
                     FontSize = fontSize,
-                    FillColor = ParseColor(GetString(style, "color") ?? "#d1d5db"),
-                    RotationDegrees = rotation
-                });
+                    FontFamily = ParseFontFamily(GetString(style, "fontFamily")),
+                    Bold = GetString(style, "fontWeight") is "bold" or "700" or "600",
+                    Italic = GetString(style, "fontStyle") == "italic",
+                    FillColor = ParseColor(GetString(style, "color") ?? "#64748b"),
+                    Opacity = Math.Clamp(GetDouble(style, "opacity", 0.18), 0, 1),
+                    RotationDegrees = -rotation
+                };
+                var radians = -rotation * Math.PI / 180;
+                var dx = -page.MeasureTextWidth(text, options) / 2;
+                var dy = -fontSize * 0.22;
+                page.DrawText(text, elX + w / 2 + dx * Math.Cos(radians) - dy * Math.Sin(radians),
+                    pageH - elY - h / 2 + dx * Math.Sin(radians) + dy * Math.Cos(radians), options);
                 break;
             }
 
@@ -915,6 +874,20 @@ public static class DesignJsonMapper
                     AlternateRowFillColor = zebraColor,
                     ColumnAlignments = colAligns,
                     ColumnWidths = colWidths,
+                    CellStyles = el.CellStyles?.Where(cell => cell.Row >= 0 && cell.Row < rows.Length
+                        && cell.Col >= 0 && cell.Col < colCount).Select(cell => new PdfTableCellStyle
+                    {
+                        Row = cell.Row + matrixHeaders.Count, Column = cell.Col,
+                        BackgroundColor = cell.BackgroundColor is null ? null : ParseColor(cell.BackgroundColor),
+                        TextColor = cell.Color is null ? null : ParseColor(cell.Color),
+                        Alignment = cell.TextAlign switch { "left" => PdfTextAlignment.Left,
+                            "center" => PdfTextAlignment.Center, "right" => PdfTextAlignment.Right, _ => null },
+                        Padding = cell.Padding, FontSize = cell.FontSize,
+                        FontFamily = ParseFontFamily(cell.FontFamily), Bold = cell.Bold, Italic = cell.Italic,
+                        BorderColor = cell.BorderColor is null ? null : ParseColor(cell.BorderColor), BorderWidth = cell.BorderWidth,
+                        BorderTop = MapCellBorder(cell.BorderTop), BorderRight = MapCellBorder(cell.BorderRight),
+                        BorderBottom = MapCellBorder(cell.BorderBottom), BorderLeft = MapCellBorder(cell.BorderLeft)
+                    }).ToArray(),
                 });
                 break;
             }
@@ -1054,11 +1027,19 @@ public static class DesignJsonMapper
                     var optCssY = elY + i * lineH;
                     if (optCssY + fs > elY + h) break;
                     var isSelected = options[i] == el.SelectedValue;
-                    var bullet = el.Type == "radio"
-                        ? (isSelected ? "* " : "o ")
-                        : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
-                    page.DrawText($"{bullet}{options[i]}", elX, TextY(pageH, optCssY, fs),
-                        new PdfDrawTextOptions { FontSize = fs, Bold = isSelected, FillColor = textColor });
+                    var markerSize = Math.Max(10, Math.Min(14, fs + 2));
+                    if (el.Type == "radio")
+                    {
+                        var centerY = pageH - optCssY - markerSize / 2;
+                        page.DrawCircle(elX + markerSize / 2, centerY, markerSize / 2 - 0.5,
+                            lineWidth: 1, strokeColor: textColor);
+                        if (isSelected || (el.SelectedValue is null && i == 0))
+                            page.DrawCircle(elX + markerSize / 2, centerY, markerSize * 0.25,
+                                lineWidth: 0.01, fill: true, strokeColor: textColor, fillColor: textColor);
+                    }
+                    var bullet = el.Type == "radio" ? "" : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
+                    page.DrawText($"{bullet}{options[i]}", elX + (el.Type == "radio" ? markerSize + 6 : 0), TextY(pageH, optCssY, fs),
+                        new PdfDrawTextOptions { FontSize = fs, FillColor = textColor });
                 }
                 if (el.Type == "radio")
                 {
@@ -1090,10 +1071,10 @@ public static class DesignJsonMapper
                 var content = el.Content ?? "";
                 if (content.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
                 {
-                    DrawDataUrlImage(page, el, pageH, content);
+                    DrawDataUrlImage(page, el, pageH, content, elX, elY, w, h);
                     break;
                 }
-                DrawPlaceholder(page, el, pageH, "[Image]");
+                DrawPlaceholder(page, el, pageH, "[Image]", elX, elY, w, h);
                 break;
             }
 
@@ -1148,8 +1129,10 @@ public static class DesignJsonMapper
                 if (string.IsNullOrWhiteSpace(text)) break;
                 var fs       = GetDouble(style, "fontSize", 12);
                 var fgColor  = ParseColor(GetString(style, "color") ?? "#2563eb");
+                var fontOptions = BuildParaOptions(style);
                 page.DrawText(text, elX, TextY(pageH, elY, fs),
-                    new PdfDrawTextOptions { FontSize = fs, FillColor = fgColor, Underline = true });
+                    new PdfDrawTextOptions { FontSize = fs, FillColor = fgColor, Underline = true,
+                        FontFamily = fontOptions.FontFamily, Bold = fontOptions.Bold, Italic = fontOptions.Italic });
                 if (!string.IsNullOrWhiteSpace(href))
                     page.AddWebLink(elX, RectBottomY(pageH, elY, h), w, h, href);
                 break;
@@ -1340,38 +1323,46 @@ public static class DesignJsonMapper
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static void DrawDataUrlImage(PdfPage page, ElementDto el, double pageH, string dataUrl)
+    private static void DrawTextBlock(PdfPage page, string text, Dictionary<string, object> style,
+        double pageH, double x, double top, double width, double height, string? language, string? direction)
+    {
+        var padding = GetDouble(style, "padding", 0);
+        var left = GetDouble(style, "paddingLeft", padding);
+        var right = GetDouble(style, "paddingRight", padding);
+        var paddingTop = GetDouble(style, "paddingTop", padding);
+        var background = GetString(style, "backgroundColor");
+        if (!string.IsNullOrEmpty(background) && background != "transparent")
+        {
+            var color = ParseColor(background);
+            page.DrawRectangle(x, RectBottomY(pageH, top, height), width, height,
+                lineWidth: 0.01, fill: true, strokeColor: color, fillColor: color);
+        }
+        DrawElementBorder(page, style, x, RectBottomY(pageH, top, height), width, height);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var options = BuildParaOptions(style, language, direction);
+        page.DrawParagraph(text, x + left, TextY(pageH, top + paddingTop, options.FontSize),
+            Math.Max(1, width - left - right), options);
+    }
+
+    private static void DrawDataUrlImage(PdfPage page, ElementDto el, double pageH, string dataUrl,
+        double x, double top, double width, double height)
     {
         try
         {
             var commaIdx = dataUrl.IndexOf(',', StringComparison.Ordinal);
-            if (commaIdx < 0) return;
+            if (commaIdx < 0) throw new FormatException("Missing image data separator.");
             var bytes = Convert.FromBase64String(dataUrl[(commaIdx + 1)..]);
-            var ext = dataUrl.Contains("jpeg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
-            var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ext);
-            File.WriteAllBytes(tempPath, bytes);
-            try
+            var fit = el.PreserveAspectRatio == true ? PdfImageFitMode.Contain : el.FitMode switch
             {
-                var x = el.X;
-                var y = RectBottomY(pageH, el.Y, el.Height);
-                var w = el.Width;
-                var h = el.Height;
-                switch (el.FitMode)
-                {
-                    case "contain":
-                        page.DrawImageFitCenter(tempPath, x, y, w, h);
-                        break;
-                    case "none":
-                        page.DrawImageFit(tempPath, x, y, w, h);
-                        break;
-                    default:
-                        page.DrawImage(tempPath, x, y, w, h);
-                        break;
-                }
-            }
-            finally { TryDelete(tempPath); }
+                "cover" => PdfImageFitMode.Cover,
+                "fill" => PdfImageFitMode.Fill,
+                "none" => PdfImageFitMode.None,
+                _ => PdfImageFitMode.Contain
+            };
+            page.DrawImageFitted(bytes, x, RectBottomY(pageH, top, height), width, height,
+                fit, el.FocalX ?? 50, el.FocalY ?? 50);
         }
-        catch { DrawPlaceholder(page, el, pageH, "[Image]"); }
+        catch { DrawPlaceholder(page, el, pageH, "[Image]", x, top, width, height); }
     }
 
     private static object? GetProperty(object? source, string name)
@@ -1548,17 +1539,21 @@ public static class DesignJsonMapper
         return false;
     }
 
-    private static void DrawPlaceholder(PdfPage page, ElementDto el, double pageH, string label)
+    private static void DrawPlaceholder(PdfPage page, ElementDto el, double pageH, string label,
+        double? x = null, double? top = null, double? width = null, double? height = null)
     {
-        var boxY = RectBottomY(pageH, el.Y, el.Height);
+        var boxX = x ?? el.X;
+        var boxWidth = width ?? el.Width;
+        var boxHeight = height ?? el.Height;
+        var boxY = RectBottomY(pageH, top ?? el.Y, boxHeight);
         var dash = new PdfStrokeStyle { LineWidth = 0.5, DashArray = [3, 3] };
-        page.DrawRectangle(el.X, boxY, el.Width, el.Height, lineWidth: 0.5, fill: false,
+        page.DrawRectangle(boxX, boxY, boxWidth, boxHeight, lineWidth: 0.5, fill: false,
             strokeColor: ParseColor("#d1d5db"), strokeStyle: dash);
 
-        if (!string.IsNullOrEmpty(label) && el.Height > 14)
+        if (!string.IsNullOrEmpty(label) && boxHeight > 14)
         {
-            var fs = Math.Min(10.0, el.Height * 0.35);
-            page.DrawText(label, el.X + 4, boxY + el.Height / 2 - fs * 0.3,
+            var fs = Math.Min(10.0, boxHeight * 0.35);
+            page.DrawText(label, boxX + 4, boxY + boxHeight / 2 - fs * 0.3,
                 new PdfDrawTextOptions { FontSize = fs, FillColor = ParseColor("#9ca3af") });
         }
     }
@@ -1605,20 +1600,21 @@ public static class DesignJsonMapper
     }
 
     /// <summary>
-    /// Mutates element content in-place, replacing {{KEY}} placeholders with the resolved
-    /// property values for the target language. Operates on a cloned element list to avoid
-    /// modifying the caller's design object.
+    /// Resolves localized content on a private document copy so rendering never changes
+    /// the canonical template or the Code Worker's returned model and checksum.
     /// </summary>
     private static DesignExportDto ApplyPropertySubstitutions(
         DesignExportDto design,
         Dictionary<string, string> props)
     {
-        foreach (var page in design.Pages)
+        var renderedDesign = JsonSerializer.Deserialize<DesignExportDto>(JsonSerializer.SerializeToUtf8Bytes(design))
+            ?? throw new InvalidOperationException("Cannot copy the design for localized rendering.");
+        foreach (var page in renderedDesign.Pages)
             foreach (var el in page.Elements)
                 SubstituteElement(el, props);
-        foreach (var el in design.SharedElements)
+        foreach (var el in renderedDesign.SharedElements)
             SubstituteElement(el, props);
-        return design;
+        return renderedDesign;
     }
 
     private static Dictionary<string, string> BuildEvaluationProperties(
@@ -1812,6 +1808,8 @@ public static class DesignJsonMapper
         el.FootnoteText   = Substitute(el.FootnoteText,   props);
         el.Href           = Substitute(el.Href,           props);
         el.ButtonAction   = Substitute(el.ButtonAction,   props);
+        if (el.Type == "date" && el.DateMode == "binding" && !string.IsNullOrWhiteSpace(el.Binding)
+            && props.TryGetValue(el.Binding.Trim(), out var dateValue)) el.Content = dateValue;
     }
 
     private static string? Substitute(string? text, Dictionary<string, string> props)
@@ -1853,10 +1851,15 @@ public static class DesignJsonMapper
         return new PdfColor(r, g, b);
     }
 
+    private static PdfTableCellBorder? MapCellBorder(CellBorderSideDto? side) => side is null ? null : new()
+    {
+        Color = side.Color is null ? null : ParseColor(side.Color), Width = side.Width ?? 1
+    };
+
     private static PdfFontFamily? ParseFontFamily(string? family)
     {
         if (string.IsNullOrEmpty(family)) return null;
-        var lower = family.ToLowerInvariant();
+        var lower = family.ToLowerInvariant().Replace("sans-serif", "", StringComparison.Ordinal);
         if (lower.Contains("times") || lower.Contains("georgia") || lower.Contains("serif"))
             return PdfFontFamily.Times;
         if (lower.Contains("courier") || lower.Contains("mono") || lower.Contains("consolas") || lower.Contains("code"))

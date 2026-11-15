@@ -120,11 +120,11 @@ export function validateDesignerAccessibility(
   const issues: DesignerAccessibilityIssue[] = [];
   const title = pageSettings.metadata?.title?.trim() || template.name.trim();
   const language = (pageSettings.targetLanguage || pageSettings.systemLanguage || '').trim();
-  if (!title) issues.push({ code: 'PXAPDFUA002', severity: 'error' });
-  if (!language) issues.push({ code: 'PXAPDFUA003', severity: 'error' });
+  if (!title) issues.push({ code: 'PVADPDFUA002', severity: 'error' });
+  if (!language) issues.push({ code: 'PVADPDFUA003', severity: 'error' });
   else if (!/^(?:[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*|[ix](?:-[A-Za-z0-9]{1,8})+)$/.test(language))
-    issues.push({ code: 'PXAPDFUA015', severity: 'error' });
-  if (pageSettings.encryption?.enabled) issues.push({ code: 'PXAPDFUA004', severity: 'error' });
+    issues.push({ code: 'PVADPDFUA015', severity: 'error' });
+  if (pageSettings.encryption?.enabled) issues.push({ code: 'PVADPDFUA004', severity: 'error' });
 
   const allElements = [
     ...pages.flatMap((page, pageIndex) => page.elements.map(element => ({ element, pageIndex }))),
@@ -138,48 +138,48 @@ export function validateDesignerAccessibility(
     const context = { pageIndex, elementId: element.id, elementName: element.name || element.type };
     const accessibility = element.accessibility;
     if (!accessibility) {
-      issues.push({ code: 'PXAPDFUA005', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA005', severity: 'error', ...context });
       continue;
     }
     if (accessibility.isArtifact) continue;
     if (!accessibility.role)
-      issues.push({ code: 'PXAPDFUA021', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA021', severity: 'error', ...context });
     if (accessibility.customRole) {
       if (!CUSTOM_ROLE_PATTERN.test(accessibility.customRole) || PDF_STRUCTURE_ROLES.includes(accessibility.customRole as PdfStructureRole))
-        issues.push({ code: 'PXAPDFUA025', severity: 'error', ...context });
+        issues.push({ code: 'PVADPDFUA025', severity: 'error', ...context });
       if (accessibility.namespaceUri && !isAbsoluteNamespaceUri(accessibility.namespaceUri))
-        issues.push({ code: 'PXAPDFUA027', severity: 'error', ...context });
+        issues.push({ code: 'PVADPDFUA027', severity: 'error', ...context });
     } else if (accessibility.namespaceUri) {
-      issues.push({ code: 'PXAPDFUA027', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA027', severity: 'error', ...context });
     }
     if (accessibility.readingOrder != null && accessibility.readingOrder < 0)
-      issues.push({ code: 'PXAPDFUA016', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA016', severity: 'error', ...context });
     if (accessibility.parentElementId && !ids.has(accessibility.parentElementId))
-      issues.push({ code: 'PXAPDFUA013', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA013', severity: 'error', ...context });
     if (hasParentCycle(element, allElements.map(item => item.element)))
-      issues.push({ code: 'PXAPDFUA014', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA014', severity: 'error', ...context });
     if (accessibility.role === 'Figure' && !accessibility.alternateText?.trim())
-      issues.push({ code: 'PXAPDFUA007', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA007', severity: 'error', ...context });
     if (accessibility.role === 'Link' && !meaningfulText(element, accessibility))
-      issues.push({ code: 'PXAPDFUA017', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA017', severity: 'error', ...context });
     if (accessibility.role === 'Link' && !hasLinkTarget(element))
-      issues.push({ code: 'PXAPDFUA010', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA010', severity: 'error', ...context });
     if (accessibility.role === 'Form' && !formLabel(element, accessibility))
-      issues.push({ code: 'PXAPDFUA018', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA018', severity: 'error', ...context });
     if (accessibility.role === 'Form' && !hasSupportedWidget(element))
-      issues.push({ code: 'PXAPDFUA010', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA010', severity: 'error', ...context });
     if (accessibility.role === 'TH' && (!accessibility.tableHeaderScope || accessibility.tableHeaderScope === 'None'))
-      issues.push({ code: 'PXAPDFUA009', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA009', severity: 'error', ...context });
     if (accessibility.tableHeaderIds?.some(headerId => !ids.has(headerId)))
-      issues.push({ code: 'PXAPDFUA011', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA011', severity: 'error', ...context });
     if (element.type === 'table') {
-      if (!element.headerRow) issues.push({ code: 'PXAPDFUA019', severity: 'error', ...context });
+      if (!element.headerRow) issues.push({ code: 'PVADPDFUA019', severity: 'error', ...context });
       if (!element.cellData?.length || !element.cellData[0]?.length)
-        issues.push({ code: 'PXAPDFUA020', severity: 'error', ...context });
+        issues.push({ code: 'PVADPDFUA020', severity: 'error', ...context });
     }
     if (element.type === 'radio' && (!element.options || element.options.length < 2
       || new Set(element.options).size !== element.options.length))
-      issues.push({ code: 'PXAPDFUA022', severity: 'error', ...context });
+      issues.push({ code: 'PVADPDFUA022', severity: 'error', ...context });
   }
 
   const customRoles = new Map<string, AccessibilityProperties[]>();
@@ -192,9 +192,9 @@ export function validateDesignerAccessibility(
   }
   for (const [customRole, mappings] of customRoles) {
     if (new Set(mappings.map(mapping => mapping.role)).size > 1)
-      issues.push({ code: 'PXAPDFUA026', severity: 'error', elementName: customRole });
+      issues.push({ code: 'PVADPDFUA026', severity: 'error', elementName: customRole });
     if (new Set(mappings.map(mapping => mapping.namespaceUri ?? '')).size > 1)
-      issues.push({ code: 'PXAPDFUA028', severity: 'error', elementName: customRole });
+      issues.push({ code: 'PVADPDFUA028', severity: 'error', elementName: customRole });
   }
 
   const interactiveByPage = new Map<number | undefined, SimpleElement[]>();
@@ -206,7 +206,7 @@ export function validateDesignerAccessibility(
   }
   for (const [pageIndex, elements] of interactiveByPage) {
     for (const element of elements.filter(item => item.accessibility?.readingOrder == null))
-      issues.push({ code: 'PXAPDFUA023', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
+      issues.push({ code: 'PVADPDFUA023', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
     const explicitOrders = new Map<number, SimpleElement[]>();
     for (const element of elements) {
       const order = element.accessibility?.readingOrder;
@@ -215,7 +215,7 @@ export function validateDesignerAccessibility(
     }
     for (const duplicates of [...explicitOrders.values()].filter(items => items.length > 1))
       for (const element of duplicates)
-        issues.push({ code: 'PXAPDFUA024', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
+        issues.push({ code: 'PVADPDFUA024', severity: 'warning', pageIndex, elementId: element.id, elementName: element.name || element.type });
   }
 
   return issues;

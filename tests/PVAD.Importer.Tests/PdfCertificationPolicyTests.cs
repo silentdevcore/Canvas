@@ -49,7 +49,7 @@ public sealed class PdfCertificationPolicyTests
         Assert.Equal(PdfTrustStatus.Valid, signature.IntegrityStatus);
         Assert.Equal(1, signature.Certification!.DisallowedChangeCount);
         Assert.Contains("modified", Assert.Single(signature.Certification.DisallowedChanges));
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST147");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST147");
     }
 
     [Fact]
@@ -344,7 +344,7 @@ public sealed class PdfCertificationPolicyTests
 
         var report = await InspectReportAsync(forged);
 
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST140");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST140");
         Assert.DoesNotContain(report.Signatures, static signature => signature.IsCertification);
     }
 
@@ -371,7 +371,7 @@ public sealed class PdfCertificationPolicyTests
 
         Assert.Equal(PdfTrustStatus.Invalid, signature.CertificationStatus);
         Assert.Equal(PdfTrustStatus.Invalid, signature.Status);
-        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PXAPDFTRUST142");
+        Assert.Contains(report.Diagnostics, diagnostic => diagnostic.Code == "PVADPDFTRUST142");
         Assert.Contains(
             signature.Certification!.DisallowedChanges,
             reason => reason.Contains("/Perms /DocMDP", StringComparison.Ordinal));
@@ -429,7 +429,7 @@ public sealed class PdfCertificationPolicyTests
     private static byte[] CreatePdf()
     {
         var document = new PdfDocument();
-        document.AddPage().DrawText("PXA certification fixture", 40, 40);
+        document.AddPage().DrawText("PVAD certification fixture", 40, 40);
         return document.ToBytes();
     }
 

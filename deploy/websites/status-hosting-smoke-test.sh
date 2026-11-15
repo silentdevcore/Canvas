@@ -4,10 +4,6 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 DIST_DIR=${1:-"$REPOSITORY_ROOT/websites/PVAD.Company/dist"}
-. "$REPOSITORY_ROOT/tools/configuration/environment.sh"
-pvad_environment_alias PVAD_STATUS_SMOKE_PORT PXA_STATUS_SMOKE_PORT \
-  "${PVAD_STATUS_SMOKE_PORT+x}" "${PVAD_STATUS_SMOKE_PORT-}" \
-  "${PXA_STATUS_SMOKE_PORT+x}" "${PXA_STATUS_SMOKE_PORT-}"
 PORT=${PVAD_STATUS_SMOKE_PORT:-4183}
 CONTAINER="pvad-status-hosting-smoke-$$"
 
@@ -52,7 +48,6 @@ shell=$(response_headers "http://localhost:$PORT/index.html")
 asset_path=$(find "$DIST_DIR/assets" -maxdepth 1 -type f \( -name '*.js' -o -name '*.css' \) | head -n 1)
 asset=$(response_headers "http://localhost:$PORT/assets/$(basename "$asset_path")")
 api=$(response_headers "http://localhost:$PORT/api/pvad/v1/version")
-legacy_api=$(response_headers "http://localhost:$PORT/api/pxa/v1/version")
 api_body=$(curl -sS "http://localhost:$PORT/api/pvad/v1/version")
 
 printf '%s\n' "$valid" | grep -q 'HTTP/1.1 200'
@@ -62,13 +57,10 @@ printf '%s\n' "$shell" | grep -qi 'Cache-Control: no-cache, no-store, must-reval
 printf '%s\n' "$asset" | grep -qi 'Cache-Control: public, max-age=31536000, immutable'
 printf '%s\n' "$api" | grep -q 'HTTP/1.1 503'
 printf '%s\n' "$api" | grep -qi 'Content-Type: application/problem+json'
-printf '%s\n' "$legacy_api" | grep -q 'HTTP/1.1 503'
-printf '%s\n' "$legacy_api" | grep -qi 'Content-Type: application/problem+json'
-printf '%s\n' "$api_body" | grep -q '"canonicalCode":"PVADAPI018"'
+printf '%s\n' "$api_body" | grep -q '"code":"PVADAPI018"'
 
 cleanup
 printf 'PVAD website hosting smoke test passed (%s inputs).\n' "$prefix"
 }
 
 run_case PVAD
-run_case PXA

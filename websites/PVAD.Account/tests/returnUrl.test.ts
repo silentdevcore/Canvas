@@ -37,20 +37,23 @@ test('does not mix local and production origins', () => {
   );
 });
 
-test('legacy deployments require an explicit origin override, not an implicit second trust set', () => {
-  const legacy = 'https://designer.powerdoxautomation.com/doc/1';
-  assert.equal(sanitizeReturnUrl(legacy, siteLinkDefaults.production), null);
-  const configured = resolveSiteLinks('production', {
-    VITE_PXA_DESIGNER_URL: 'https://designer.powerdoxautomation.com/',
+for (const key of ['VITE_PVAD_DESIGNER_URL', 'VITE_PVAD_DESIGNER_URL']) {
+  test(`${key} requires an explicit origin override, not an implicit second trust set`, () => {
+    const legacy = 'https://designer.powerdoxautomation.com/doc/1';
+    assert.equal(sanitizeReturnUrl(legacy, siteLinkDefaults.production), null);
+    const configured = resolveSiteLinks('production', {
+      [key]: 'https://designer.powerdoxautomation.com/',
+    });
+    assert.equal(sanitizeReturnUrl(legacy, configured), legacy);
+    assert.equal(sanitizeReturnUrl('https://unconfigured.example/doc/1', configured), null);
   });
-  assert.equal(sanitizeReturnUrl(legacy, configured), legacy);
-});
+}
 
 test('rejects protocol-relative URLs', () => {
   assert.equal(sanitizeReturnUrl('//evil.com/phish'), null);
 });
 
-test('rejects external hosts even when they look like a PXA path', () => {
+test('rejects external hosts even when they look like a PVAD path', () => {
   assert.equal(sanitizeReturnUrl('https://evil.com/designer'), null);
   assert.equal(sanitizeReturnUrl('https://pvade.com.evil.com/'), null);
 });

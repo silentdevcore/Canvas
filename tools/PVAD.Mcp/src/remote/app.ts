@@ -7,7 +7,7 @@ import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middlew
 import type { OAuthTokenVerifier } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 
 import { createPvadMcpServer } from '../core/server.js';
-import { compatibleScopes } from '../core/scopeCompatibility.js';
+import { uniqueScopes } from '../core/scopes.js';
 import { PvadJwtTokenVerifier } from './auth.js';
 import { REMOTE_READ_SCOPES, type RemoteMcpConfig } from './config.js';
 import { createRateLimit } from './rateLimit.js';
@@ -31,7 +31,7 @@ export function createRemoteMcpApp(config: RemoteMcpConfig, options: RemoteMcpAp
     verifier: {
       async verifyAccessToken(token) {
         const auth = await verifier.verifyAccessToken(token);
-        return { ...auth, scopes: compatibleScopes(auth.scopes) };
+        return { ...auth, scopes: uniqueScopes(auth.scopes) };
       },
     },
     requiredScopes: [...REMOTE_READ_SCOPES],

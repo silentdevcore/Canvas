@@ -17,7 +17,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
 
     public PdfViewerAnnotationsControllerTests(PvadApiTestFactory factory)
     {
-        _storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
+        _storageRoot = Path.Combine(Path.GetTempPath(), "pvad-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
         _client = factory
             .WithWebHostBuilder(builder =>
             {
@@ -109,12 +109,12 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
     [Fact]
     public async Task SaveAndGetAnnotations_PvadRoute_RoundTripsSidecar()
     {
-        var documentId = $"pxa-doc-{Guid.NewGuid():N}";
+        var documentId = $"pvad-doc-{Guid.NewGuid():N}";
         var request = new
         {
             documentId,
             version = 1,
-            sourceName = "pxa-review.pdf",
+            sourceName = "pvad-review.pdf",
             annotations = new object[]
             {
                 new
@@ -126,7 +126,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
                     yPct = 10,
                     widthPct = 20,
                     heightPct = 8,
-                    text = "PXA note",
+                    text = "PVAD note",
                     author = "Reviewer",
                     createdAt = "2026-06-25T10:00:00Z",
                     color = "#facc15",
@@ -135,8 +135,8 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
             },
         };
 
-        var saveResponse = await _client.PostAsJsonAsync("/api/pxa/pdf-viewer/annotations", request);
-        var getResponse = await _client.GetAsync($"/api/pxa/pdf-viewer/annotations/{documentId}");
+        var saveResponse = await _client.PostAsJsonAsync("/api/pvad/pdf-viewer/annotations", request);
+        var getResponse = await _client.GetAsync($"/api/pvad/pdf-viewer/annotations/{documentId}");
 
         Assert.Equal(HttpStatusCode.OK, saveResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -144,9 +144,9 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         using var json = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync());
         var root = json.RootElement;
         Assert.Equal(documentId, root.GetProperty("documentId").GetString());
-        Assert.Equal("pxa-review.pdf", root.GetProperty("sourceName").GetString());
+        Assert.Equal("pvad-review.pdf", root.GetProperty("sourceName").GetString());
         Assert.Equal(1, root.GetProperty("annotationCount").GetInt32());
-        Assert.Equal("PXA note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
+        Assert.Equal("PVAD note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
     [Fact]
     public void AnnotationStore_ReloadsSavedSidecarFromDisk()
     {
-        var storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
+        var storageRoot = Path.Combine(Path.GetTempPath(), "pvad-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
         var documentId = $"doc/{Guid.NewGuid():N}";
 
         try
@@ -434,10 +434,10 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
         // The audit record travels out of band. It is deliberately not written into the
         // redacted document: the reason and the actor would otherwise be disclosed to every
         // downstream recipient of a file that was redacted precisely to limit disclosure.
-        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")).Length);
-        Assert.Equal(Assert.Single(response.Headers.GetValues("PXA-Redaction-Audit")),
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")).Length);
+        Assert.Equal(Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")),
             Assert.Single(response.Headers.GetValues("PVAD-Redaction-Audit")));
-        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PXA-Redaction-Result-Sha256")).Length);
+        Assert.Equal(64, Assert.Single(response.Headers.GetValues("PVAD-Redaction-Result-Sha256")).Length);
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
         var content = System.Text.Encoding.ASCII.GetString(bytes);

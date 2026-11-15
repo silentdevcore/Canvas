@@ -205,19 +205,18 @@ describe('pdf viewer smoke test', () => {
             { sequenceNumber: 2, kind: 'Incremental', crossReferenceOffset: 320, endOffset: 400, sha256: 'c'.repeat(64), entryCount: 4 },
           ],
           diagnostics: [{
-            code: 'PXAPDFTRUST001',
-            canonicalCode: 'PVADPDFTRUST001',
+            code: 'PVADPDFTRUST001',
             severity: 1,
             message: 'Reviewed diagnostic.',
           }, {
-            code: 'PXATEST999',
+            code: 'PVADTEST999',
             severity: 1,
             message: 'Synthetic technical detail.',
             objectNumber: 9,
             generation: 0,
             pageNumber: 2,
-            localizationKey: 'diagnostics.PXATEST999',
-            localizationParameters: { code: 'PXATEST999', pageNumber: '2', objectNumber: '9' },
+            localizationKey: 'diagnostics.PVADTEST999',
+            localizationParameters: { code: 'PVADTEST999', pageNumber: '2', objectNumber: '9' },
           }],
         }),
       } as Response);
@@ -263,5 +262,54 @@ describe('pdf viewer smoke test', () => {
     act(() => reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     expect(container.textContent).toContain('This document has trust properties');
 
+  });
+
+  test('projects signing errors without rewriting response data or customer filenames', async () => {
+    await i18n.changeLanguage('en');
+    const problem = { detail: 'PVADPDFTRUSTAPI003: Signing is unavailable.' };
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 400, json: async () => problem });
+    const file = new File(['%PDF-1.7'], 'PVAD-customer.pdf');
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: async () => new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]).buffer,
+    });
+    await act(async () => root.render(<PdfViewer initialSource={{ file, kind: 'file', name: file.name }} canSign />));
+    const trust = [...container.querySelectorAll('button')].find(button => button.textContent === 'PDF Trust');
+    act(() => trust?.click());
+    const certificate = container.querySelector('.pdfv-signing-panel input[type="file"]') as HTMLInputElement;
+    Object.defineProperty(certificate, 'files', { configurable: true, value: [new File(['synthetic'], 'test.p12')] });
+    act(() => certificate.dispatchEvent(new Event('change', { bubbles: true })));
+    await act(async () => {
+      container.querySelector('.pdfv-signing-panel')?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+    });
+    expect(container.querySelector('.pdfv-signing-panel [role="status"]')?.textContent)
+      .toContain('PVADPDFTRUSTAPI003: Signing is unavailable.');
+    expect(container.querySelector('.pdfv-signing-panel [role="status"]')?.textContent).not.toContain('PXA');
+    expect(container.textContent).toContain('PVAD-customer.pdf');
+    expect(file.name).toBe('PVAD-customer.pdf');
+    expect(problem.detail).toBe('PVADPDFTRUSTAPI003: Signing is unavailable.');
+    expect(global.fetch).toHaveBeenCalledWith('/api/pvad/v1/pdf/signatures/sign', expect.objectContaining({ method: 'POST' }));
+  });
+
+  test('uses the same diagnostic presentation in the Trust failure and mutation-blocking banner', async () => {
+    await i18n.changeLanguage('en');
+    const problem = { detail: 'PVADPDFTRUSTAPI001: Inspection is unavailable.' };
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 400, json: async () => problem });
+    const file = new File(['%PDF-1.7'], 'review.pdf');
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: async () => new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]).buffer,
+    });
+    await act(async () => root.render(<PdfViewer initialSource={{ file, kind: 'file', name: file.name }} />));
+    act(() => [...container.querySelectorAll('button')].find(button => button.textContent === 'PDF Trust')?.click());
+    await act(async () => {
+      [...container.querySelectorAll('button')].find(button => button.textContent === 'Inspect trust')?.click();
+      await Promise.resolve();
+    });
+    expect(container.querySelector('.pdfv-trust-error')?.textContent).toContain('PVADPDFTRUSTAPI001: Inspection is unavailable.');
+    act(() => [...container.querySelectorAll('button')].find(button => button.textContent === 'Review')?.click());
+    expect(container.querySelector('.pdfv-review-panel .pdfv-trust-mutation-warning')?.textContent)
+      .toContain('PVADPDFTRUSTAPI001: Inspection is unavailable.');
+    expect(container.querySelector('.pdfv-review-panel .pdfv-trust-mutation-warning')?.textContent).not.toContain('PXA');
+    expect(problem.detail).toBe('PVADPDFTRUSTAPI001: Inspection is unavailable.');
   });
 });

@@ -107,7 +107,7 @@ describe('Designer accessibility', () => {
     expect(validateDesignerAccessibility(template, pages, [], { ...settings, accessibilityProfile: 'None' })).toEqual([]);
     const codes = validateDesignerAccessibility(template, pages, [], settings).map(issue => issue.code);
     expect(codes).toEqual(expect.arrayContaining([
-      'PXAPDFUA007', 'PXAPDFUA018', 'PXAPDFUA019', 'PXAPDFUA020',
+      'PVADPDFUA007', 'PVADPDFUA018', 'PVADPDFUA019', 'PVADPDFUA020',
     ]));
   });
 
@@ -127,7 +127,7 @@ describe('Designer accessibility', () => {
       id: 'radio', type: 'radio', fieldLabel: 'Choice', accessibility: { role: 'Form' },
     }));
     expect(validateDesignerAccessibility(template, pages, [], settings))
-      .toContainEqual(expect.objectContaining({ code: 'PXAPDFUA010', elementId: 'radio' }));
+      .toContainEqual(expect.objectContaining({ code: 'PVADPDFUA010', elementId: 'radio' }));
   });
 
   test('accepts a tagged text document with a valid language and title fallback', () => {
@@ -158,7 +158,7 @@ describe('Designer accessibility', () => {
     }];
     const codes = validateDesignerAccessibility(template, invalid, [], settings).map(issue => issue.code);
     expect(codes).toEqual(expect.arrayContaining([
-      'PXAPDFUA025', 'PXAPDFUA026', 'PXAPDFUA027', 'PXAPDFUA028',
+      'PVADPDFUA025', 'PVADPDFUA026', 'PVADPDFUA027', 'PVADPDFUA028',
     ]));
   });
 
@@ -175,8 +175,8 @@ describe('Designer accessibility', () => {
 
     const issues = validateDesignerAccessibility(template, pages, [], settings);
     expect(issues).not.toContainEqual(expect.objectContaining({ code: 'PXAPDFUA010' }));
-    expect(issues).toContainEqual(expect.objectContaining({ code: 'PXAPDFUA023', elementId: 'signature', severity: 'warning' }));
-    expect(issues.filter(issue => issue.code === 'PXAPDFUA024')).toHaveLength(2);
+    expect(issues).toContainEqual(expect.objectContaining({ code: 'PVADPDFUA023', elementId: 'signature', severity: 'warning' }));
+    expect(issues.filter(issue => issue.code === 'PVADPDFUA024')).toHaveLength(2);
   });
 
   test('blocks PDF rendering before a network request when preflight fails', async () => {

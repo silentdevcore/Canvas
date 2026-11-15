@@ -45,14 +45,14 @@ import {
   type DesignerAccessAction,
 } from './designerAccessPresentation';
 import { bindStatusPage, renderStatusPage } from '../../shared/statusPages';
-import { displayDiagnosticCode } from '../../shared/diagnosticPresentation';
+import { displayDiagnosticCode, displaySystemMessage } from '../../shared/diagnosticPresentation';
 
 initializeBrowserTelemetry({ application: 'account' });
 
 // Stable Problem Details codes from PVAD.WebApi.Infrastructure.PvadApiProblems.
-const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
-const PROBLEM_CODE_ACCOUNT_DISABLED = 'PXAAPI015';
-const PROBLEM_CODE_ORGANIZATION_SUSPENDED = 'PXAAPI016';
+const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PVADAPI010';
+const PROBLEM_CODE_ACCOUNT_DISABLED = 'PVADAPI015';
+const PROBLEM_CODE_ORGANIZATION_SUSPENDED = 'PVADAPI016';
 
 interface PortalPage {
   render: (user: UserInfo) => string;
@@ -207,7 +207,7 @@ function forbiddenPage(error?: ApiError | null): string {
     </header>
     <section class="account-section account-forbidden" role="alert">
       <div>
-        <p>${escapeHtml(error?.message || 'Your current organization role does not include the required permission.')}</p>
+        <p>${escapeHtml(displaySystemMessage(error?.message || 'Your current organization role does not include the required permission.'))}</p>
         <a class="pvad-button pvad-button--primary" href="/dashboard">Back to overview</a>
       </div>
     </section>`;
@@ -237,7 +237,7 @@ function authLayout(content: string, title: string, description: string): string
 }
 
 function message(kind: 'info' | 'error', text: string): string {
-  return text ? `<div class="account-message account-message--${kind}" role="${kind === 'error' ? 'alert' : 'status'}">${escapeHtml(text)}</div>` : '';
+  return text ? `<div class="account-message account-message--${kind}" role="${kind === 'error' ? 'alert' : 'status'}">${escapeHtml(kind === 'error' ? displaySystemMessage(text) : text)}</div>` : '';
 }
 
 function loginPage(): string {
@@ -432,7 +432,7 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
       button.textContent = originalButtonText;
       if (apiError.code === PROBLEM_CODE_VERIFICATION_REQUIRED) {
         const email = formString(new FormData(form), 'identifier');
-        error.innerHTML = `${escapeHtml(apiError.message)} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
+        error.innerHTML = `${escapeHtml(displaySystemMessage(apiError.message))} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
         document.querySelector('#resend-verification-button')?.addEventListener('click', async (clickEvent) => {
           (clickEvent.currentTarget as HTMLButtonElement).disabled = true;
           try { await resendVerification(email, consumeReturnUrl()); }
@@ -444,14 +444,14 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
         return;
       }
       if (apiError.code === PROBLEM_CODE_ACCOUNT_DISABLED) {
-        error.innerHTML = `${escapeHtml(apiError.message)} <a href="${companyPage('support')}">Contact support</a>.`;
+        error.innerHTML = `${escapeHtml(displaySystemMessage(apiError.message))} <a href="${companyPage('support')}">Contact support</a>.`;
         return;
       }
       if (apiError.code === PROBLEM_CODE_ORGANIZATION_SUSPENDED) {
-        error.innerHTML = `${escapeHtml(apiError.message)} <a href="${companyPage('support')}">Contact your administrator</a>.`;
+        error.innerHTML = `${escapeHtml(displaySystemMessage(apiError.message))} <a href="${companyPage('support')}">Contact your administrator</a>.`;
         return;
       }
-      error.textContent = apiError.message;
+      error.textContent = displaySystemMessage(apiError.message);
     }
   });
 }
@@ -609,7 +609,7 @@ async function runEmailChangeConfirmation(): Promise<void> {
     result.innerHTML = '<p class="pvad-kicker">Email address updated</p><h2>Sign in with your new address</h2><p>Your other sessions were signed out as a precaution.</p><a class="pvad-button pvad-button--primary" href="/login">Sign in</a>';
   } catch (error) {
     const apiError = error as ApiError;
-    result.innerHTML = `<p class="pvad-kicker">Confirmation failed</p><h2>We could not confirm this link</h2><p>${escapeHtml(apiError.message)}</p><a class="pvad-button pvad-button--secondary" href="/profile">Back to profile</a>`;
+    result.innerHTML = `<p class="pvad-kicker">Confirmation failed</p><h2>We could not confirm this link</h2><p>${escapeHtml(displaySystemMessage(apiError.message))}</p><a class="pvad-button pvad-button--secondary" href="/profile">Back to profile</a>`;
   }
   bindEvents();
 }

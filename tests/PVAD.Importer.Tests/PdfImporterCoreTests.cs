@@ -17,7 +17,7 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
 
-#pragma warning disable PXA0002 // This suite intentionally verifies the low-level PXA importer engine.
+#pragma warning disable PVAD0002 // This suite intentionally verifies the low-level PVAD importer engine.
 
 namespace PVAD.Importer.Tests;
 
@@ -726,13 +726,13 @@ public sealed class PdfImporterCoreTests
 
         session.ReplaceText(element, "New");
         session.Move(element, new PdfMatrix(1, 0, 0, 1, 12, 34));
-        session.SetMetadata("Author", new PdfString(Encoding.ASCII.GetBytes("PXA"), IsHex: false));
+        session.SetMetadata("Author", new PdfString(Encoding.ASCII.GetBytes("PVAD"), IsHex: false));
         session.Delete(element);
 
         Assert.Equal("New", element.Text);
         Assert.Equal(new PdfMatrix(1, 0, 0, 1, 12, 34), element.Transform);
         Assert.True(element.IsDeleted);
-        Assert.Equal("PXA", Assert.IsType<PdfString>(document.Metadata["Author"]).ToLatin1String());
+        Assert.Equal("PVAD", Assert.IsType<PdfString>(document.Metadata["Author"]).ToLatin1String());
     }
 
     [Fact]
@@ -816,7 +816,7 @@ public sealed class PdfImporterCoreTests
     public async Task PvadPdfGeneratorBridge_ShouldRenderAndReimportSimpleDocument()
     {
         var document = new PdfDocumentModel();
-        document.Metadata["Author"] = new PdfString(Encoding.ASCII.GetBytes("PXA"), IsHex: false);
+        document.Metadata["Author"] = new PdfString(Encoding.ASCII.GetBytes("PVAD"), IsHex: false);
 
         var page = new PdfPageModel(null, new PdfDictionary())
         {
@@ -3979,4 +3979,4 @@ public sealed class PdfImporterCoreTests
     }
 }
 
-#pragma warning restore PXA0002
+#pragma warning restore PVAD0002

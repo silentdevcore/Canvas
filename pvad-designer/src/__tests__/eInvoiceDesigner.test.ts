@@ -254,17 +254,17 @@ describe('localized invoice validation', () => {
 
     const codes = validateInvoice(invoice, defaultSettings('FacturX')).map(finding => finding.code);
 
-    expect(codes).toContain('PXAEINV100');
-    expect(codes).toContain('PXAEINV102');
-    expect(codes).toContain('PXAEINV103');
-    expect(codes).toContain('PXAEINV109');
-    expect(codes).toContain('PXAEINV110');
-    expect(codes).toContain('PXAEINV111');
-    expect(codes).toContain('PXAEINV112');
-    expect(codes).toContain('PXAEINV113');
-    expect(codes).toContain('PXAEINV114');
-    expect(codes).toContain('PXAEINV115');
-    expect(codes).toContain('PXAEINV116');
+    expect(codes).toContain('PVADEINV100');
+    expect(codes).toContain('PVADEINV102');
+    expect(codes).toContain('PVADEINV103');
+    expect(codes).toContain('PVADEINV109');
+    expect(codes).toContain('PVADEINV110');
+    expect(codes).toContain('PVADEINV111');
+    expect(codes).toContain('PVADEINV112');
+    expect(codes).toContain('PVADEINV113');
+    expect(codes).toContain('PVADEINV114');
+    expect(codes).toContain('PVADEINV115');
+    expect(codes).toContain('PVADEINV116');
   });
 
   it('points every finding at a focusable field', () => {
@@ -286,7 +286,7 @@ describe('localized invoice validation', () => {
       defaultSettings('XRechnung'),
     );
 
-    const finding = findings.find(item => item.code === 'PXAEINV117');
+    const finding = findings.find(item => item.code === 'PVADEINV117');
     expect(finding?.severity).toBe('warning');
     expect(hasBlockingFindings(findings)).toBe(false);
   });
@@ -294,10 +294,10 @@ describe('localized invoice validation', () => {
   it('refuses an unsupported version or profile before any request is sent', () => {
     expect(
       validateSettings({ standard: 'FacturX', version: '1.0', profile: 'EN 16931' }).map(f => f.code),
-    ).toContain('PXAEINV012');
+    ).toContain('PVADEINV012');
     expect(
       validateSettings({ standard: 'XRechnung', version: '3.0.2', profile: 'EXTENDED' }).map(f => f.code),
-    ).toContain('PXAEINV013');
+    ).toContain('PVADEINV013');
     expect(validateSettings(defaultSettings('ZUGFeRD'))).toEqual([]);
   });
 

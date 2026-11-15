@@ -305,6 +305,7 @@ const editorDocs = [
     related: [
       { label: 'Element Reference', href: '#element-reference' },
       { label: 'Text element', href: '#text-block-element' },
+      { label: 'Canvas and Live Preview guide', href: '../../docs/guides/PVAD.Designer-Preview.md' },
       { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Report migration guide', href: '#report-designer-migration' },
@@ -1173,19 +1174,24 @@ const elementReferenceDocs = [
   {
     title: 'Table',
     type: 'table',
-    category: 'Shapes & Layout',
+    category: 'Tables and Charts',
     status: 'Ready',
     description: 'Fixed-column table with header rows, cell data, column widths, per-cell styling, and optional repeated data.',
-    addSteps: ['Open Shapes & Layout.', 'Click Table.', 'Edit rows and columns through cellData.', 'Set headerRow, column widths, alignment, and zebra styling.', 'Use repeat when rows come from a dataset.'],
+    addSteps: ['Open Tables and Charts in the Elements sidebar.', 'Click Table and select it on the page.', 'Set Rows and Columns in the Inspector, then edit the cell-content grid.', 'Choose a cell using its row and column selectors to change its color, font, padding, alignment, or border sides.', 'Enable a header, footer, or alternating row colors as needed.', 'Check Live Preview and export PDF to verify the same cell formatting.'],
     usage: ['Invoice line items.', 'Report detail rows.', 'Summary totals.', 'Migrated RDL tablix/table output.'],
     attributes: [
       ['cellData', 'string[][]', 'Rows and cells. Cells may contain {{tokens}}.'],
-      ['columnWidths', 'number[]', 'Per-column widths.'],
+      ['columnWidths', 'number[]', 'Positive relative column weights, scaled to the table width; [2, 1] gives a 2:1 split.'],
       ['columnAlignments', 'left | center | right[]', 'Per-column text alignment.'],
       ['headerRow', 'boolean', 'Treats first row as table header.'],
       ['footerRow', 'boolean', 'Treats last row as footer/total row.'],
       ['zebraEnabled / zebraColor', 'boolean / string', 'Alternating row backgrounds.'],
-      ['cellStyles', 'object[]', 'Sparse cell styles addressed by row and col.'],
+      ['cellStyles', 'object[]', 'Sparse overrides with zero-based row and col; indexes address data rows even when migration inserts matrix headers.'],
+      ['cellStyles[].backgroundColor / color', 'hex color', 'Cell background and text color; unset values inherit table defaults.'],
+      ['cellStyles[].fontFamily / fontSize / bold / italic', 'string / number / boolean', 'Cell typography. Explicit false can remove a header or footer bold style.'],
+      ['cellStyles[].padding / textAlign', 'number / left | center | right', 'Cell padding in points and horizontal alignment. Rows grow when larger fonts or padding require more height.'],
+      ['cellStyles[].borderColor / borderWidth', 'hex color / number', 'Uniform cell border; zero width hides it.'],
+      ['cellStyles[].borderTop / borderRight / borderBottom / borderLeft', '{ color?, width? }', 'Per-side overrides. Explicit cell borders replace defaults; shared edges prefer explicit rules, then the greater width, then the right/bottom cell on a tie.'],
       ['repeat', 'object', 'Dataset repeat configuration for data-driven rows.'],
     ],
     example: `{
@@ -1200,11 +1206,16 @@ const elementReferenceDocs = [
     ["Item", "Qty", "Total"],
     ["{{Name}}", "{{Qty}}", "{{Total}}"]
   ],
-  "columnAlignments": ["left", "right", "right"]
+  "columnAlignments": ["left", "right", "right"],
+  "cellStyles": [
+    { "row": 0, "col": 0, "bold": false, "italic": true },
+    { "row": 1, "col": 2, "backgroundColor": "#dcfce7", "bold": true,
+      "padding": 8, "borderBottom": { "color": "#16a34a", "width": 2 } }
+  ]
 }`,
     visual: {
       title: 'Designer usage',
-      toolbar: 'Shapes & Layout -> Table',
+      toolbar: 'Tables and Charts -> Table',
       properties: ['Rows/cells', 'Header row', 'Column widths', 'Cell styles', 'Repeat'],
       preview: 'Item | Qty | Total',
     },
@@ -2342,7 +2353,7 @@ page.Image("https://example.com/logo.png")
     subcategory: 'PDF Page Content',
     title: 'Table',
     status: 'Ready',
-    description: 'Create invoice lines, report detail rows, totals, and data-driven tabular output.',
+    description: 'Create invoice lines, report detail rows, totals, and data-driven tabular output. For native C# automatic page breaks, see the <a href="../../docs/guides/PVAD.Styled-Table-Pagination.md">styled-table pagination guide</a>. Designer tables remain explicitly positioned.',
     preview: { kind: 'table', value: 'Item | Qty | Total' },
     csharp: `var table = page.Table()
     .At(40, 180)
