@@ -206,6 +206,10 @@ runs without a filter, reconciles TRX names and counters (including the exact
 late theory expansion), checks the assembly hash, and removes its owned temporary
 storage. It allowlists inherited environment variables so customer credentials,
 bootstrap settings and installed storage paths cannot become test configuration.
+The default database connection is deliberately replaced with unreachable
+loopback port 1. Every database-backed test must explicitly supply its own
+Testcontainer connection, preventing fallback to the repository's normal local
+database configuration.
 Each invocation creates a fresh private directory under
 `artifacts/api-full-validation/`; logs, discovery, TRX and `verified-results.json`
 are retained there. A failure or hang produces a failing exit status, not an

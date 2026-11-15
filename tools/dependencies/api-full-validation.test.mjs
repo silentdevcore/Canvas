@@ -18,8 +18,11 @@ test('API runner strips credentials and binds all mutable paths to owned tempora
   assert.equal(env.PVAD_RUN_POSTGRES_TESTS, '1');
   assert.equal(env.PATH, '/bin');
   assert.equal(env.HOME, '/synthetic');
-  for (const key of ['PVAD_BOOTSTRAP_ADMIN_PASSWORD', 'ConnectionStrings__PvadDatabase', 'HTTP_PROXY']) assert.equal(env[key], undefined);
-  for (const [key, value] of Object.entries(env)) if (key.includes('__')) assert.ok(value.startsWith('/tmp/synthetic-api/'));
+  for (const key of ['PVAD_BOOTSTRAP_ADMIN_PASSWORD', 'HTTP_PROXY']) assert.equal(env[key], undefined);
+  assert.match(env.ConnectionStrings__PvadDatabase, /^Host=127\.0\.0\.1;Port=1;Database=isolated_api_validation;/);
+  assert.doesNotMatch(env.ConnectionStrings__PvadDatabase, /customer-database/);
+  for (const [key, value] of Object.entries(env))
+    if (key.includes('__') && !key.startsWith('ConnectionStrings__')) assert.ok(value.startsWith('/tmp/synthetic-api/'));
 });
 
 test('API result audit accepts only the documented four-case late theory expansion', () => {

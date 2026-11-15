@@ -19,6 +19,7 @@ export function apiValidationEnvironment(environment, temporary) {
   return {
     ...Object.fromEntries(allow.filter(key => environment[key] !== undefined).map(key => [key, environment[key]])),
     PVAD_RUN_POSTGRES_TESTS: '1', DOTNET_CLI_TELEMETRY_OPTOUT: '1',
+    ConnectionStrings__PvadDatabase: 'Host=127.0.0.1;Port=1;Database=isolated_api_validation;Username=unused;Password=unused;Timeout=1;Command Timeout=1',
     DataProtection__KeysDirectory: resolve(temporary, 'keys'), Storage__RootPath: resolve(temporary, 'objects'),
     PdfViewer__AnnotationStoragePath: resolve(temporary, 'viewer'),
     PdfTrust__RevocationEvidence__CacheDirectory: resolve(temporary, 'cache'),
