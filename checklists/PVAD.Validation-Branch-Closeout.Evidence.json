@@ -235,6 +235,193 @@
     "markdownGuard": "passed",
     "version": "1.1.0"
   },
+  "preStartupFinalApi": {
+    "status": "passed",
+    "sourceCommit": "98005ac09dd900f00a6b004d002df58e164b5e85",
+    "workingTreeDiffSha256": "21abca61b6e0305c91beaeb02cce2cb65f7674971c31ae32bb28c22a086d32b4",
+    "concreteTestCases": 1429,
+    "discoveryEntries": 1426,
+    "assemblySha256": "6436c4fcd19b0c5ea16258bfbe862346a6d5d3fc486f4cf65aaea0ea013360e8",
+    "temporaryStorageRemoved": true,
+    "defaultDatabaseBlocked": true,
+    "summary": {
+      "file": "artifacts/api-full-validation/2026-11-15T00-00-06.915Z-2a9b6557-a96c-433c-821e-22d2b18a9534/summary.json",
+      "sha256": "724018aaa0c9b966b535f094c9524ca82f694316b19ffba5ca97d33bbd3fdf64"
+    },
+    "audit": {
+      "file": "artifacts/api-full-validation/2026-11-15T00-00-06.915Z-2a9b6557-a96c-433c-821e-22d2b18a9534/verified-results.json",
+      "sha256": "479ebad659cd7f9ca2a23939d322b3c08e3d2f71cdee44cc74142e70b5136076"
+    },
+    "trx": {
+      "file": "artifacts/api-full-validation/2026-11-15T00-00-06.915Z-2a9b6557-a96c-433c-821e-22d2b18a9534/api-full.trx",
+      "sha256": "268b3e75359c21f9352ae5433e8c7beb92c9330ab94101006b4edc0376371f4d"
+    },
+    "boundary": "Includes the compliance correction and database fallback guard, but predates the production initialization-order correction."
+  },
+  "finalNativeBeforeStartupCorrection": {
+    "status": "passed",
+    "workflowRun": "https://github.com/silentdevcore/Canvas/actions/runs/43656096133",
+    "sourceCommit": "7b6c8ded01b24512f319be2243b26a3459a90536",
+    "verification": {
+      "file": "artifacts/validation-closeout-2026-11-15/final-native/verification.json",
+      "sha256": "ff8f4f82f1e610291ce785ca39abfb1043fc6a70b0c3d7ab261e60513cecaedb"
+    },
+    "platforms": [
+      { "platform": "linux", "architecture": "x64", "cases": 118, "match": 101, "P0": 0, "P1": 0, "P2": 17, "reviewedCrops": 68 },
+      { "platform": "win32", "architecture": "x64", "cases": 118, "match": 96, "P0": 0, "P1": 0, "P2": 22, "reviewedCrops": 88 }
+    ],
+    "backendCSharpPixelIdentical": true,
+    "thresholdsChanged": false,
+    "approvalBasis": "Exact decoded crop pixels, font hashes, fixtures and browser match the existing explicit owner approvals; no new blanket approval."
+  },
+  "startupCorrection": {
+    "status": "passed",
+    "originalCommit": "dd5619ee",
+    "integrationCommit": "d5ce016ac810d3f21337c29e19bc004acc6ac422",
+    "identicalCommittedTree": "8e6f5e570a2fcb8d8db2508a66d61011136ae062",
+    "focusedApi": {
+      "passed": 16,
+      "file": "artifacts/validation-closeout-2026-11-15/startup-order-local-confirmed/startup-order.trx",
+      "sha256": "4513a4c274c73d753e2c9e2653f9e91f41f6cc12812ec7f3ef4f8a813e3b3cfc"
+    },
+    "nodeContracts": { "passed": 223, "command": "node --test tools/configuration/*.test.mjs tools/dependencies/api-full-validation.test.mjs tools/versioning/*.test.mjs" },
+    "fullApi": {
+      "status": "passed",
+      "sourceCommitAtInvocation": "252fdd625bacd8272a4c949913a08ef86896e520",
+      "workingTreeDiffSha256": "d42fe641faf27d816a545cdd0179db1da46b600e2b1d2c9476c046ab91feba85",
+      "boundary": "The rebuild includes the startup correction, later committed as dd5619ee; it is not a rerun of the earlier 1429-case binary.",
+      "assemblySha256": "f0b76132369b555c3c5299a31bbe25b1654ec5138b36efd212232d3ad1f53ea4",
+      "runnerSha256": "e508d7e8820ce2516a3ec514175ae90d1c4c60183438e2d049c2232178f40347",
+      "settingsSha256": "e29ac422f065d6dbdb3f4823366d9e9303cf52fdf26569aec1d9af51f3283737",
+      "startedAt": "2026-11-15T10:19:11.828Z",
+      "completedAt": "2026-11-15T10:36:58.487Z",
+      "discoveryEntries": 1432,
+      "concreteTestCases": 1435,
+      "normalStartupRouteCasesPassed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "aborted": 0,
+      "temporaryStorageRemoved": true,
+      "postgresEnabled": true,
+      "defaultDatabaseBlocked": true,
+      "summary": {
+        "file": "artifacts/api-full-validation/2026-11-15T10-19-11.734Z-fd4e8903-dad5-416f-a3cc-1cbaed208c88/summary.json",
+        "sha256": "1d7a32a46f3c0637fb4f637977b40ab528c3aaff8bfc265ad5c339f4bb32f167"
+      },
+      "audit": {
+        "file": "artifacts/api-full-validation/2026-11-15T10-19-11.734Z-fd4e8903-dad5-416f-a3cc-1cbaed208c88/verified-results.json",
+        "sha256": "5e55c081074e381f931313f256f1c4f82b412e491516f823e063b3011f27aa75"
+      },
+      "trx": {
+        "file": "artifacts/api-full-validation/2026-11-15T10-19-11.734Z-fd4e8903-dad5-416f-a3cc-1cbaed208c88/api-full.trx",
+        "sha256": "73244e7aa4fee89f8cb077c0f2bc48b492a8dcef192189ffaedeb6f7f7dd3786"
+      }
+    },
+    "container": {
+      "status": "passed",
+      "platform": "linux/arm64",
+      "image": "sha256:fcc0bd274ce6849fa0c6dd65962b7f1524576b783c02fdc07b6ed548859cfc63",
+      "workingTreeBuild": true,
+      "exitCode": 78,
+      "elapsedMs": 592,
+      "resourcesRemoved": true,
+      "report": {
+        "file": "artifacts/validation-closeout-2026-11-15/startup-order-local-confirmed/container-report.json",
+        "sha256": "5b66bb7ac5cd5a7d5b3990341e006529069a19607afdce549e694aacaab13776"
+      },
+      "boundary": "Local retention refusal only, not a published artifact or Linux/x64 CI certification."
+    },
+    "browser": {
+      "status": "passed",
+      "sourceCommit": "d5ce016ac810d3f21337c29e19bc004acc6ac422",
+      "uncommittedTrackedChanges": false,
+      "scenariosPassed": 8,
+      "screenshots": 6,
+      "screenshotsUnchangedFromInitialRehearsal": true,
+      "apiMocking": false,
+      "apiBinarySha256": "bcf940a328ee60a4c96a6b0bcd58a4a80c9ec4dcfaea48992839dbb7b8b47c20",
+      "temporaryResourcesRemoved": true,
+      "report": {
+        "file": "artifacts/validation-closeout-2026-11-15/post-startup-operator-browser/report.json",
+        "sha256": "eaebd267751a5d73341ba704ffa3d34de136135efe9d3fa2846453e0eae132f5"
+      },
+      "boundary": "Same local HTTP, non-SSO and provisioning-only boundaries as the initial rehearsal; not Account-to-Designer PKCE or production deployment certification."
+    },
+    "sandboxRouteAttempt": { "status": "aborted", "executed": 0, "reason": "VSTest communication socket permission denied; not a passing route test." },
+    "native": {
+      "status": "passed",
+      "workflowRun": "https://github.com/silentdevcore/Canvas/actions/runs/43703853878",
+      "sourceCommit": "d5ce016ac810d3f21337c29e19bc004acc6ac422",
+      "casesPerPlatform": 118,
+      "linuxApprovedCropsVerified": 68,
+      "windowsApprovedCropsVerified": 88,
+      "P0": 0,
+      "P1": 0,
+      "linuxP2": 17,
+      "windowsP2": 22,
+      "backendCSharpPixelIdentical": true,
+      "thresholdsChanged": false,
+      "verification": {
+        "file": "artifacts/validation-closeout-2026-11-15/post-startup-native/verification.json",
+        "sha256": "74fe1d71bd624fa2c2b1368ae1a3f87e09f2f06195c6d40f840e19666033283a"
+      },
+      "boundary": "Native tool versions, runner images, browser, fonts, fixtures and reviewed crop pixels match owner-approved evidence. The older Linux evidence predates date-contract metadata; that contract is checked against the unchanged prior post-compliance run."
+    },
+    "ciBeforeCorrection": {
+      "url": "https://github.com/silentdevcore/Canvas/actions/runs/43656096061",
+      "dotnet": "passed",
+      "frontend": "passed",
+      "versionPolicy": "passed",
+      "artifactContract": "passed",
+      "mcp": "passed",
+      "dependencySecurity": "passed",
+      "visualParity": "passed",
+      "supplyChain": "failed",
+      "sbom": "skipped",
+      "reason": "Production-startup smoke failed with generic diagnostics; its exact container exit reason was not available."
+    },
+    "newMainRun": "https://github.com/silentdevcore/Canvas/actions/runs/43703853871",
+    "mainCi": {
+      "status": "passed",
+      "testedHeadCommit": "d5ce016ac810d3f21337c29e19bc004acc6ac422",
+      "mergeBuildCommit": "7e996876f1fb15c7a5f125368c7e82cd55d7e2b4",
+      "dotnet": "passed",
+      "frontend": "passed",
+      "dependencySecurity": "passed",
+      "versionPolicy": "passed",
+      "artifactContract": "passed",
+      "registryLogin": "passed",
+      "mcp": "passed",
+      "visualParity": "passed",
+      "supplyChain": "passed",
+      "sbom": "passed",
+      "snapshot": "skipped-as-expected-for-pull-request",
+      "startupRejection": {
+        "status": "passed",
+        "platform": "linux/x64",
+        "image": "sha256:9ea73a1ca764744c6f73f1b852dcdf2ffdd37d198067e8591adc6915b70cba49",
+        "exitCode": 78,
+        "elapsedMs": 714,
+        "resourcesRemoved": true,
+        "report": {
+          "file": "artifacts/validation-closeout-2026-11-15/post-startup-ci-container/pvad-startup-rejection-43703853871-7e996876f1fb15c7a5f125368c7e82cd55d7e2b4/report.json",
+          "sha256": "400ec0df1bd6c1bd59c3f5b90a5c26b362c1677b6f219052d15a098f5a1ecedc"
+        }
+      },
+      "boundary": "Successful functional source d5ce016a. A later evidence-only commit does not retroactively change this tested source; its fresh PR checks are separate. No merge, release or production approval."
+    },
+    "newNativeRun": "https://github.com/silentdevcore/Canvas/actions/runs/43703853878",
+    "ciCollectorSmoke": {
+      "uniqueTestHosts": 52,
+      "allSelectedCasesPassed": true,
+      "allHostsHaveCoveredSourceLines": true,
+      "summary": {
+        "file": "artifacts/validation-closeout-2026-11-15/post-startup-ci-coverage/summary.json",
+        "sha256": "620b35b65b4d0068c2579497af097883840d3ddaa4d20f9cd202bf3361d0a278"
+      },
+      "boundary": "Collector activation smoke cases only; not the complete suite or an aggregate coverage percentage."
+    }
+  },
   "integration": {
     "pullRequest": "https://github.com/silentdevcore/Canvas/pull/216",
     "draft": true,

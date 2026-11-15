@@ -98,7 +98,7 @@ Supply-chain is consequently skipped, not passed. Preserve that failed run.
   and a successful production build. Validator wrapper failure-path tests pass.
 - [x] Commit the correction separately as `f97ec6ff`; transfer it to the same
   draft integration PR without changing the original branch history.
-- [ ] Reinspect the new CI run; record its actual status without rewriting the
+- [x] Reinspect the new CI run; record its actual status without rewriting the
   first failed run or claiming skipped jobs succeeded.
 
 The [machine-readable evidence](PVAD.Validation-Branch-Closeout.Evidence.json)
@@ -119,3 +119,72 @@ Full private logs, screenshots and validator XML stay in ignored artifacts.
   or replace the independent review required before integration.
 - Product VERSION and published release entries remain unchanged. Internal test
   work uses `none` release fragments, not a product-version increase.
+
+## Production Startup Follow-Up
+
+The follow-up main CI run 43656096061 passed the complete .NET job, frontend,
+MCP, dependency security, version policy, artifact contract and visual parity.
+Native run 43656096133 also passed both hosts. All 68 Linux and 88 Windows
+reviewed crops, thirteen font hashes, fixtures and the pinned browser match the
+explicit owner approvals. The strict final local API run again passed
+1,429/1,429 with PostgreSQL enabled and its default database connection blocked.
+
+Supply-chain did **not** pass: its production-startup rejection smoke failed,
+so the SBOM steps were skipped. The generic log does not establish the exact
+container exit reason. The source inspection nevertheless found a concrete
+ordering defect: protected-data activation queried the database before the
+retention hosted-service gate could refuse startup.
+
+- [x] Move initialization into the controlled host lifetime and run the retention
+  refusal check before data activation, OAuth and development identity bootstrap.
+- [x] Dispose the host when initialization fails before Host.RunAsync takes
+  ownership; retain unrelated exceptions instead of converting them to exit 78.
+- [x] Preserve the offline maintenance command path and the activation check
+  before any hosted background consumers start.
+- [x] Add focused initialization-order/disposal tests without introducing a
+  second non-serializable MemberData expansion into the full-suite audit.
+- [x] Add safe failure-phase metadata and an always-on CI report upload without
+  publishing startup logs, process arguments or generated private keys.
+- [x] Pass the focused .NET startup tests against the new code: 16/16 cases
+  confirmed in `startup-order-local-confirmed/startup-order.trx`. The broader
+  configuration/API-auditor/versioning command passes 223 Node tests; these
+  groups overlap earlier results and are not an aggregate total.
+- [x] Reproduce the startup rejection with the actual rebuilt Linux/ARM64
+  container: independent exit 78 after 592 ms, diagnostic present, no listener,
+  no unhandled exception and all owned resources removed. This is a local
+  working-tree image, not a published artifact or Linux/x64 CI certification.
+- [x] Repeat the real API/PostgreSQL/Nginx/Grafana browser rehearsal against
+  committed startup source `d5ce016a`: eight scenarios passed, six unchanged
+  desktop/mobile screenshots, no authorization mocking, owned resources removed.
+- [x] Repeat the unfiltered API suite against the startup correction:
+  1,435/1,435 concrete cases passed, zero failed/skipped/aborted, 1,432 discovery
+  entries with the sole original four-case expansion. The freshly rebuilt
+  assembly hash is `f0b76132369b555c3c5299a31bbe25b1654ec5138b36efd212232d3ad1f53ea4`.
+  Default database fallback is blocked and the owned temporary storage removed.
+  All nine normal startup/canonical routing cases also pass in this complete
+  run; the earlier sandbox-aborted attempt is not counted as their evidence.
+- [x] Reinspect native CI 43703853878: Linux/x64 and Windows/x64 each pass 118
+  visual cases with no P0/P1. Verify the exact approved 68 Linux / 88 Windows
+  crop pixels, native tools, runner images, browser, fonts and fixtures. Backend
+  and C# are pixel-identical; the measured 17 / 22 P2 findings remain unchanged.
+- [x] Reinspect complete main CI 43703853871 on functional source `d5ce016a`:
+  all nine non-snapshot jobs passed, including .NET, frontend, version policy,
+  artifact contract, registry login, MCP, dependency security, visual parity and
+  supply-chain. Snapshot is correctly skipped for a PR. Container startup exits
+  independently with code 78 after 714 ms on Linux/x64; owned resources are
+  removed. API/Designer and container SBOM generation/upload also passed.
+- [x] Commit the locally validated startup correction as `dd5619ee`, replay it
+  as `d5ce016a` and push to the existing draft PR. Both committed source trees
+  are `8e6f5e570a2fcb8d8db2508a66d61011136ae062`. Keep the PR draft while its
+  full API/browser/CI revalidation is in progress; no merge is authorized.
+
+An earlier sandboxed route-test attempt could not open VSTest's communication
+socket and executed zero cases; its failed report is retained, not counted as a
+pass. Execution approval is available again. The local container check passed;
+the real browser rehearsal and the unfiltered API run also passed. Native CI
+43703853878 passed Linux/x64 and Windows/x64; main CI 43703853871 passed including
+supply-chain. Earlier full-suite results predate this startup correction and
+remain preserved separately. The final documentation-only evidence commit is
+not retroactively represented as the source of these functional runs: a push of
+that commit starts separate PR checks. Independent review and an explicit merge
+decision remain required; this checklist is not a release or deployment approval.
