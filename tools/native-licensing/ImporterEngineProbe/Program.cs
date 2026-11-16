@@ -106,7 +106,8 @@ await calls["save:full-rewrite"]();
 checks.Add("renewal-restores-existing-importer-and-writer");
 var pdfContinuationChecks = await PdfContinuationChecks.Run(args, checks, pdf);
 var designerPdfContinuationChecks = await DesignerPdfContinuationChecks.Run(args, checks, pdf, fixtures["image"]);
-Console.WriteLine(JsonSerializer.Serialize(new { checks, coveredEntries = calls.Count, directEngineEntries = directEntries, editingEntries, trustSecurityEntries, regenerationEntries, pdfContinuationChecks, designerPdfContinuationChecks, scope = "file-import-pdf-load-save-direct-engines-editing-trust-and-regeneration", completeImporterEnforcement = false,
+var editingContinuationChecks = await EditingContinuationChecks.Run(args, checks);
+Console.WriteLine(JsonSerializer.Serialize(new { checks, coveredEntries = calls.Count, directEngineEntries = directEntries, editingEntries, trustSecurityEntries, regenerationEntries, pdfContinuationChecks, designerPdfContinuationChecks, editingContinuationChecks, scope = "file-import-pdf-load-save-direct-engines-editing-trust-and-regeneration", completeImporterEnforcement = false,
     processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;
 

@@ -383,8 +383,8 @@ next public call before reading. These add ten checks to the earlier 1,228-check
 checkpoint; its original evidence remains separate.
 
 Editing, Trust, advanced regeneration, XObject/color/debug-overlay composites
-outside this mapping path, other products and protected packages/platforms remain
-open. See the [Designer mapping evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#designer-pdf-import-and-analysis-continuation-milestone).
+outside that mapping path were separate work at that checkpoint. Editing is
+covered by the subsequent milestone below. See the [Designer mapping evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#designer-pdf-import-and-analysis-continuation-milestone).
 
 Final validation passed all 1,681 selected .NET tests and 49 tooling contracts.
 Six suites completed before an interrupted OCR dependency build; OCR/API then
@@ -393,6 +393,43 @@ combined audit counts only actual passed TRX rows and verifies cleanup in both
 sessions. The checklist preserves the interrupted build, corrected test-fixture
 failures, source-body comparison and exact final evidence separately. No full
 API/PostgreSQL or new cross-platform/package/visual acceptance is implied.
+
+### Editing And Composition Probe
+
+The final Importer probe adds 196 `editing-continuation:` checks (1,434 total).
+It changes the license from inside a custom source-memory reader or edit/page/
+range/document enumeration, then requires admitted parsing, page-tree changes,
+decryption, composition, blank-page extraction and post-save validation to finish.
+All 40 existing public editing entry signatures remain independently checked
+against missing, wrong and renewed grants by the earlier `EditingChecks` matrix.
+
+Fourteen memory-reader cases compare page geometry, order, text, transforms,
+result counts and available operation metadata, including encrypted editing with
+owner authentication and replacement encryption. Four enumeration cases cover
+editing, extraction, splitting and merging. Content rewriting compares exact
+stream bytes. Semantic PDF comparisons exclude variable serialization metadata
+and encryption randomness; this is not a new visual-baseline approval.
+
+Six facade cases test successful replacement, malformed input and IO failure,
+each with owned and caller-owned streams. They verify retained/replaced bytes,
+selected-page/unit state, original errors, denied-save side effects and renewed
+blank-page insertion. Invalid ranges/duplicates, encrypted cross-document input
+and existing signature-invalidation checks remain enforced. Synthetic signing
+fixtures make no network calls, and temporary output is removed.
+
+The editing purpose may request only private empty-page bytes, never public PDF
+generation, regeneration or OCR rendering. Core tests additionally expire a
+Trial inside an admitted editing scope and reject both new work and foreign
+authority reuse. Trust/signing/redaction/e-invoice, advanced regeneration and
+other composite products remain open. See the
+[Editing evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-editing-and-page-composition-continuation-milestone).
+
+The final checkpoint passed 1,434 distinct Importer probe checks, all 1,682
+selected .NET tests and 50 tooling contracts. `editing-body-audit.json` confirms
+unchanged processing/validation bodies after explicit admission normalization;
+`editing-validation-audit.json` records raw results, input preservation, source
+hashes and cleanup. This is local macOS/x64 .NET evidence, not full API/PostgreSQL,
+cross-platform, protected-package or new visual-baseline acceptance.
 
 ## Shared Workflow Sessions
 

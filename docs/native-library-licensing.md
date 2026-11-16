@@ -14,8 +14,9 @@ and high-level PDF load/save entry points now enforce `importer`. Image analysis
 OCR engines, and isolated OCR workers also enforce Importer rights. Generic
 cross-product dependency and continuation coverage remains partial. Image
 analysis, in-process OCR, typed PDF loading, full/incremental PDF saves and
-PDF-to-Designer DTO/analysis mapping now retain their admitted context through
-supported built-in completion. Editing, Trust, advanced regeneration and other composite
+PDF-to-Designer DTO/analysis mapping, bounded page editing/composition, content
+rewriting and the editable-document facade now retain their admitted context
+through supported built-in completion. Trust, advanced regeneration and other composite
 native pipelines still need migration. Importer enforcement
 is therefore still marked partial. Converter and Migration
 product integrations also remain open.
@@ -516,7 +517,8 @@ license expiry or renewal. This does not authorize another public operation.
 The currently integrated paths are image analysis, in-process OCR conversion,
 built-in embedded/isolated-engine continuations within that conversion, the
 API's built-in OCR PDF completion, typed PDF loading, full/incremental PDF
-saving with their built-in validation, and PDF-to-Designer scene/DTO mapping.
+saving with their built-in validation, PDF-to-Designer scene/DTO mapping, page
+editing/composition, content rewriting and the editable-document facade.
 Public APIs, options, and diagnostic codes
 are unchanged; callers do not receive a scope or a reusable execution token.
 
@@ -543,6 +545,7 @@ dependencies, not general public PDF access:
 | --- | --- | --- |
 | Imported-PDF regeneration | Private PDF document and writer | Importer |
 | Importer blank-page creation | Fresh empty PDF page only | Importer |
+| Bounded PDF editing/composition | Fresh empty helper page only | Importer |
 | Built-in OCR result completion | Private mapper and PDF bytes | Importer |
 
 These permissions are purpose-bound: an image-analysis context cannot invoke
@@ -560,7 +563,7 @@ worker operation is denied and staged input is cleaned up. A worker that has
 already admitted its OCR processing can finish it. No unsigned admission flag,
 backdated start time, or caller-provided trust key extends a license.
 
-PDF editing/Trust and advanced regeneration chains, plus other product composite
+PDF Trust and advanced regeneration chains, plus other product composite
 call graphs, have not yet been converted end to end.
 Their existing nested public calls can still recheck the current license.
 The operation matrix retains partial status and lists these remaining areas;
@@ -615,10 +618,43 @@ text/image/font mapping and chart confidence/metadata rules are unchanged.
 
 This is native Importer processing, not a replacement for Designer sessions,
 tenant access, server entitlements or feature gates. Diagnostic/debug-overlay,
-Editing, Trust and advanced regeneration composites outside this mapping path
-remain separate work. See the
+Editing, Trust and advanced regeneration composites were outside that mapping
+milestone; Editing is covered by the subsequent milestone below. See the
 [Designer import milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#designer-pdf-import-and-analysis-continuation-milestone)
 for the fixture matrix, output comparison and exact validation evidence.
+
+### Editing And Page Composition Continuations
+
+Public `PdfPageEditor`, `PdfPageComposer` and `PdfContentStreamRewriter` entries
+admit the current Importer license. Built-in parsing, page-tree work, decryption,
+rewrite/append validation and saving continue under that original admission.
+This covers move/delete/crop, clone/merge/append, split/extract and page counting
+within their existing bounded capabilities; it does not add support for formats
+or merge options previously reported as unsupported.
+
+`PdfEditableDocument` starts fresh admission for each public operation. Its
+internal load/count/edit/compose/save calls do not open a second public admission.
+The insert-page aliases still admit before processing. `GetStatus`, `LastError`,
+`IsLoaded` and disposal remain free; denied new work cannot overwrite an earlier
+error, change the selected page/units, close input or create an output file.
+The five atomic `PdfEditingSession` mutations retain their existing independent
+public checks; they have no nested protected processing to migrate.
+
+Split/extract and blank-page insertion use one private, byte-only empty-page
+factory. The editing purpose may request that dependency, but not general PDF
+generation, regeneration or OCR-PDF rendering. No caller PDF document or public
+license exemption escapes the helper. Captured contexts remain closed and
+verifier-bound as documented above.
+
+Existing malformed-input, range, encryption and signature-invalidation checks
+remain unchanged. Owner-password/re-encryption requirements are not bypassed.
+Read failures retain the original error and loaded bytes; accepted stream
+ownership is honored. Source data, page geometry, content and validation bodies
+are unchanged. See the
+[Editing continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-editing-and-page-composition-continuation-milestone)
+for exact tests, algorithm comparison and remaining scope. Trust/signing,
+redaction, e-invoice, advanced regeneration and other composite product chains
+remain open, and Importer is still partially enforced.
 
 ## API And Worker Activation
 

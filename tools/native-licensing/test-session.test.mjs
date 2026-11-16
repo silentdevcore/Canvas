@@ -195,12 +195,12 @@ test('Importer entry coverage stays partial and the native workflow exercises it
 
 test('operation continuation policy stays internal and never replaces public or worker admission', () => {
   const matrix = JSON.parse(readFileSync(resolve(root, 'product-metadata/native-library-products.v1.json')));
-  assert.equal(matrix.continuationCoverage.status, 'partial-image-ocr-and-pdf-import-save-analysis');
+  assert.equal(matrix.continuationCoverage.status, 'partial-image-ocr-and-pdf-import-save-editing');
   assert.equal(matrix.continuationCoverage.publicAdmission, 'fresh-current-license');
   assert.equal(matrix.continuationCoverage.authorityBinding, 'originating-process-verifier');
   assert.equal(matrix.continuationCoverage.workerAdmission, 'fresh-at-dispatch-and-worker-start');
   assert.ok(matrix.continuationCoverage.covered.includes('designer-pdf-file-import-dto-analysis-mapping'));
-  assert.ok(matrix.continuationCoverage.remaining.includes('composite-pdf-editing-trust-advanced-regeneration'));
+  assert.ok(matrix.continuationCoverage.remaining.includes('composite-pdf-trust-advanced-regeneration'));
   const scope = readFileSync(resolve(root, matrix.continuationCoverage.policySource), 'utf8');
   assert.match(scope, /internal sealed class PvadLicenseExecution/);
   assert.match(scope, /private static readonly AsyncLocal<PvadLicenseExecution\?> Slot/);
@@ -273,4 +273,35 @@ test('Designer PDF mapping and all 19 analysis entries keep admission internal a
   const probe = source('tools/native-licensing/ImporterEngineProbe/DesignerPdfContinuationChecks.cs');
   for (const fixture of ['labeled-chart', 'review-chart', 'invalid-metadata', 'mixed']) assert.ok(probe.includes(fixture));
   assert.ok(probe.includes('Fingerprint(result) == expected'));
+});
+
+test('editing continuations preserve fresh public entries and permit only private empty-page output', () => {
+  const source = path => readFileSync(resolve(root, path), 'utf8');
+  let wrappers = 0;
+  for (const file of ['Editing/PdfPageEditor.cs', 'Editing/PdfPageComposer.cs', 'Content/PdfContentStreamRewriter.cs']) {
+    const body = source(`src/Importing/PVAD.Importer/${file}`);
+    const count = [...body.matchAll(/BeginOperation\(PvadNativeOperation.PdfEditing\)/g)].length;
+    wrappers += count;
+    assert.equal([...body.matchAll(/DemandContinuation\(PvadLicenseProducts.Importer\)/g)].length, count);
+    assert.ok(!/public[^\n]*\w+Admitted\s*\(/.test(body));
+    assert.ok(!body.includes('PvadLicense.Require('));
+  }
+  assert.equal(wrappers, 10);
+  const facade = source('src/Importing/PVAD.Importer/Editing/PdfEditableDocument.cs');
+  assert.match(facade, /private PdfPageOperationStatus ExecuteAdmitted\(Action action\)/);
+  assert.match(facade, /private PdfPageOperationStatus InsertBlankPageAdmitted/);
+  for (const method of ['Apply', 'ReadPageBox', 'Merge', 'GetPageCount', 'ExtractPages', 'AppendPages', 'Rewrite'])
+    assert.ok(facade.includes(`.${method}Admitted(`), method);
+  assert.ok(!/public[^\n]*\w+Admitted\s*\(/.test(facade));
+  assert.ok(!facade.includes('PvadLicense.Require('));
+  const writer = source('src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs');
+  assert.match(writer, /internal static byte\[\] CreateBlankPageForImporterAdmitted\(double width, double height\)/);
+  assert.ok(writer.includes('PvadLicense.DemandDependency(PvadNativeDependency.BlankPagePdf)'));
+  assert.ok(!writer.includes('public static byte[] CreateBlankPageForImporter'));
+  const policy = source('src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs');
+  assert.match(policy, /\(PvadNativeOperation.PdfEditing, PvadNativeDependency.BlankPagePdf\) => true/);
+  assert.ok(!/\(PvadNativeOperation.PdfEditing, PvadNativeDependency.(?:RegenerationPdf|OcrResultPdf)/.test(policy));
+  const matrix = JSON.parse(source('product-metadata/native-library-products.v1.json'));
+  assert.ok(matrix.continuationCoverage.covered.includes('pdf-editing-page-composition-content-rewrite-and-facade'));
+  assert.equal(matrix.products.find(p => p.id === 'importer').enforced, false);
 });

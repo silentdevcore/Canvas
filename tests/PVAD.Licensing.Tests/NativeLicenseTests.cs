@@ -107,6 +107,26 @@ public sealed class NativeLicenseTests : IDisposable
     }
 
     [Fact]
+    public void AdmittedEditingRetainsOnlyBlankPageDependencyAfterTrialExpiry()
+    {
+        var authority = Authority();
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("importer", [])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        using (authority.Begin(PvadNativeOperation.PdfEditing))
+        {
+            clock.Now = payload.ValidUntil!.Value;
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.DemandDependency(PvadNativeDependency.BlankPagePdf).LicenseId);
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.RegenerationPdf));
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.OcrResultPdf));
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.PdfEditing)).Code);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("importer", null)).Code);
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandDependency(PvadNativeDependency.BlankPagePdf));
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.BlankPagePdf));
+    }
+
+    [Fact]
     public void DependencyPolicyIsPurposeBoundAndDoesNotGrantPublicProductAccess()
     {
         var authority = Authority();
@@ -116,6 +136,7 @@ public sealed class NativeLicenseTests : IDisposable
         {
             [PvadNativeOperation.ImporterRegeneration] = PvadNativeDependency.RegenerationPdf,
             [PvadNativeOperation.ImporterBlankPage] = PvadNativeDependency.BlankPagePdf,
+            [PvadNativeOperation.PdfEditing] = PvadNativeDependency.BlankPagePdf,
             [PvadNativeOperation.ImageOcr] = PvadNativeDependency.OcrResultPdf,
         };
         foreach (var kind in Enum.GetValues<PvadNativeOperation>().Where(k => k != PvadNativeOperation.PdfSerialization))

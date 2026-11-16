@@ -11,6 +11,7 @@ internal enum PvadNativeOperation
     PdfSave,
     PdfAnalysis,
     DesignerPdfImport,
+    PdfEditing,
 }
 
 internal enum PvadNativeDependency
@@ -48,7 +49,8 @@ internal sealed class PvadLicenseExecution : IDisposable
         PvadNativeOperation.ImporterRegeneration or PvadNativeOperation.ImporterBlankPage or
         PvadNativeOperation.ImageAnalysis or PvadNativeOperation.ImageOcr or
         PvadNativeOperation.PdfImport or PvadNativeOperation.PdfSave or
-        PvadNativeOperation.PdfAnalysis or PvadNativeOperation.DesignerPdfImport => PvadLicenseProducts.Importer,
+        PvadNativeOperation.PdfAnalysis or PvadNativeOperation.DesignerPdfImport or
+        PvadNativeOperation.PdfEditing => PvadLicenseProducts.Importer,
         _ => throw new ArgumentOutOfRangeException(nameof(operation)),
     };
 
@@ -74,6 +76,7 @@ internal sealed class PvadLicenseExecution : IDisposable
         {
             (PvadNativeOperation.ImporterRegeneration, PvadNativeDependency.RegenerationPdf) => true,
             (PvadNativeOperation.ImporterBlankPage, PvadNativeDependency.BlankPagePdf) => true,
+            (PvadNativeOperation.PdfEditing, PvadNativeDependency.BlankPagePdf) => true,
             (PvadNativeOperation.ImageOcr, PvadNativeDependency.OcrResultPdf) => true,
             _ => false,
         };

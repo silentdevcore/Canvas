@@ -11,13 +11,25 @@ public sealed class PdfContentStreamRewriter
 {
     public ReadOnlyMemory<byte> Rewrite(PdfPageModel page)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
-        return Rewrite(page.GraphicsObjects);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return RewriteAdmitted(page);
+    }
+
+    internal ReadOnlyMemory<byte> RewriteAdmitted(PdfPageModel page)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return RewriteAdmitted(page.GraphicsObjects);
     }
 
     public ReadOnlyMemory<byte> Rewrite(IEnumerable<PdfGraphicsElement> elements)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return RewriteAdmitted(elements);
+    }
+
+    internal ReadOnlyMemory<byte> RewriteAdmitted(IEnumerable<PdfGraphicsElement> elements)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         using var stream = new MemoryStream();
         foreach (var element in elements.Where(element => !element.IsDeleted).OrderBy(element => element.ZOrder))
         {

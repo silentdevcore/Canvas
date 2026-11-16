@@ -66,7 +66,7 @@ public sealed class PdfEditableDocument : IDisposable
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
             var candidate = File.ReadAllBytes(path);
-            _ = _composer.GetPageCount(candidate);
+            _ = _composer.GetPageCountAdmitted(candidate);
             _bytes = candidate;
             _currentPageNumber = 1;
             _measurementScale = 1;
@@ -82,7 +82,7 @@ public sealed class PdfEditableDocument : IDisposable
                 using var buffer = new MemoryStream();
                 stream.CopyTo(buffer);
                 var candidate = buffer.ToArray();
-                _ = _composer.GetPageCount(candidate);
+                _ = _composer.GetPageCountAdmitted(candidate);
                 _bytes = candidate;
                 _currentPageNumber = 1;
                 _measurementScale = 1;
@@ -95,17 +95,17 @@ public sealed class PdfEditableDocument : IDisposable
         });
 
     public PdfPageOperationStatus MovePage(int pageNumber, int targetPageNumber) =>
-        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+        Execute(() => _bytes = _editor.ApplyAdmitted(RequireBytes(),
             [new PdfMovePageOperation(pageNumber, targetPageNumber)]).Bytes);
 
     public PdfPageOperationStatus DeletePage(int pageNumber) =>
-        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+        Execute(() => _bytes = _editor.ApplyAdmitted(RequireBytes(),
             [new PdfDeletePageOperation(pageNumber)]).Bytes);
 
     public PdfPageOperationStatus SelectPage(int pageNumber) =>
         Execute(() =>
         {
-            var count = _composer.GetPageCount(RequireBytes());
+            var count = _composer.GetPageCountAdmitted(RequireBytes());
             if (pageNumber < 1 || pageNumber > count)
                 throw new ArgumentOutOfRangeException(nameof(pageNumber), pageNumber, $"Page number must be between 1 and {count}.");
             _currentPageNumber = pageNumber;
@@ -127,7 +127,7 @@ public sealed class PdfEditableDocument : IDisposable
         double top,
         double right,
         double bottom) =>
-        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+        Execute(() => _bytes = _editor.ApplyAdmitted(RequireBytes(),
             [new PdfSetPageBoxOperation(
                 _currentPageNumber,
                 MapPageBox(pageBox),
@@ -137,7 +137,7 @@ public sealed class PdfEditableDocument : IDisposable
                 bottom * _measurementScale)]).Bytes);
 
     public PdfPageOperationStatus RemovePageBox(PdfEditablePageBox pageBox) =>
-        Execute(() => _bytes = _editor.Apply(RequireBytes(),
+        Execute(() => _bytes = _editor.ApplyAdmitted(RequireBytes(),
             [new PdfRemovePageBoxOperation(_currentPageNumber, MapPageBox(pageBox))]).Bytes);
 
     public PdfPageOperationStatus GetPageBox(
@@ -147,10 +147,10 @@ public sealed class PdfEditableDocument : IDisposable
         ref float right,
         ref float bottom)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
         try
         {
-            var box = _editor.ReadPageBox(RequireBytes(), _currentPageNumber, MapPageBox(pageBox));
+            var box = _editor.ReadPageBoxAdmitted(RequireBytes(), _currentPageNumber, MapPageBox(pageBox));
             left = checked((float)(box.Left / _measurementScale));
             top = checked((float)(box.Top / _measurementScale));
             right = checked((float)(box.Right / _measurementScale));
@@ -173,34 +173,40 @@ public sealed class PdfEditableDocument : IDisposable
             var sourceBytes = source.RequireBytes().ToArray();
             if (_bytes is null)
             {
-                var blank = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporter(1, 1);
-                var withPage = _composer.Apply(blank, [new PdfPageImport(sourceBytes, pageNumber)]).Bytes;
-                _bytes = _editor.Apply(withPage, [new PdfDeletePageOperation(1)]).Bytes;
+                var blank = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporterAdmitted(1, 1);
+                var withPage = _composer.ApplyAdmitted(blank, [new PdfPageImport(sourceBytes, pageNumber)]).Bytes;
+                _bytes = _editor.ApplyAdmitted(withPage, [new PdfDeletePageOperation(1)]).Bytes;
             }
             else
             {
-                _bytes = _composer.Apply(_bytes, [new PdfPageImport(sourceBytes, pageNumber)]).Bytes;
+                _bytes = _composer.ApplyAdmitted(_bytes, [new PdfPageImport(sourceBytes, pageNumber)]).Bytes;
             }
         });
 
     public PdfPageOperationStatus ClonePage(int pageNumber) => ClonePage(this, pageNumber);
 
-    public PdfPageOperationStatus InsertBlankPage(double width, double height, int pageNumber) =>
-        Execute(() =>
+    public PdfPageOperationStatus InsertBlankPage(double width, double height, int pageNumber)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return InsertBlankPageAdmitted(width, height, pageNumber);
+    }
+
+    private PdfPageOperationStatus InsertBlankPageAdmitted(double width, double height, int pageNumber) =>
+        ExecuteAdmitted(() =>
         {
             if (!double.IsFinite(width) || width <= 0 || !double.IsFinite(height) || height <= 0)
                 throw new ArgumentOutOfRangeException(nameof(width), "Page dimensions must be finite and positive.");
-            var blankBytes = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporter(width, height);
+            var blankBytes = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporterAdmitted(width, height);
             _bytes = _bytes is null
                 ? pageNumber == 1
                     ? blankBytes
                     : throw new ArgumentOutOfRangeException(nameof(pageNumber), pageNumber, "The first blank page must be inserted at position 1.")
-                : _composer.Apply(_bytes, [new PdfPageImport(blankBytes, 1, pageNumber)]).Bytes;
+                : _composer.ApplyAdmitted(_bytes, [new PdfPageImport(blankBytes, 1, pageNumber)]).Bytes;
         });
 
     public PdfPageOperationStatus InsertPage(PdfEditablePageSize size, int pageNumber)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
         var dimensions = size switch
         {
             PdfEditablePageSize.A4 => (Width: 595d, Height: 842d),
@@ -208,7 +214,7 @@ public sealed class PdfEditableDocument : IDisposable
             PdfEditablePageSize.Letter => (Width: 612d, Height: 792d),
             _ => throw new ArgumentOutOfRangeException(nameof(size), size, "Unknown page size.")
         };
-        return InsertBlankPage(dimensions.Width, dimensions.Height, pageNumber);
+        return InsertBlankPageAdmitted(dimensions.Width, dimensions.Height, pageNumber);
     }
 
     public PdfPageOperationStatus InsertPage(double width, double height, int pageNumber) =>
@@ -223,21 +229,21 @@ public sealed class PdfEditableDocument : IDisposable
         {
             ArgumentNullException.ThrowIfNull(source);
             var sourceBytes = source.RequireBytes();
-            var pages = PdfPageRangeParser.Parse(pageRange, _composer.GetPageCount(sourceBytes));
+            var pages = PdfPageRangeParser.Parse(pageRange, _composer.GetPageCountAdmitted(sourceBytes));
             _bytes = _bytes is null
-                ? _composer.ExtractPages(sourceBytes, pages)
-                : _composer.AppendPages(_bytes, sourceBytes, pages).Bytes;
-            _currentPageNumber = _composer.GetPageCount(_bytes);
+                ? _composer.ExtractPagesAdmitted(sourceBytes, pages)
+                : _composer.AppendPagesAdmitted(_bytes, sourceBytes, pages).Bytes;
+            _currentPageNumber = _composer.GetPageCountAdmitted(_bytes);
         });
 
     public PdfEditableDocument MergeDocuments(params PdfEditableDocument[] documents)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
         ArgumentNullException.ThrowIfNull(documents);
         var merged = new PdfEditableDocument();
         try
         {
-            merged._bytes = _composer.Merge(documents.Select(static document =>
+            merged._bytes = _composer.MergeAdmitted(documents.Select(static document =>
             {
                 ArgumentNullException.ThrowIfNull(document);
                 return (ReadOnlyMemory<byte>)document.RequireBytes();
@@ -255,7 +261,7 @@ public sealed class PdfEditableDocument : IDisposable
         PdfEditableDocument[] documents,
         PdfEditableMergeOptions options)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
         ArgumentNullException.ThrowIfNull(documents);
         var result = new PdfEditableDocument();
         result.LastError = new NotSupportedException(
@@ -273,7 +279,7 @@ public sealed class PdfEditableDocument : IDisposable
             var documents = sourcePaths.Select(File.ReadAllBytes)
                 .Select(static bytes => (ReadOnlyMemory<byte>)bytes)
                 .ToArray();
-            File.WriteAllBytes(destinationPath, _composer.Merge(documents).Bytes);
+            File.WriteAllBytes(destinationPath, _composer.MergeAdmitted(documents).Bytes);
         });
 
     public PdfEditableDocument Merge2Documents(PdfEditableDocument first, PdfEditableDocument second) =>
@@ -282,7 +288,7 @@ public sealed class PdfEditableDocument : IDisposable
     public PdfPageOperationStatus Merge2Documents(string firstPath, string secondPath, string destinationPath) =>
         Execute(() =>
         {
-            var merged = _composer.Merge([File.ReadAllBytes(firstPath), File.ReadAllBytes(secondPath)]).Bytes;
+            var merged = _composer.MergeAdmitted([File.ReadAllBytes(firstPath), File.ReadAllBytes(secondPath)]).Bytes;
             File.WriteAllBytes(destinationPath, merged);
         });
 
@@ -292,7 +298,7 @@ public sealed class PdfEditableDocument : IDisposable
         var bytes = RequireBytes();
         if (_encryption is not null)
         {
-            bytes = new PdfFullRewriteWriter().Rewrite(bytes, new PdfFullRewriteOptions
+            bytes = new PdfFullRewriteWriter().RewriteAdmitted(bytes, new PdfFullRewriteOptions
             {
                 Encryption = _encryption
             }).Bytes;
@@ -310,8 +316,8 @@ public sealed class PdfEditableDocument : IDisposable
 
     public int GetPageCount()
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
-        return _composer.GetPageCount(RequireBytes());
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return _composer.GetPageCountAdmitted(RequireBytes());
     }
 
     public PdfPageOperationStatus GetStatus() => LastError is null
@@ -320,7 +326,7 @@ public sealed class PdfEditableDocument : IDisposable
 
     public byte[] ToBytes()
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
         return RequireBytes().ToArray();
     }
 
@@ -340,7 +346,13 @@ public sealed class PdfEditableDocument : IDisposable
 
     private PdfPageOperationStatus Execute(Action action)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return ExecuteAdmitted(action);
+    }
+
+    private PdfPageOperationStatus ExecuteAdmitted(Action action)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         try
         {
             action();

@@ -854,7 +854,7 @@ live databases, and services were not changed. Nothing was committed or pushed.
 
 ### Remaining Continuation Work
 
-- [ ] Finish composite PDF admission beyond typed load/save and Designer DTO/analysis mapping: editing/composition and Trust/security/signing/redaction/e-invoice pipelines. The typed loading/saving and Designer mapping milestones below close their respective subsets; this broader task remains open.
+- [ ] Finish composite PDF admission beyond typed load/save, Designer DTO/analysis mapping and editing/composition: Trust/security/signing/redaction/e-invoice pipelines. The milestones below close their respective subsets; this broader task remains open.
 - [ ] Propagate advanced regeneration and remaining decoder/color/font call chains outside the typed-load path end to end; retain explicit PDF rights before exposing a public generator callback.
 - [ ] Audit and migrate remaining Word/Spreadsheet and later Converter/Migration composite call chains. Existing single-entry processing and guard coverage do not establish a complete lifetime guarantee for every pipeline.
 - [ ] Validate protected/package/platform consumers after these remaining pipelines are migrated. New worker dispatch/start remains a fresh-admission boundary by design, not an unsigned host-side lifetime exemption.
@@ -1021,11 +1021,86 @@ These are local macOS/x64 .NET results, not full API/PostgreSQL, cross-platform,
 protected-package or new visual-baseline acceptance. No commit, push, service
 restart, deployment or live database change was performed.
 
-Next work remains PDF Editing/page composition, Trust/security/signing/redaction/
+At that checkpoint, next work was PDF Editing/page composition, Trust/security/signing/redaction/
 e-invoice, advanced regeneration and XObject/color/debug-overlay composite
 lifetimes outside this mapping path, followed by other product chains and
 protected-package/platform validation. Importer is still marked partially
 enforced; this completed subset does not close the whole licensing roadmap.
+
+## PDF Editing And Page Composition Continuation Milestone
+
+This milestone covers bounded page editing/composition, content rewriting and
+the migration-friendly editable facade. It does not change supported operation
+semantics or close Trust/security, signing/redaction/e-invoice, advanced
+regeneration, other products or protected-package/platform acceptance.
+
+- [x] Add an Importer-owned editing purpose; permit only private blank-page bytes for that purpose and retain public PDF, regeneration and OCR-rendering restrictions. Test Trial expiry, original admission and verifier ownership.
+- [x] Split ten page-editor/composer/content-rewriter entries into fresh public guards and internal continuations; carry admission through token/object parsing, owner decryption, full/incremental save validation and internal helper pages.
+- [x] Carry the editable facade's load/count/edit/merge/clone/output chains under one per-public-call admission. Keep atomic `PdfEditingSession` mutations fresh, metadata/status/disposal free, and previous model/error/ref values untouched on denied calls.
+- [x] Pass the 1,434-check Importer probe, including 196 new editing checks and all 1,238 previous checks. Cover memory-reader and enumeration callbacks, exact content rewriting, mixed page geometry/order/text, encryption and existing validation failures.
+- [x] Audit all five changed processing files against commit `5e563631` after explicitly normalizing admission wrappers, private forwarding helpers and internal call names. Keep all remaining algorithms and validation bodies unchanged.
+- [x] Complete and independently audit affected .NET regressions, including the new deterministic editing-expiry test, generated-code migration and API compatibility: all 1,682 result rows passed with exact counters and successful cleanup.
+- [x] Validate partial metadata, all 50 tooling contracts, 43 local documentation links/anchors, naming/diff guards and the Patch fragment without modifying VERSION, published releases, production keys or live data.
+
+The first expanded probe at
+`artifacts/native-engine-tests/1794855546749-41dfb5c7/` passed 1,422 distinct
+checks. The expanded probe at
+`artifacts/native-engine-tests/1794855736110-fd1fbde9/` passed 1,434 distinct
+checks, including 196 new editing checks. The added cases preserve or reset
+selected-page/measurement-unit state correctly after stream success/failure and
+inspect actual operation result metadata. The earlier run remains separate.
+Both cleanup reports confirm removed temporary licenses/builds, unchanged source
+trust and unchanged regular licensing outputs. All signing inputs are synthetic;
+the fixture verifies that no network requests occurred.
+
+`artifacts/native-test-sessions/edeb2ef5-77de-4188-b212-4a3fe94a7475/editing-body-audit.json`
+records the original commit, source hashes, ten explicit core wrappers and
+normalized equality of editor, composer, rewriter, facade and private blank-page
+factory bodies. Normalization restores only license-entry code, private
+forwarders, internal call names and whitespace. It is not a claim of byte-equal
+encrypted output, unchanged timestamps, cross-platform behavior or obfuscated
+package compatibility.
+
+### Final Editing Evidence
+
+The strengthened final Importer probe at
+`artifacts/native-engine-tests/1794856334226-2596b491/` passed 1,434 distinct
+checks, including 196 editing continuations and all 40 existing public editing
+entry signatures. It compares both the caller's original bytes and the actual
+custom memory-manager input after success and validation failure. Its cleanup
+report confirms removed ephemeral licenses/builds, unchanged source trust and
+unchanged regular license outputs. Earlier passed probes remain separate.
+
+The final signed regression session is
+`artifacts/native-test-sessions/edeb2ef5-77de-4188-b212-4a3fe94a7475/`.
+Its `editing-*.trx` files contain 88 licensing-core, 666 Importer, 23 FileImporter,
+141 Generator, 76 PDF infrastructure, 181 image-analysis, 100 OCR and 407 selected
+API tests. All 1,682 actual result rows are Passed; total, executed and passed
+counters agree for each suite. Failed, error, timeout, aborted, inconclusive,
+not-runnable, not-executed, disconnected, in-progress and pending counters are
+zero. This is a targeted API selection, not a full API/PostgreSQL rerun.
+
+`editing-validation-audit.json` independently records exact TRX counters, the
+final native probe, unchanged processing-file hashes and cleanup. The session
+build/secret trees are removed; source trust remains empty. Original tracked
+fixtures/assets, VERSION 1.1.0 and published releases are unchanged. Native
+execution is local macOS with x64 .NET; no new platform, protected-package or
+visual-baseline acceptance is claimed.
+
+All 50 native/version/release-author contracts, metadata/version/fragment
+validation, former-name/Markdown guards, 43 local documentation links/anchors
+and `git diff --check` passed. The Patch fragment
+`native-pdf-editing-operation-continuations.json` covers Importer, Generator
+and Documentation. Existing compiler and third-party package notices remain;
+passing tests do not grant third-party licensing or publication approval.
+No commit, push, deployment, service restart or live database change occurred
+in this milestone.
+
+Remaining continuations are Trust/security/signing/redaction/e-invoice,
+advanced regeneration, XObject/color/debug-overlay composites outside the
+completed paths, and other product graphs. Complete protected-package and
+platform validation still follows those steps. Importer remains partial and
+the overall native-licensing roadmap is not complete.
 
 ## Acceptance Criteria
 

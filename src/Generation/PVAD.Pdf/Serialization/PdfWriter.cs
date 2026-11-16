@@ -29,6 +29,11 @@ internal sealed class PdfWriter
     internal static byte[] CreateBlankPageForImporter(double width, double height)
     {
         using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImporterBlankPage);
+        return CreateBlankPageForImporterAdmitted(width, height);
+    }
+
+    internal static byte[] CreateBlankPageForImporterAdmitted(double width, double height)
+    {
         var admission = PvadLicense.DemandDependency(PvadNativeDependency.BlankPagePdf);
         if (!double.IsFinite(width) || width <= 0 || !double.IsFinite(height) || height <= 0)
             throw new ArgumentOutOfRangeException(nameof(width), "Page dimensions must be finite and positive.");

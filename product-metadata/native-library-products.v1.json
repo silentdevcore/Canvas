@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "enforcementStatus": "pdf-word-and-spreadsheet",
   "continuationCoverage": {
-    "status": "partial-image-ocr-and-pdf-import-save-analysis",
+    "status": "partial-image-ocr-and-pdf-import-save-editing",
     "policySource": "src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs",
     "publicAdmission": "fresh-current-license",
     "authorityBinding": "originating-process-verifier",
     "workerAdmission": "fresh-at-dispatch-and-worker-start",
-    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis"],
-    "remaining": ["composite-pdf-editing-trust-advanced-regeneration", "other-product-composite-call-chains"]
+    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis", "pdf-editing-page-composition-content-rewrite-and-facade"],
+    "remaining": ["composite-pdf-trust-advanced-regeneration", "other-product-composite-call-chains"]
   },
   "products": [
     { "id": "pdf", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Generation/PVAD.Pdf", "src/Infrastructure/PVAD.Infrastructure.Pdf"], "entryPoints": ["Pdf.CreateDocument", "PdfDocument constructor", "PdfDocument.ToBytes/Save", "PdfWriter.Write"], "enforced": true },
@@ -59,7 +59,9 @@
         "typed PdfImporter/Pdf facade loads carry original admission through token/object parsing, decryption, built-in decoding, font parsing and graphics building",
         "PdfDocumentSaver and full/incremental writers carry original admission through source and output validation; new public calls and custom public callbacks remain fresh boundaries",
         "Designer PdfFileImporter carries original admission through typed loading, scene analysis, chart recognition and DTO mapping across all pages",
-        "19 public geometry/primitive/classification/reading-order/grouping/reconstruction/scene/semantic processing methods admit fresh work and share only internal continuations"
+        "19 public geometry/primitive/classification/reading-order/grouping/reconstruction/scene/semantic processing methods admit fresh work and share only internal continuations",
+        "page editing, composition, content rewriting and the migration-friendly editable facade retain original admission through parsing, validation, decryption and saving",
+        "editing may create only private blank-page PDF bytes; general PDF generation, regeneration and OCR rendering are not granted by that purpose"
       ],
       "remainingEntryPoints": ["generic scoped dependency rights across product bundles and admitted-operation lifetime"]
     },

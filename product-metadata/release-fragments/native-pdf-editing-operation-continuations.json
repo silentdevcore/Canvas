@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-editing-operation-continuations",
+  "impact": "patch",
+  "components": ["importer", "generator", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF editing, page composition and content rewriting retain their license admission through validation and saving. New public calls still check the current license, while internal blank-page creation does not unlock general PDF generation.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

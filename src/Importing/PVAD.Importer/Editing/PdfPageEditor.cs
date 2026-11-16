@@ -71,7 +71,16 @@ public sealed class PdfPageEditor
         IReadOnlyList<PdfPageEditOperation> operations,
         PdfPageEditOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return ApplyAdmitted(source, operations, options);
+    }
+
+    internal PdfPageEditResult ApplyAdmitted(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<PdfPageEditOperation> operations,
+        PdfPageEditOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
         ArgumentNullException.ThrowIfNull(operations);
@@ -82,7 +91,7 @@ public sealed class PdfPageEditor
         if (operations.Any(static operation => operation is PdfSetPageBoxOperation or PdfRemovePageBoxOperation))
         {
             var boxContext = new PdfParseContext(source, new PdfImporterOptions { Limits = options.Limits });
-            var boxTable = new PdfCrossReferenceParser().Parse(boxContext);
+            var boxTable = new PdfCrossReferenceParser().ParseAdmitted(boxContext);
             if (boxTable.Diagnostics.Count > 0)
                 throw new InvalidDataException($"The source PDF cross-reference data is invalid: {boxTable.Diagnostics[0].Code}.");
             if (PdfDocumentDecryptor.IsEncrypted(boxTable))
@@ -93,7 +102,7 @@ public sealed class PdfPageEditor
         }
 
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = options.Limits });
-        var xref = new PdfCrossReferenceParser().Parse(context);
+        var xref = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (xref.Diagnostics.Count > 0)
             throw new InvalidDataException($"The source PDF cross-reference data is invalid: {xref.Diagnostics[0].Code}.");
 
@@ -106,14 +115,14 @@ public sealed class PdfPageEditor
             if (options.Encryption is null)
                 throw new InvalidOperationException("An encrypted source must be re-encrypted after page editing.");
 
-            var decrypted = PdfDocumentDecryptor.ParseAndDecrypt(context, xref, options.SourcePassword);
+            var decrypted = PdfDocumentDecryptor.ParseAndDecryptAdmitted(context, xref, options.SourcePassword);
             if (decrypted.Result.PasswordKind != PdfPasswordKind.Owner)
                 throw new UnauthorizedAccessException("Page editing requires the PDF owner password.");
             graph = decrypted.Graph;
         }
         else
         {
-            graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
+            graph = new PdfObjectParser(context, xref).ParseDocumentGraphAdmitted();
         }
 
         if (context.Diagnostics.Count > 0)
@@ -189,7 +198,7 @@ public sealed class PdfPageEditor
                 "Remove or retarget its bookmarks, destinations, links, or annotations before deleting it.");
         }
 
-        var save = new PdfDocumentSaver().Save(source, new PdfSaveRequest
+        var save = new PdfDocumentSaver().SaveAdmitted(source, new PdfSaveRequest
         {
             Strategy = PdfSaveStrategy.FullRewrite,
             Updates = updates,
@@ -216,18 +225,28 @@ public sealed class PdfPageEditor
         PdfPageBoxKind pageBox,
         PdfParseLimits? limits = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return ReadPageBoxAdmitted(source, pageNumber, pageBox, limits);
+    }
+
+    internal PdfPageBoxCoordinates ReadPageBoxAdmitted(
+        ReadOnlyMemory<byte> source,
+        int pageNumber,
+        PdfPageBoxKind pageBox,
+        PdfParseLimits? limits = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
         ValidatePageBoxKind(pageBox);
         limits ??= new PdfParseLimits();
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = limits });
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
             throw new InvalidDataException($"The source PDF cross-reference data is invalid: {table.Diagnostics[0].Code}.");
         if (PdfDocumentDecryptor.IsEncrypted(table))
             throw new NotSupportedException("Page-box inspection does not accept encrypted PDFs.");
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         var root = ResolvePagesRoot(graph);
         var pages = new List<PageEntry>();
         WalkPages(graph, root.Reference, root.Dictionary,

@@ -35,7 +35,16 @@ public sealed class PdfPageComposer
         IReadOnlyList<PdfPageImport> imports,
         PdfPageCompositionOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return ApplyAdmitted(target, imports, options);
+    }
+
+    internal PdfPageCompositionResult ApplyAdmitted(
+        ReadOnlyMemory<byte> target,
+        IReadOnlyList<PdfPageImport> imports,
+        PdfPageCompositionOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (target.IsEmpty)
             throw new ArgumentException("A non-empty target PDF is required.", nameof(target));
         ArgumentNullException.ThrowIfNull(imports);
@@ -71,7 +80,7 @@ public sealed class PdfPageComposer
         }
 
         updates.AddRange(BuildPageTreeUpdates(targetTree.RootReference, targetTree.RootDictionary, pages));
-        var save = new PdfDocumentSaver().Save(target, new PdfSaveRequest
+        var save = new PdfDocumentSaver().SaveAdmitted(target, new PdfSaveRequest
         {
             Strategy = PdfSaveStrategy.FullRewrite,
             Updates = updates,
@@ -89,25 +98,33 @@ public sealed class PdfPageComposer
         IReadOnlyList<ReadOnlyMemory<byte>> documents,
         PdfPageCompositionOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return MergeAdmitted(documents, options);
+    }
+
+    internal PdfPageCompositionResult MergeAdmitted(
+        IReadOnlyList<ReadOnlyMemory<byte>> documents,
+        PdfPageCompositionOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(documents);
         if (documents.Count == 0 || documents.Any(static document => document.IsEmpty))
             throw new ArgumentException("At least one non-empty PDF is required.", nameof(documents));
         if (documents.Count == 1)
         {
-            var count = GetPageCount(documents[0], options?.Limits);
+            var count = GetPageCountAdmitted(documents[0], options?.Limits);
             return new PdfPageCompositionResult(documents[0].ToArray(), count, count);
         }
 
         var imports = new List<PdfPageImport>();
         for (var documentIndex = 1; documentIndex < documents.Count; documentIndex++)
         {
-            var count = GetPageCount(documents[documentIndex], options?.Limits);
+            var count = GetPageCountAdmitted(documents[documentIndex], options?.Limits);
             for (var pageNumber = 1; pageNumber <= count; pageNumber++)
                 imports.Add(new PdfPageImport(documents[documentIndex], pageNumber));
         }
 
-        return Apply(documents[0], imports, options);
+        return ApplyAdmitted(documents[0], imports, options);
     }
 
     /// <summary>
@@ -120,7 +137,17 @@ public sealed class PdfPageComposer
         IReadOnlyList<int> pageNumbers,
         PdfPageCompositionOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return AppendPagesAdmitted(target, source, pageNumbers, options);
+    }
+
+    internal PdfPageCompositionResult AppendPagesAdmitted(
+        ReadOnlyMemory<byte> target,
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<int> pageNumbers,
+        PdfPageCompositionOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (target.IsEmpty)
             throw new ArgumentException("A non-empty target PDF is required.", nameof(target));
         ArgumentNullException.ThrowIfNull(pageNumbers);
@@ -149,7 +176,7 @@ public sealed class PdfPageComposer
         var pages = targetTree.Pages.Concat(cloned.Pages).ToArray();
         var updates = cloned.Updates.ToList();
         updates.AddRange(BuildPageTreeUpdates(targetTree.RootReference, targetTree.RootDictionary, pages));
-        var save = new PdfDocumentSaver().Save(target, new PdfSaveRequest
+        var save = new PdfDocumentSaver().SaveAdmitted(target, new PdfSaveRequest
         {
             Strategy = PdfSaveStrategy.FullRewrite,
             Updates = updates,
@@ -175,7 +202,16 @@ public sealed class PdfPageComposer
         IReadOnlyList<PdfPageRange> ranges,
         PdfPageCompositionOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return SplitAdmitted(source, ranges, options);
+    }
+
+    internal PdfDocumentSplitResult SplitAdmitted(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<PdfPageRange> ranges,
+        PdfPageCompositionOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(ranges);
         if (ranges.Count == 0)
             throw new ArgumentException("At least one page range is required.", nameof(ranges));
@@ -215,7 +251,16 @@ public sealed class PdfPageComposer
         IReadOnlyList<int> pageNumbers,
         PdfPageCompositionOptions? options = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return ExtractPagesAdmitted(source, pageNumbers, options);
+    }
+
+    internal byte[] ExtractPagesAdmitted(
+        ReadOnlyMemory<byte> source,
+        IReadOnlyList<int> pageNumbers,
+        PdfPageCompositionOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pageNumbers);
         if (pageNumbers.Count == 0)
             throw new ArgumentException("At least one page number is required.", nameof(pageNumbers));
@@ -227,7 +272,13 @@ public sealed class PdfPageComposer
 
     public int GetPageCount(ReadOnlyMemory<byte> source, PdfParseLimits? limits = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var admission = PvadLicense.BeginOperation(PvadNativeOperation.PdfEditing);
+        return GetPageCountAdmitted(source, limits);
+    }
+
+    internal int GetPageCountAdmitted(ReadOnlyMemory<byte> source, PdfParseLimits? limits = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         return ReadPageTree(ParseUnencrypted(source, limits ?? new PdfParseLimits(), "source")).Pages.Count;
     }
 
@@ -239,12 +290,12 @@ public sealed class PdfPageComposer
         if (source.IsEmpty)
             throw new ArgumentException($"The {role} PDF is empty.", nameof(source));
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = limits });
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
             throw new InvalidDataException($"The {role} PDF cross-reference data is invalid: {table.Diagnostics[0].Code}.");
         if (PdfDocumentDecryptor.IsEncrypted(table))
             throw new NotSupportedException("Cross-document page composition does not accept encrypted PDFs.");
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         if (context.Diagnostics.Count > 0)
             throw new InvalidDataException($"The {role} PDF could not be parsed in full: {context.Diagnostics[0].Code}.");
         return graph;
@@ -406,7 +457,7 @@ public sealed class PdfPageComposer
         foreach (var pageNumber in pageNumbers)
             ValidatePageNumber(pageNumber, sourceTree.Pages.Count, nameof(pageNumbers));
 
-        var target = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporter(1, 1);
+        var target = PVAD.Pdf.Serialization.PdfWriter.CreateBlankPageForImporterAdmitted(1, 1);
         var targetGraph = ParseUnencrypted(target, options.Limits, "split target");
         var targetTree = ReadPageTree(targetGraph);
         var nextObjectNumber = targetGraph.Objects.Keys.Max(static id => id.Number) + 1;
@@ -414,7 +465,7 @@ public sealed class PdfPageComposer
         var cloned = ClonePageGraphs(sourceGraph, sourceTree, sourcePages, ref nextObjectNumber);
         var updates = cloned.Updates.ToList();
         updates.AddRange(BuildPageTreeUpdates(targetTree.RootReference, targetTree.RootDictionary, cloned.Pages));
-        return new PdfDocumentSaver().Save(target, new PdfSaveRequest
+        return new PdfDocumentSaver().SaveAdmitted(target, new PdfSaveRequest
         {
             Strategy = PdfSaveStrategy.FullRewrite,
             Updates = updates,
