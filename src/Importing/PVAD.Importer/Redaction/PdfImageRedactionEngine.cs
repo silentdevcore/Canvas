@@ -9,6 +9,8 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
 using SkiaSharp;
 
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Redaction;
 
 internal sealed record PdfRedactedImage(
@@ -520,7 +522,7 @@ internal static class PdfImageRedactionEngine
             reason = string.Empty;
             return true;
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             reason = $"The bundled JPEG-2000 codec could not decode JPX safely: {exception.Message}";
             return false;
@@ -705,7 +707,7 @@ internal static class PdfImageRedactionEngine
             reason = string.Empty;
             return true;
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             reason = $"The bundled JBIG2 codec could not decode the image safely: {exception.Message}";
             return false;

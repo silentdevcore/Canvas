@@ -6,6 +6,7 @@ using PVAD.FileImporter.ImageAnalysis;
 using PVAD.FileImporter.ImageAnalysis.Analysis;
 using PVAD.Importer.Analysis;
 using PVAD.Importer.Debugging;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Controllers;
 
@@ -165,6 +166,7 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await PdfFileImporter.DoImportAsync(
                 stream,
@@ -177,7 +179,7 @@ public class DocumentOpsController : ControllerBase
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse PDF (Engine): {ex.Message}" });
         }
@@ -195,6 +197,7 @@ public class DocumentOpsController : ControllerBase
             return BadRequest(new { error = "A PDF file is required." });
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var doc = await new PVAD.Importer.PdfImporter().LoadAsync(stream);
             var p   = doc.Pages.ElementAtOrDefault(page - 1);
@@ -258,7 +261,7 @@ public class DocumentOpsController : ControllerBase
                 sampleTexts = texts,
             });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = ex.Message, type = ex.GetType().Name });
         }
@@ -296,11 +299,12 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await Importer("doc").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse DOC: {ex.Message}" });
         }
@@ -325,11 +329,12 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await Importer("docx").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse DOCX: {ex.Message}" });
         }
@@ -383,6 +388,7 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var importer = Importer("md");
             var design = importer is MarkdownFileImporter markdownImporter
@@ -410,7 +416,7 @@ public class DocumentOpsController : ControllerBase
                 Detail = "The document exceeds supported Markdown complexity limits.",
             });
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new ProblemDetails
             {
@@ -440,11 +446,12 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await Importer("odt").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse ODT: {ex.Message}" });
         }
@@ -467,12 +474,13 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await Importer(Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant())
                 .ImportAsync(stream, file.FileName);
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not decode image: {ex.Message}" });
         }
@@ -500,11 +508,12 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var design = await Importer("svg").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse SVG: {ex.Message}" });
         }
@@ -530,6 +539,7 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
@@ -537,7 +547,7 @@ public class DocumentOpsController : ControllerBase
             var design = await Importer("pptx").ImportAsync(ms, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not parse PPTX: {ex.Message}" });
         }
@@ -571,8 +581,9 @@ public class DocumentOpsController : ControllerBase
 
         try
         {
+            using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
             await using var stream = file.OpenReadStream();
-            var result = await _imageAnalysis.ImportWithAnalysisAsync(
+            var result = await _imageAnalysis.ImportWithAnalysisAsyncCore(
                 stream,
                 Path.GetFileNameWithoutExtension(file.FileName),
                 pageWidthPt,
@@ -596,7 +607,7 @@ public class DocumentOpsController : ControllerBase
                     : $"data:image/png;base64,{Convert.ToBase64String(result.DebugOverlayPng)}",
             });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Image analysis failed: {ex.Message}" });
         }
@@ -641,7 +652,7 @@ public class DocumentOpsController : ControllerBase
         {
             return BadRequest(new { error = $"Certificate error: {ex.Message}" });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Signing failed: {ex.Message}" });
         }

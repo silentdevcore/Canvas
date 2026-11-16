@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-license-enforcement",
+  "impact": "major",
+  "components": ["api", "generator", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Native PDF creation and byte, file, and stream exports now require an explicitly loaded signed PDF license. Server and code-worker deployments must provide a native license independently of user subscriptions.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

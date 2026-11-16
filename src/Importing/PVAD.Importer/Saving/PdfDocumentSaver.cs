@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Trust;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Saving;
 
@@ -35,6 +36,13 @@ public sealed class PdfDocumentSaver
 
     public PdfSaveResult Save(ReadOnlyMemory<byte> source, PdfSaveRequest request)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSave);
+        return SaveAdmitted(source, request);
+    }
+
+    internal PdfSaveResult SaveAdmitted(ReadOnlyMemory<byte> source, PdfSaveRequest request)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(request);
         switch (request.Strategy)
         {
@@ -46,7 +54,7 @@ public sealed class PdfDocumentSaver
                         nameof(request));
                 }
 
-                var appended = _incrementalWriter.Append(source, request.Updates);
+                var appended = _incrementalWriter.AppendAdmitted(source, request.Updates);
                 return new PdfSaveResult(
                     appended.Bytes,
                     PdfSaveStrategy.IncrementalUpdate,
@@ -56,8 +64,8 @@ public sealed class PdfDocumentSaver
 
             case PdfSaveStrategy.FullRewrite:
                 var rewritten = request.Updates.Count == 0
-                    ? _fullRewriteWriter.Rewrite(source, request.FullRewriteOptions)
-                    : _fullRewriteWriter.RewriteWithUpdates(source, request.Updates, request.FullRewriteOptions);
+                    ? _fullRewriteWriter.RewriteAdmitted(source, request.FullRewriteOptions)
+                    : _fullRewriteWriter.RewriteWithUpdatesAdmitted(source, request.Updates, request.FullRewriteOptions);
                 return new PdfSaveResult(
                     rewritten.Bytes,
                     PdfSaveStrategy.FullRewrite,

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "enforcementStatus": "pdf-word-and-spreadsheet",
+  "continuationCoverage": {
+    "status": "partial-image-ocr-and-pdf-import-save-analysis",
+    "policySource": "src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs",
+    "publicAdmission": "fresh-current-license",
+    "authorityBinding": "originating-process-verifier",
+    "workerAdmission": "fresh-at-dispatch-and-worker-start",
+    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis"],
+    "remaining": ["composite-pdf-editing-trust-advanced-regeneration", "other-product-composite-call-chains"]
+  },
+  "products": [
+    { "id": "pdf", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Generation/PVAD.Pdf", "src/Infrastructure/PVAD.Infrastructure.Pdf"], "entryPoints": ["Pdf.CreateDocument", "PdfDocument constructor", "PdfDocument.ToBytes/Save", "PdfWriter.Write"], "enforced": true },
+    { "id": "word", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Infrastructure/PVAD.Infrastructure.Word"], "entryPoints": ["Word.Export", "WordDocumentExporter.Export (both overloads)", "DigitalSigningService.SignDocx"], "enforced": true },
+    { "id": "spreadsheet", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Infrastructure/PVAD.Infrastructure.Spreadsheet"], "entryPoints": ["Spreadsheet.CreateWorkbook", "PvadWorkbook constructor and authoring methods", "PvadWorksheet/PvadRange/PvadColumn/PvadCell/PvadCellStyle mutations", "PvadWorkbook.ToXlsx/Save", "ExcelWorkbookExporter.Export/Build", "ExcelWorkbookImporter.Import", "ExcelDocumentExporter.Export", "SpreadsheetCalculator.Calculate", "XlsWorkbookIo.Import/Export", "CsvSheetIo.FromCsv/ToCsv", "SpreadsheetOperations.SortRange/FindReplace", "SpreadsheetData.FromRows/Fill", "SpreadsheetToDesignConverter.Convert"], "enforced": true },
+    {
+      "id": "importer",
+      "projectDirectories": ["src/Importing/PVAD.Importer", "src/Importing/PVAD.FileImporter", "src/Importing/PVAD.FileImporter.ImageAnalysis", "src/Importing/PVAD.FileImporter.ImageOcr", "src/Importing/PVAD.FileImporter.ImageOcr.Worker"],
+      "entryPoints": ["PdfImporter.LoadAsync", "PdfDocumentSaver", "IFileImporter.ImportAsync", "image analysis and OCR"],
+      "enforced": false,
+      "coverageStatus": "partial-entry-points",
+      "coveredEntryPoints": [
+        "all eight registry importers and their static entry points",
+        "PdfImporter.LoadAsync overloads and Pdf facade",
+        "PdfDocumentSaver.Save",
+        "PdfFullRewriteWriter.Rewrite/RewriteWithUpdates",
+        "PdfIncrementalUpdateWriter.Append",
+        "PdfTokenizer.ReadToken/Seek",
+        "PdfObjectParser public parsing methods and PdfCrossReferenceParser.Parse",
+        "PdfStreamDecoderRegistry.Decode and all five built-in stream decoders",
+        "PdfContentStreamParser.Parse, PdfDocumentBuilder.Build, PdfGraphicsInterpreter.Interpret overloads",
+        "PdfSimpleFontParser.Parse and PdfToUnicodeCMapParser.Parse",
+        "public processing methods on PrimitiveBuilder, BoundingBoxCalculator, ReadingOrderEngine, GroupingEngine, TextReconstructionEngine, BarcodeDetector, ObjectClassifier, XObjectResolver, SceneGraphEngine, and SemanticLayoutEngine",
+        "PdfSrgbColorConverter.Resolve/ToSrgb, PdfFunction.TryCreate/Evaluate, and PdfContentColorRewriter.Rewrite",
+        "PdfFontResource.Decode/GetGlyphCodes, PdfEncodingMap.Decode, and PdfToUnicodeMap.Decode",
+        "internal image color conversion and ICC transform admission",
+        "PdfEditingSession mutations, PdfPageEditor and PdfPageComposer public processing methods",
+        "PdfEditableDocument load/edit/compose/count/output methods",
+        "PdfContentStreamRewriter.Rewrite overloads",
+        "bounded internal blank-page dependency for editing and splitting",
+        "PdfTrustInspector, PdfChangeImpactAnalyzer, PdfA2bConverter, and PdfTrustPostProcessingPipeline",
+        "PdfOcspEvidence and PdfCrlEvidenceValidator processing",
+        "PdfDocumentDecryptor password/certificate overloads and retained PdfStandardSecurityHandler processing",
+        "PdfPadesSigningService, PdfPkcs12SigningKey, PdfDocumentTimestampService, and PdfRfc3161TimestampAuthority",
+        "PdfRedactionPreflight, PdfRedactionApplier, and PdfRedactionAuditVerifier",
+        "PdfEInvoiceAttacher and PdfAssociatedFileExtractor",
+        "PvadPdfGeneratorBridge regeneration and mapping methods, PdfGeneratorBridgePipeline.SaveAsync",
+        "PdfDebugOverlayBuilder.Build and internal Importer-only regeneration without caller generator callbacks",
+        "ImageAnalysisFileImporter and public analysis, glyph/template, scene, and PNG overlay processing",
+        "ImageToPdfConverter.ConvertAsync, EmbeddedTesseractOcrEngine.RecognizeAsync, and ProcessIsolatedTesseractOcrEngine.RecognizeAsync",
+        "DefaultOcrWorkerProcessRunner.RunAsync, signed OCR worker verification and typed license errors",
+        "built-in OCR PDF output through a private Importer-only byte renderer"
+      ],
+      "admittedContinuations": [
+        "all public image-analysis entries use fresh admission and internal-only closed-scope continuations",
+        "image OCR conversion, built-in OCR engines, and API OCR PDF output share in-process admission",
+        "PDF regeneration, blank-page creation, and OCR PDF dependencies use purpose-bound internal policies",
+        "typed PdfImporter/Pdf facade loads carry original admission through token/object parsing, decryption, built-in decoding, font parsing and graphics building",
+        "PdfDocumentSaver and full/incremental writers carry original admission through source and output validation; new public calls and custom public callbacks remain fresh boundaries",
+        "Designer PdfFileImporter carries original admission through typed loading, scene analysis, chart recognition and DTO mapping across all pages",
+        "19 public geometry/primitive/classification/reading-order/grouping/reconstruction/scene/semantic processing methods admit fresh work and share only internal continuations"
+      ],
+      "remainingEntryPoints": ["generic scoped dependency rights across product bundles and admitted-operation lifetime"]
+    },
+    { "id": "converter", "projectDirectories": ["src/Infrastructure/PVAD.Infrastructure.Converters"], "entryPoints": ["IDocumentExporter implementations"], "enforced": false },
+    { "id": "migration.pdf.code", "projectDirectories": ["src/Migrations/PDF"], "entryPoints": ["all PDF code provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
+    { "id": "migration.pdf.viewer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["Nutrient viewer conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
+    { "id": "migration.pdf.designer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["Nutrient source-PDF designer conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
+    { "id": "migration.spreadsheet.code", "projectDirectories": ["src/Migrations/Spreadsheet"], "entryPoints": ["all Spreadsheet code provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
+    { "id": "migration.report.designer", "projectDirectories": ["src/Migrations/Report"], "entryPoints": ["all Report Designer provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false }
+  ]
+}

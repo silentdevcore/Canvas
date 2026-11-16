@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PvadLicenseTrustStorePath Condition="'$(PvadLicenseTrustStorePath)' == ''">$(MSBuildThisFileDirectory)TrustedKeys.json</PvadLicenseTrustStorePath>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+    <EmbedAllSources>false</EmbedAllSources>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <EnableSourceLink>false</EnableSourceLink>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PvadSelectProtectedAssembly</TargetsForTfmSpecificBuildOutput>
+    <Description>Offline native license verification for PVAD. Manufacturer key provisioning and product integrations are separate deployment requirements.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(PvadLicenseTrustStorePath)" LogicalName="PVAD.Licensing.TrustedKeys.json" />
+    <EmbeddedResource Include="LibraryRelease.json" LogicalName="PVAD.Licensing.LibraryRelease.json" />
+    <InternalsVisibleTo Include="PVAD.Licensing.Tests" />
+    <InternalsVisibleTo Include="PVAD.LicenseIssuer" />
+    <InternalsVisibleTo Include="PVAD.FileImporter.ImageOcr" />
+    <InternalsVisibleTo Include="PVAD.FileImporter.ImageAnalysis" />
+    <InternalsVisibleTo Include="PVAD.Pdf" />
+    <InternalsVisibleTo Include="PVAD.Importer" />
+    <InternalsVisibleTo Include="PVAD.FileImporter" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
+    <None Update="README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+  <Target Name="PvadSelectProtectedAssembly">
+    <Error Condition="'$(PvadProtectedAssemblyPath)' == '' Or !Exists('$(PvadProtectedAssemblyPath)')"
+           Text="Native license packages require an explicitly prepared protected assembly. Use the local native-licensing rehearsal; unprotected packaging is disabled." />
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <BuiltProjectOutputGroupOutput Include="$(PvadProtectedAssemblyPath)">
+        <FinalOutputPath>$(PvadProtectedAssemblyPath)</FinalOutputPath>
+        <TargetPath>$(TargetFileName)</TargetPath>
+      </BuiltProjectOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+</Project>

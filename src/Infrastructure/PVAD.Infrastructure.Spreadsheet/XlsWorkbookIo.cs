@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
@@ -16,6 +17,7 @@ public sealed class XlsWorkbookIo
 {
     public byte[] Export(SpreadsheetDto workbook)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         using var wb = new HSSFWorkbook();
         foreach (var sheet in workbook.Sheets)
         {
@@ -39,6 +41,7 @@ public sealed class XlsWorkbookIo
 
     public SpreadsheetDto Import(Stream xls, string? fileName = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         using var wb = new HSSFWorkbook(xls);
         var dto = new SpreadsheetDto
         {

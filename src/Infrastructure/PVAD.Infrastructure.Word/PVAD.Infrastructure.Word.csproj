@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Core/PVAD.Core/PVAD.Core.csproj" />
+    <ProjectReference Include="../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

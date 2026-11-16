@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PVAD.Core.Contracts;
 using ClosedXML.Excel;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -25,6 +26,7 @@ public sealed class ExcelWorkbookExporter
     /// <summary>Builds the ClosedXML workbook from the model (without saving). Shared with the calculator.</summary>
     internal static XLWorkbook Build(SpreadsheetDto workbook)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var wb = new XLWorkbook();
         foreach (var sheet in workbook.Sheets)
             RenderSheet(wb, sheet);

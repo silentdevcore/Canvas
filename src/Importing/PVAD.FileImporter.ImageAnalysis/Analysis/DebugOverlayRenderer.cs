@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Analysis;
@@ -10,6 +11,17 @@ public static class DebugOverlayRenderer
         ShapeDetectionResult shapes,
         TextAnalysisResult texts)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return RenderPngCore(img, colors, shapes, texts);
+    }
+
+    internal static byte[] RenderPngCore(
+        PreparedImage img,
+        ColorAnalysisResult colors,
+        ShapeDetectionResult shapes,
+        TextAnalysisResult texts)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         using var overlay = img.Original.Copy();
         using var canvas = new SKCanvas(overlay);
 

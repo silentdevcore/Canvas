@@ -56,8 +56,13 @@ test('Compose overlays use canonical networks and matching secret mounts', async
   }
   assert.deepEqual(relay.secrets, ['pvad_alert_webhook_signing_key']);
   const api = (await read('deploy/api/docker-compose.api.yml')).services['pvad-webapi'];
-  assert.equal(api.environment.Licensing__PrivateKeyPath, '/run/secrets/pvad_license_private_key');
+  assert.equal(api.environment.Licensing__IssuerEnabled, 'false');
+  assert.equal(api.environment.Licensing__PrivateKeyPath, undefined);
   assert.equal(api.environment.Licensing__PublicKeyPath, '/run/secrets/pvad_license_public_key');
+  assert.deepEqual(api.secrets, ['pvad_license_public_key']);
+  const issuer = (await read('deploy/api/docker-compose.license-issuer.yml')).services['pvad-webapi'];
+  assert.equal(issuer.environment.Licensing__IssuerEnabled, 'true');
+  assert.equal(issuer.environment.Licensing__PrivateKeyPath, '/run/secrets/pvad_license_private_key');
 });
 
 test('MCP gateway routes use declared canonical upstream services', async () => {

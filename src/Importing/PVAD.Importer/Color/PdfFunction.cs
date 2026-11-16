@@ -1,6 +1,7 @@
 using System.Globalization;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -23,6 +24,7 @@ public abstract class PdfFunction
 
     public double[] Evaluate(IReadOnlyList<double> inputs)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var clamped = new double[inputs.Count];
         for (var index = 0; index < inputs.Count; index++)
         {
@@ -50,6 +52,7 @@ public abstract class PdfFunction
     /// <summary>Resolves a function object, or returns null when the type is not supported.</summary>
     public static PdfFunction? TryCreate(PdfObject? value, Func<PdfObject?, PdfObject?> resolve, int depth = 0)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (depth > 8)
         {
             return null;
@@ -309,7 +312,7 @@ internal sealed class PdfSampledFunction : PdfFunction
         {
             samples = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return null;
         }
@@ -440,7 +443,7 @@ internal sealed class PdfPostScriptFunction : PdfFunction
         {
             source = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return null;
         }

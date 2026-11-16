@@ -8,6 +8,7 @@ using PVAD.CodeWorker;
 using PVAD.Core.Contracts;
 using PVAD.Generator;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 return await RunAsync(args);
 
@@ -45,6 +46,11 @@ static async Task<int> RunAsync(string[] args)
         }
         else
         {
+            // Host configuration is consumed outside the script. Scripts cannot access
+            // the environment, filesystem, or licensing APIs through the sandbox.
+            var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
+            if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
+            _ = PvadLicense.Require(PvadLicenseProducts.Pdf);
             var options = ScriptOptions.Default.WithReferences(references)
                 .AddReferences(typeof(PdfDocument).Assembly)
                 .AddReferences(typeof(PvadPdfCodeBuilder).Assembly)
@@ -79,6 +85,14 @@ static async Task<int> RunAsync(string[] args)
             }
         }
         response.Success = response.CanonicalDesign is not null;
+    }
+    catch (PvadLicenseException exception)
+    {
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto
+        {
+            Code = exception.Code, Severity = "error",
+            Message = "The native PDF license is unavailable. Contact the server operator.",
+        });
     }
     catch (CompilationErrorException exception)
     {

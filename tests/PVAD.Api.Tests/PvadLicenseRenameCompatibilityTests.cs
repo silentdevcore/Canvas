@@ -48,16 +48,17 @@ public sealed class PvadLicenseRenameCompatibilityTests
     {
         WithDirectory(root =>
         {
-            var options = Options.Create(new PvadLicensingOptions());
+            var options = Options.Create(new PvadLicensingOptions { IssuerEnabled = true });
             var environment = new TestEnvironment { ContentRootPath = root };
-            var first = new PvadLicenseSigningService(options, environment);
+            ProvisionKeys(root, options.Value);
+            var first = new PvadLicenseSignatureVerifier(options, environment);
             const string raw = "{\"product\":\"PVAD\"}";
-            var privatePath = Path.Combine(root, options.Value.PrivateKeyPath);
+            var privatePath = Path.Combine(root, options.Value.PrivateKeyPath!);
             using var key = ECDsa.Create();
             key.ImportFromPem(File.ReadAllText(privatePath));
             var signature = Convert.ToBase64String(key.SignData(Encoding.UTF8.GetBytes(raw), HashAlgorithmName.SHA256));
             var before = File.ReadAllBytes(privatePath);
-            var restarted = new PvadLicenseSigningService(options, environment);
+            var restarted = new PvadLicenseSignatureVerifier(options, environment);
             Assert.Equal(first.PublicKeyPem, restarted.PublicKeyPem);
             Assert.Equal("pvad-development-1", restarted.KeyId);
             Assert.Equal(before, File.ReadAllBytes(privatePath));
@@ -73,9 +74,10 @@ public sealed class PvadLicenseRenameCompatibilityTests
     {
         WithDirectory(root =>
         {
-            var options = Options.Create(new PvadLicensingOptions());
+            var options = Options.Create(new PvadLicensingOptions { IssuerEnabled = true });
             var environment = new TestEnvironment { ContentRootPath = root };
-            var signer = new PvadLicenseSigningService(options, environment);
+            ProvisionKeys(root, options.Value);
+            using var signer = new PvadLicenseSigningService(options, environment);
             var now = DateTimeOffset.UtcNow;
             var subscription = new OrganizationSubscription
             {
@@ -95,7 +97,8 @@ public sealed class PvadLicenseRenameCompatibilityTests
                 "1.1.0", "synthetic-deployment", [], now));
             license.EnvelopeJson = artifact.EnvelopeJson;
             license.Signature = artifact.Signature;
-            var restarted = new PvadLicenseSigningService(options, environment);
+            File.Delete(Path.Combine(root, options.Value.PrivateKeyPath!));
+            var restarted = new PvadLicenseSignatureVerifier(options, environment);
             var result = new PvadOfflineLicenseValidator(restarted).Validate(license, subscription, now);
             Assert.True(result.Valid);
             Assert.True(result.SignatureValid);
@@ -111,15 +114,27 @@ public sealed class PvadLicenseRenameCompatibilityTests
     {
         WithDirectory(root =>
         {
-            var options = new PvadLicensingOptions();
-            var retained = Path.Combine(root, privateExists ? options.PrivateKeyPath : options.PublicKeyPath);
+            var options = new PvadLicensingOptions { IssuerEnabled = true };
+            var retained = Path.Combine(root, privateExists ? options.PrivateKeyPath! : options.PublicKeyPath);
             Directory.CreateDirectory(Path.GetDirectoryName(retained)!);
             File.WriteAllText(retained, "synthetic-retained-key-material");
-            Assert.Throws<InvalidOperationException>(() => new PvadLicenseSigningService(
-                Options.Create(options), new TestEnvironment { ContentRootPath = root }));
+            using var signer = new PvadLicenseSigningService(Options.Create(options), new TestEnvironment { ContentRootPath = root });
+            Assert.Throws<PvadLicenseSigningException>(() => signer.Sign(new(
+                2, Guid.NewGuid(), "synthetic", Guid.NewGuid(), "Synthetic", "Enterprise", "Company", "OnPremise",
+                DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1), 1, "1.1.0", "synthetic", [], DateTimeOffset.UtcNow)));
             Assert.Equal("synthetic-retained-key-material", File.ReadAllText(retained));
             Assert.Single(Directory.GetFiles(root, "*", SearchOption.AllDirectories));
         });
+    }
+
+    private static void ProvisionKeys(string root, PvadLicensingOptions options)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var privatePath = Path.Combine(root, options.PrivateKeyPath!);
+        var publicPath = Path.Combine(root, options.PublicKeyPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(privatePath)!);
+        File.WriteAllText(privatePath, key.ExportECPrivateKeyPem());
+        File.WriteAllText(publicPath, key.ExportSubjectPublicKeyInfoPem());
     }
 
     private static void WithDirectory(Action<string> action)

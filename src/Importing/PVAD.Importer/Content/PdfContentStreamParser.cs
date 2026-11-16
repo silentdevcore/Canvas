@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Tokenizer;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Content;
 
@@ -7,6 +8,13 @@ public sealed class PdfContentStreamParser
 {
     public IReadOnlyList<PdfContentCommand> Parse(ReadOnlyMemory<byte> contentBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(contentBytes);
+    }
+
+    internal IReadOnlyList<PdfContentCommand> ParseAdmitted(ReadOnlyMemory<byte> contentBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var tokenizer = new PdfTokenizer(contentBytes.Span);
         var operands = new List<PdfObject>(8);
         var commands = new List<PdfContentCommand>();
@@ -14,7 +22,7 @@ public sealed class PdfContentStreamParser
 
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind == PdfTokenKind.EndOfFile)
             {
                 break;
@@ -52,7 +60,7 @@ public sealed class PdfContentStreamParser
 
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind == PdfTokenKind.EndOfFile)
             {
                 return CreateInlineImageCommand(startToken, dictionary, ReadOnlyMemory<byte>.Empty, sequence);
@@ -70,13 +78,13 @@ public sealed class PdfContentStreamParser
 
             if (token.Kind == PdfTokenKind.Name)
             {
-                dictionary[PdfNameCodec.Decode(token.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(token.Text[1..])] = ParseOperand(tokenizer.ReadTokenAdmitted(), ref tokenizer);
             }
         }
 
         var dataStart = SkipInlineImageDataPrefix(contentBytes.Span, tokenizer.Position);
         var dataEnd = FindInlineImageDataEnd(contentBytes.Span, dataStart, out var resumePosition);
-        tokenizer.Seek(resumePosition);
+        tokenizer.SeekAdmitted(resumePosition);
 
         return CreateInlineImageCommand(startToken, dictionary, contentBytes.Slice(dataStart, dataEnd - dataStart), sequence);
     }
@@ -121,7 +129,7 @@ public sealed class PdfContentStreamParser
         var array = new PdfArray { SourceSpan = Span(start) };
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind is PdfTokenKind.ArrayEnd or PdfTokenKind.EndOfFile)
             {
                 return array;
@@ -136,7 +144,7 @@ public sealed class PdfContentStreamParser
         var dictionary = new PdfDictionary { SourceSpan = Span(start) };
         while (true)
         {
-            var key = tokenizer.ReadToken();
+            var key = tokenizer.ReadTokenAdmitted();
             if (key.Kind is PdfTokenKind.DictionaryEnd or PdfTokenKind.EndOfFile)
             {
                 return dictionary;
@@ -144,7 +152,7 @@ public sealed class PdfContentStreamParser
 
             if (key.Kind == PdfTokenKind.Name)
             {
-                dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseOperand(tokenizer.ReadTokenAdmitted(), ref tokenizer);
             }
         }
     }

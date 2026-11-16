@@ -50,8 +50,12 @@
     <MSBuild Projects="../../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="../../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj"
+             Targets="GetTargetPath" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+      <Output TaskParameter="TargetOutputs" PropertyName="ImageOcrWorkerTargetPath" />
+    </MSBuild>
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../../src/Importing/PVAD.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="$([System.IO.Path]::GetDirectoryName('$(ImageOcrWorkerTargetPath)'))/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)"
           DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')"

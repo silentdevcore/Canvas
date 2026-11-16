@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -25,6 +26,7 @@ internal static class PdfImageColorConverter
         PdfStreamObject image,
         Func<PdfObject?, PdfObject?> resolve)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         // Stencil masks paint with the current graphics-state colour and intentionally have
         // no /ColorSpace. Their one-bit samples must not be treated as coloured image data.
         if (resolve(image.Dictionary["ImageMask"]) is PdfBoolean { Value: true })
@@ -73,7 +75,7 @@ internal static class PdfImageColorConverter
                 ? image.DecodedBytes.ToArray()
                 : new PdfStreamDecoderRegistry().Decode(image).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return Block("The image samples could not be decoded within the configured safety limits.");
         }

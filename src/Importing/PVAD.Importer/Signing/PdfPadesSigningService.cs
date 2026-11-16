@@ -8,6 +8,7 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Trust;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -35,6 +36,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (options?.Profile is PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA)
         {
             throw new InvalidOperationException("PAdES Baseline T, LT, and LTA require SignAsync and a timestamp authority.");
@@ -50,8 +52,11 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null,
         IPdfTimestampAuthority? timestampAuthority = null,
-        CancellationToken cancellationToken = default) =>
-        SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
+        return SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+    }
 
     private static async Task<PdfSigningResult> SignCoreAsync(
         ReadOnlyMemory<byte> source,

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -20,6 +21,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         PdfTrustInspectionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         options ??= new PdfTrustInspectionOptions();
         if (options.MaximumFileSizeBytes <= 0 || options.MaximumFileSizeBytes > int.MaxValue)
@@ -92,7 +94,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 structureStatus = PdfTrustStatus.Invalid;
             }
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception) when (exception is not (OperationCanceledException or PvadLicenseException))
         {
             diagnostics.Add(new PdfTrustDiagnostic(
                 "PVADPDFTRUST002",

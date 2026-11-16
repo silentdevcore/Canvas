@@ -8,6 +8,7 @@ using PVAD.Importer.Saving;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -23,6 +24,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConversionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
         return BuildPreflight(parsed, options.Profile);
@@ -33,6 +35,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConversionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
         var preflight = BuildPreflight(parsed, options.Profile);

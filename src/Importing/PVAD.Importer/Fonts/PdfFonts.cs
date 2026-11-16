@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using System.Text;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Fonts;
 
@@ -37,7 +38,17 @@ public sealed class PdfFontResource
 
     public string Decode(ReadOnlySpan<byte> glyphBytes)
     {
-        return ToUnicode?.Decode(glyphBytes) ?? Encoding.Decode(glyphBytes);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(glyphBytes);
+    }
+
+    internal string DecodeAdmitted(ReadOnlySpan<byte> glyphBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        if (ToUnicode is not null) return ToUnicode.DecodeAdmitted(glyphBytes);
+        return Encoding is PdfToUnicodeMap || Encoding.GetType() == typeof(PdfEncodingMap)
+            ? Encoding.DecodeAdmitted(glyphBytes)
+            : Encoding.Decode(glyphBytes);
     }
 
     public double GetGlyphWidth(int code)
@@ -47,6 +58,13 @@ public sealed class PdfFontResource
 
     public IReadOnlyList<int> GetGlyphCodes(ReadOnlySpan<byte> glyphBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return GetGlyphCodesAdmitted(glyphBytes);
+    }
+
+    internal IReadOnlyList<int> GetGlyphCodesAdmitted(ReadOnlySpan<byte> glyphBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var byteLength = Math.Max(1, CodeByteLength);
         var codes = new List<int>((glyphBytes.Length + byteLength - 1) / byteLength);
         for (var index = 0; index < glyphBytes.Length; index += byteLength)
@@ -71,6 +89,13 @@ public class PdfEncodingMap
 
     public virtual string Decode(ReadOnlySpan<byte> glyphBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(glyphBytes);
+    }
+
+    internal virtual string DecodeAdmitted(ReadOnlySpan<byte> glyphBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         return System.Text.Encoding.Latin1.GetString(glyphBytes);
     }
 }
@@ -91,6 +116,13 @@ public sealed class PdfToUnicodeMap : PdfEncodingMap
 
     public override string Decode(ReadOnlySpan<byte> glyphBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(glyphBytes);
+    }
+
+    internal override string DecodeAdmitted(ReadOnlySpan<byte> glyphBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var builder = new StringBuilder(glyphBytes.Length);
         var index = 0;
 

@@ -1,4 +1,5 @@
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using SkiaSharp;
 using System.Diagnostics;
 
@@ -36,6 +37,16 @@ public sealed class ImageToPdfConverter
         ImageToPdfConversionOptions options,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr);
+        return await ConvertAdmittedAsync(stream, fileName, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<ImageToPdfConversionResult> ConvertAdmittedAsync(
+        Stream stream, string? fileName, ImageToPdfConversionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(options);
 

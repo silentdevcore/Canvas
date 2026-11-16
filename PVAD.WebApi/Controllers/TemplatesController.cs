@@ -9,6 +9,7 @@ using PVAD.WebApi.Services.Jobs;
 using PVAD.WebApi.Application.Designer;
 using PVAD.WebApi.Security;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Controllers;
 
@@ -81,7 +82,7 @@ public class TemplatesController : ControllerBase
         {
             return BadRequest(new { error = "Template validation failed", details = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -153,7 +154,7 @@ public class TemplatesController : ControllerBase
             var template = await _createTemplateUseCase.ExecuteAsync(request);
             return CreatedAtAction(nameof(GetTemplate), new { id = template.Id }, template);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -182,7 +183,7 @@ public class TemplatesController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -242,7 +243,7 @@ public class TemplatesController : ControllerBase
                 Detail = "The template changed while the update was being saved. Reload it and retry.",
             });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -269,7 +270,7 @@ public class TemplatesController : ControllerBase
             var result = await _validateTemplateUseCase.ExecuteAsync(request);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -290,7 +291,7 @@ public class TemplatesController : ControllerBase
             var templates = await _getTemplateUseCase.GetTemplateNamesAsync();
             return Ok(templates);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
@@ -334,7 +335,7 @@ public class TemplatesController : ControllerBase
             var filename = ExportFileNameSanitizer.Sanitize(design.Name) + ".pdf";
             return File(bytes, "application/pdf", filename);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             var inner = ex.InnerException?.Message;
             var trace = ex.StackTrace?.Split('\n').Take(5).ToArray();

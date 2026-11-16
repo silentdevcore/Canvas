@@ -3,6 +3,7 @@ using System.Text;
 using PVAD.Importer.Document;
 using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Content;
 
@@ -10,11 +11,13 @@ public sealed class PdfContentStreamRewriter
 {
     public ReadOnlyMemory<byte> Rewrite(PdfPageModel page)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         return Rewrite(page.GraphicsObjects);
     }
 
     public ReadOnlyMemory<byte> Rewrite(IEnumerable<PdfGraphicsElement> elements)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         using var stream = new MemoryStream();
         foreach (var element in elements.Where(element => !element.IsDeleted).OrderBy(element => element.ZOrder))
         {

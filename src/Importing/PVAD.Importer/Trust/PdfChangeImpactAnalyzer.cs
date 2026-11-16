@@ -1,3 +1,5 @@
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Trust;
 
 public enum PdfSaveStrategy
@@ -52,6 +54,7 @@ public sealed class PdfChangeImpactAnalyzer
         PdfSaveStrategy saveStrategy,
         PdfMutationKind mutation)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(trustReport);
 
         var signatureImpacts = trustReport.Signatures

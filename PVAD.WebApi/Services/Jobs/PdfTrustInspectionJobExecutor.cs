@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PVAD.Domain.Entities;
 using PVAD.Importer.Trust;
+using PVAD.Licensing;
 using PVAD.WebApi.Services.Pdf;
 using PVAD.WebApi.Services.Storage;
 
@@ -20,6 +21,7 @@ public sealed class PdfTrustInspectionJobExecutor(
     {
         if (job.Type != PvadJobQueue.PdfTrustInspectionType || job.InputObjectId is not { } inputObjectId)
             throw new PvadPermanentJobException("The PDF Trust inspection job is invalid.");
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (job.ResultObjectId is { } existingResultId)
         {
             var existingResult = await storedObjects.OpenAsync(

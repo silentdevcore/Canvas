@@ -2,6 +2,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Xref;
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Security;
 
@@ -26,6 +27,16 @@ public static class PdfDocumentDecryptor
         PdfObjectGraph graph,
         string password)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecryptAdmitted(xref, graph, password);
+    }
+
+    internal static PdfDecryptionResult DecryptAdmitted(
+        PdfCrossReferenceTable xref,
+        PdfObjectGraph graph,
+        string password)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(xref);
         ArgumentNullException.ThrowIfNull(graph);
 
@@ -44,7 +55,7 @@ public static class PdfDocumentDecryptor
 
         PdfDecryptionResult result;
         using IPdfDocumentSecurityHandler handler = PdfStandardSecurityHandler.IsSupported(encrypt)
-            ? PdfStandardSecurityHandler.Open(encrypt, password, out result)
+            ? PdfStandardSecurityHandler.OpenAdmitted(encrypt, password, out result)
             : PdfLegacyStandardSecurityHandler.Open(encrypt, ReadDocumentId(xref), password, out result);
         ApplyDecryption(graph, encryptId, handler, result);
         return result;
@@ -56,6 +67,16 @@ public static class PdfDocumentDecryptor
         PdfObjectGraph graph,
         X509Certificate2 certificate)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecryptAdmitted(xref, graph, certificate);
+    }
+
+    internal static PdfDecryptionResult DecryptAdmitted(
+        PdfCrossReferenceTable xref,
+        PdfObjectGraph graph,
+        X509Certificate2 certificate)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(xref);
         ArgumentNullException.ThrowIfNull(graph);
         ArgumentNullException.ThrowIfNull(certificate);
@@ -79,12 +100,22 @@ public static class PdfDocumentDecryptor
         PdfCrossReferenceTable xref,
         string password)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAndDecryptAdmitted(context, xref, password);
+    }
+
+    internal static (PdfObjectGraph Graph, PdfDecryptionResult Result) ParseAndDecryptAdmitted(
+        PdfParseContext context,
+        PdfCrossReferenceTable xref,
+        string password)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(xref);
 
         var parser = new PdfObjectParser(context, xref);
-        var graph = parser.ParseDocumentGraph(parseCompressedObjects: false);
-        var result = Decrypt(xref, graph, password);
+        var graph = parser.ParseDocumentGraphAdmitted(parseCompressedObjects: false);
+        var result = DecryptAdmitted(xref, graph, password);
         parser.ParseCompressedObjects(graph);
         return (graph, result);
     }
@@ -94,12 +125,22 @@ public static class PdfDocumentDecryptor
         PdfCrossReferenceTable xref,
         X509Certificate2 certificate)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAndDecryptAdmitted(context, xref, certificate);
+    }
+
+    internal static (PdfObjectGraph Graph, PdfDecryptionResult Result) ParseAndDecryptAdmitted(
+        PdfParseContext context,
+        PdfCrossReferenceTable xref,
+        X509Certificate2 certificate)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(xref);
         ArgumentNullException.ThrowIfNull(certificate);
         var parser = new PdfObjectParser(context, xref);
-        var graph = parser.ParseDocumentGraph(parseCompressedObjects: false);
-        var result = Decrypt(xref, graph, certificate);
+        var graph = parser.ParseDocumentGraphAdmitted(parseCompressedObjects: false);
+        var result = DecryptAdmitted(xref, graph, certificate);
         parser.ParseCompressedObjects(graph);
         return (graph, result);
     }
@@ -144,7 +185,7 @@ public static class PdfDocumentDecryptor
         {
             case PdfString text:
                 return handler.ShouldDecryptString
-                    ? new PdfString(handler.DecryptValue(
+                    ? new PdfString(DecryptAdmittedValue(handler,
                         text.GetDecodedBytes().Span, objectId.Number, objectId.Generation), IsHex: false)
                     : text;
             case PdfArray array:
@@ -185,7 +226,7 @@ public static class PdfDocumentDecryptor
                         objectId.Number,
                         objectId.Generation,
                         streamObject.Dictionary)
-                    : handler.DecryptValue(
+                    : DecryptAdmittedValue(handler,
                         streamObject.EncodedBytes.Span, objectId.Number, objectId.Generation);
                 dictionaryValue["Length"] = new PdfInteger(decoded.Length);
                 return new PdfStreamObject(dictionaryValue, decoded);
@@ -204,6 +245,12 @@ public static class PdfDocumentDecryptor
 
         return value;
     }
+
+    private static byte[] DecryptAdmittedValue(
+        IPdfDocumentSecurityHandler handler, ReadOnlySpan<byte> bytes, int objectNumber, int generation) =>
+        handler is PdfStandardSecurityHandler builtin
+            ? builtin.DecryptValueAdmitted(bytes)
+            : handler.DecryptValue(bytes, objectNumber, generation);
 
     private static byte[] ReadDocumentId(PdfCrossReferenceTable xref)
     {

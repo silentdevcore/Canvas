@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using PVAD.Importer.Objects;
 using PVAD.Pdf.Serialization.Security;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Security;
 
@@ -64,6 +65,13 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
     /// <summary>Builds a handler and a fresh random file encryption key for a new document.</summary>
     public static PdfStandardSecurityHandler Create(PdfDocumentEncryptionOptions options)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return CreateAdmitted(options);
+    }
+
+    internal static PdfStandardSecurityHandler CreateAdmitted(PdfDocumentEncryptionOptions options)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(options);
         if (options.Algorithm != PdfDocumentEncryptionAlgorithm.Aes256)
         {
@@ -155,6 +163,16 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
         string password,
         out PdfDecryptionResult result)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return OpenAdmitted(encrypt, password, out result);
+    }
+
+    internal static PdfStandardSecurityHandler OpenAdmitted(
+        PdfDictionary encrypt,
+        string password,
+        out PdfDecryptionResult result)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(encrypt);
         EnsureSupported(encrypt);
 
@@ -309,6 +327,13 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
     /// </summary>
     public byte[] EncryptValue(ReadOnlySpan<byte> plaintext)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return EncryptValueAdmitted(plaintext);
+    }
+
+    internal byte[] EncryptValueAdmitted(ReadOnlySpan<byte> plaintext)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ObjectDisposedException.ThrowIf(_disposed, this);
         var iv = RandomNumberGenerator.GetBytes(16);
         using var aes = Aes.Create();
@@ -325,6 +350,13 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
 
     public byte[] DecryptValue(ReadOnlySpan<byte> ciphertext)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecryptValueAdmitted(ciphertext);
+    }
+
+    internal byte[] DecryptValueAdmitted(ReadOnlySpan<byte> ciphertext)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (ciphertext.Length < 32 || (ciphertext.Length - 16) % 16 != 0)
         {
@@ -347,6 +379,13 @@ public sealed class PdfStandardSecurityHandler : IPdfDocumentSecurityHandler
     /// <summary>Builds the <c>/Encrypt</c> dictionary for a newly encrypted document.</summary>
     public PdfDictionary BuildEncryptDictionary()
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return BuildEncryptDictionaryAdmitted();
+    }
+
+    internal PdfDictionary BuildEncryptDictionaryAdmitted()
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ObjectDisposedException.ThrowIf(_disposed, this);
         var cryptFilter = new PdfDictionary
         {

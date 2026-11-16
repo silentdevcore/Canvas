@@ -1,4 +1,5 @@
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -65,6 +66,7 @@ public static class PdfSrgbColorConverter
         Func<PdfObject?, PdfObject?> resolve,
         int depth = 0)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (depth > MaximumDepth)
         {
             return new PdfResolvedColorSpace(PdfColorSpaceFamily.Unsupported, 0);
@@ -206,6 +208,7 @@ public static class PdfSrgbColorConverter
     /// </summary>
     public static double[]? ToSrgb(PdfResolvedColorSpace space, IReadOnlyList<double> components, int depth = 0)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (depth > MaximumDepth)
         {
             return null;
@@ -444,7 +447,7 @@ public static class PdfSrgbColorConverter
         {
             return new Streams.PdfStreamDecoderRegistry().Decode(stream).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return null;
         }

@@ -1,0 +1,10 @@
+{
+  "id": "pdf-import-buffer-ownership",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Imported PDF streams retain their source data after input buffers are released. Input-buffer cleanup now handles non-seekable streams, cancellation, read failures and repeated disposal correctly.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

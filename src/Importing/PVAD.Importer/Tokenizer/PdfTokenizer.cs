@@ -1,3 +1,5 @@
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Tokenizer;
 
 public ref struct PdfTokenizer
@@ -15,11 +17,25 @@ public ref struct PdfTokenizer
 
     public void Seek(int position)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        SeekAdmitted(position);
+    }
+
+    internal void SeekAdmitted(int position)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         _position = Math.Clamp(position, 0, _source.Length);
     }
 
     public PdfToken ReadToken()
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ReadTokenAdmitted();
+    }
+
+    internal PdfToken ReadTokenAdmitted()
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         SkipWhiteSpace();
         if (_position >= _source.Length)
         {

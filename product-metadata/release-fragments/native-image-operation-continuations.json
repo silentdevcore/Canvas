@@ -1,0 +1,10 @@
+{
+  "id": "native-image-operation-continuations",
+  "impact": "patch",
+  "components": ["importer", "generator", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted image-analysis and in-process OCR operations can finish after license expiry or renewal. New public calls still validate the current license, and completed operation contexts cannot be reused.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

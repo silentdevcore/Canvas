@@ -1,5 +1,8 @@
 # PVAD SDK Roadmap Checklist
 
+Native .NET distribution and protection are tracked separately in
+[Native Library Licensing And Protection](PVAD.Native-Library-Licensing-And-Protection.md).
+
 ## Goal
 
 Create a shared, versioned SDK platform that exposes one professional developer experience across PVAD Cloud and customer-managed PVAD Server installations.

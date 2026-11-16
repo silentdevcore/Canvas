@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -58,6 +59,7 @@ internal static class PdfIccColorTransform
         int componentCount,
         IReadOnlyList<double> components)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var api = Native.Value;
         if (api is null || profileBytes.Length < 128 || componentCount is not (1 or 3 or 4) ||
             components.Count < componentCount)

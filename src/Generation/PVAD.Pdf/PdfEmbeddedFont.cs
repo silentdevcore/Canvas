@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PVAD.Pdf;
@@ -83,8 +84,7 @@ public sealed class PdfEmbeddedFont
 
     internal IReadOnlyList<ShapedGlyph> Shape(string text)
     {
-        using var stream = new MemoryStream(FontBytes.ToArray(), writable: false);
-        using var blob = HarfBuzzSharp.Blob.FromStream(stream);
+        using var blob = CreateShapingBlob();
         using var face = new HarfBuzzSharp.Face(blob, 0);
         using var font = new HarfBuzzSharp.Font(face);
         font.SetFunctionsOpenType();
@@ -117,6 +117,21 @@ public sealed class PdfEmbeddedFont
             }
         }
         return result;
+    }
+
+    internal HarfBuzzSharp.Blob CreateShapingBlob()
+    {
+        var bytes = FontBytes.ToArray();
+        var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+        try
+        {
+            // Native shaping must own its bytes after the managed array can move or be collected.
+            return new HarfBuzzSharp.Blob(pinned.AddrOfPinnedObject(), bytes.Length, HarfBuzzSharp.MemoryMode.Duplicate);
+        }
+        finally
+        {
+            pinned.Free();
+        }
     }
 
     internal sealed record ShapedGlyph(ushort Id, double Advance, double OffsetX, double OffsetY, string Unicode);

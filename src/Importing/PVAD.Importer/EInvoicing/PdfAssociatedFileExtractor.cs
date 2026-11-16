@@ -5,6 +5,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.EInvoicing;
 
@@ -33,6 +34,7 @@ public sealed class PdfAssociatedFileExtractor
         PdfAssociatedFileExtractionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         options ??= new PdfAssociatedFileExtractionOptions();
         ValidateOptions(options);

@@ -185,11 +185,12 @@
           "title": "Offline licenses",
           "group": "Commercial",
           "permission": "System Administrator",
-          "summary": "Issue, validate, download, replace, and revoke signed Enterprise licenses for approved deployments.",
+          "summary": "Read, validate, and download signed Enterprise licenses. Issuance and replacement require an explicitly enabled manufacturer issuer.",
           "prerequisites": [
             "Use an active, email-verified account.",
             "Select the intended organization.",
-            "Required access: System Administrator."
+            "Required access: System Administrator.",
+            "For issuance or replacement, use the explicitly configured manufacturer issuer; customer verification servers cannot perform these operations."
           ],
           "steps": [
             "Open Offline licenses.",
@@ -208,6 +209,10 @@
           "screenshot": "licenses.png",
           "notes": [
             "Only approved Enterprise On-Premise or Hybrid subscriptions can receive an offline license.",
+            "Customer servers use verification-only mode and do not need private signing keys. System Administrator access alone does not enable issuance or replacement.",
+            "This workspace manages existing server-license schemas 1 and 2. Native library licenses are a separate profile and are not enabled by the issuer setting alone.",
+            "Issuance and replacement require Licensing:IssuerEnabled=true on the manufacturer-operated issuer with a provisioned matching key pair; missing keys are never generated automatically.",
+            "PVAD_LICENSE_ISSUANCE_DISABLED identifies a verification-only server. PVAD_LICENSE_ISSUER_UNAVAILABLE and PVAD_LICENSE_VERIFIER_UNAVAILABLE identify issuer and public-key configuration failures without exposing secrets.",
             "The replacement API requires licenses.manage, System Administrator access, CSRF, and a reason. No replacement button is added by this migration.",
             "Replacement atomically creates a PVAD successor, marks the original Replaced, and records audit/outbox events. Signed history, validity, limits, and entitlements remain unchanged; private signing keys never enter Admin.",
             "Schema-1 replacement requires explicit productVersion and deploymentId. Schema-2 bindings cannot be changed; concurrent or repeated replacement returns 409.",

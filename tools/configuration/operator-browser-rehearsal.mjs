@@ -10,6 +10,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { createRequire } from 'node:module';
 import { grafanaDatasourcePath, grafanaProviderPath, prepareGrafanaInventory } from './grafana-inventory.mjs';
 import { exerciseOperatorBrowser } from './operator-browser-scenarios.mjs';
+import { nativeTestAssemblyPath, nativeTestEnvironment, withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { load } = createRequire(resolve(root, 'pvad-designer/package.json'))('js-yaml');
@@ -31,7 +32,8 @@ const dockerCommand = (args, { mergeOutput = false, ...options } = {}) => {
 
 export function childEnvironment(environment) {
   const allow = ['PATH', 'HOME', 'TMPDIR', 'DOTNET_ROOT', 'DOTNET_CLI_HOME', 'NUGET_PACKAGES', 'LANG', 'LC_ALL'];
-  return Object.fromEntries(allow.filter(key => environment[key] !== undefined).map(key => [key, environment[key]]));
+  return { ...Object.fromEntries(allow.filter(key => environment[key] !== undefined).map(key => [key, environment[key]])),
+    ...nativeTestEnvironment(environment) };
 }
 
 export function gatewayAddress(subnet) {
@@ -87,6 +89,10 @@ export async function freePort() {
 }
 
 export async function runOperatorBrowserRehearsal({ docker = dockerCommand, progress = () => {}, recordFailure = false, withMonitoring = false } = {}) {
+  return await withNativeTestSession(() => runOperatorBrowserRehearsalCore({ docker, progress, recordFailure, withMonitoring }));
+}
+
+async function runOperatorBrowserRehearsalCore({ docker, progress, recordFailure, withMonitoring }) {
   const output = withMonitoring ? resolve(root, 'artifacts/rename/monitoring-operator-rehearsal') : defaultOutput;
   const config = load(await readFile(resolve(root, 'docker-compose.yml'), 'utf8'));
   const monitoringModule = withMonitoring ? await import('./monitoring-operator-lab.mjs') : null;
@@ -189,7 +195,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     const grafanaPassword = randomBytes(32).toString('hex');
     secrets.push(password, databasePassword, grafanaPassword);
     step('build');
-    await finish(command('api-build', ['dotnet', 'build', 'PVAD.WebApi/PVAD.WebApi.csproj', '--no-restore', '--disable-build-servers', '-m:1',
+    await finish(command('api-build', ['dotnet', 'build', 'PVAD.WebApi/PVAD.WebApi.csproj', '--disable-build-servers', '-m:1',
       '-p:SkipOcrWorkerPackaging=true', '-p:SkipCodeWorkerPackaging=true', '--verbosity', 'quiet']));
     await finish(command('schema', ['dotnet', 'ef', 'migrations', 'script', '--project', persistence, '--no-build', '--output', resolve(work, 'schema.sql')]));
     await finish(command('ui-build', ['npm', 'run', 'build', '--', '--outDir', resolve(work, 'admin')], resolve(root, 'websites/PVAD.Admin')));
@@ -223,7 +229,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     let api;
     const startApi = async name => {
       if (apiPort) apiEnv.ASPNETCORE_URLS = `http://127.0.0.1:${apiPort}`;
-      api = command(name, ['dotnet', 'bin/Debug/net10.0/PVAD.WebApi.dll'], resolve(root, 'PVAD.WebApi'), apiEnv);
+      api = command(name, ['dotnet', nativeTestAssemblyPath('PVAD.WebApi/PVAD.WebApi.csproj')], resolve(root, 'PVAD.WebApi'), apiEnv);
       for (let i = 0; i < 180 && !api.address; i++) {
         assert.ok(api.child.exitCode === null && api.child.signalCode === null, 'Isolated API exited before binding.');
         await delay(500);
@@ -292,7 +298,7 @@ export async function runOperatorBrowserRehearsal({ docker = dockerCommand, prog
     result = { schemaVersion: 1, status: 'passed', sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
       uncommittedTrackedChanges: execFileSync('git', ['diff', '--name-only', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim().length > 0,
       syntheticOnly: true, deploymentAuthorized: false, images, sourceChecksums: baseline, harnessChecksums: harnessBaseline,
-      apiBinarySha256: hash(await readFile(resolve(root, 'PVAD.WebApi/bin/Debug/net10.0/PVAD.WebApi.dll'))), ...browserResult,
+      apiBinarySha256: hash(await readFile(nativeTestAssemblyPath('PVAD.WebApi/PVAD.WebApi.csproj'))), ...browserResult,
       ...(monitoring ? { monitoring: monitoring.report } : {}),
       limits: ['local-http-development-cookies-not-production-tls', 'not-account-designer-pkce-browser-coverage',
         ...(monitoring ? ['synthetic-alert-timing-not-production-sla', 'local-grafana-sqlite-only-not-customer-recovery']

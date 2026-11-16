@@ -7,6 +7,56 @@
 > compatibility behavior are kept as dated history.
 
 This stack contains PostgreSQL, the hardened WebApi image, and the optional remote MCP server.
+
+## License Verification And Manufacturer Issuance
+
+The default API stack is a customer verification deployment:
+
+- `Licensing:IssuerEnabled=false`; issue/replace operations are rejected even for System Administrators.
+- Only `PVAD_LICENSE_PUBLIC_KEY_FILE` is required and mounted read-only. No private license key is mounted.
+- License listing, downloads, and validation use existing stored artifacts without rewriting them.
+- Preserve the installed public key and key ID. Moving signing to an issuer does not require rotation or reissuing existing licenses.
+
+A manufacturer-operated issuer must explicitly add the separate overlay:
+
+```bash
+node tools/configuration/pvad-compose.mjs \
+  -f deploy/api/docker-compose.api.yml \
+  -f deploy/api/docker-compose.license-issuer.yml config
+```
+
+That overlay enables issuance and additionally requires
+`PVAD_LICENSE_PRIVATE_KEY_FILE`. Apply it only to the manufacturer's protected
+issuer, never to a customer deployment. Keep existing key bytes unchanged and
+transfer signing keys only through an approved secure procedure. Do not delete
+old host key files automatically or mount signing keys in a customer container.
+
+No environment, including Development and Testing, generates missing license
+keys automatically. The signer loads a provisioned key only when an authorized
+issue/replace operation actually signs and checks that it matches the configured
+verification key. Key/configuration changes require a process restart.
+
+`PVAD_LICENSE_ISSUANCE_DISABLED` means this is a verification-only server.
+`PVAD_LICENSE_ISSUER_UNAVAILABLE` means an enabled issuer lacks a usable matching
+key pair. `PVAD_LICENSE_VERIFIER_UNAVAILABLE` identifies missing/invalid public
+verification configuration without exposing key material or file paths.
+
+The server-license format and its schema-1/schema-2 compatibility remain
+unchanged. Native library licensing is a separate profile and is not enabled by
+this overlay; see the [native library guide](../../docs/native-library-licensing.md).
+
+## API And MCP
+
+Native PDF processing now independently requires a signed native `pdf` license.
+Provision the approved manufacturer public keys in the build and mount the
+signed native license read-only, configuring `NativeLicensing__LicensePath`.
+The current base Compose intentionally does not invent a license or mount an
+unprovisioned native secret. An absent native configuration leaves PDF work
+unlicensed; an explicitly invalid file fails startup. The code worker receives
+only this file path and verifies the license itself. Existing server-license
+keys and issuer mode do not grant native SDK rights. See the
+[native activation guide](../../docs/native-library-licensing.md#api-and-worker-activation).
+
 Use the launcher below for legacy PVAD environment aliases and conflict validation.
 For an env file outside the current directory, pass an explicit `--env-file`.
 The launcher supports literal dotenv values; resolve `${...}` interpolation before

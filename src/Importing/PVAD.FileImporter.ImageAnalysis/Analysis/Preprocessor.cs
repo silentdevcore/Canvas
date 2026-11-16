@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Analysis;
@@ -21,6 +22,13 @@ public static class Preprocessor
     /// </summary>
     public static PreparedImage Prepare(SKBitmap source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return PrepareCore(source);
+    }
+
+    internal static PreparedImage PrepareCore(SKBitmap source)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         // ── 1. Scale to working resolution ───────────────────────────────────
         var (scaled, scaleFactor) = ScaleToWorkingResolution(source);
 
@@ -29,7 +37,7 @@ public static class Preprocessor
 
         // ── 3. Binarise via Otsu's method, with a conservative adaptive
         // fallback for uneven backgrounds where global Otsu over-selects.
-        int threshold = ComputeOtsuThreshold(grayscale);
+        int threshold = ComputeOtsuThresholdCore(grayscale);
         var binary    = Binarise(grayscale, threshold);
         if (ShouldUseAdaptiveThreshold(scaled, grayscale, binary))
         {
@@ -104,6 +112,13 @@ public static class Preprocessor
     /// </summary>
     public static int ComputeOtsuThreshold(SKBitmap gray)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ComputeOtsuThresholdCore(gray);
+    }
+
+    internal static int ComputeOtsuThresholdCore(SKBitmap gray)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         // Build 256-bin intensity histogram
         var hist = new long[256];
         unsafe

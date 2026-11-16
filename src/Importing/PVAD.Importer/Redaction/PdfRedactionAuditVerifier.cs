@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Redaction;
 
@@ -17,6 +18,7 @@ public static class PdfRedactionAuditVerifier
         bool requireSignature = false,
         bool requireTimestamp = false)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(record);
 
         if (!IsSha256(record.SourceSha256) ||

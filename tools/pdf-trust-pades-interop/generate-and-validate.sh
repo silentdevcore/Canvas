@@ -2,6 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "${PVAD_NATIVE_TEST_SESSION:-}" ]]; then
+  exec node "$ROOT/tools/native-licensing/test-session.mjs" exec -- bash "$ROOT/tools/pdf-trust-pades-interop/generate-and-validate.sh" "$@"
+fi
+cd "$ROOT"
 TOOL_DIRECTORY="$ROOT/tools/pdf-trust-pades-interop"
 OUTPUT_DIRECTORY="${1:-$ROOT/artifacts/pdf-trust-pades-interop}"
 IMAGE="pvad-dss-validator:6.4"

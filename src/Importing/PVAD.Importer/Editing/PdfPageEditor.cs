@@ -4,6 +4,7 @@ using PVAD.Importer.Saving;
 using PVAD.Importer.Security;
 using PVAD.Importer.Trust;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Editing;
 
@@ -70,6 +71,7 @@ public sealed class PdfPageEditor
         IReadOnlyList<PdfPageEditOperation> operations,
         PdfPageEditOptions? options = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
         ArgumentNullException.ThrowIfNull(operations);
@@ -214,6 +216,7 @@ public sealed class PdfPageEditor
         PdfPageBoxKind pageBox,
         PdfParseLimits? limits = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
         ValidatePageBoxKind(pageBox);

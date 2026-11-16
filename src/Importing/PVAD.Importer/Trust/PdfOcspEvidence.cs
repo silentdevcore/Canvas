@@ -1,6 +1,7 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -21,6 +22,7 @@ public static class PdfOcspEvidence
 
     public static byte[] CreateRequest(X509Certificate2 certificate, X509Certificate2 issuer)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var writer = new AsnWriter(AsnEncodingRules.DER);
         writer.PushSequence();
         writer.PushSequence();
@@ -76,6 +78,7 @@ public static class PdfOcspEvidence
         string source,
         bool historical)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var reader = new AsnReader(encodedResponse, AsnEncodingRules.DER);
         var response = reader.ReadSequence();
         var responseStatus = response.ReadEnumeratedValue<OcspResponseStatus>();

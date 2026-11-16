@@ -1,0 +1,10 @@
+{
+  "id": "native-designer-pdf-import-continuations",
+  "impact": "patch",
+  "components": ["importer", "api", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF-to-Designer imports retain their license admission through scene analysis and document mapping. New public imports and analysis operations still check the current license without changing layout or chart-recognition behavior.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

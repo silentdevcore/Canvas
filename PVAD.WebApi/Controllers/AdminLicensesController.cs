@@ -78,6 +78,8 @@ public sealed class AdminLicensesController : ControllerBase
             return Forbid();
         if (tenantContext.UserId is not { } actorUserId)
             return Unauthorized();
+        if (!signingService.CanSign)
+            return IssuanceUnavailable("PVAD_LICENSE_ISSUANCE_DISABLED", 403);
         var validFrom = PvadLicenseTimestamps.Normalize(request.ValidFrom);
         var validUntil = PvadLicenseTimestamps.Normalize(request.ValidUntil);
         if (validFrom >= validUntil || validUntil <= DateTimeOffset.UtcNow ||
@@ -134,7 +136,9 @@ public sealed class AdminLicensesController : ControllerBase
             subscription.Edition.ToString(), subscription.AccountType.ToString(), subscription.DeploymentMode.ToString(),
             license.ValidFrom, license.ValidUntil, license.InstanceLimit,
             request.ProductVersion, request.DeploymentId, entitlements, license.IssuedAt);
-        var artifact = signingService.Sign(envelope);
+        PvadSignedLicenseArtifact artifact;
+        try { artifact = signingService.Sign(envelope); }
+        catch (PvadLicenseSigningException exception) { return IssuanceUnavailable(exception.Code, 503); }
         license.EnvelopeJson = artifact.EnvelopeJson;
         license.Signature = artifact.Signature;
         license.KeyId = artifact.KeyId;
@@ -170,6 +174,8 @@ public sealed class AdminLicensesController : ControllerBase
     {
         if (!IsSystemAdministrator()) return Forbid();
         if (tenantContext.UserId is not { } actorUserId) return Unauthorized();
+        if (!signingService.CanSign)
+            return IssuanceUnavailable("PVAD_LICENSE_ISSUANCE_DISABLED", 403);
         if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 500)
             return ValidationProblem("A replacement reason is required (maximum 500 characters).");
 
@@ -227,11 +233,16 @@ public sealed class AdminLicensesController : ControllerBase
                 ValidUntil = previous.ValidUntil, InstanceLimit = previous.InstanceLimit,
                 IssuedByUserId = actorUserId, IssuedAt = now,
             };
-            var artifact = signingService.Sign(original with
+            PvadSignedLicenseArtifact artifact;
+            try
             {
-                SchemaVersion = 2, LicenseId = replacement.Id, LicenseNumber = replacement.LicenseNumber,
-                IssuedAt = now, ProductVersion = version, DeploymentId = deployment,
-            });
+                artifact = signingService.Sign(original with
+                {
+                    SchemaVersion = 2, LicenseId = replacement.Id, LicenseNumber = replacement.LicenseNumber,
+                    IssuedAt = now, ProductVersion = version, DeploymentId = deployment,
+                });
+            }
+            catch (PvadLicenseSigningException exception) { return IssuanceUnavailable(exception.Code, 503); }
             replacement.EnvelopeJson = artifact.EnvelopeJson;
             replacement.Signature = artifact.Signature;
             replacement.KeyId = artifact.KeyId;
@@ -347,6 +358,11 @@ public sealed class AdminLicensesController : ControllerBase
     }
 
     private bool IsSystemAdministrator() => User.IsInRole(PvadRoles.SystemAdministrator);
+    private ObjectResult IssuanceUnavailable(string code, int statusCode) => Problem(
+        statusCode: statusCode,
+        title: statusCode == 403 ? "License issuance is disabled" : "License issuer unavailable",
+        detail: "Contact the license issuer. This server cannot issue or replace license artifacts.",
+        extensions: new Dictionary<string, object?> { ["code"] = code });
     private Task<int> QueueLicenseNotification(
         OfflineLicense license,
         string eventKey,

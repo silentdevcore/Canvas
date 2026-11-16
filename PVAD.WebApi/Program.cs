@@ -56,6 +56,9 @@ builder.AddPvadObservability();
 
 // Add services to the container.
 builder.Services.AddControllers(options => options.Filters.Add<PvadProblemDetailsResultFilter>());
+builder.Services.AddExceptionHandler<PvadNativeLicenseExceptionHandler>();
+builder.Services.AddOptions<PvadNativeLicenseOptions>().Bind(builder.Configuration.GetSection("NativeLicensing"));
+builder.Services.AddHostedService<PvadNativeLicenseBootstrap>();
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
@@ -423,16 +426,15 @@ builder.Services.AddOptions<PvadProductAccessOptions>()
 builder.Services.AddOptions<PvadLicensingOptions>()
     .Bind(builder.Configuration.GetSection("Licensing"))
     .Validate(options => !string.IsNullOrWhiteSpace(options.KeyId) &&
-                         !string.IsNullOrWhiteSpace(options.PrivateKeyPath) &&
+                         (!options.IssuerEnabled || !string.IsNullOrWhiteSpace(options.PrivateKeyPath)) &&
                          !string.IsNullOrWhiteSpace(options.PublicKeyPath) &&
                          options.MetricsIntervalSeconds is >= 15 and <= 3600,
-        "Licensing key paths and a metrics interval between 15 and 3600 seconds are required.")
+        "A license verification key path, an issuer-only private key path, and a metrics interval between 15 and 3600 seconds are required.")
     .ValidateOnStart();
 builder.Services.AddSingleton<PvadLicenseSigningService>();
 builder.Services.AddSingleton<IPvadLicenseSigningService>(
     services => services.GetRequiredService<PvadLicenseSigningService>());
-builder.Services.AddSingleton<IPvadLicenseSignatureVerifier>(
-    services => services.GetRequiredService<PvadLicenseSigningService>());
+builder.Services.AddSingleton<IPvadLicenseSignatureVerifier, PvadLicenseSignatureVerifier>();
 builder.Services.AddSingleton<PvadOfflineLicenseValidator>();
 var dataProtectionKeysPath = PvadDataProtection.KeysPath(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(dataProtectionKeysPath);

@@ -1,0 +1,10 @@
+{
+  "id": "native-import-regeneration-license-enforcement",
+  "impact": "major",
+  "components": ["generator", "importer", "api", "documentation"],
+  "category": "breaking",
+  "summary": "PDF regeneration, model mapping, and debug overlays now require an Importer license. Standard regeneration needs no separate PDF grant; caller-supplied generator callbacks require both rights.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

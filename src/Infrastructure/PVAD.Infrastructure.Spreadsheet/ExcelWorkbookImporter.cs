@@ -1,4 +1,5 @@
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -16,6 +17,7 @@ public sealed class ExcelWorkbookImporter
 
     public SpreadsheetDto Import(Stream xlsx, string? fileName = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         using var package = new MemoryStream();
         xlsx.CopyTo(package);
         package.Position = 0;

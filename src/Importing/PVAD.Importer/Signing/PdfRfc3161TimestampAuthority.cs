@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -40,6 +41,7 @@ public sealed class PdfRfc3161TimestampAuthority : IPdfTimestampAuthority
         HashAlgorithmName digestAlgorithm,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         try
         {
             return await GetTimestampTokenCoreAsync(

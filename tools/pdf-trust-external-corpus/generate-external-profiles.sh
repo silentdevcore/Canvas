@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+NATIVE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "${PVAD_NATIVE_TEST_SESSION:-}" ]]; then
+  exec node "$NATIVE_ROOT/tools/native-licensing/test-session.mjs" exec -- bash "$NATIVE_ROOT/tools/pdf-trust-external-corpus/generate-external-profiles.sh" "$@"
+fi
+cd "$NATIVE_ROOT"
+
 
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 readonly TOOL_DIRECTORY="$ROOT/tools/pdf-trust-external-corpus"
@@ -88,6 +94,6 @@ PVAD_VERAPDF_IMAGE="ghcr.io/verapdf/cli:v1.31.166" \
 PVAD_PDFUA_REPORT_DIR="$FIXTURE_DIRECTORY" \
   "$ROOT/tools/pdfua/validate-pdfua.sh" "$FIXTURE_DIRECTORY/libreoffice-pdfua1.pdf"
 
-dotnet run --project "$TOOL_DIRECTORY/PVAD.PdfTrustExternalCorpus.csproj" --no-restore
+dotnet run --project "$TOOL_DIRECTORY/PVAD.PdfTrustExternalCorpus.csproj"
 
 echo "External PDF Trust profiles generated. Review all changed binaries and reports."

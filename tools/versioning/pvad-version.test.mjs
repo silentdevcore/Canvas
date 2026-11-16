@@ -491,3 +491,39 @@ test('blocks stable release validation while fragments remain pending', async ()
   }));
   await assert.rejects(validateNextVersion(root, '0.9.0'), /unaggregated release fragment/);
 });
+
+async function addNativeMetadata(root) {
+  const path = join(root, 'src/Licensing/PVAD.Licensing/LibraryRelease.json');
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify({ version: '1.0.0', publishedAt: '2026-07-28' }));
+  return path;
+}
+
+test('release preparation synchronizes immutable native release metadata', async () => {
+  const root = await fixture();
+  const path = await addNativeMetadata(root);
+  await prepareRelease(root, 'minor', '2026-11-15');
+  assert.deepEqual(JSON.parse(await readFile(path, 'utf8')), { version: '1.1.0', publishedAt: '2026-11-15' });
+});
+
+test('fragment preparation synchronizes native metadata without mutating published entries', async () => {
+  const root = await fixture();
+  const path = await addNativeMetadata(root);
+  await writeFragment(root, 'native-foundation', fragment({ id: 'native-foundation', featureIds: [] }));
+  await prepareReleaseFromFragments(root, {
+    summary: 'Introduced offline native library license verification.', publishedAt: '2026-11-15',
+  });
+  assert.deepEqual(JSON.parse(await readFile(path, 'utf8')), { version: '1.1.0', publishedAt: '2026-11-15' });
+  const manifest = JSON.parse(await readFile(join(root, 'product-metadata/pvad-releases.json'), 'utf8'));
+  assert.equal(manifest.releases[1].publishedAt, '2026-07-28');
+});
+
+test('native metadata drift and invented release dates are rejected before synchronization writes', async () => {
+  const root = await fixture();
+  const path = await addNativeMetadata(root);
+  await synchronizeVersions(root, '1.0.0');
+  await writeFile(path, JSON.stringify({ version: '1.0.0', publishedAt: '2026-11-15' }));
+  await assert.rejects(checkRepository(root), /Native library release metadata/);
+  await assert.rejects(synchronizeVersions(root, '1.0.1'), /exact curated release date/);
+  assert.equal((await readFile(join(root, 'VERSION'), 'utf8')).trim(), '1.0.0');
+});

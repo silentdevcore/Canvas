@@ -4,6 +4,9 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repository_root"
+if [[ -z "${PVAD_NATIVE_TEST_SESSION:-}" ]]; then
+  exec node "$repository_root/tools/native-licensing/test-session.mjs" exec -- bash "$repository_root/tools/legal/run-deployment-smoke-tests.sh" "$@"
+fi
 
 PVAD_RUN_POSTGRES_TESTS=1 dotnet test \
   tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj \

@@ -1,4 +1,5 @@
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter;
@@ -29,6 +30,7 @@ public sealed class ImageFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string originalFileName)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         // SKCodec needs a seekable stream; buffer arbitrary caller streams.
         var raw = ReadAllBytes(stream);
 

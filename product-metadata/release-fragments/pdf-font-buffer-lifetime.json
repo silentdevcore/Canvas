@@ -1,0 +1,10 @@
+{
+  "id": "pdf-font-buffer-lifetime",
+  "impact": "patch",
+  "components": ["generator", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Arabic and mixed-direction PDF text now retains consistent glyph widths during garbage collection and concurrent document generation.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": ["/docs/guides/PVAD.Designer-Preview.md"]
+}

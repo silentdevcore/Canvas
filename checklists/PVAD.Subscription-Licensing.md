@@ -13,6 +13,8 @@ Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Serv
 
 ## Dependencies
 
+- [ ] Complete [native library licensing and protection](PVAD.Native-Library-Licensing-And-Protection.md); native rights are separate from Cloud editions.
+
 - [x] Align organization, user, membership, and administrator ownership with `PVAD.Admin.md`.
 - [ ] Align offline deployment and license mounting with `PVAD.Api-Docker.md`.
 - [ ] Align SDK entitlement behavior with `PVAD.SDK-Roadmap.md`.

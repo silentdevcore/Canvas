@@ -1,6 +1,7 @@
 using PVAD.Importer.Document;
 using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -65,10 +66,17 @@ public sealed class SceneGraphEngine
 
     public PdfSceneGraph Build(PdfDocumentModel document)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildAdmitted(document);
+    }
+
+    internal PdfSceneGraph BuildAdmitted(PdfDocumentModel document)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var graph = new PdfSceneGraph { Resources = document.Catalog.Dictionary };
         for (var i = 0; i < document.Pages.Count; i++)
         {
-            graph.Pages.Add(BuildPage(i, document.Pages[i]));
+            graph.Pages.Add(BuildPageAdmitted(i, document.Pages[i]));
         }
 
         return graph;
@@ -76,14 +84,21 @@ public sealed class SceneGraphEngine
 
     public PdfScenePage BuildPage(int pageIndex, PdfPageModel page)
     {
-        var primitives = _primitiveBuilder.Build(page.GraphicsObjects).ToArray();
-        _classifier.Classify(primitives);
-        var readingOrder = _readingOrder.Analyze(primitives);
-        var groups = _grouping.BuildGroups(primitives);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildPageAdmitted(pageIndex, page);
+    }
+
+    internal PdfScenePage BuildPageAdmitted(int pageIndex, PdfPageModel page)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        var primitives = _primitiveBuilder.BuildAdmitted(page.GraphicsObjects).ToArray();
+        _classifier.ClassifyAdmitted(primitives);
+        var readingOrder = _readingOrder.AnalyzeAdmitted(primitives);
+        var groups = _grouping.BuildGroupsAdmitted(primitives);
         var scenePage = new PdfScenePage(pageIndex, page.CropBox ?? page.MediaBox)
         {
             ReadingOrder = readingOrder,
-            Layout = _layout.BuildPage(pageIndex, primitives, readingOrder, groups, page.CropBox ?? page.MediaBox)
+            Layout = _layout.BuildPageAdmitted(pageIndex, primitives, readingOrder, groups, page.CropBox ?? page.MediaBox)
         };
 
         scenePage.Layers.Add(new PdfSceneLayer("Content", primitives));

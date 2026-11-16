@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter.ImageOcr;
 
@@ -45,12 +46,23 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
         ImageToPdfConversionOptions options,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr);
+        return await RecognizeAdmittedAsync(pages, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<IReadOnlyList<OcrPage>> RecognizeAdmittedAsync(
+        IReadOnlyList<OcrImagePage> pages, ImageToPdfConversionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(pages);
         ArgumentNullException.ThrowIfNull(options);
 
         var timeout = TimeSpan.FromSeconds(Math.Clamp(options.MaxOcrRuntimeSeconds, 5, 180));
         var workDir = Path.Combine(_tempRoot, $"pvad-image-ocr-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(workDir);
+        if (OperatingSystem.IsWindows()) Directory.CreateDirectory(workDir);
+        else Directory.CreateDirectory(workDir, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
         using var activity = Activities.StartActivity(
             "pvad.ocr.worker.execute",
             ActivityKind.Client);
@@ -87,6 +99,11 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
             if (!response.Success)
             {
                 activity?.SetStatus(ActivityStatusCode.Error, "worker_error");
+                if (response.LicenseErrorCode is { } code &&
+                    code is "PVADLIC001" or "PVADLIC002" or "PVADLIC003" or "PVADLIC004" or
+                        "PVADLIC005" or "PVADLIC006" or "PVADLIC007" or "PVADLIC008" or
+                        "PVADLIC009" or "PVADLIC010" or "PVADLIC011" or "PVADLIC012" or "PVADLIC013")
+                    throw new PvadLicenseException(code, "The OCR worker could not admit the licensed operation.");
                 throw new InvalidOperationException(response.Error ?? "OCR worker failed.");
             }
 
@@ -200,7 +217,36 @@ public sealed class DefaultOcrWorkerProcessRunner : IOcrWorkerProcessRunner
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
+        var license = PvadLicense.CaptureImporterWorkerLicense();
+        cancellationToken.ThrowIfCancellationRequested();
+        var licensePath = Path.Combine(workingDirectory, $"native-license-{Guid.NewGuid():N}.json");
+        try
+        {
+            var fileOptions = new FileStreamOptions
+            {
+                Mode = FileMode.CreateNew,
+                Access = FileAccess.Write,
+                Share = FileShare.None,
+            };
+            if (!OperatingSystem.IsWindows())
+                fileOptions.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            await using (var stream = new FileStream(licensePath, fileOptions))
+                await stream.WriteAsync(license, cancellationToken);
+            return await RunLicensedAsync(workerPath, requestPath, responsePath, workingDirectory,
+                licensePath, timeout, cancellationToken);
+        }
+        finally
+        {
+            File.Delete(licensePath);
+        }
+    }
+
+    private static async Task<OcrWorkerProcessResult> RunLicensedAsync(
+        string workerPath, string requestPath, string responsePath, string workingDirectory,
+        string licensePath, TimeSpan timeout, CancellationToken cancellationToken)
+    {
         var startInfo = BuildStartInfo(workerPath, requestPath, responsePath, workingDirectory);
+        startInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] = licensePath;
         using var process = new Process { StartInfo = startInfo };
         process.Start();
 

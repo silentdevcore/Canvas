@@ -5,6 +5,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -44,6 +45,7 @@ public sealed class PdfDocumentTimestampService : IPdfDocumentTimestampService
         PdfDocumentTimestampOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(timestampAuthority);
         options ??= new PdfDocumentTimestampOptions();
         ValidateOptions(options);

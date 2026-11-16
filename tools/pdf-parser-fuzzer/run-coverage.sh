@@ -3,12 +3,16 @@ set -euo pipefail
 
 
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+if [[ -z "${PVAD_NATIVE_TEST_SESSION:-}" ]]; then
+  exec node "$ROOT/tools/native-licensing/test-session.mjs" exec -- bash "$ROOT/tools/pdf-parser-fuzzer/run-coverage.sh" "$@"
+fi
+cd "$ROOT"
 readonly PROJECT="$ROOT/tools/pdf-parser-fuzzer/PVAD.PdfParserFuzzer.csproj"
 readonly OUTPUT="${PVAD_PDF_FUZZ_COVERAGE_OUTPUT:-$ROOT/artifacts/pdf-fuzz/coverage}"
 readonly DURATION="${PVAD_PDF_FUZZ_COVERAGE_SECONDS:-60}"
 readonly TIMEOUT_MILLISECONDS="${PVAD_PDF_FUZZ_CASE_TIMEOUT_MILLISECONDS:-2000}"
 readonly MANAGED_HEAP_MEGABYTES=512
-readonly PUBLISH="$OUTPUT/publish"
+readonly PUBLISH="$PVAD_NATIVE_TEST_BUILD_ROOT/coverage-fuzz-harness"
 readonly INPUTS="$OUTPUT/inputs"
 readonly FINDINGS="$OUTPUT/findings"
 
@@ -37,10 +41,10 @@ fi
 mkdir -p "$PUBLISH" "$INPUTS" "$FINDINGS"
 cp "$ROOT/tests/PVAD.Importer.Tests/Fixtures/RedactionRecovery/chromium-encoded-glyphs.pdf" "$INPUTS/seed.pdf"
 
-dotnet publish "$PROJECT" \
+dotnet build "$PROJECT" \
   --configuration Release \
   --output "$PUBLISH" \
-  --artifacts-path "$OUTPUT/build"
+  --disable-build-servers -m:1
 DOTNET_ROLL_FORWARD=Major sharpfuzz "$PUBLISH/PVAD.Importer.dll"
 
 export AFL_NO_UI=1

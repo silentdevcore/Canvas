@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Fonts;
 
@@ -14,6 +15,13 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
 
     public PdfFontResource Parse(string resourceName, PdfDictionary fontDictionary, IPdfObjectResolver resolver)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(resourceName, fontDictionary, resolver);
+    }
+
+    internal PdfFontResource ParseAdmitted(string resourceName, PdfDictionary fontDictionary, IPdfObjectResolver resolver)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var subtype = ResolveName(fontDictionary["Subtype"], resolver);
         var kind = subtype switch
         {
@@ -255,7 +263,7 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
 
         try
         {
-            stream.SetDecodedBytes(_streamDecoders.Decode(stream));
+            stream.SetDecodedBytes(_streamDecoders.DecodeAdmitted(stream));
         }
         catch (NotSupportedException)
         {

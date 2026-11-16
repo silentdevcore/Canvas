@@ -9,6 +9,8 @@ using PVAD.Pdf;
 using PVAD.WebApi.Security;
 using PVAD.WebApi.Services.Pdf;
 
+using PVAD.Licensing;
+
 namespace PVAD.WebApi.Controllers;
 
 [ApiController]
@@ -147,6 +149,7 @@ public sealed class PdfEInvoicesController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             var pdf = await ReadBoundedAsync(file!, MaximumPdfBytes, cancellationToken);
             await using var stream = new MemoryStream(pdf, writable: false);
             var attachments = await new PdfAssociatedFileExtractor().ExtractAsync(
@@ -199,6 +202,7 @@ public sealed class PdfEInvoicesController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file!.OpenReadStream();
             var attachments = await new PdfAssociatedFileExtractor().ExtractAsync(
                 stream,
@@ -635,6 +639,7 @@ public sealed class PdfEInvoicesController(
             return new(Problem: pdfProblem);
         if (ValidateXmlUpload(invoice) is { } xmlProblem)
             return new(Problem: xmlProblem);
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (preserveUnrecognized)
         {
             return await ReadPreservationInputAsync(file!, invoice!, attachmentFileName, cancellationToken);

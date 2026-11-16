@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { nativeTestAssemblyPath, nativeTestEnvironment, withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(resolve(root, 'pvad-designer/package.json'));
@@ -15,9 +16,11 @@ const exceptionTypes = ['System.InvalidOperationException', 'System.IO.IOExcepti
 const hash = value => createHash('sha256').update(value).digest('hex');
 
 export function apiValidationEnvironment(environment, temporary) {
-  const allow = ['PATH', 'HOME', 'TMPDIR', 'DOTNET_ROOT', 'DOTNET_CLI_HOME', 'NUGET_PACKAGES', 'LANG', 'LC_ALL'];
+  const allow = ['PATH', 'HOME', 'TMPDIR', 'DOTNET_ROOT', 'DOTNET_CLI_HOME', 'NUGET_PACKAGES', 'LANG', 'LC_ALL',
+    'DOCKER_HOST', 'DOCKER_CONTEXT', 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', 'TESTCONTAINERS_HOST_OVERRIDE'];
   return {
     ...Object.fromEntries(allow.filter(key => environment[key] !== undefined).map(key => [key, environment[key]])),
+    ...nativeTestEnvironment(environment),
     PVAD_RUN_POSTGRES_TESTS: '1', DOTNET_CLI_TELEMETRY_OPTOUT: '1',
     ConnectionStrings__PvadDatabase: 'Host=127.0.0.1;Port=1;Database=isolated_api_validation;Username=unused;Password=unused;Timeout=1;Command Timeout=1',
     DataProtection__KeysDirectory: resolve(temporary, 'keys'), Storage__RootPath: resolve(temporary, 'objects'),
@@ -66,11 +69,14 @@ export function auditApiResults(catalog, xml) {
 }
 
 export async function runFullApiValidation() {
+  return await withNativeTestSession(runFullApiValidationCore);
+}
+
+async function runFullApiValidationCore() {
   const output = resolve(root, 'artifacts/api-full-validation', new Date().toISOString().replaceAll(':', '-') + '-' + randomUUID());
   await mkdir(output, { recursive: true, mode: 0o700 });
   const temporary = await mkdtemp(resolve(tmpdir(), 'pvad-api-full-'));
   const environment = apiValidationEnvironment(process.env, temporary);
-  const assembly = resolve(root, 'tests/PVAD.Api.Tests/bin/Debug/net10.0/PVAD.Api.Tests.dll');
   const settings = 'tools/dependencies/api-serial.runsettings';
   const summary = { sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     sourceDiffSha256: hash(execFileSync('git', ['diff', '--binary', 'HEAD', '--', '.', ':(exclude).vscode/**'], { cwd: root, maxBuffer: 32 * 1024 * 1024 })),
@@ -110,8 +116,10 @@ export async function runFullApiValidation() {
   };
   try {
     const project = 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj';
+    await run('restore', ['restore', project, '--disable-parallel'], 15);
     await run('build', ['build', project, '--no-restore', '--disable-build-servers', '-m:1', '-t:Rebuild',
       '-p:UseSharedCompilation=false', '-p:SkipOcrWorkerPackaging=true', '-p:SkipCodeWorkerPackaging=true', '--nologo', '-v:q'], 15);
+    const assembly = nativeTestAssemblyPath(project, 'Debug', environment);
     summary.assemblySha256 = hash(await readFile(assembly));
     summary.runnerSha256 = hash(await readFile(fileURLToPath(import.meta.url)));
     const common = ['test', project, '--no-build', '--settings', settings];

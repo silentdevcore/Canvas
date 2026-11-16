@@ -213,6 +213,7 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
                 }));
             builder.ConfigureServices(services =>
             {
+                PvadSyntheticLicenseIssuer.Configure(services);
                 services.RemoveAll<DbContextOptions<PvadDbContext>>();
                 services.RemoveAll<IHostedService>();
                 services.AddDbContext<PvadDbContext>(options => options.UseNpgsql(connectionString));

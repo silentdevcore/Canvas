@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -335,9 +336,18 @@ export async function readCurrentVersion(repoRoot = scriptRoot) {
   return (await readFile(resolve(repoRoot, 'VERSION'), 'utf8')).trim();
 }
 
-export async function synchronizeVersions(repoRoot = scriptRoot, requestedVersion) {
+export async function synchronizeVersions(repoRoot = scriptRoot, requestedVersion, nativeReleaseDate) {
   const version = requestedVersion ?? await readCurrentVersion(repoRoot);
   parseVersion(version);
+  const nativeMetadataPath = resolve(repoRoot, 'src/Licensing/PVAD.Licensing/LibraryRelease.json');
+  let nativeMetadata;
+  if (existsSync(nativeMetadataPath)) {
+    const manifest = await readJson(resolve(repoRoot, 'product-metadata/pvad-releases.json'));
+    const publishedAt = nativeReleaseDate ?? manifest.releases.find(release => release.version === version)?.publishedAt;
+    if (!publishedAt || !/^\d{4}-\d{2}-\d{2}$/.test(publishedAt))
+      throw new Error('Native library version synchronization requires an exact curated release date.');
+    nativeMetadata = { version, publishedAt };
+  }
   await writeFile(resolve(repoRoot, 'VERSION'), `${version}\n`);
 
   for (const relativePath of PACKAGE_MANIFESTS) {
@@ -367,6 +377,7 @@ export async function synchronizeVersions(repoRoot = scriptRoot, requestedVersio
       source.replaceAll(/\$\{PVAD_VERSION:-\d+\.\d+\.\d+\}/g, `\${PVAD_VERSION:-${version}}`),
     );
   }
+  if (nativeMetadata) await writeJson(nativeMetadataPath, nativeMetadata);
   return version;
 }
 
@@ -434,10 +445,15 @@ export async function checkRepository(repoRoot = scriptRoot) {
       errors.push(`${relativePath} does not default to ${version}.`);
   }
   try {
-    validateReleaseManifest(
-      await readJson(resolve(repoRoot, 'product-metadata/pvad-releases.json')),
-      version,
-    );
+    const manifest = await readJson(resolve(repoRoot, 'product-metadata/pvad-releases.json'));
+    validateReleaseManifest(manifest, version);
+    const nativeMetadataPath = resolve(repoRoot, 'src/Licensing/PVAD.Licensing/LibraryRelease.json');
+    if (existsSync(nativeMetadataPath)) {
+      const metadata = await readJson(nativeMetadataPath);
+      const release = manifest.releases.find(value => value.version === version);
+      if (metadata.version !== version || metadata.publishedAt !== release?.publishedAt)
+        throw new Error('Native library release metadata does not match the curated product release.');
+    }
   } catch (error) {
     errors.push(error.message);
   }
@@ -468,7 +484,7 @@ export async function prepareRelease(repoRoot = scriptRoot, bump, publishedAt) {
     featureIds: [],
     changes: Object.fromEntries(CHANGE_CATEGORIES.map(category => [category, []])),
   });
-  await synchronizeVersions(repoRoot, next);
+  await synchronizeVersions(repoRoot, next, manifest.releases[0].publishedAt);
   await writeJson(manifestPath, manifest);
   return next;
 }
@@ -535,7 +551,7 @@ export async function prepareReleaseFromFragments(repoRoot = scriptRoot, {
   const manifestPath = resolve(repoRoot, 'product-metadata/pvad-releases.json');
   const manifest = await readJson(manifestPath);
   manifest.releases.unshift(preview.release);
-  await synchronizeVersions(repoRoot, preview.version);
+  await synchronizeVersions(repoRoot, preview.version, preview.release.publishedAt);
   await writeJson(manifestPath, manifest);
   for (const fragment of await readReleaseFragments(repoRoot)) await unlink(fragment.path);
 

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "obfuscar.globaltool": {
+      "version": "2.2.50",
+      "commands": ["obfuscar.console"],
+      "rollForward": true
+    },
+    "ilspycmd": {
+      "version": "11.2.0.10050",
+      "commands": ["ilspycmd"],
+      "rollForward": true
+    }
+  }
+}

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using PVAD.FileImporter.ImageOcr;
+using PVAD.Licensing;
 
 var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {
@@ -19,6 +20,9 @@ Activity? workerActivity = null;
 
 try
 {
+    var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
+    if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
+    PvadLicense.Require(PvadLicenseProducts.Importer);
     var requestJson = await File.ReadAllTextAsync(requestPath);
     var request = JsonSerializer.Deserialize<OcrWorkerRequest>(requestJson, jsonOptions)
         ?? throw new InvalidOperationException("OCR worker request is invalid.");
@@ -63,6 +67,18 @@ try
     });
 
     return 0;
+}
+catch (PvadLicenseException ex)
+{
+    workerActivity?.SetStatus(ActivityStatusCode.Error, ex.Code);
+    await WriteResponseAsync(new OcrWorkerResponse
+    {
+        Success = false,
+        LicenseErrorCode = ex.Code,
+        Error = "A valid Importer license is required by the OCR worker.",
+    });
+    Console.Error.WriteLine(ex.Code);
+    return 1;
 }
 catch (Exception ex)
 {

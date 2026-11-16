@@ -4,6 +4,7 @@ using PVAD.Infrastructure.Spreadsheet;
 using PVAD.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 using PvadDesignExportDto = PVAD.Core.Contracts.DesignExportDto;
 using PvadSpreadsheetDto = PVAD.Core.Contracts.SpreadsheetDto;
 
@@ -55,6 +56,7 @@ public class SpreadsheetController : ControllerBase
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var name = ExportFileNameSanitizer.Sanitize(workbook.Name, "workbook");
         return format.ToLowerInvariant() switch
         {
@@ -91,6 +93,7 @@ public class SpreadsheetController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "A spreadsheet file (.xlsx, .xls, .csv, or .tsv) is required." });
 
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         using var ms = new MemoryStream();
         await using (var stream = file.OpenReadStream())
             await stream.CopyToAsync(ms);
@@ -112,7 +115,7 @@ public class SpreadsheetController : ControllerBase
             };
             return Ok(workbook);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not PvadLicenseException)
         {
             return BadRequest(new { error = $"Could not read the spreadsheet: {ex.Message}" });
         }

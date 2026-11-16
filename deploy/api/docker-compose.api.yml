@@ -52,7 +52,7 @@ services:
       OAuth__McpDelegationSecret: '${PVAD_MCP_DELEGATION_SECRET:-}'
       OAuth__SigningCertificatePath: '${PVAD_OAUTH_SIGNING_CERTIFICATE_PATH:-}'
       OAuth__SigningCertificatePassword: '${PVAD_OAUTH_SIGNING_CERTIFICATE_PASSWORD:-}'
-      Licensing__PrivateKeyPath: /run/secrets/pvad_license_private_key
+      Licensing__IssuerEnabled: 'false'
       Licensing__PublicKeyPath: /run/secrets/pvad_license_public_key
     ports:
       - '${PVAD_API_HOST_IP:-127.0.0.1}:${PVAD_API_HOST_PORT:-5087}:8080'
@@ -67,7 +67,6 @@ services:
       - 'pvad-api-data:/app/data'
       - '${PVAD_API_FONTS_PATH:-./fonts}:/app/fonts:ro'
     secrets:
-      - pvad_license_private_key
       - pvad_license_public_key
     depends_on:
       pvad-database:
@@ -155,8 +154,6 @@ services:
       - 'no-new-privileges:true'
     restart: unless-stopped
 secrets:
-  pvad_license_private_key:
-    file: '${PVAD_LICENSE_PRIVATE_KEY_FILE:?Set PVAD_LICENSE_PRIVATE_KEY_FILE}'
   pvad_license_public_key:
     file: '${PVAD_LICENSE_PUBLIC_KEY_FILE:?Set PVAD_LICENSE_PUBLIC_KEY_FILE}'
 volumes:

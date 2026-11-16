@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using PVAD.Importer.Content;
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -42,6 +43,7 @@ public sealed class PdfContentColorRewriter
 
     public PdfColorRewriteResult Rewrite(ReadOnlyMemory<byte> content)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var commands = new PdfContentStreamParser().Parse(content);
         var edits = new List<(int Start, int End, string Replacement)>();
         var unconvertible = new SortedSet<string>(StringComparer.Ordinal);

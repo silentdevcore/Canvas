@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using PVAD.Pdf;
+using PVAD.Pdf.Serialization;
 using PVAD.Infrastructure.Pdf.Charts;
 using DesignLayoutPlanner = PVAD.Core.Primitives.DesignLayoutPlanner;
 using PageLayoutResolver = PVAD.Core.Primitives.PageLayoutResolver;
@@ -82,6 +83,21 @@ public static class DesignJsonMapper
         string? targetLanguage = null,
         DateTimeOffset? renderInstant = null)
     {
+#pragma warning disable PVAD0001 // Public mapping retains ordinary PDF admission.
+        var document = new PdfDocument();
+#pragma warning restore PVAD0001
+        PopulatePdfDocument(document, design, fontLoader, targetLanguage, renderInstant);
+        return document;
+    }
+
+    // Only the built-in OCR result reaches this byte-only adapter; no public callback or handle escapes.
+    internal static byte[] RenderImportedImage(DesignExportDto design, PdfFontLoader? fontLoader) =>
+        PdfWriter.RenderOcrResult(document => PopulatePdfDocument(document, design, fontLoader, null, null));
+
+    private static void PopulatePdfDocument(
+        PdfDocument document, DesignExportDto design, PdfFontLoader? fontLoader,
+        string? targetLanguage, DateTimeOffset? renderInstant)
+    {
         var instant = renderInstant ?? DateTimeOffset.UtcNow;
         // Query-param language > JSON body targetLanguage > systemLanguage
         targetLanguage ??= design.PageSettings?.TargetLanguage;
@@ -96,9 +112,6 @@ public static class DesignJsonMapper
         if (evaluationProps.Count > 0)
             design = ApplyPropertySubstitutions(design, evaluationProps);
 
-#pragma warning disable PVAD0001 // Web API mapper targets the PVAD PDF engine behind the API routes.
-        var document = new PdfDocument();
-#pragma warning restore PVAD0001
         document.FontLoader = fontLoader;
         document.Info.Title   = string.IsNullOrWhiteSpace(design.PageSettings?.Metadata?.Title)
             ? design.Name
@@ -282,7 +295,6 @@ public static class DesignJsonMapper
             }
         }
 
-        return document;
     }
 
     // ── Coordinate helpers ───────────────────────────────────────────────────

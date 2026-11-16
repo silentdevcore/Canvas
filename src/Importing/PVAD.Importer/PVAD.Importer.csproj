@@ -2,10 +2,12 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="PVAD.Importer.Tests" />
+    <InternalsVisibleTo Include="PVAD.FileImporter" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../Infrastructure/PVAD.Infrastructure.Pdf/PVAD.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

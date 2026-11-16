@@ -1,5 +1,6 @@
 using PVAD.Importer.Redaction;
 using PVAD.Importer.Signing;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -117,6 +118,7 @@ public sealed class PdfTrustPostProcessingPipeline(
         PdfTrustPipelineContext? context = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
 

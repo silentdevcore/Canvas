@@ -4,6 +4,7 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
+import { withNativeTestSession } from '../native-licensing/test-session.mjs';
 import { fileURLToPath } from 'node:url';
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 import { trustBaselinePath } from './trust-baseline.mjs';
@@ -164,7 +165,7 @@ async function main() {
   const artifactDirectory = path.join(outputRoot, 'generated');
   run('dotnet', [
     'test', 'tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj',
-    '--no-restore', '--disable-build-servers',
+    '--disable-build-servers',
     '--filter', 'FullyQualifiedName~PdfTrustVisualArtifactTests'
   ], { PVAD_PDF_TRUST_OPERATION_ARTIFACT_DIR: artifactDirectory });
 
@@ -226,6 +227,6 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url))
-  main().catch(error => { process.stderr.write(`${error.stack ?? error}\n`); process.exitCode = 1; });
+  withNativeTestSession(main).catch(error => { process.stderr.write(`${error.stack ?? error}\n`); process.exitCode = 1; });
 
 export { validateBaseline };

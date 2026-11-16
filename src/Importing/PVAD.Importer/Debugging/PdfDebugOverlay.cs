@@ -1,5 +1,6 @@
 using PVAD.Importer.Analysis;
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Debugging;
 
@@ -26,6 +27,7 @@ public sealed class PdfDebugOverlayBuilder
 {
     public IReadOnlyList<PdfDebugOverlayItem> Build(PdfScenePage page)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var overlays = new List<PdfDebugOverlayItem>();
         foreach (var primitive in page.Layers.SelectMany(static layer => layer.Objects).SelectMany(Expand))
         {

@@ -2,6 +2,8 @@ using PVAD.Importer.Color;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Saving;
 
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Trust;
 
 public sealed record PdfColorConversionAnalysis(
@@ -67,7 +69,7 @@ internal static class PdfComplianceColorConversion
             {
                 decoded = Decode(holder.Stream);
             }
-            catch (Exception exception) when (exception is not OutOfMemoryException)
+            catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
             {
                 blocking.Add(new PdfComplianceConversionFinding(
                     "PVADPDFACONVERT011",
@@ -83,7 +85,7 @@ internal static class PdfComplianceColorConversion
             {
                 result = rewriter.Rewrite(decoded);
             }
-            catch (Exception exception) when (exception is not OutOfMemoryException)
+            catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
             {
                 blocking.Add(new PdfComplianceConversionFinding(
                     "PVADPDFACONVERT014",

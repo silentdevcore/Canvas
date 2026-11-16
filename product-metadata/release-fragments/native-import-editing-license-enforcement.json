@@ -1,0 +1,10 @@
+{
+  "id": "native-import-editing-license-enforcement",
+  "impact": "major",
+  "components": ["generator", "importer", "documentation"],
+  "category": "breaking",
+  "summary": "PDF editing and page composition now require an Importer license. Denied operations and failed loads preserve the current document. Blank-page composition works without a separate PDF-generation grant.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

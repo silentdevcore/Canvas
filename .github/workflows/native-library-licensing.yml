@@ -1,0 +1,110 @@
+name: PVAD Native Library Licensing
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'src/Licensing/**'
+      - 'src/Generation/PVAD.Pdf/**'
+      - 'src/Generation/PVAD.Generator/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Word/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/**'
+      - 'src/Importing/**'
+      - 'src/Execution/PVAD.CodeWorker/**'
+      - 'PVAD.WebApi/**'
+      - 'tools/PVAD.LicenseIssuer/**'
+      - 'tools/native-licensing/**'
+      - 'tests/PVAD.Licensing.Tests/**'
+      - 'tests/Directory.Build.props'
+      - 'tests/Shared/PvadNativeLicenseBootstrap.cs'
+      - 'tests/PVAD.Api.Tests/**'
+      - 'tests/PVAD.Infrastructure.Word.Tests/**'
+      - 'tests/PVAD.Infrastructure.Spreadsheet.Tests/**'
+      - 'tests/PVAD.Infrastructure.Pdf.Tests/**'
+      - 'tests/PVAD.Generator.Tests/**'
+      - 'tests/PVAD.Importer.Tests/**'
+      - 'tests/PVAD.FileImporter.Tests/**'
+      - 'tests/PVAD.FileImporter.ImageAnalysis.Tests/**'
+      - 'tests/PVAD.FileImporter.ImageOcr.Tests/**'
+      - 'src/Migrations/Common/PVAD.Migration.Abstractions/**'
+      - 'product-metadata/native-library-products.v1.json'
+      - 'product-metadata/pvad-releases.json'
+      - 'tools/versioning/**'
+      - 'Directory.Build.props'
+      - 'Directory.Build.targets'
+      - 'VERSION'
+      - '.github/workflows/native-library-licensing.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  licensing:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install pinned workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Validate native metadata and preparation contracts
+        run: node --test tools/native-licensing/*.test.mjs
+      - name: Test signed license verification and all registered provider grants
+        run: dotnet test tests/PVAD.Licensing.Tests/PVAD.Licensing.Tests.csproj -c Release --logger "trx;LogFileName=native-licensing.trx" --results-directory artifacts/native-licensing-tests
+      - name: Rehearse a protected synthetic package without publishing
+        run: node tools/native-licensing/pvad-native-licensing.mjs rehearse
+      - name: Verify direct PDF admission and non-destructive export failures
+        run: node tools/native-licensing/with-test-license.mjs pdf
+      - name: Verify direct Word export and signing admission
+        run: node tools/native-licensing/with-test-license.mjs word
+      - name: Verify Spreadsheet admission, retained handles, and non-destructive IO
+        run: node tools/native-licensing/with-test-license.mjs spreadsheet
+      - name: Verify imports, editing, Trust, and isolated regeneration admission (partial Importer milestone)
+        run: node tools/native-licensing/with-test-license.mjs importer
+      - name: Verify image analysis, OCR admission, and independently licensed worker handoff
+        run: node tools/native-licensing/with-test-license.mjs image
+      - name: Test image analysis compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.ImageAnalysis.Tests/PVAD.FileImporter.ImageAnalysis.Tests.csproj --verbosity minimal
+      - name: Test OCR compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.ImageOcr.Tests/PVAD.FileImporter.ImageOcr.Tests.csproj --verbosity minimal
+      - name: Test Word exporter compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Word.Tests/PVAD.Infrastructure.Word.Tests.csproj --verbosity minimal
+      - name: Test Spreadsheet compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Spreadsheet.Tests/PVAD.Infrastructure.Spreadsheet.Tests.csproj --verbosity minimal
+      - name: Test built-in file importer compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.Tests/PVAD.FileImporter.Tests.csproj --verbosity minimal
+      - name: Test existing PDF importer and Trust compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj --verbosity minimal
+      - name: Test shared PDF writer and Generator compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj --verbosity minimal
+      - name: Test PDF infrastructure compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Pdf.Tests/PVAD.Infrastructure.Pdf.Tests.csproj --verbosity minimal
+      - name: Test API diagnostics, exports, and licensed code-worker handoff
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativePdfLicenseTests|FullyQualifiedName~PvadNativeWordLicenseTests|FullyQualifiedName~PvadNativeSpreadsheetLicenseTests|FullyQualifiedName~PvadNativeImporterLicenseTests|FullyQualifiedName~PvadNativeTrustLicenseTests|FullyQualifiedName~ExportControllerTests|FullyQualifiedName~SpreadsheetControllerTests|FullyQualifiedName~DocumentOpsControllerTests|FullyQualifiedName~MigrationGeneratedCodeExecutionTests|FullyQualifiedName~CodeWorkspaceConversionTests|FullyQualifiedName~PdfTrust|FullyQualifiedName~PdfSignature|FullyQualifiedName~PdfRedaction|FullyQualifiedName~PdfViewerRedaction|FullyQualifiedName~PdfViewerAnnotationsControllerTests|FullyQualifiedName~PdfEInvoice|FullyQualifiedName~PvadPdfTrust|FullyQualifiedName~PvadEInvoice|FullyQualifiedName~PvadRedaction" --verbosity minimal
+      - name: Upload content-free evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-license-evidence-${{ matrix.os }}
+          path: |
+            artifacts/native-licensing-tests/*.trx
+            artifacts/native-licensing/*/report.json
+            artifacts/native-engine-tests/*/run.json
+            artifacts/native-engine-tests/*/pdf-admission.json
+            artifacts/native-engine-tests/*/word-admission.json
+            artifacts/native-engine-tests/*/spreadsheet-admission.json
+            artifacts/native-engine-tests/*/importer-admission.json
+            artifacts/native-engine-tests/*/image-admission.json
+            artifacts/native-engine-tests/*/*.trx
+          if-no-files-found: warn
+          retention-days: 14

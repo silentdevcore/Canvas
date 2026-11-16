@@ -9,6 +9,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Redaction;
 
@@ -45,6 +46,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         PdfRedactionApplyOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         ArgumentNullException.ThrowIfNull(regions);
         options ??= new PdfRedactionApplyOptions();

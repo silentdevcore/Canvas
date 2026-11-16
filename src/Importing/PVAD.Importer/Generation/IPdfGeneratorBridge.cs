@@ -1,6 +1,7 @@
 using PVAD.Importer.Document;
 using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Generation;
 
@@ -23,6 +24,7 @@ public sealed class PdfGeneratorBridgePipeline
 
     public Task SaveAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         return _bridge.RegenerateAsync(document, output, cancellationToken);
     }
 }

@@ -3,13 +3,14 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { spawnImageMagick, requireImageMagick } from './image-tools.mjs';
+import { withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = path.join(root, 'artifacts', 'flow-table-parity');
 
 function run(command, args, extra = {}) {
   const result = spawnSync(command, args, {
-    cwd: root, encoding: 'utf8', timeout: 180_000,
+    cwd: root, encoding: 'utf8', timeout: command === 'dotnet' ? 900_000 : 180_000,
     env: { ...process.env, ...extra }, maxBuffer: 8 * 1024 * 1024,
   });
   if (result.status !== 0)
@@ -27,7 +28,7 @@ async function main() {
   requireImageMagick();
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
-  run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-build', '--no-restore',
+  run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--disable-build-servers', '-m:1',
     '--filter', 'FullyQualifiedName~StyledFlowMatchesIndependentlyPlannedExplicitPages', '--nologo'],
   { PVAD_FLOW_TABLE_ARTIFACTS: output });
   const manifest = JSON.parse(await readFile(path.join(output, 'pages.json'), 'utf8'));
@@ -66,4 +67,4 @@ ${[['flow', 'Automatic pagination'], ['explicit', 'Explicit pages'], ['overlay',
   console.log(`Flow table visual parity: ${results.length}/${results.length} pages match exactly.\n${path.join(output, 'report.html')}`);
 }
 
-main().catch(error => { console.error(error.message); process.exitCode = 1; });
+withNativeTestSession(main).catch(error => { console.error(error.message); process.exitCode = 1; });

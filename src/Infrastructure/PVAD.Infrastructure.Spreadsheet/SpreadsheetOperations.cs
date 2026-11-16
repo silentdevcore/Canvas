@@ -1,6 +1,7 @@
 using System.Globalization;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -11,6 +12,7 @@ public sealed class SpreadsheetOperations
     /// cells (value + style + format); formulas move as-is (their A1 references are not re-pointed).</summary>
     public void SortRange(SheetDto sheet, string a1Range, int keyColumnOffset, bool ascending = true)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var (r0, c0, r1, c1) = ParseRange(a1Range);
         var keyCol = c0 + keyColumnOffset;
 
@@ -41,6 +43,7 @@ public sealed class SpreadsheetOperations
     /// across the workbook. Returns the number of cells changed.</summary>
     public int FindReplace(SpreadsheetDto workbook, string find, string replace, bool matchCase = false)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         if (string.IsNullOrEmpty(find)) return 0;
         var cmp = matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
         var count = 0;

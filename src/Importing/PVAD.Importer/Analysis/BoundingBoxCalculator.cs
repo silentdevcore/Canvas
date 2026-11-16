@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -6,6 +7,13 @@ public sealed class BoundingBoxCalculator
 {
     public TextGeometry ComputeTextGeometry(PdfTextElement text)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ComputeTextGeometryAdmitted(text);
+    }
+
+    internal TextGeometry ComputeTextGeometryAdmitted(PdfTextElement text)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var fontSize = Math.Max(text.FontSize, 1d);
         var glyphWidth = text.Glyphs.Count == 0
             ? 0d
@@ -24,6 +32,13 @@ public sealed class BoundingBoxCalculator
 
     public PdfRectangle ComputePathBounds(PdfPathElement path)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ComputePathBoundsAdmitted(path);
+    }
+
+    internal PdfRectangle ComputePathBoundsAdmitted(PdfPathElement path)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var bounds = ComputeLocalPathBounds(path.Segments);
         bounds = MatrixEngine.TransformBounds(bounds, path.Transform);
         bounds = ApplyClip(bounds, path.ClippingPath, path.Transform);
@@ -33,6 +48,13 @@ public sealed class BoundingBoxCalculator
 
     public PdfRectangle ComputeImageBounds(PdfImageElement image)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ComputeImageBoundsAdmitted(image);
+    }
+
+    internal PdfRectangle ComputeImageBoundsAdmitted(PdfImageElement image)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var bounds = MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 1, 1), image.Transform);
         bounds = ApplyClip(bounds, image.ClippingPath, image.Transform);
         image.Bounds = bounds;
@@ -41,10 +63,17 @@ public sealed class BoundingBoxCalculator
 
     public PdfRectangle ComputeGroupBounds(PdfGroupElement group)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ComputeGroupBoundsAdmitted(group);
+    }
+
+    internal PdfRectangle ComputeGroupBoundsAdmitted(PdfGroupElement group)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         PdfRectangle? bounds = null;
         foreach (var child in group.Children)
         {
-            var childBounds = ComputeElementBounds(child);
+            var childBounds = ComputeElementBoundsAdmitted(child);
             bounds = bounds is null ? childBounds : bounds.Value.Union(childBounds);
         }
 
@@ -55,12 +84,19 @@ public sealed class BoundingBoxCalculator
 
     public PdfRectangle ComputeElementBounds(PdfGraphicsElement element)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ComputeElementBoundsAdmitted(element);
+    }
+
+    internal PdfRectangle ComputeElementBoundsAdmitted(PdfGraphicsElement element)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         return element switch
         {
-            PdfTextElement text => ComputeTextGeometry(text).Bounds,
-            PdfPathElement path => ComputePathBounds(path),
-            PdfImageElement image => ComputeImageBounds(image),
-            PdfGroupElement group => ComputeGroupBounds(group),
+            PdfTextElement text => ComputeTextGeometryAdmitted(text).Bounds,
+            PdfPathElement path => ComputePathBoundsAdmitted(path),
+            PdfImageElement image => ComputeImageBoundsAdmitted(image),
+            PdfGroupElement group => ComputeGroupBoundsAdmitted(group),
             _ => MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 1, 1), element.Transform)
         };
     }

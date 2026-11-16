@@ -4,6 +4,7 @@ using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Document;
 
@@ -26,6 +27,13 @@ public sealed class PdfDocumentBuilder
 
     public PdfDocumentModel Build(PdfObjectGraph graph)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return BuildAdmitted(graph);
+    }
+
+    internal PdfDocumentModel BuildAdmitted(PdfObjectGraph graph)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var document = new PdfDocumentModel
         {
             ObjectGraph = graph,
@@ -162,8 +170,8 @@ public sealed class PdfDocumentBuilder
         {
             page.ContentStreams.Add(stream);
             DecodeIfPossible(stream);
-            var commands = _contentParser.Parse(stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes);
-            var graphicsObjects = _graphicsInterpreter.Interpret(commands, fontResources, colorSpaceResources);
+            var commands = _contentParser.ParseAdmitted(stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes);
+            var graphicsObjects = _graphicsInterpreter.InterpretAdmitted(commands, fontResources, colorSpaceResources);
             AttachImageResources(graphicsObjects, imageResources);
             page.GraphicsObjects.AddRange(graphicsObjects);
         }
@@ -271,7 +279,7 @@ public sealed class PdfDocumentBuilder
 
         try
         {
-            stream.SetDecodedBytes(_streamDecoders.Decode(stream));
+            stream.SetDecodedBytes(_streamDecoders.DecodeAdmitted(stream));
         }
         catch (NotSupportedException)
         {
@@ -299,7 +307,9 @@ public sealed class PdfDocumentBuilder
                 continue;
             }
 
-            var font = _fontParser.Parse(entry.Key, resolvedFont, resolver);
+            var font = _fontParser is PdfSimpleFontParser builtin
+                ? builtin.ParseAdmitted(entry.Key, resolvedFont, resolver)
+                : _fontParser.Parse(entry.Key, resolvedFont, resolver);
             fonts[entry.Key] = AttachToUnicode(font, resolvedFont, resolver);
         }
 
@@ -605,7 +615,7 @@ public sealed class PdfDocumentBuilder
 
         DecodeIfPossible(stream);
         var bytes = stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes;
-        var toUnicode = new PdfToUnicodeCMapParser().Parse(bytes);
+        var toUnicode = new PdfToUnicodeCMapParser().ParseAdmitted(bytes);
         return new PdfFontResource
         {
             ResourceName = font.ResourceName,

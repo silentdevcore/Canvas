@@ -2,6 +2,7 @@ using PVAD.Importer.Content;
 using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -34,6 +35,7 @@ public sealed class XObjectResolver
 
     public ResolvedXObject? Resolve(string resourceName, PdfDictionary resources, PdfMatrix inheritedTransform, int recursionDepth = 0)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (recursionDepth > 16 ||
             resources["XObject"] is not PdfDictionary xobjects ||
             xobjects[resourceName] is not { } xobjectValue ||
@@ -53,6 +55,7 @@ public sealed class XObjectResolver
 
     public ResolvedXObject ResolveForm(string resourceName, PdfStreamObject form, PdfMatrix inheritedTransform, int recursionDepth = 0)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var matrix = ReadMatrix(form.Dictionary["Matrix"]) ?? PdfMatrix.Identity;
         var transform = inheritedTransform.Multiply(matrix);
         var commands = _contentParser.Parse(form.IsDecoded ? form.DecodedBytes : form.EncodedBytes);
@@ -66,6 +69,7 @@ public sealed class XObjectResolver
 
     public ResolvedXObject ResolveImage(string resourceName, PdfStreamObject image, PdfMatrix inheritedTransform)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var bounds = MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 1, 1), inheritedTransform);
         return new ResolvedXObject(resourceName, "Image", inheritedTransform, bounds, [], image);
     }

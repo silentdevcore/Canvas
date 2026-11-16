@@ -12,6 +12,8 @@ using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
 using PVAD.Infrastructure.Pdf;
 using PVAD.Pdf;
+using PVAD.Pdf.Serialization;
+using PVAD.Licensing;
 using ImporterPdfColor = PVAD.Importer.Graphics.PdfColor;
 using ImporterPdfMatrix = PVAD.Importer.Graphics.PdfMatrix;
 using ImporterPdfPoint = PVAD.Importer.Graphics.PdfPoint;
@@ -39,22 +41,32 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 
     public PvadPdfGeneratorBridge(PdfDocumentRenderer renderer)
     {
+        ArgumentNullException.ThrowIfNull(renderer);
         _renderer = renderer;
     }
 
+    /// <summary>Regenerates an imported model using Importer admission and internal renderer dependencies.</summary>
     public Task RegenerateAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
     {
         return RegenerateAsync(document, output, configureDocument: null, cancellationToken);
     }
 
+    /// <summary>
+    /// Regenerates an imported model. A non-null caller configuration callback additionally
+    /// requires PDF admission because it exposes a general-purpose generator document.
+    /// </summary>
     public async Task RegenerateAsync(
         PdfDocumentModel document,
         Stream output,
         Action<PvadPdfDocument>? configureDocument,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
+        if (configureDocument is not null)
+            PvadLicense.Require(PvadLicenseProducts.Pdf);
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(output);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var shadingPlans = document.Pages
             .Select(static page => page.GraphicsObjects
@@ -64,10 +76,21 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
                 .ToList())
             .ToList();
 
-        var canvasDocument = CreateDocument(document);
-        configureDocument?.Invoke(canvasDocument);
-
-        var bytes = _renderer.Render(canvasDocument);
+        byte[] bytes;
+        if (configureDocument is null)
+        {
+            bytes = PdfWriter.RegenerateForImporter(generated => PopulateDocument(document, generated));
+        }
+        else
+        {
+#pragma warning disable PVAD0001 // Caller-controlled generator configuration requires PDF admission.
+            var generated = new PvadPdfDocument();
+#pragma warning restore PVAD0001
+            PopulateDocument(document, generated);
+            configureDocument(generated);
+            PvadLicense.Require(PvadLicenseProducts.Importer);
+            bytes = _renderer.Render(generated);
+        }
         if (shadingPlans.Any(static plan => plan.Count > 0))
         {
             bytes = PreserveShadings(bytes, document, shadingPlans);
@@ -78,6 +101,7 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 
     public object MapObject(PdfObject parsedObject)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(parsedObject);
 
         return parsedObject switch
@@ -103,6 +127,7 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 
     public object MapGraphicsElement(PdfGraphicsElement element)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(element);
 
         return element switch
@@ -144,15 +169,13 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 
     public object MapResources(PdfDictionary resources)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(resources);
         return MapObject(resources);
     }
 
-    private PvadPdfDocument CreateDocument(PdfDocumentModel source)
+    private void PopulateDocument(PdfDocumentModel source, PvadPdfDocument document)
     {
-#pragma warning disable PVAD0001 // Importer regeneration bridge targets the PVAD.Pdf implementation .
-        var document = new PvadPdfDocument();
-#pragma warning restore PVAD0001
         ApplyMetadata(document, source.Metadata);
 
         foreach (var pageModel in source.Pages)
@@ -170,8 +193,6 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
                 RenderElement(page, pageModel, source.ObjectGraph, element);
             }
         }
-
-        return document;
     }
 
     private static void RenderElement(PvadPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfGraphicsElement element)

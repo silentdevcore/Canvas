@@ -7,6 +7,7 @@ using PVAD.Importer.Streams;
 using PVAD.Importer.Trust;
 using PVAD.Importer.Xref;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.EInvoicing;
 
@@ -39,6 +40,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         PdfEInvoiceAttachmentOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         options ??= new PdfEInvoiceAttachmentOptions();
         ValidatePayload(payload);
         ValidateOptions(options);
@@ -52,6 +54,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         PdfEInvoiceAttachmentOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         options ??= new PdfEInvoiceAttachmentOptions();
         ValidatePayload(payload);
         ValidateOptions(options);

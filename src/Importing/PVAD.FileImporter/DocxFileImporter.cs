@@ -2,6 +2,7 @@ using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter;
 
@@ -25,6 +26,7 @@ public sealed class DocxFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         using var doc = WordprocessingDocument.Open(stream, false);
         var mainPart = doc.MainDocumentPart
             ?? throw new InvalidDataException("DOCX has no main document part.");

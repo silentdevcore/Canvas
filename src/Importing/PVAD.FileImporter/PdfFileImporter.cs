@@ -6,6 +6,7 @@ using PVAD.Importer;
 using PVAD.Importer.Analysis;
 using PVAD.Importer.Document;
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 using ChartDefinitionNormalizer = PVAD.Core.Primitives.ChartDefinitionNormalizer;
 using ChartMetadataCodec = PVAD.Core.Primitives.ChartMetadataCodec;
 using ChartMetadataEntry = PVAD.Core.Primitives.ChartMetadataEntry;
@@ -55,9 +56,10 @@ public sealed class PdfFileImporter : IFileImporter
         PdfFileImportOptions options,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.DesignerPdfImport);
         ArgumentNullException.ThrowIfNull(options);
         cancellationToken.ThrowIfCancellationRequested();
-        var doc = await new PdfImporter().LoadAsync(stream, cancellationToken);
+        var doc = await new PdfImporter().LoadAdmittedAsync(stream, cancellationToken);
         var sceneGraphEngine = new SceneGraphEngine();
         var diagnostics = new List<ImportDiagnosticDto>();
         var metadataCharts = ReadPvadChartMetadata(doc, diagnostics);
@@ -87,7 +89,7 @@ public sealed class PdfFileImporter : IFileImporter
             double originY = visibleBox?.Y ?? 0;
             double pageH   = originY + canvasH; // top of page in PDF coordinate space
 
-            var scenePage = sceneGraphEngine.BuildPage(pageNum - 1, page);
+            var scenePage = sceneGraphEngine.BuildPageAdmitted(pageNum - 1, page);
             var elements = new List<ElementDto>();
             var pageMetadataCharts = metadataCharts
                 .Where(entry => entry.PageIndex == pageNum - 1)

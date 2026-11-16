@@ -1,0 +1,10 @@
+{
+  "id": "native-import-entry-license-enforcement",
+  "impact": "major",
+  "components": ["api", "importer", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Built-in file imports and existing-PDF load and save entry points now require a signed Importer license. Direct engine and OCR licensing coverage remains under development.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

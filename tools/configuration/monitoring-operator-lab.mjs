@@ -100,9 +100,9 @@ export async function createMonitoringLab(context) {
     route: { receiver: 'isolated-relay', group_by: ['alertname'], group_wait: '1s', group_interval: '1s', repeat_interval: '1m' },
     receivers: [{ name: 'isolated-relay', webhook_configs: [{ url: 'http://pvad-webhook-relay:8080/alerts', send_resolved: true }] }] }));
   step('monitoring/build-relay');
-  const relayDirectory = resolve(directory, 'relay');
-  await finish(command('relay-build', ['dotnet', 'publish', 'src/Observability/PVAD.Observability.WebhookRelay/PVAD.Observability.WebhookRelay.csproj',
-    '--no-restore', '--configuration', 'Release', '--output', relayDirectory, '-p:UseAppHost=false', '--verbosity', 'quiet']));
+  const relayDirectory = resolve(process.env.PVAD_NATIVE_TEST_BUILD_ROOT, 'monitoring-relay');
+  await finish(command('relay-build', ['dotnet', 'build', 'src/Observability/PVAD.Observability.WebhookRelay/PVAD.Observability.WebhookRelay.csproj',
+    '--configuration', 'Release', '--output', relayDirectory, '-p:UseAppHost=false', '--disable-build-servers', '-m:1', '--verbosity', 'quiet']));
   const namesByService = {};
   const start = (key, args, env = {}, containerCommand = []) => {
     const name = `pvad-monitoring-${runId}-${key}`;

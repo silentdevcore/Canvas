@@ -2,6 +2,8 @@ using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Trust;
 
 public enum PdfRevocationEvidenceKind
@@ -222,6 +224,7 @@ public static class PdfCrlEvidenceValidator
         string source,
         bool historical)
     {
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var reader = new AsnReader(encodedCrl, AsnEncodingRules.DER);
         var certificateList = reader.ReadSequence();
         var encodedTbs = certificateList.ReadEncodedValue();

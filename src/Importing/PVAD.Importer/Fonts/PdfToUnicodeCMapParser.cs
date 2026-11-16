@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Fonts;
 
@@ -7,6 +8,13 @@ public sealed class PdfToUnicodeCMapParser
 {
     public PdfToUnicodeMap Parse(ReadOnlyMemory<byte> cmapBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(cmapBytes);
+    }
+
+    internal PdfToUnicodeMap ParseAdmitted(ReadOnlyMemory<byte> cmapBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var map = new PdfToUnicodeMap();
         var lines = Encoding.ASCII.GetString(cmapBytes.Span)
             .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

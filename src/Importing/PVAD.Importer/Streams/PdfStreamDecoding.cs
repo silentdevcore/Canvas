@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Streams;
 
@@ -63,6 +64,13 @@ public sealed class PdfStreamDecoderRegistry
 
     public ReadOnlyMemory<byte> Decode(PdfStreamObject stream)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(stream);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(PdfStreamObject stream)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var filter = stream.Dictionary["Filter"];
         if (filter is PdfName name)
         {
@@ -90,7 +98,16 @@ public sealed class PdfStreamDecoderRegistry
         var decoder = _decoders.FirstOrDefault(candidate => candidate.CanDecode(filterName));
         if (decoder is not null)
         {
-            var decoded = decoder.Decode(encodedBytes, CreateFilterDictionary(dictionary, filterIndex));
+            var parameters = CreateFilterDictionary(dictionary, filterIndex);
+            var decoded = decoder switch
+            {
+                FlateDecodeStreamDecoder builtin => builtin.DecodeAdmitted(encodedBytes, parameters),
+                AsciiHexStreamDecoder builtin => builtin.DecodeAdmitted(encodedBytes, parameters),
+                Ascii85StreamDecoder builtin => builtin.DecodeAdmitted(encodedBytes, parameters),
+                LzwStreamDecoder builtin => builtin.DecodeAdmitted(encodedBytes, parameters),
+                CcittFaxStreamDecoder builtin => builtin.DecodeAdmitted(encodedBytes, parameters),
+                _ => decoder.Decode(encodedBytes, parameters),
+            };
             PdfStreamBudget.EnsureWithinLimits(_limits, encodedBytes.Length, decoded.Length);
             return decoded;
         }
@@ -198,6 +215,13 @@ public sealed class FlateDecodeStreamDecoder : IPdfStreamDecoder
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(encodedBytes, streamDictionary);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         using var input = new MemoryStream(encodedBytes.ToArray());
         using var zlib = new ZLibStream(input, CompressionMode.Decompress);
         var decoded = PdfStreamBudget.ReadBounded(zlib, _limits, encodedBytes.Length);
@@ -213,6 +237,13 @@ public sealed class AsciiHexStreamDecoder : IPdfStreamDecoder
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(encodedBytes, streamDictionary);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var output = new List<byte>(encodedBytes.Length / 2);
         var highNibble = -1;
         foreach (var b in encodedBytes.Span)
@@ -269,6 +300,13 @@ public sealed class Ascii85StreamDecoder : IPdfStreamDecoder
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(encodedBytes, streamDictionary);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var output = new List<byte>(encodedBytes.Length);
         Span<byte> tuple = stackalloc byte[5];
         var count = 0;
@@ -664,6 +702,13 @@ public sealed class CcittFaxStreamDecoder : IPdfStreamDecoder
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(encodedBytes, streamDictionary);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var parms = streamDictionary["DecodeParms"] as PdfDictionary;
         var k = GetInt(parms, "K", 0);
         var columns = GetInt(parms, "Columns", 1728);
@@ -1003,6 +1048,13 @@ public sealed class LzwStreamDecoder : IPdfStreamDecoder
 
     public ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return DecodeAdmitted(encodedBytes, streamDictionary);
+    }
+
+    internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var budget = PdfStreamBudget.MaximumDecodedBytes(_limits, encodedBytes.Length);
         var reader = new MostSignificantBitReader(encodedBytes.Span);
         var table = CreateInitialTable();

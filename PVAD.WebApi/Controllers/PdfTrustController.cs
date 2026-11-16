@@ -8,6 +8,8 @@ using PVAD.Domain.Entities;
 using PVAD.WebApi.Services.Jobs;
 using PVAD.WebApi.Services.Storage;
 
+using PVAD.Licensing;
+
 namespace PVAD.WebApi.Controllers;
 
 [ApiController]
@@ -53,6 +55,7 @@ public sealed class PdfTrustController(
             tenantContext.UserId is not { } userId)
             return Unauthorized();
 
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         await using var content = file!.OpenReadStream();
         var input = await storedObjects.StoreAsync(
             organizationId,
@@ -120,6 +123,7 @@ public sealed class PdfTrustController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var report = await inspector.InspectAsync(
                 stream,
@@ -212,6 +216,7 @@ public sealed class PdfTrustController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file!.OpenReadStream();
             var report = await pdfA2bConverter.PreflightAsync(
                 stream,
@@ -266,6 +271,7 @@ public sealed class PdfTrustController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file!.OpenReadStream();
             var result = await pdfA2bConverter.ConvertAsync(
                 stream,
