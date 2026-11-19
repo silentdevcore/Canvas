@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="PVAD.Importer.Tests" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
   <ItemGroup>

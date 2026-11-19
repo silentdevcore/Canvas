@@ -25,6 +25,21 @@ public sealed class PdfGeneratorBridgePipeline
     public Task SaveAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
     {
         PvadLicense.Require(PvadLicenseProducts.Importer);
-        return _bridge.RegenerateAsync(document, output, cancellationToken);
+        return SaveWithAdmissionAsync(document, output, cancellationToken);
+    }
+
+    private async Task SaveWithAdmissionAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImporterRegeneration);
+        await SaveAdmittedAsync(document, output, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task SaveAdmittedAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        if (_bridge is PvadPdfGeneratorBridge builtin)
+            await builtin.RegenerateAdmittedAsync(document, output, cancellationToken).ConfigureAwait(false);
+        else
+            await _bridge.RegenerateAsync(document, output, cancellationToken).ConfigureAwait(false);
     }
 }

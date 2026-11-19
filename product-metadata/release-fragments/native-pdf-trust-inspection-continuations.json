@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-trust-inspection-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF trust inspections and change-impact evaluations retain their license admission through parsing, embedded evidence and structural validation. New public calls still check the current license; signature, certificate and change-impact rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

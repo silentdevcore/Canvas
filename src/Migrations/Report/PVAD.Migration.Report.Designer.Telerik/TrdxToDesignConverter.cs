@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.Telerik;
 
@@ -50,13 +51,27 @@ public sealed class TrdxToDesignConverter
 
     public TrdxConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "telerik");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal TrdxConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "telerik");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public TrdxConvertResult Convert(string trdxXml)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "telerik");
+        return ConvertAdmitted(trdxXml);
+    }
+
+    internal TrdxConvertResult ConvertAdmitted(string trdxXml)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "telerik");
         if (string.IsNullOrWhiteSpace(trdxXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(trdxXml));
 

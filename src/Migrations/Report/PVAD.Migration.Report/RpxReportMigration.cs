@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Migration.Report.Designer.Rpx;
 using PVAD.Core.Contracts;
 
@@ -14,7 +15,14 @@ public sealed class RpxReportMigration : IReportMigration
 
     public ReportMigrationResult Convert(string source, IReadOnlyDictionary<string, string>? resources)
     {
-        var result = inner.Convert(source, resources);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rpx");
+        return ConvertAdmitted(source, resources);
+    }
+
+    internal ReportMigrationResult ConvertAdmitted(string source, IReadOnlyDictionary<string, string>? resources)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rpx");
+        var result = inner.ConvertAdmitted(source, resources);
         return new ReportMigrationResult
         {
             Design = result.Design,

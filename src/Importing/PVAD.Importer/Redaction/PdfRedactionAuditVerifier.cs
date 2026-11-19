@@ -18,7 +18,16 @@ public static class PdfRedactionAuditVerifier
         bool requireSignature = false,
         bool requireTimestamp = false)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedactionAudit);
+        return VerifyAdmitted(record, requireSignature, requireTimestamp);
+    }
+
+    internal static bool VerifyAdmitted(
+        PdfRedactionAuditRecord record,
+        bool requireSignature = false,
+        bool requireTimestamp = false)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(record);
 
         if (!IsSha256(record.SourceSha256) ||

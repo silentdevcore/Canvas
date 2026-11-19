@@ -59,6 +59,7 @@ calls.Add("save:strategy-incremental", () => VerifyBytes(saver.Save(pdf, new Pdf
 }).Bytes));
 
 Check(PvadLicense.GetStatus().State == PvadLicenseState.Unlicensed, "initially-unlicensed");
+await FreeSurfaceChecks.Run("missing", checks);
 Check(readers.Count == 8 && fixtures.Keys.Order().SequenceEqual(readers.Keys.Order()), "registry-and-fixture-coverage");
 Check(readers.Values.All(reader => reader.SupportedExtensions.Count > 0), "registry-metadata-free");
 foreach (var (name, call) in calls) await Denied(call, "PVADLIC001", "missing:" + name);
@@ -92,6 +93,7 @@ using (var cancellation = new CancellationTokenSource())
 
 PvadLicense.LoadFromFile(args[1]);
 denied = true;
+await FreeSurfaceChecks.Run("wrong-product", checks);
 enumerated = false;
 var beforeResolver = resolver.Calls;
 foreach (var (name, call) in calls) await Denied(call, "PVADLIC012", "wrong:" + name);
@@ -107,8 +109,21 @@ checks.Add("renewal-restores-existing-importer-and-writer");
 var pdfContinuationChecks = await PdfContinuationChecks.Run(args, checks, pdf);
 var designerPdfContinuationChecks = await DesignerPdfContinuationChecks.Run(args, checks, pdf, fixtures["image"]);
 var editingContinuationChecks = await EditingContinuationChecks.Run(args, checks);
-Console.WriteLine(JsonSerializer.Serialize(new { checks, coveredEntries = calls.Count, directEngineEntries = directEntries, editingEntries, trustSecurityEntries, regenerationEntries, pdfContinuationChecks, designerPdfContinuationChecks, editingContinuationChecks, scope = "file-import-pdf-load-save-direct-engines-editing-trust-and-regeneration", completeImporterEnforcement = false,
-    processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+var trustContinuationChecks = await TrustContinuationChecks.Run(args, checks);
+var signingContinuationChecks = await SigningContinuationChecks.Run(args, checks);
+var redactionContinuationChecks = await RedactionContinuationChecks.Run(args, checks);
+var eInvoiceContinuationChecks = await EInvoiceContinuationChecks.Run(args, checks);
+var trustPipelineContinuationChecks = await TrustPipelineContinuationChecks.Run(args, checks);
+var regenerationContinuationChecks = await RegenerationContinuationChecks.Run(args, checks, pdf);
+var fileImporterContinuationChecks = await FileImporterContinuationChecks.Run(args, checks, fixtures);
+NativeSurfaceCoverage.RecordMethods(typeof(PdfFileImporter), 4);
+NativeSurfaceCoverage.RecordMethods(typeof(PdfImporter), 3);
+NativeSurfaceCoverage.RecordMethods(typeof(ImportPdf), 3);
+NativeSurfaceCoverage.RecordMethods(typeof(PdfDocumentSaver), 1);
+NativeSurfaceCoverage.RecordMethods(typeof(PdfFullRewriteWriter), 2);
+NativeSurfaceCoverage.RecordMethods(typeof(PdfIncrementalUpdateWriter), 1);
+Console.WriteLine(JsonSerializer.Serialize(new { checks, coveredEntries = calls.Count, directEngineEntries = directEntries, editingEntries, trustSecurityEntries, regenerationEntries, pdfContinuationChecks, designerPdfContinuationChecks, editingContinuationChecks, trustContinuationChecks, signingContinuationChecks, redactionContinuationChecks, eInvoiceContinuationChecks, trustPipelineContinuationChecks, regenerationContinuationChecks, scope = "file-import-pdf-load-save-direct-engines-editing-trust-and-regeneration", completeImporterEnforcement = false,
+    fileImporterContinuationChecks, testedSurface = NativeSurfaceCoverage.Snapshot(), processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;
 
 IEnumerable<PdfIncrementalObjectUpdate> Updates()

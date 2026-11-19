@@ -185,7 +185,13 @@ public sealed class PdfPkcs12SigningKey : IPdfSigningKey, IDisposable
 
     public byte[] SignHash(ReadOnlySpan<byte> hash, HashAlgorithmName digestAlgorithm)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return SignHashAdmitted(hash, digestAlgorithm);
+    }
+
+    internal byte[] SignHashAdmitted(ReadOnlySpan<byte> hash, HashAlgorithmName digestAlgorithm)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         return _privateKey.SignHash(hash, digestAlgorithm, RSASignaturePadding.Pkcs1);
     }
 

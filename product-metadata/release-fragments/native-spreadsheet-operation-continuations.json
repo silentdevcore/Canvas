@@ -1,0 +1,10 @@
+{
+  "id": "native-spreadsheet-operation-continuations",
+  "impact": "patch",
+  "components": ["spreadsheet", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted spreadsheet export, calculation and file saving retain their license admission through built-in processing. New calls and authoring callbacks still check current rights; file formats and product permissions remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

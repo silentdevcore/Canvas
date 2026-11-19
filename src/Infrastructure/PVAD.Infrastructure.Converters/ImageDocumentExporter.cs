@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.Infrastructure.Converters;
@@ -23,6 +24,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
         var dpi   = options?.Dpi ?? DefaultDpi;
         var scale = dpi / 72f;
         var ps    = design.PageSettings ?? new PageSettingsDto();
@@ -52,6 +54,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
     internal static byte[] RenderPage(PageDto page, List<ElementDto> shared, PageSettingsDto ps,
         SKEncodedImageFormat format, int quality, float scale)
     {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Converter);
         var effectiveSettings = PageLayoutResolver.ResolveSettings(ps, page.Layout);
         int bmpW = (int)(effectiveSettings.Width  * scale);
         int bmpH = (int)(effectiveSettings.Height * scale);
@@ -569,6 +572,7 @@ public sealed class JpegDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
         var quality = options?.Quality ?? DefaultQuality;
         var dpi = options?.Dpi ?? 150f;
         var scale = dpi / 72f;

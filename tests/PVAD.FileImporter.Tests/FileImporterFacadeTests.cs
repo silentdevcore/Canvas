@@ -12,6 +12,47 @@ namespace PVAD.FileImporter.Tests;
 
 public sealed class FileImporterFacadeTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task MarkdownImporter_LeavesCallerStreamOpen(bool asynchronous, bool oversized)
+    {
+        var text = oversized ? new string('a', MarkdownFileImporter.MaxInputCharacters + 1) : "# Caller-owned stream";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
+        async Task Import()
+        {
+            if (asynchronous) await new MarkdownFileImporter().ImportAsync(stream);
+            else MarkdownFileImporter.Import(stream);
+        }
+        if (oversized) await Assert.ThrowsAsync<InvalidDataException>(Import);
+        else await Import();
+        Assert.True(stream.CanRead);
+        stream.Position = 0;
+        Assert.Equal((int)text[0], stream.ReadByte());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OdtImporter_LeavesCallerStreamOpen(bool missingContent)
+    {
+        using var stream = new MemoryStream();
+        if (missingContent)
+        {
+            using var empty = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true);
+        }
+        else stream.Write(MakeMinimalOdt("Caller-owned stream"));
+        stream.Position = 0;
+        if (missingContent)
+            await Assert.ThrowsAsync<InvalidDataException>(() => new OdtFileImporter().ImportAsync(stream));
+        else await new OdtFileImporter().ImportAsync(stream);
+        Assert.True(stream.CanRead);
+        stream.Position = 0;
+        Assert.Equal((int)'P', stream.ReadByte());
+    }
+
     [Fact]
     public async Task DocxImporter_ImportsTextDesign()
     {

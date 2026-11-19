@@ -45,11 +45,16 @@ internal sealed class PdfWriter
     internal static byte[] RegenerateForImporter(Action<PdfDocument> populate)
     {
         using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImporterRegeneration);
+        return RegenerateForImporterAdmitted(populate);
+    }
+
+    internal static byte[] RegenerateForImporterAdmitted(Action<PdfDocument> populate)
+    {
         var admission = PvadLicense.DemandDependency(PvadNativeDependency.RegenerationPdf);
         ArgumentNullException.ThrowIfNull(populate);
         var document = new PdfDocument(admission);
         populate(document);
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.DemandDependency(PvadNativeDependency.RegenerationPdf);
         return new PdfWriter().WriteCore(document, null).Bytes;
     }
 

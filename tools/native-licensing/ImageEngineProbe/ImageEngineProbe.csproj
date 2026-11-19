@@ -7,6 +7,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../NativeSurfaceCoverage.cs" Link="NativeSurfaceCoverage.cs" />
     <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageAnalysis/PVAD.FileImporter.ImageAnalysis.csproj" />
     <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageOcr/PVAD.FileImporter.ImageOcr.csproj" />
     <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" />

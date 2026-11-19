@@ -10,6 +10,7 @@ on:
       - 'src/Generation/PVAD.Generator/**'
       - 'src/Infrastructure/PVAD.Infrastructure.Word/**'
       - 'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Converters/**'
       - 'src/Importing/**'
       - 'src/Execution/PVAD.CodeWorker/**'
       - 'PVAD.WebApi/**'
@@ -21,6 +22,7 @@ on:
       - 'tests/PVAD.Api.Tests/**'
       - 'tests/PVAD.Infrastructure.Word.Tests/**'
       - 'tests/PVAD.Infrastructure.Spreadsheet.Tests/**'
+      - 'tests/PVAD.Infrastructure.Converters.Tests/**'
       - 'tests/PVAD.Infrastructure.Pdf.Tests/**'
       - 'tests/PVAD.Generator.Tests/**'
       - 'tests/PVAD.Importer.Tests/**'
@@ -28,7 +30,18 @@ on:
       - 'tests/PVAD.FileImporter.ImageAnalysis.Tests/**'
       - 'tests/PVAD.FileImporter.ImageOcr.Tests/**'
       - 'src/Migrations/Common/PVAD.Migration.Abstractions/**'
+      - 'src/Migrations/Common/PVAD.Migration.Roslyn/**'
+      - 'src/Migrations/PDF/**'
+      - 'src/Migrations/Spreadsheet/**'
+      - 'tests/PVAD.Migration.Pdf*/**'
+      - 'tests/PVAD.Migration.Spreadsheet*/**'
+      - 'tests/PVAD.Migration.Report*/**'
       - 'product-metadata/native-library-products.v1.json'
+      - 'product-metadata/native-library-dependencies.v1.json'
+      - 'product-metadata/native-code-migration-entries.v1.json'
+      - 'product-metadata/native-report-migration-entries.v1.json'
+      - 'product-metadata/native-file-importer-entries.v1.json'
+      - 'product-metadata/native-importer-public-surface.v1.json'
       - 'product-metadata/pvad-releases.json'
       - 'tools/versioning/**'
       - 'Directory.Build.props'
@@ -69,10 +82,28 @@ jobs:
         run: node tools/native-licensing/with-test-license.mjs word
       - name: Verify Spreadsheet admission, retained handles, and non-destructive IO
         run: node tools/native-licensing/with-test-license.mjs spreadsheet
-      - name: Verify imports, editing, Trust, and isolated regeneration admission (partial Importer milestone)
-        run: node tools/native-licensing/with-test-license.mjs importer
-      - name: Verify image analysis, OCR admission, and independently licensed worker handoff
-        run: node tools/native-licensing/with-test-license.mjs image
+      - name: Verify Converter admission, interfaces, output formats, and continuations
+        run: node tools/native-licensing/with-test-license.mjs converter
+      - name: Verify all 24 Code migration providers and cross-domain provider isolation
+        run: node tools/native-licensing/with-test-license.mjs migration-code
+      - name: Verify native Viewer entry admission and callback isolation
+        run: node tools/native-licensing/with-test-license.mjs migration-viewer
+      - name: Verify all eight Report Designer providers and native entry overloads
+        run: node tools/native-licensing/with-test-license.mjs migration-report
+      - name: Test Report Designer providers, resource continuations, detection and API compatibility
+        run: node tools/native-licensing/report-regressions.mjs
+      - name: Test existing Nutrient Viewer output and diagnostics with signed grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests.csproj --verbosity minimal
+      - name: Test separate Viewer and Designer licenses through real API routes
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativeViewerMigrationLicenseTests|FullyQualifiedName~NutrientViewerMigrationControllerTests|FullyQualifiedName~MigrationControllerTests|FullyQualifiedName~UnifiedMigrationsControllerTests|FullyQualifiedName~PvadDesignerMigrationAccessTests" --verbosity minimal
+      - name: Test PDF migration factories and compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Pdf.Tests/PVAD.Migration.Pdf.Tests.csproj --verbosity minimal
+      - name: Test Spreadsheet migration wrappers with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Spreadsheet.Tests/PVAD.Migration.Spreadsheet.Tests.csproj --verbosity minimal
+      - name: Test Converter compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Converters.Tests/PVAD.Infrastructure.Converters.Tests.csproj --verbosity minimal
+      - name: Verify all public Importer APIs, native admission, and independent OCR worker handoff
+        run: node tools/native-licensing/importer-surface.mjs verify
       - name: Test image analysis compatibility with signed native grants
         run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.ImageAnalysis.Tests/PVAD.FileImporter.ImageAnalysis.Tests.csproj --verbosity minimal
       - name: Test OCR compatibility with signed native grants
@@ -90,7 +121,7 @@ jobs:
       - name: Test PDF infrastructure compatibility
         run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Pdf.Tests/PVAD.Infrastructure.Pdf.Tests.csproj --verbosity minimal
       - name: Test API diagnostics, exports, and licensed code-worker handoff
-        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativePdfLicenseTests|FullyQualifiedName~PvadNativeWordLicenseTests|FullyQualifiedName~PvadNativeSpreadsheetLicenseTests|FullyQualifiedName~PvadNativeImporterLicenseTests|FullyQualifiedName~PvadNativeTrustLicenseTests|FullyQualifiedName~ExportControllerTests|FullyQualifiedName~SpreadsheetControllerTests|FullyQualifiedName~DocumentOpsControllerTests|FullyQualifiedName~MigrationGeneratedCodeExecutionTests|FullyQualifiedName~CodeWorkspaceConversionTests|FullyQualifiedName~PdfTrust|FullyQualifiedName~PdfSignature|FullyQualifiedName~PdfRedaction|FullyQualifiedName~PdfViewerRedaction|FullyQualifiedName~PdfViewerAnnotationsControllerTests|FullyQualifiedName~PdfEInvoice|FullyQualifiedName~PvadPdfTrust|FullyQualifiedName~PvadEInvoice|FullyQualifiedName~PvadRedaction" --verbosity minimal
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativePdfLicenseTests|FullyQualifiedName~PvadNativeWordLicenseTests|FullyQualifiedName~PvadNativeSpreadsheetLicenseTests|FullyQualifiedName~PvadNativeConverterLicenseTests|FullyQualifiedName~PvadNativeCodeMigrationLicenseTests|FullyQualifiedName~PvadNativeImporterLicenseTests|FullyQualifiedName~PvadNativeTrustLicenseTests|FullyQualifiedName~ExportControllerTests|FullyQualifiedName~SpreadsheetControllerTests|FullyQualifiedName~DocumentOpsControllerTests|FullyQualifiedName~MigrationGeneratedCodeExecutionTests|FullyQualifiedName~CodeWorkspaceConversionTests|FullyQualifiedName~PdfTrust|FullyQualifiedName~PdfSignature|FullyQualifiedName~PdfRedaction|FullyQualifiedName~PdfViewerRedaction|FullyQualifiedName~PdfViewerAnnotationsControllerTests|FullyQualifiedName~PdfEInvoice|FullyQualifiedName~PvadPdfTrust|FullyQualifiedName~PvadEInvoice|FullyQualifiedName~PvadRedaction" --verbosity minimal
       - name: Upload content-free evidence only
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -103,6 +134,14 @@ jobs:
             artifacts/native-engine-tests/*/pdf-admission.json
             artifacts/native-engine-tests/*/word-admission.json
             artifacts/native-engine-tests/*/spreadsheet-admission.json
+            artifacts/native-engine-tests/*/converter-admission.json
+            artifacts/native-engine-tests/*/migration-code-admission.json
+            artifacts/native-engine-tests/*/migration-viewer-admission.json
+            artifacts/native-engine-tests/*/migration-report-admission.json
+            artifacts/native-test-sessions/*/report-*.trx
+            artifacts/native-test-sessions/*/report-process-results.json
+            artifacts/native-test-sessions/*/report-sources-unchanged.json
+            artifacts/native-test-sessions/*/cleanup.json
             artifacts/native-engine-tests/*/importer-admission.json
             artifacts/native-engine-tests/*/image-admission.json
             artifacts/native-engine-tests/*/*.trx

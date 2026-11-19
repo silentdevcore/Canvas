@@ -39,6 +39,17 @@ internal static class PdfImageRedactionEngine
         PdfImageElement image,
         out string reason)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return CanRedactPartialAdmitted(graph, resources, image, out reason);
+    }
+
+    internal static bool CanRedactPartialAdmitted(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
+        PdfImageElement image,
+        out string reason)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (!TryResolveStream(graph, resources, image, out var stream))
         {
             reason = "The image stream or resource reference could not be resolved.";
@@ -91,6 +102,19 @@ internal static class PdfImageRedactionEngine
         out PdfRedactedImage redacted,
         out string reason)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return TryCreateRedactedStreamAdmitted(graph, resources, image, regions, out redacted, out reason);
+    }
+
+    internal static bool TryCreateRedactedStreamAdmitted(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
+        PdfImageElement image,
+        IReadOnlyList<PdfRectangle> regions,
+        out PdfRedactedImage redacted,
+        out string reason)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         redacted = null!;
         if (!TryResolveStream(graph, resources, image, out var source))
         {
@@ -172,6 +196,18 @@ internal static class PdfImageRedactionEngine
         IReadOnlyList<PdfRectangle> regions,
         out string reason)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return IsSecurelyRedactedAdmitted(graph, resources, image, regions, out reason);
+    }
+
+    internal static bool IsSecurelyRedactedAdmitted(
+        PdfObjectGraph graph,
+        PdfDictionary resources,
+        PdfImageElement image,
+        IReadOnlyList<PdfRectangle> regions,
+        out string reason)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (!TryResolveStream(graph, resources, image, out var stream) ||
             !HasRedactionMarker(graph, stream.Dictionary))
         {
@@ -244,11 +280,18 @@ internal static class PdfImageRedactionEngine
 
     public static PdfStreamObject MakeInlineSafe(PdfStreamObject redacted)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return MakeInlineSafeAdmitted(redacted);
+    }
+
+    internal static PdfStreamObject MakeInlineSafeAdmitted(PdfStreamObject redacted)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var decoded = new PdfStreamDecoderRegistry(new PdfParseLimits
         {
             MaxDecodedStreamBytes = MaximumSampleBytes,
             MaxDecompressionRatio = 65_536
-        }).Decode(redacted);
+        }).DecodeAdmitted(redacted);
         var dictionary = new PdfDictionary(
             new Dictionary<string, PdfObject>(redacted.Dictionary.Values, StringComparer.Ordinal));
         dictionary["Filter"] = new PdfName("ASCIIHexDecode");
@@ -374,7 +417,7 @@ internal static class PdfImageRedactionEngine
                     MaxDecompressionRatio = HasRedactionMarker(graph, stream.Dictionary)
                         ? 65_536
                         : new PdfParseLimits().MaxDecompressionRatio
-                }).Decode(NormalizeInlineDictionary(stream));
+                }).DecodeAdmitted(NormalizeInlineDictionary(stream));
         }
         catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or PdfParseLimitExceededException)
         {
@@ -755,7 +798,7 @@ internal static class PdfImageRedactionEngine
                 {
                     MaxDecodedStreamBytes = MaximumEncodedCodecBytes,
                     MaxDecompressionRatio = 1_024
-                }).Decode(globalStream);
+                }).DecodeAdmitted(globalStream);
         }
         catch (Exception exception) when (exception is InvalidDataException or NotSupportedException or PdfParseLimitExceededException)
         {
@@ -1317,7 +1360,7 @@ internal static class PdfImageRedactionEngine
             resolved = Resolve(graph, named);
         }
 
-        return PdfSrgbColorConverter.Resolve(resolved, valueToResolve => Resolve(graph, valueToResolve)).ComponentCount;
+        return PdfSrgbColorConverter.ResolveAdmitted(resolved, valueToResolve => Resolve(graph, valueToResolve)).ComponentCount;
     }
 
     private static bool TryReadPositiveInteger(

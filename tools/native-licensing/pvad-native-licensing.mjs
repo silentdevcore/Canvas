@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { validateInventory } from './importer-surface.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
@@ -51,7 +52,115 @@ export function checkRepository() {
       assert.ok(existsSync(join(root, directory)), `Missing integration directory: ${directory}`);
     }
   }
+  assert.equal(matrix.dependencyInventory, 'product-metadata/native-library-dependencies.v1.json');
+  validateDependencies(readJson(join(root, matrix.dependencyInventory)), matrix.products.map(product => product.id));
+  assert.equal(matrix.codeMigrationEntries, 'product-metadata/native-code-migration-entries.v1.json');
+  validateCodeMigrationEntries(readJson(join(root, matrix.codeMigrationEntries)));
+  assert.equal(matrix.reportMigrationEntries, 'product-metadata/native-report-migration-entries.v1.json');
+  validateReportMigrationEntries(readJson(join(root, matrix.reportMigrationEntries)));
+  assert.equal(matrix.fileImporterEntries, 'product-metadata/native-file-importer-entries.v1.json');
+  validateFileImporterEntries(readJson(join(root, matrix.fileImporterEntries)));
+  assert.equal(matrix.importerPublicSurface, 'product-metadata/native-importer-public-surface.v1.json');
+  validateInventory(readJson(join(root, matrix.importerPublicSurface)));
   return { version, products: matrix.products.length, enforcementStatus: matrix.enforcementStatus };
+}
+
+export function validateFileImporterEntries(inventory) {
+  assert.deepEqual(Object.keys(inventory).sort(), ['entries', 'schemaVersion', 'scope']);
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.scope, 'registry-file-importer-processing-entry-points');
+  assert.equal(inventory.entries.length, 8);
+  const directory = join(root, 'src/Importing/PVAD.FileImporter');
+  const registry = readFileSync(join(directory, 'FileImporterRegistry.cs'), 'utf8');
+  const types = new Set(readdirSync(directory).filter(name => name.endsWith('.cs')).flatMap(name =>
+    [...readFileSync(join(directory, name), 'utf8').matchAll(/public sealed class (\w+) : IFileImporter\b/g)].map(match => match[1])));
+  const keys = new Set();
+  for (const entry of inventory.entries) {
+    assert.deepEqual(Object.keys(entry).sort(), ['key', 'publicProcessingOverloads', 'type']);
+    assert.match(entry.key, /^[a-z]+$/);
+    assert.ok(!keys.has(entry.key)); keys.add(entry.key);
+    assert.ok(types.delete(entry.type), 'Missing or duplicated file importer type.');
+    const source = readFileSync(join(directory, entry.type + '.cs'), 'utf8');
+    assert.ok(registry.includes(`static () => new ${entry.type}(`));
+    assert.equal(entry.publicProcessingOverloads, ['MarkdownFileImporter', 'PdfFileImporter'].includes(entry.type) ? 4 : 2);
+    assert.ok(source.includes(entry.key === 'pdf'
+      ? 'PvadLicense.BeginOperation(PvadNativeOperation.DesignerPdfImport)'
+      : 'PvadLicense.Require(PvadLicenseProducts.Importer);'));
+  }
+  assert.equal(types.size, 0, 'A public importer lacks inventory coverage.');
+  assert.deepEqual([...keys].sort(), ['doc', 'docx', 'image', 'md', 'odt', 'pdf', 'pptx', 'svg']);
+}
+
+export function validateCodeMigrationEntries(inventory) {
+  assert.deepEqual(Object.keys(inventory).sort(), ['entries', 'schemaVersion', 'scope']);
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.scope, 'provider-entry-points-only');
+  assert.equal(inventory.entries.length, 24);
+  const ids = new Set();
+  for (const entry of inventory.entries) {
+    assert.deepEqual(Object.keys(entry).sort(), ['product', 'provider', 'source', 'type']);
+    assert.ok(['migration.pdf.code', 'migration.spreadsheet.code'].includes(entry.product));
+    assert.match(entry.provider, /^[a-z][a-z0-9-]*$/); assert.notEqual(entry.provider, 'auto');
+    assert.ok(!ids.has(entry.product + ':' + entry.provider)); ids.add(entry.product + ':' + entry.provider);
+    assert.ok(!isAbsolute(entry.source) && !entry.source.split('/').includes('..') && existsSync(join(root, entry.source)));
+    assert.match(entry.type, /^[A-Za-z][A-Za-z0-9]*$/);
+    const constant = entry.product === 'migration.pdf.code' ? 'PdfCodeMigration' : 'SpreadsheetCodeMigration';
+    const source = readFileSync(join(root, entry.source), 'utf8');
+    assert.ok(source.includes(`CodeMigrationAdmission.Begin(PvadLicenseProducts.${constant}, "${entry.provider}")`));
+    assert.ok(source.includes(`CodeMigrationAdmission.Demand(PvadLicenseProducts.${constant}, "${entry.provider}");`));
+    assert.ok(source.includes('MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)'));
+    assert.ok(source.includes(`public sealed class ${entry.type} : CSharpSourceMigration`));
+  }
+  assert.equal(inventory.entries.filter(entry => entry.product === 'migration.pdf.code').length, 16);
+  assert.equal(inventory.entries.filter(entry => entry.product === 'migration.spreadsheet.code').length, 8);
+}
+
+export function validateReportMigrationEntries(inventory) {
+  assert.deepEqual(Object.keys(inventory).sort(), ['entries', 'schemaVersion', 'scope']);
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.scope, 'report-converter-and-wrapper-entry-points');
+  assert.equal(inventory.entries.length, 8);
+  const providers = new Set();
+  for (const entry of inventory.entries) {
+    assert.deepEqual(Object.keys(entry).sort(), ['product', 'provider', 'publicConverterOverloads', 'source', 'type', 'wrapper', 'wrapperSource']);
+    assert.equal(entry.product, 'migration.report.designer');
+    assert.match(entry.provider, /^[a-z][a-z0-9-]*$/);
+    assert.notEqual(entry.provider, 'auto');
+    assert.ok(!providers.has(entry.provider)); providers.add(entry.provider);
+    assert.equal(entry.publicConverterOverloads, entry.provider === 'devexpress-report' ? 5 : 2);
+    for (const path of [entry.source, entry.wrapperSource]) {
+      assert.ok(!isAbsolute(path) && !path.split('/').includes('..') && existsSync(join(root, path)));
+      const source = readFileSync(join(root, path), 'utf8');
+      assert.ok(source.includes(`BeginOperation(PvadNativeOperation.ReportDesignerMigration, "${entry.provider}")`));
+      assert.ok(source.includes(`DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "${entry.provider}")`));
+    }
+    assert.match(entry.type, /^[A-Za-z][A-Za-z0-9]*$/);
+    assert.match(entry.wrapper, /^[A-Za-z][A-Za-z0-9]*$/);
+  }
+}
+
+export function validateDependencies(inventory, products) {
+  assert.deepEqual(Object.keys(inventory).sort(), ['notes', 'policySource', 'rules', 'schemaVersion']);
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.policySource, 'src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs');
+  assert.ok(Array.isArray(inventory.rules) && inventory.rules.length > 0);
+  const ids = new Set();
+  for (const rule of inventory.rules) {
+    assert.deepEqual(Object.keys(rule).sort(), ['additionalGrants', 'boundary', 'id', 'privateDependency', 'product', 'source', 'status']);
+    assert.match(rule.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    assert.ok(!ids.has(rule.id), 'Duplicate dependency rule.'); ids.add(rule.id);
+    assert.ok(products.includes(rule.product));
+    assert.ok(['fresh-public', 'internal-continuation', 'private-byte-dependency', 'fresh-public-callback', 'fresh-provider'].includes(rule.boundary));
+    assert.ok(['implemented', 'planned'].includes(rule.status));
+    assert.ok(!isAbsolute(rule.source) && !rule.source.split('/').includes('..') && existsSync(join(root, rule.source)), 'Invalid dependency source.');
+    assert.ok(Array.isArray(rule.additionalGrants) && new Set(rule.additionalGrants).size === rule.additionalGrants.length);
+    assert.ok(rule.additionalGrants.every(product => products.includes(product)));
+    if (rule.boundary === 'private-byte-dependency') {
+      assert.equal(rule.product, 'importer');
+      assert.ok(['RegenerationPdf', 'BlankPagePdf', 'OcrResultPdf'].includes(rule.privateDependency));
+    } else assert.equal(rule.privateDependency, null);
+  }
+  assert.ok(Array.isArray(inventory.notes) && inventory.notes.every(note => typeof note === 'string' && note.trim()));
 }
 
 function run(command, args, options = {}) {

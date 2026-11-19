@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using PVAD.Importer.Signing;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Redaction;
 
@@ -21,6 +22,18 @@ internal static class PdfRedactionAuditSigner
         IPdfTimestampAuthority? timestampAuthority,
         CancellationToken cancellationToken)
     {
+        if (key is null) return null;
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedactionAudit);
+        return await SignAdmittedAsync(recordSha256, key, timestampAuthority, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<PdfRedactionAuditSignature?> SignAdmittedAsync(
+        string recordSha256,
+        IPdfSigningKey? key,
+        IPdfTimestampAuthority? timestampAuthority,
+        CancellationToken cancellationToken)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (key is null)
         {
             return null;
@@ -33,12 +46,13 @@ internal static class PdfRedactionAuditSigner
         // the signature to exactly the value the record publishes.
         var digest = SHA256.HashData(Encoding.ASCII.GetBytes(recordSha256));
         var cms = timestampAuthority is null
-            ? PdfCadesCmsBuilder.CreateDetached(digest, key, signedAt)
-            : await PdfCadesCmsBuilder.CreateDetachedWithTimestampAsync(
+            ? PdfCadesCmsBuilder.CreateDetachedAdmitted(digest, key, signedAt, HashAlgorithmName.SHA256)
+            : await PdfCadesCmsBuilder.CreateDetachedWithTimestampAdmittedAsync(
                 digest,
                 key,
                 signedAt,
                 timestampAuthority,
+                HashAlgorithmName.SHA256,
                 cancellationToken).ConfigureAwait(false);
         var certificate = key.Certificate;
         return new PdfRedactionAuditSignature(

@@ -233,7 +233,7 @@ public sealed class UnifiedMigrationsController(
         {
             throw;
         }
-        catch (Exception)
+        catch (Exception exception) when (exception is not PVAD.Licensing.PvadLicenseException)
         {
             return MigrationProblem(400, "PDF could not be imported", "The original PDF could not be parsed or converted.", "CANMIGNUTDESIGN103");
         }

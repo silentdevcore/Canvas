@@ -16,7 +16,8 @@ public abstract class BaseSpreadsheetConverter : BasePdfConverter
 
     public override byte[] GeneratePreview(string sourceCode)
     {
-        var converted = ConvertCode(sourceCode);
+        using var operation = CodeMigrationPreview.Begin(this);
+        var converted = CodeMigrationPreview.Convert(this, sourceCode);
         return Encoding.UTF8.GetBytes(RenderHtml(converted, FrameworkName));
     }
 

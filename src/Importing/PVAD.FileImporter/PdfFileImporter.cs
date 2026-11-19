@@ -57,6 +57,19 @@ public sealed class PdfFileImporter : IFileImporter
         CancellationToken cancellationToken = default)
     {
         using var operation = PvadLicense.BeginOperation(PvadNativeOperation.DesignerPdfImport);
+        return await ImportCoreAsync(stream, name, options, cancellationToken);
+    }
+
+    internal static async Task<DesignExportDto> ImportNutrientDesignerSourceAsync(
+        Stream stream, string? name, PdfFileImportOptions options, CancellationToken cancellationToken)
+    {
+        using var operation = PvadLicense.BeginNutrientDesignerPdfImport();
+        return await ImportCoreAsync(stream, name, options, cancellationToken);
+    }
+
+    private static async Task<DesignExportDto> ImportCoreAsync(
+        Stream stream, string? name, PdfFileImportOptions options, CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(options);
         cancellationToken.ThrowIfCancellationRequested();
         var doc = await new PdfImporter().LoadAdmittedAsync(stream, cancellationToken);

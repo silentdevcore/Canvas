@@ -127,6 +127,55 @@ public sealed class NativeLicenseTests : IDisposable
     }
 
     [Fact]
+    public void AdmittedRegenerationRetainsOnlyItsPrivatePdfDependencyAfterTrialExpiry()
+    {
+        var authority = Authority();
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("importer", [])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        using (authority.Begin(PvadNativeOperation.ImporterRegeneration))
+        {
+            clock.Now = payload.ValidUntil!.Value;
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.DemandDependency(PvadNativeDependency.RegenerationPdf).LicenseId);
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.BlankPagePdf));
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.OcrResultPdf));
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.ImporterRegeneration)).Code);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("pdf", null)).Code);
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandDependency(PvadNativeDependency.RegenerationPdf));
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.RegenerationPdf));
+    }
+
+    [Fact]
+    public void AdmittedTrustOperationsSurviveExpiryWithoutDependencyOrNewOperationRights()
+    {
+        foreach (var kind in new[] { PvadNativeOperation.PdfTrustInspection, PvadNativeOperation.PdfChangeImpact,
+            PvadNativeOperation.PdfSigning, PvadNativeOperation.PdfTimestamp, PvadNativeOperation.PdfRedaction,
+            PvadNativeOperation.PdfRedactionAudit, PvadNativeOperation.PdfColorResolution,
+            PvadNativeOperation.PdfEInvoice, PvadNativeOperation.PdfAssociatedFiles,
+            PvadNativeOperation.PdfArchiveConversion, PvadNativeOperation.PdfColorConversion,
+            PvadNativeOperation.PdfTrustPostProcessing })
+        {
+            var authority = Authority();
+            var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("importer", [])] };
+            using var license = Document(payload);
+            authority.Load(license);
+            using (authority.Begin(kind))
+            {
+                clock.Now = payload.ValidUntil!.Value;
+                Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand("importer").LicenseId);
+                foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
+                    Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(dependency));
+                Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(kind)).Code);
+                Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("importer", null)).Code);
+                Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.CaptureImporterWorkerLicense()).Code);
+                Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandContinuation("importer"));
+            }
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand("importer"));
+        }
+    }
+
+    [Fact]
     public void DependencyPolicyIsPurposeBoundAndDoesNotGrantPublicProductAccess()
     {
         var authority = Authority();
@@ -139,7 +188,7 @@ public sealed class NativeLicenseTests : IDisposable
             [PvadNativeOperation.PdfEditing] = PvadNativeDependency.BlankPagePdf,
             [PvadNativeOperation.ImageOcr] = PvadNativeDependency.OcrResultPdf,
         };
-        foreach (var kind in Enum.GetValues<PvadNativeOperation>().Where(k => k != PvadNativeOperation.PdfSerialization))
+        foreach (var kind in Enum.GetValues<PvadNativeOperation>().Where(k => PvadLicenseExecution.ProductFor(k) == PvadLicenseProducts.Importer))
         {
             using var scope = authority.Begin(kind);
             foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
@@ -159,6 +208,148 @@ public sealed class NativeLicenseTests : IDisposable
         }
         Assert.Throws<ArgumentOutOfRangeException>(() => authority.Begin((PvadNativeOperation)999));
         Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(PvadNativeDependency.OcrResultPdf));
+    }
+
+    [Fact]
+    public void SpreadsheetContinuationCannotAcquireOtherProductsOrPrivatePdfDependencies()
+    {
+        var authority = Authority();
+        Assert.Equal("spreadsheet", PvadLicenseExecution.ProductFor(PvadNativeOperation.SpreadsheetProcessing));
+        Assert.Equal("PVADLIC001", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.SpreadsheetProcessing)).Code);
+        using var wrong = Document(Payload() with { Grants = [new("importer", [])] });
+        authority.Load(wrong);
+        Assert.Equal("PVADLIC012", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.SpreadsheetProcessing)).Code);
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("spreadsheet", [])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        using (authority.Begin(PvadNativeOperation.SpreadsheetProcessing))
+        {
+            Assert.Equal("PVADLIC012", Assert.Throws<PvadLicenseException>(() => authority.Require("pdf", null)).Code);
+            foreach (var product in new[] { "pdf", "word", "importer", "converter" })
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product));
+            foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(dependency));
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandContinuation("spreadsheet"));
+            clock.Now = payload.ValidUntil!.Value;
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand("spreadsheet").LicenseId);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("spreadsheet", null)).Code);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.SpreadsheetProcessing)).Code);
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand("spreadsheet"));
+    }
+
+    [Fact]
+    public void ConverterContinuationCannotAcquireOtherProductsOrPrivatePdfDependencies()
+    {
+        var authority = Authority();
+        Assert.Equal("converter", PvadLicenseExecution.ProductFor(PvadNativeOperation.ConverterExport));
+        Assert.Equal("PVADLIC001", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.ConverterExport)).Code);
+        using var wrong = Document(Payload());
+        authority.Load(wrong);
+        Assert.Equal("PVADLIC012", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.ConverterExport)).Code);
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("converter", [])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        using (authority.Begin(PvadNativeOperation.ConverterExport))
+        {
+            foreach (var product in new[] { "pdf", "word", "spreadsheet", "importer" })
+            {
+                Assert.Equal("PVADLIC012", Assert.Throws<PvadLicenseException>(() => authority.Require(product, null)).Code);
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product));
+            }
+            foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(dependency));
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandContinuation("converter"));
+            clock.Now = payload.ValidUntil!.Value;
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand("converter").LicenseId);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("converter", null)).Code);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.ConverterExport)).Code);
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand("converter"));
+    }
+
+    [Theory]
+    [InlineData("migration.pdf.code", "aspose-pdf", "nutrient")]
+    [InlineData("migration.spreadsheet.code", "aspose-cells", "closedxml")]
+    [InlineData("migration.pdf.viewer", "nutrient-viewer", "other-viewer")]
+    [InlineData("migration.pdf.designer", "nutrient-viewer", "other-designer")]
+    [InlineData("migration.report.designer", "rdl", "rpx")]
+    public void CodeContinuationsAreProviderAndAuthorityBoundWithoutRenderingRights(string product, string provider, string other)
+    {
+        var operation = product switch
+        {
+            "migration.pdf.code" => PvadNativeOperation.PdfCodeMigration,
+            "migration.spreadsheet.code" => PvadNativeOperation.SpreadsheetCodeMigration,
+            "migration.pdf.viewer" => PvadNativeOperation.PdfViewerMigration,
+            "migration.report.designer" => PvadNativeOperation.ReportDesignerMigration,
+            _ => PvadNativeOperation.PdfDesignerMigration,
+        };
+        var authority = Authority();
+        Assert.Throws<ArgumentException>(() => authority.Begin(operation));
+        Assert.Equal("PVADLIC001", Assert.Throws<PvadLicenseException>(() => authority.Begin(operation, provider)).Code);
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new(product, [provider, other])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        using (authority.Begin(operation, provider))
+        {
+            Assert.Equal(provider, PvadLicenseExecution.Demand(product, provider: provider).Provider);
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product));
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product, provider: other));
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.DemandMigrationContinuation(product, provider));
+            foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(dependency));
+            foreach (var forbidden in PvadLicenseProducts.All.Where(value => value != product))
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(forbidden, provider: provider));
+            using (authority.Begin(operation, other))
+            {
+                Assert.Equal(other, PvadLicenseExecution.Demand(product, provider: other).Provider);
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product, provider: provider));
+            }
+            Assert.Equal(provider, PvadLicenseExecution.Demand(product, provider: provider).Provider);
+            clock.Now = payload.ValidUntil!.Value;
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand(product, provider: provider).LicenseId);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require(product, provider)).Code);
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(operation, provider)).Code);
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand(product, provider: provider));
+    }
+
+    [Fact]
+    public void DesignerSourceImportIsPurposeProviderAndAuthorityBoundWithoutPublicEngineRights()
+    {
+        var authority = Authority();
+        var payload = Payload() with { Model = PvadLicenseModel.Trial, Grants = [new("migration.pdf.designer", ["nutrient-viewer", "other-designer"])] };
+        using var license = Document(payload);
+        authority.Load(license);
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.EnterNutrientDesignerPdfImport(authority));
+        using (authority.Begin(PvadNativeOperation.PdfDesignerMigration, "other-designer"))
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.EnterNutrientDesignerPdfImport(authority));
+        using (authority.Begin(PvadNativeOperation.PdfDesignerMigration, "nutrient-viewer"))
+        {
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.EnterNutrientDesignerPdfImport(new object()));
+            Assert.Throws<InvalidOperationException>(() => PvadLicense.BeginNutrientDesignerPdfImport());
+            clock.Now = payload.ValidUntil!.Value;
+            using (PvadLicenseExecution.EnterNutrientDesignerPdfImport(authority))
+            {
+                Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand("importer", authority).LicenseId);
+                Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.EnterNutrientDesignerPdfImport(authority));
+                foreach (var dependency in Enum.GetValues<PvadNativeDependency>())
+                    Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.DemandDependency(dependency, authority));
+                Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("importer", null)).Code);
+                Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Require("pdf", null)).Code);
+            }
+            Assert.Equal(payload.LicenseId, PvadLicenseExecution.Demand("migration.pdf.designer", authority, "nutrient-viewer").LicenseId);
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand("importer", authority));
+            Assert.Equal("PVADLIC009", Assert.Throws<PvadLicenseException>(() => authority.Begin(PvadNativeOperation.PdfDesignerMigration, "nutrient-viewer")).Code);
+        }
+        foreach (var purpose in Enum.GetValues<PvadNativeOperation>().Where(value => value != PvadNativeOperation.PdfDesignerMigration))
+        {
+            var product = PvadLicenseExecution.ProductFor(purpose);
+            var admitted = new PvadLicenseOperation(payload.LicenseId, product, PvadLicenseProducts.IsMigration(product) ? "nutrient-viewer" : null, false);
+            using var operation = PvadLicenseExecution.Enter(purpose, admitted, authority);
+            Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.EnterNutrientDesignerPdfImport(authority));
+        }
+        Assert.Throws<InvalidOperationException>(() => PvadLicenseExecution.Demand("importer", authority));
     }
 
     [Fact]

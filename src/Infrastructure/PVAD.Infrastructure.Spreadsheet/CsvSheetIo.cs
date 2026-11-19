@@ -13,7 +13,13 @@ public static class CsvSheetIo
 {
     public static string ToCsv(SheetDto sheet, char delimiter = ',')
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        return ToCsvAdmitted(sheet, delimiter);
+    }
+
+    internal static string ToCsvAdmitted(SheetDto sheet, char delimiter = ',')
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         int maxRow = -1, maxCol = -1;
         foreach (var c in sheet.Cells) { if (c.Row > maxRow) maxRow = c.Row; if (c.Col > maxCol) maxCol = c.Col; }
         if (maxRow < 0) return "";

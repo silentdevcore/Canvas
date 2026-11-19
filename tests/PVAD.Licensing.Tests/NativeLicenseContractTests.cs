@@ -43,9 +43,33 @@ public sealed class NativeLicenseContractTests
         using var document = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Root(), "product-metadata/native-library-products.v1.json")));
         var products = document.RootElement.GetProperty("products").EnumerateArray().ToArray();
         Assert.Equal(PvadLicenseProducts.All.Order(), products.Select(value => value.GetProperty("id").GetString()!).Order());
-        Assert.Equal("pdf-word-and-spreadsheet", document.RootElement.GetProperty("enforcementStatus").GetString());
-        Assert.All(products, product => Assert.Equal(
-            product.GetProperty("id").GetString() is "pdf" or "word" or "spreadsheet", product.GetProperty("enforced").GetBoolean()));
+        Assert.Equal("all-native-entry-points", document.RootElement.GetProperty("enforcementStatus").GetString());
+        Assert.All(products, product => Assert.True(product.GetProperty("enforced").GetBoolean()));
+        var importer = products.Single(product => product.GetProperty("id").GetString() == "importer");
+        Assert.Empty(importer.GetProperty("remainingEntryPoints").EnumerateArray());
+        Assert.StartsWith("partial-", importer.GetProperty("acceptanceStatus").GetString());
+        Assert.NotEmpty(importer.GetProperty("remainingAcceptance").EnumerateArray());
+    }
+
+    [Fact]
+    public void CodeProviderEntryInventoryMatchesCatalogAndDirectGuards()
+    {
+        using var inventory = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Root(), "product-metadata/native-code-migration-entries.v1.json")));
+        Assert.Equal("provider-entry-points-only", inventory.RootElement.GetProperty("scope").GetString());
+        var entries = inventory.RootElement.GetProperty("entries").EnumerateArray().ToArray();
+        var providers = MigrationProviderCatalog.All.Where(provider => provider.MigrationKind == "code").ToArray();
+        Assert.Equal(24, entries.Length);
+        Assert.Equal(providers.Length, entries.Length);
+        Assert.Equal(entries.Length, entries.Select(entry => entry.GetProperty("product").GetString() + ":" + entry.GetProperty("provider").GetString()).Distinct().Count());
+        foreach (var provider in providers)
+        {
+            var product = "migration." + provider.Domain + ".code";
+            var entry = Assert.Single(entries, entry => entry.GetProperty("product").GetString() == product && entry.GetProperty("provider").GetString() == provider.ProviderKey);
+            var source = File.ReadAllText(Path.Combine(Root(), entry.GetProperty("source").GetString()!));
+            var constant = provider.Domain == "pdf" ? "PdfCodeMigration" : "SpreadsheetCodeMigration";
+            Assert.Contains($"CodeMigrationAdmission.Begin(PvadLicenseProducts.{constant}, \"{provider.ProviderKey}\")", source);
+            Assert.Contains($"CodeMigrationAdmission.Demand(PvadLicenseProducts.{constant}, \"{provider.ProviderKey}\");", source);
+        }
     }
 
     [Fact]

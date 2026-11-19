@@ -1,5 +1,6 @@
 using PVAD.Core.Contracts;
 using ClosedXML.Excel;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -13,7 +14,14 @@ public sealed class SpreadsheetCalculator
 {
     public SpreadsheetDto Calculate(SpreadsheetDto workbook)
     {
-        using var wb = ExcelWorkbookExporter.Build(workbook);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        return CalculateAdmitted(workbook);
+    }
+
+    internal SpreadsheetDto CalculateAdmitted(SpreadsheetDto workbook)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
+        using var wb = ExcelWorkbookExporter.BuildAdmitted(workbook);
         ExcelWorkbookExporter.TryRecalculate(wb);
 
         var worksheets = wb.Worksheets.ToList();

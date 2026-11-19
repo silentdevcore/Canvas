@@ -47,6 +47,7 @@ var methods = types.SelectMany(pair =>
     Check(found.Length == pair.Value, "contract:" + pair.Key.Name);
     return found;
 }).ToArray();
+foreach (var method in methods) NativeSurfaceCoverage.Record(method);
 var instances = new Dictionary<Type, object>
 {
     [typeof(ImageAnalysisFileImporter)] = analysis, [typeof(ImageToPdfConverter)] = converter,
@@ -72,6 +73,15 @@ using var stream = new MemoryStream(png);
 var imported = await analysis.ImportWithAnalysisAsync(stream, "Synthetic image", options: new ImageAnalysisOptions { IncludeDebugOverlay = true });
 Check(imported.Design.Pages.Count == 1 && imported.DebugOverlayPng is { Length: > 8 }, "importer-only-analysis-overlay");
 Check(ImageAnalysisFileImporter.Import(bitmap, "Synthetic direct").Pages.Count == 1, "importer-only-static-analysis");
+foreach (var cancellationOverload in new[] { false, true })
+{
+    using var interfaceInput = new MemoryStream(png);
+    PVAD.FileImporter.IFileImporter reader = analysis;
+    var result = cancellationOverload
+        ? await reader.ImportAsync(interfaceInput, "Synthetic interface", CancellationToken.None)
+        : await reader.ImportAsync(interfaceInput, "Synthetic interface");
+    Check(result.Pages.Count == 1 && interfaceInput.CanRead, "importer-only-interface-dispatch:" + cancellationOverload);
+}
 using var converterInput = new MemoryStream(png);
 var converted = await converter.ConvertAsync(converterInput, "synthetic.png", new() { IncludeDebugOverlay = true });
 Check(fake.Calls == 1 && converted.Design.Pages.Count == 1 && converted.DebugOverlayPng is { Length: > 8 }, "importer-only-custom-ocr-and-overlay");
@@ -221,7 +231,7 @@ try
     PvadLicense.LoadFromFile(args[0]);
     Check(CharacterTemplates.MatchTop(new float[1024], 1).Count == 1, "renewed-template-atlas-access");
     Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedProcessingSignatures = methods.Length,
-        scope = "image-analysis-ocr-and-worker", completeImporterEnforcement = false, realNativeSucceeded }));
+        scope = "image-analysis-ocr-and-worker", completeImporterEnforcement = false, realNativeSucceeded, testedSurface = NativeSurfaceCoverage.Snapshot() }));
 }
 finally { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
 
@@ -243,6 +253,9 @@ async Task CheckDenied(string prefix, string code)
     }
     using var unread = new MemoryStream([1, 2, 3]);
     await Denied(() => analysis.ImportAsync(unread), code, prefix + ":input-stream");
+    PVAD.FileImporter.IFileImporter interfaceReader = analysis;
+    await Denied(() => interfaceReader.ImportAsync(unread), code, prefix + ":explicit-interface");
+    await Denied(() => interfaceReader.ImportAsync(unread, null, CancellationToken.None), code, prefix + ":default-interface-cancellation");
     Check(unread.Position == 0 && fake.Calls == fakeCalls && runner.Calls == runnerCalls && Directory.Exists(temp) == rootExisted, prefix + ":no-side-effects");
     Check(ColorAnalyzer.ColorDistance(SKColors.White, SKColors.White) == 0, prefix + ":free-color-distance");
     Check(CharacterTemplates.NormalizedCrossCorrelation([0, 1], [0, 1]) > 0.9, prefix + ":free-correlation");

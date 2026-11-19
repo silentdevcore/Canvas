@@ -21,6 +21,10 @@
     <ProjectReference Include="../PVAD.Migration.Pdf.Code.IText7/PVAD.Migration.Pdf.Code.IText7.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="PVAD.WebApi" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

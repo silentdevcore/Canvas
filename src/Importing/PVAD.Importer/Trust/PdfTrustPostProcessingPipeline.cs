@@ -118,7 +118,17 @@ public sealed class PdfTrustPostProcessingPipeline(
         PdfTrustPipelineContext? context = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustPostProcessing);
+        return await ProcessAdmittedAsync(source, options, context, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfTrustPostProcessingResult> ProcessAdmittedAsync(
+        ReadOnlyMemory<byte> source,
+        PdfTrustPostProcessingOptions? options = null,
+        PdfTrustPipelineContext? context = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (source.IsEmpty)
             throw new ArgumentException("A non-empty PDF is required.", nameof(source));
 
@@ -134,19 +144,18 @@ public sealed class PdfTrustPostProcessingPipeline(
         if (options.Redaction is { } redaction)
         {
             await using var stream = new MemoryStream(bytes, writable: false);
-            redactionResult = await redactionApplier.ApplyAsync(
-                stream,
-                redaction.Regions,
-                new PdfRedactionApplyOptions
-                {
-                    Sanitization = redaction.Sanitization,
-                    Preflight = redaction.Preflight,
-                    Reason = redaction.Reason,
-                    Actor = redaction.Actor,
-                    AuditSigningKey = context.RedactionAuditSigningKey,
-                    AuditTimestampAuthority = context.RedactionAuditTimestampAuthority
-                },
-                cancellationToken).ConfigureAwait(false);
+            var redactionOptions = new PdfRedactionApplyOptions
+            {
+                Sanitization = redaction.Sanitization,
+                Preflight = redaction.Preflight,
+                Reason = redaction.Reason,
+                Actor = redaction.Actor,
+                AuditSigningKey = context.RedactionAuditSigningKey,
+                AuditTimestampAuthority = context.RedactionAuditTimestampAuthority
+            };
+            redactionResult = redactionApplier is PdfRedactionApplier builtInRedaction
+                ? await builtInRedaction.ApplyAdmittedAsync(stream, redaction.Regions, redactionOptions, cancellationToken).ConfigureAwait(false)
+                : await redactionApplier.ApplyAsync(stream, redaction.Regions, redactionOptions, cancellationToken).ConfigureAwait(false);
             if (!redactionResult.Verification.Passed)
                 throw new PdfTrustPipelineValidationException(
                     "PVADPDFPIPELINE102",
@@ -177,20 +186,17 @@ public sealed class PdfTrustPostProcessingPipeline(
                 Certification = signing.Certification,
                 FieldLock = signing.FieldLock
             };
-            signingResult = await signingService.SignAsync(
-                bytes,
-                context.DocumentSigningKey!,
-                effectiveSigning,
-                context.DocumentTimestampAuthority,
-                cancellationToken).ConfigureAwait(false);
+            signingResult = signingService is PdfPadesSigningService builtInSigning
+                ? await builtInSigning.SignAdmittedAsync(bytes, context.DocumentSigningKey!, effectiveSigning, context.DocumentTimestampAuthority, cancellationToken).ConfigureAwait(false)
+                : await signingService.SignAsync(bytes, context.DocumentSigningKey!, effectiveSigning, context.DocumentTimestampAuthority, cancellationToken).ConfigureAwait(false);
             bytes = signingResult.Bytes;
             steps.Add(PdfTrustPipelineStep.Signing);
         }
 
         await using var validationStream = new MemoryStream(bytes, writable: false);
-        var report = await trustInspector
-            .InspectAsync(validationStream, options.Validation.Inspection, cancellationToken)
-            .ConfigureAwait(false);
+        var report = trustInspector is PdfTrustInspector builtInInspector
+            ? await builtInInspector.InspectAdmittedAsync(validationStream, options.Validation.Inspection, cancellationToken).ConfigureAwait(false)
+            : await trustInspector.InspectAsync(validationStream, options.Validation.Inspection, cancellationToken).ConfigureAwait(false);
         EnforceValidation(options.Validation, report);
         steps.Add(PdfTrustPipelineStep.Validation);
 

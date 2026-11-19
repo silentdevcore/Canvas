@@ -15,11 +15,27 @@ OCR engines, and isolated OCR workers also enforce Importer rights. Generic
 cross-product dependency and continuation coverage remains partial. Image
 analysis, in-process OCR, typed PDF loading, full/incremental PDF saves and
 PDF-to-Designer DTO/analysis mapping, bounded page editing/composition, content
-rewriting and the editable-document facade now retain their admitted context
-through supported built-in completion. Trust, advanced regeneration and other composite
-native pipelines still need migration. Importer enforcement
-is therefore still marked partial. Converter and Migration
-product integrations also remain open.
+rewriting, the editable-document facade, Trust inspection, change-impact
+evaluation, PDF signing/timestamps, redaction/audit, E-Invoice attachment/extraction,
+archival conversion, built-in color processing and the combined Trust
+post-processing pipeline, regeneration, recursive mapping, XObject resolution
+and debug overlays now retain their admitted context through supported built-in
+completion. The seven non-PDF registry importers also complete their private
+parsing after a license replacement without acquiring other product rights.
+The complete current public Importer surface is now classified in a versioned
+inventory and checked against compiled assemblies and native probe registrations.
+All ten product areas have current entry-point enforcement. Cross-product,
+protected-package and worker/platform acceptance remain separate open gates.
+Native HTML, Markdown, CSV, XML, SVG, ODT,
+PNG, JPEG and TIFF exports now require the separate `converter` grant.
+The 16 native PDF Code and 8 Spreadsheet Code provider entry points, standalone
+PDF source analyses and built-in conversion/diagnostic pipelines now require
+their own domain/kind/provider grants. All eight Report Designer converters now
+have provider admission. Overall composite/package acceptance remains partial. Nutrient Viewer and
+source-PDF Designer conversion now require separate provider-scoped grants.
+Built-in Spreadsheet export, calculation and file-save composites now share
+Spreadsheet-only admission; the product dependency inventory records existing
+boundaries without granting a universal product bundle.
 Existing server subscription checks remain additional, independent checks. This
 is not yet complete commercial SDK protection.
 
@@ -28,8 +44,8 @@ are approved. There is no built-in evaluation key, runtime trust override,
 internet call, activation bypass, or production signing-key generation.
 
 **Breaking behavior:** with the empty source trust register, ordinary builds
-cannot create/export PDFs, generate/sign DOCX, process spreadsheets, or run
-licensed imports/image analysis/OCR until
+cannot create/export PDFs, generate/sign DOCX, process spreadsheets, export
+Converter formats, or run licensed imports/image analysis/OCR until
 manufacturer trust is provisioned and the respective native product grant is loaded. Development tests
 use isolated synthetic builds, not a runtime exemption or an embedded trial key.
 
@@ -90,6 +106,219 @@ user-subscription denial. Do not edit the signed payload to add grants: obtain
 an authorized replacement and load it explicitly. Manufacturer key provisioning
 and native-license Admin/Account issuance remain open prerequisites, not an
 automatic action performed by this integration.
+
+## Code Migration Provider Activation
+
+Load an issued native license with the exact product and canonical provider,
+for example `migration.pdf.code` with `aspose-pdf`:
+
+```csharp
+PvadLicense.LoadFromFile(configuration["PVAD:LicensePath"]!);
+var migration = new PVAD.Migration.Pdf.Code.Aspose.AsposePdfMigration();
+var result = migration.Migrate(source);
+string convertedCode = result.MigratedCode;
+```
+
+All 16 PDF Code and 8 Spreadsheet Code native `Migrate` implementations check
+their own rights before source parsing. Calls through `ISourceMigration`, the
+abstract base, factories and existing Spreadsheet wrappers reach that same
+sealed provider boundary. A native PDF generation license is not a migration
+license. Likewise `aspose-pdf` in `migration.pdf.code` does not authorize
+`aspose-cells` in `migration.spreadsheet.code`; the same vendor family does not
+merge product rights. Legacy routing aliases resolve to canonical providers, but
+signed licenses use exact canonical keys, never aliases or `auto`.
+
+Constructing services, listing providers, reading metadata and using DTOs remain
+free. Converting source writes text and diagnostics; it does not execute source
+or grant PDF/Spreadsheet generation rights. Running the resulting program is a
+separate licensed product operation. Successful code/diagnostic algorithms and
+existing migration IDs are unchanged. A failed replacement license preserves the
+current snapshot; valid renewal allows a new call on existing provider objects.
+
+`CSharpPdfTrustEvidenceScanner.Scan` and `PdfEInvoiceMigrationCatalog.Analyze`
+also require the matching PDF Code provider grant. Catalog listing, profiles and
+pure contracts remain free. Public calls always admit fresh work. Built-in
+internal continuations bind product, canonical provider and originating verifier;
+they cannot switch providers, omit provider identity, survive their closed scope
+or obtain private PDF dependencies. Caller-triggered native calls still check
+current rights, even during an admitted analysis. Original callback failures are
+not converted into successful migration results.
+
+`PdfMigrationProviders.Migrate` shares admission through conversion and Trust
+evidence. `SpreadsheetMigrationProviders.Migrate` returns code and diagnostics
+from one native conversion. The API uses that result instead of converting twice.
+Only first-party internal implementations use admitted dispatch; custom converter
+overrides keep their public dispatch and fresh native calls.
+
+Built-in Spreadsheet preview is a replay of recognized calls into an HTML grid,
+not a real workbook calculation or file export. Its Code grant is sufficient;
+no additional Spreadsheet, PDF or Converter grant is introduced. PDF preview
+creates a real PDF: Code admission covers conversion only. The public PDF
+constructor and writer independently check current `pdf` rights. Admission does
+not reserve PDF permission for a later stage. If those rights change before
+serialization, preview fails with the native diagnostic and returns no partial
+download. No code execution, complete preview fidelity or new rendering behavior
+is implied by these license checks.
+
+Report Designer uses a separate provider-bound grant. Nutrient Viewer and
+PDF Designer are covered by the following separate admission boundaries.
+Local tests and prepared CI do not replace protected-package, cross-platform,
+manufacturer issuance or complete commercial-release acceptance.
+
+See the [Code provider entry milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-code-migration-provider-entry-milestone)
+for current evidence and remaining boundaries.
+
+See the [analysis and composite milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#code-migration-analysis-and-composite-milestone)
+for the later provider-bound lifetime and preview-rights checkpoint.
+
+## Nutrient Viewer And PDF Designer Activation
+
+The three public native Viewer conversion methods require
+`migration.pdf.viewer` with the exact provider `nutrient-viewer`:
+`NutrientViewerSourceConverter.Convert`, `ConvertTranspiledTypeScript` and
+`NutrientInstantJsonConverter.Convert`. Examples, DTOs and capability metadata
+remain readable without a native license. These converters analyze source;
+they do not execute the supplied JavaScript or TypeScript. Transpilation remains
+a separate existing step, not a new native compiler entitlement.
+
+```csharp
+using PVAD.Licensing;
+using PVAD.Migration.Pdf.Viewer.Nutrient;
+
+PvadLicense.LoadFromFile(configuration["PVAD:LicensePath"]!);
+var converted = new NutrientViewerSourceConverter().Convert(
+    "NutrientViewer.load({ document: '/source.pdf' });");
+```
+
+Editable source-PDF conversion through
+`NutrientViewerDesignMigrationService.ConvertAsync` instead requires
+`migration.pdf.designer` with provider `nutrient-viewer`. That single operation
+includes its own private PDF import and built-in Viewer interpretation. It does
+not require separate Importer, Viewer, PDF or Converter grants to produce the
+design DTO. The private source-import path is fixed to that purpose and provider,
+bound to the originating verifier, and closed at the end of the operation.
+It cannot create private PDF output or transfer engine rights to callbacks.
+
+Viewer and Designer grants are not interchangeable. Neither grant authorizes
+an independent public `PdfFileImporter.DoImportAsync`, PDF export or direct
+Viewer call made inside a caller callback. Such public work checks the current
+license afresh. A completed or foreign-authority continuation cannot be reused.
+An already admitted built-in operation may finish after license expiry or
+replacement; subsequent public operations require new valid admission.
+
+Both canonical and compatibility HTTP routes preserve typed `PVADLIC...`
+Problem Details with status 503. A native license error from Designer conversion
+is not presented as a malformed PDF. Identity, organization, entitlement,
+provider permission, feature gate and input validation remain independent
+requirements. A native license alone never grants access to a server route.
+
+See the [Viewer and Designer milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#nutrient-viewer-and-pdf-designer-milestone)
+for scoped evidence and the remaining Report Designer/package acceptance work.
+
+## Report Designer Activation
+
+Every native Report Designer conversion requires `migration.report.designer`
+and the exact canonical provider key:
+
+| Provider | Signed Grant Key |
+|---|---|
+| ActiveReports JS | `activereports-js` |
+| DevExpress Reports | `devexpress-report` |
+| FastReport | `fastreport` |
+| JasperReports | `jasperreports` |
+| RDL/RDLC | `rdl` |
+| ActiveReports RPX | `rpx` |
+| Stimulsoft | `stimulsoft` |
+| Telerik Reporting | `telerik` |
+
+```csharp
+using PVAD.Licensing;
+using PVAD.Migration.Report;
+
+PvadLicense.LoadFromFile(configuration["PVAD:LicensePath"]!);
+var migration = ReportMigrationProviders.Create("rdl");
+var converted = migration.Convert(File.ReadAllText("Monthly_Report.rdl"));
+var design = converted.Design;
+```
+
+Direct converters in `PVAD.Migration.Report.Designer.*`, their public overloads,
+aggregate wrappers and factory/interface dispatch all enforce the same provider
+right. They create an editable design DTO, not a PDF. PDF generation, import,
+workbook processing and other independent operations still require their own
+native rights. Report conversion grants none of those products implicitly.
+
+`ReportMigrationService` resolves explicit aliases or auto-detection to a concrete
+canonical provider, then admits conversion before merging caller-owned resources.
+`auto` is routing, never a signed license key. Format detection, provider metadata
+and generic package utilities remain free input utilities and may run before
+conversion admission; they do not authorize conversion. Existing archive limits
+and supported-format detection remain unchanged.
+
+Standalone `DevExpressReportResourceParser.ParseResx`, including its compatibility
+facade, now requires `devexpress-report` rights. Inside an admitted report
+conversion, shared RESX handling uses only the selected provider's report grant.
+For example, RDL resource preprocessing does not unexpectedly require a separate
+DevExpress license. Built-in wrapper, converter, resource and nested subreport
+processing retain the same originating admission. Public calls made by a caller's
+resource callback check the current license afresh; no callback or retained
+context receives transferable rights.
+
+An admitted conversion may finish after replacement or expiry; subsequent public
+work is checked again. Canonical and legacy conversion endpoints preserve native
+license Problem Details instead of returning partial designs or disguising the
+failure as a source-format error. User, organization, permission, entitlement and
+feature checks remain separate from native licensing.
+
+See the [Report Designer milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#report-designer-migration-milestone)
+for the scoped tests and remaining overall protection/package acceptance.
+
+The Report checkpoint passed 490 tests across all eight provider suites, aggregate,
+licensing and selected API suites, plus 703 native admission checks and 65 tooling
+tests. These are local macOS/x64 checks with synthetic licenses. Provider fidelity
+and supported features were not promoted by adding licensing. Full package,
+platform and commercial acceptance remain separate gates.
+
+## Converter Activation And Migration
+
+Load an issued `converter` grant before using any of the nine native
+`PVAD.Infrastructure.Converters` exporters:
+
+```csharp
+PvadLicense.LoadFromFile(configuration["PVAD:LicensePath"]!);
+var exporter = new PVAD.Infrastructure.Converters.HtmlDocumentExporter();
+byte[] html = exporter.Export(design);
+```
+
+Protected formats are HTML, Markdown, CSV, XML, SVG, ODT, PNG, JPEG and TIFF.
+All thirteen declared public export overloads and both `IDocumentExporter`
+overloads use the same product boundary. Default interface dispatch does not
+avoid admission. Exporter construction, `FormatKey`, `MimeType`, `FileExtension`,
+capabilities and design/options DTOs remain usable without a native license.
+
+Each public export admits fresh work before reading the design, allocating a
+render target or traversing pages. `ConverterExport` retains that verifier-bound
+admission through the sealed built-in implementation, including multi-page image
+archives and TIFF's internal PNG rendering. It grants no private PDF dependency
+or additional PDF, Word, Spreadsheet or Importer rights. An independently started
+operation on those products still needs its own grant. Native PDF/DOCX/workbook
+exports retain their own product rules and do not acquire a new Converter check.
+
+A caller-supplied style value may run `ToString()` during export; a new native
+operation inside that callback still checks current rights. Callback license and
+source IO failures are not converted to success. Existing layout, formatting,
+image retrieval, font links, DPI defaults, ZIP and cancellation behavior remain
+unchanged. This milestone does not introduce new cancellation support or imply
+that exported HTML/SVG assets are self-contained offline.
+
+Missing, wrong-product or expired rights produce the existing typed `PVADLIC...`
+diagnostics instead of an output file. Server-side native failures continue
+through the central Problem Details handler, without including license paths or
+turning them into corrupt document downloads. User/tenant/feature authorization
+remains a separate check. Renewal enables subsequent exports without restarting
+the process; a failed renewal does not discard the previous snapshot.
+
+See the [Converter milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-converter-enforcement-milestone)
+for test scope and remaining release gates.
 
 ## Spreadsheet Activation And Migration
 
@@ -168,20 +397,89 @@ Document import routes propagate native failures as HTTP 503 Problem Details,
 not invalid-file Bad Request responses. Upload validation, cancellation, input
 bounds, and application authorization remain separate and unchanged.
 
-**Importer enforcement is partial.** The direct-engine and color/font boundaries
+**Public entry enforcement and complete release acceptance are separate.** The direct-engine and color/font boundaries
 described below are now guarded, together with the editing boundaries.
 The Trust/security/signing/redaction/e-invoice boundaries and the regeneration/
 debug-overlay boundaries are also guarded as described below. Standard
 regeneration uses restricted internal PDF dependencies rather than requiring
 a separate PDF grant. Image analysis and OCR/worker boundaries are covered by
-the later milestone below. Generic cross-product dependency rights and
-admitted-operation lifetime remain open. The operation
-matrix keeps `importer.enforced` false and lists the remaining work explicitly.
+the later milestone below. The current public-surface inventory closes the entry
+classification. Cross-product dependencies, protected packages and worker/platform
+execution remain open. The operation matrix records `importer.enforced: true`
+with a separate partial `acceptanceStatus` and `remainingAcceptance` list. This
+does not declare protected packages or commercial distribution ready.
 
 The local milestone passed 111 isolated admission checks and 860 .NET tests,
 including the complete FileImporter and Importer suites. See the
 [Importer checkpoint](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-importer-entry-point-milestone)
 for evidence, fixture limits, and unfinished engine/dependency-rights work.
+
+### File Import Stream Ownership And Continuations
+
+The caller owns the supplied stream and disposes it after import, including when
+import fails. Markdown readers and ODT package readers leave that stream open;
+their private readers, package objects and entry streams are still disposed.
+Text-size, upload and cancellation limits remain unchanged.
+
+The [file importer inventory](../product-metadata/native-file-importer-entries.v1.json)
+lists all eight registry implementations and twenty declared public processing
+overloads. The probe compares that inventory with the actual exported types and
+methods. Seven non-PDF implementations are tested through their sixteen direct
+overloads, seven registry paths and seven cancellation-interface paths. PDF has
+separate loader, analysis and mapping continuation coverage.
+
+Each non-PDF operation checks the current Importer grant before reading input.
+Private parsing already admitted at that boundary can finish after replacement;
+it needs neither an ambient grant nor another product license. New public calls
+must pass admission again. The Markdown remote-image resolver remains a caller
+extension: it cannot confer rights on public native calls, even across an await.
+No network request is made by the synthetic resolver tests.
+
+The local tests compare full DTOs, geometry, assets and diagnostics, normalizing
+only validated generated document IDs and the image importer's generated page
+and element IDs. They exercise seekable and non-seekable streams, synchronous
+reads and yielded asynchronous reads, resolver failure and renewal. Synchronous
+importers remain synchronous; an asynchronous wrapper does not imply they yield.
+This fixture pack is not a complete upstream file-format compatibility corpus.
+See the [file importer continuation checkpoint](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#non-pdf-file-importer-continuation-and-stream-ownership-milestone)
+for the actual run results and remaining acceptance boundaries.
+
+### Complete Public Importer API Contract
+
+The [reviewed public surface](../product-metadata/native-importer-public-surface.v1.json)
+covers `PVAD.Importer`, `PVAD.FileImporter`, `PVAD.FileImporter.ImageAnalysis` and
+`PVAD.FileImporter.ImageOcr`: 363 exported types and 5,087 declared public members.
+Eighty-one processing types expose 201 protected entries, including the signing-key
+constructor. The remaining types are 236 models, 25 utilities and 21 interface
+contracts. A contract declaration is not a right to call an implementation:
+built-in methods and delegated interface calls still require native admission.
+
+The compiled contract checks members, base types, implemented interfaces and
+explicit interface bindings. A new type, method, constructor, property or binding
+requires review. Type names are canonicalized through reflection without assembly
+version strings, so a product version bump alone does not change this contract.
+Every protected member must also appear in the registration set emitted by a
+successfully completed Importer or image/OCR native probe. This is a contract and
+test-coverage gate, not proof against arbitrary changes to method bodies.
+
+Detached object/page data mutations, object-graph lookup, scalar geometry,
+capability metadata, disposal and generic byte buffering are free. Buffering raw
+bytes does not parse a PDF. Editing services, font/content decoding, rendering and
+saving remain protected. The remote-image adapter is a separate bounded HTTP
+utility; it does not authorize import, OCR or native execution, and its existing
+SSRF restrictions remain mandatory. Synthetic API tests make no HTTP requests.
+
+The OCR worker executable is not a public library API. It retains its independent
+signed-license and request-dispatch tests, rather than being counted as another
+unlicensed contract. Image analysis is additionally tested through both the
+explicit `IFileImporter` implementation and its default cancellation method.
+
+Run `node tools/native-licensing/importer-surface.mjs verify` to build the current
+surface, compare the inventory, execute both native probes and require exact
+protected-member coverage in an owned signed session. `capture` writes only a
+review candidate under artifacts; it never accepts a new source inventory.
+See the [public API checkpoint](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#importer-public-api-contract-milestone)
+for actual local evidence and unfinished release acceptance.
 
 ### Direct Engine Admission
 
@@ -563,8 +861,8 @@ worker operation is denied and staged input is cleaned up. A worker that has
 already admitted its OCR processing can finish it. No unsigned admission flag,
 backdated start time, or caller-provided trust key extends a license.
 
-PDF Trust and advanced regeneration chains, plus other product composite
-call graphs, have not yet been converted end to end.
+Other product
+composite call graphs, have not yet been converted end to end.
 Their existing nested public calls can still recheck the current license.
 The operation matrix retains partial status and lists these remaining areas;
 the new context must not be used to claim complete native-product acceptance.
@@ -652,9 +950,257 @@ Read failures retain the original error and loaded bytes; accepted stream
 ownership is honored. Source data, page geometry, content and validation bodies
 are unchanged. See the
 [Editing continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-editing-and-page-composition-continuation-milestone)
-for exact tests, algorithm comparison and remaining scope. Trust/signing,
-redaction, e-invoice, advanced regeneration and other composite product chains
-remain open, and Importer is still partially enforced.
+for exact tests, algorithm comparison and remaining scope. At that checkpoint,
+signing, redaction, e-invoice, advanced regeneration and other composite product
+chains remained open; the following milestones extend only their named subsets.
+Whole Importer release acceptance remains incomplete; current public entry
+classification and enforcement are recorded in the later public API checkpoint.
+
+### PDF Trust Inspection And Change-Impact Continuations
+
+`PdfTrustInspector.InspectAsync` and `PdfChangeImpactAnalyzer.Analyze` admit new
+work against the current Importer license. Their internal continuations retain
+the original verifier-bound admission through asynchronous reads, object/stream
+parsing, embedded evidence, certification revision inspection, structural PDF/A
+validation and change-impact enumeration. The two purposes grant no private PDF
+generation, regeneration, blank-page or OCR dependency rights.
+
+The public CRL/OCSP validation APIs remain fresh licensed entries. Only the
+built-in signature-bound embedded-evidence path uses their internal historical
+validation continuations. Caller-supplied revocation/issuer providers retain
+their interface dispatch; any public native API they call still needs its own
+current license. There is no caller-supplied admission or trust override.
+
+Trust, integrity, revision coverage, certificate trust, timestamps, revocation,
+certification permissions and structural conformance remain separate results.
+No network policy, signature algorithm, size limit, error handling or validation
+threshold is relaxed. A genuine callback license failure still propagates rather
+than becoming an invalid-PDF report. License replacement alone no longer aborts
+an already admitted inspection; the next public operation is denied if the new
+license lacks the necessary right. Full rewrites still invalidate signatures;
+incremental changes still require validation, not automatic preservation.
+
+This milestone does not migrate signing execution, redaction, e-invoice,
+archival conversion, post-processing or advanced regeneration end to end.
+See the [Trust continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-trust-inspection-and-change-impact-continuation-milestone)
+for exact evidence and remaining acceptance boundaries.
+
+### PDF Signing And Timestamp Continuations
+
+Public PAdES signing, PKCS#12 hash signing, document timestamping and RFC 3161
+requests remain freshly licensed operations. Built-in processing retains its
+original Importer admission through parsing, incremental writes, CAdES assembly,
+DSS/VRI evidence writing, archive timestamps and post-sign Trust inspection.
+Neither signing nor timestamp purposes grant PDF generation or any other private
+product dependency. Key construction remains freshly guarded; certificate
+metadata and disposal remain free.
+
+The PKCS#12 key and RFC 3161 authority are sealed classes. Only these known
+built-ins use internal continuations; custom `IPdfSigningKey` and
+`IPdfTimestampAuthority` implementations retain ordinary interface dispatch.
+Long-term material providers remain custom asynchronous callbacks. A public
+native call made inside any custom callback checks the current license and can
+fail independently of the surrounding admitted operation. No public bypass,
+admission token, signing-key export or trust setter is introduced.
+
+`SignAsync` preserves synchronous public license rejection. Its asynchronous
+implementation establishes its own fresh admission before processing, so no
+ambient scope is exposed to a caller while a Task is pending. New public calls
+never inherit a pending signing admission. Actual cancellation, malformed PDFs,
+encrypted-source restrictions, failed timestamp transport, response limits,
+cryptographic/certificate checks and requested-profile validation are unchanged.
+
+See the [signing continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-signing-and-timestamp-continuation-milestone)
+for synthetic evidence and limits. These changes do not close redaction,
+e-invoice, archival conversion/post-processing, advanced regeneration, other
+product graphs or protected-package/platform acceptance.
+
+### PDF Redaction And Audit Continuations
+
+Public preflight, apply and audit-verification calls check the current Importer
+license. Their built-in continuations retain the original verifier-bound
+admission through parsing, scene construction, bounds, pixel decoding/removal,
+content rewriting, full rewrite, residue scanning and optional audit signing or
+timestamping. Direct internal scanner/image entries also establish fresh
+admissions; the surrounding apply uses their admitted cores. None of the
+redaction, audit or color-resolution purposes grants a private PDF dependency.
+
+Only the sealed built-in preflight, key and timestamp authority use internal
+dispatch. Custom preflight/key/authority implementations retain their interfaces;
+any public native API they invoke checks current rights independently. Genuine
+license failures from source, resolver or decoder callbacks propagate rather
+than becoming unsupported content, empty color data or a successful audit.
+
+The full rewrite, blocking findings, image sample clearing, mask handling,
+metadata/attachment removal and residue checks keep their existing algorithms.
+No new codec or removal capability is introduced. Existing preflight limits,
+cancellation and failure behavior are unchanged. An empty names dictionary is
+allowed after attachment removal; its embedded-file references and payloads must
+be gone. Output verification still requires a single rewritten revision.
+
+Audit verification retains canonical-hash, optional CMS and timestamp-integrity
+checks. It is not a new certificate-chain trust decision or a replacement for
+document-signature validation. No source content is added to the audit record.
+
+Color-space resolution and function construction now have bounded internal
+continuations, including recursive factories and stream decoding needed by image
+redaction. General `ToSrgb`, function `Evaluate`, ICC conversion and content-color
+rewriting were not included at that checkpoint; the following E-Invoice milestone
+adds their built-in continuations. Retained functions still require a fresh
+license when evaluated through their public entry.
+
+See the [Redaction continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-redaction-and-audit-continuation-milestone)
+for exact historical tests, source comparisons and scope.
+
+### E-Invoice And Archival Conversion Continuations
+
+Attachment preflight, attachment writing, associated-file extraction and
+PDF/A-2b/3b conversion check current Importer rights at every public entry. An
+admitted operation keeps its original verifier-bound admission through parsing,
+bounded decoding, incremental/full writing, built-in color conversion and
+post-save verification. These purposes grant no private PDF-generation rights.
+
+Only sealed built-in archival converters and Trust inspectors use internal
+continuations. Custom implementations keep their interface dispatch. Built-in
+function arrays, exponential, stitching, sampled and PostScript functions can
+continue internal evaluation; a caller-defined `PdfFunction` still enters its
+fresh public evaluator. Resolver callbacks do not acquire rights to start new
+public work. Exceptions raised by actual native calls inside callbacks are not
+converted to unsupported-content results.
+
+The existing approvals for archive conversion, replacement and signed-document
+modification remain required. Original stream ownership, size limits, filter and
+pixel restrictions, source hashes, extracted XML bytes, declared size/MD5 checks,
+PDF/A structural validation and page-content verification are unchanged. This
+does not add tax-schema validation, certify fiscal compliance or prove external
+PDF/A conformance. Replacing an attachment still leaves its old bytes in previous
+incremental revisions; it is not secure erasure.
+
+Local probe coverage compares licensed references with synchronous and truly
+asynchronous license replacement, verifies exact output bytes and XML, retains
+unrelated attachments and mixed page geometry, and exercises real LittleCMS
+conversion. Trial expiry and unavailable private dependencies are covered by
+the verifier-core tests. See the
+[E-Invoice continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#e-invoice-and-archival-continuation-milestone)
+for exact evidence and limits. Advanced regeneration and other native graphs,
+Migration enforcement, native issuance/UI,
+protection, packaging and cross-platform acceptance remain separate work.
+
+### Combined Trust Post-Processing Continuations
+
+`PdfTrustPostProcessingPipeline.ProcessAsync` checks the current Importer
+license before accessing source content or dispatching a stage. One internal,
+verifier-bound admission then spans the sealed built-in Redaction applier,
+PAdES signer and Trust inspector. Their existing continuations retain admission
+through audit signing/timestamps, DSS/VRI evidence and final inspection. The
+post-processing purpose grants no private PDF-generation dependency rights.
+
+The sequence remains Redaction, then Signing, then Validation. Plan checks run
+before any processing; a failed Redaction verification prevents signing.
+The validation report describes the exact final bytes returned. Structural,
+PDF/A, PDF/UA, signature and risky-content policies still fail closed using
+their existing diagnostic codes. No validation threshold or supported format
+changes as part of this licensing fix.
+
+Custom Redaction, signing and inspector implementations retain normal interface
+dispatch. Custom keys, timestamp authorities and material providers keep their
+existing boundaries: a public native operation they start must check the current
+license, even inside a running pipeline. A material provider may return data
+after an asynchronous await without starting a new native operation; it cannot
+inherit admission for independent public processing. Public signing retains its
+synchronous license-denial behavior. A retained pipeline/result cannot start
+another operation after expiry or replacement without current rights.
+
+Local isolated probes cover validation-only, Redaction-only, signing and combined
+flows with all four PAdES profiles, source/region/provider/HTTP license replacement,
+mixed pages, independent final-byte inspection and content extraction. Synthetic
+keys and an in-memory timestamp transport avoid network/customer dependencies.
+Original input, actual callback failures, cancellation and policy rejection
+remain preserved. See the
+[Trust pipeline continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#trust-post-processing-continuation-milestone)
+for evidence and remaining acceptance boundaries. This is not full native-product,
+protected-package or cross-platform release acceptance.
+
+### Regeneration, XObjects And Debug Continuations
+
+Ordinary imported-PDF regeneration and `PdfGeneratorBridgePipeline.SaveAsync`
+check the current Importer license, then retain one verifier-bound admission
+through the sealed built-in bridge, image/palette decoding, trusted private PDF
+writer and shading parse/rewrite/append processing. The writer checks the existing
+`ImporterRegeneration` dependency before and after trusted population. This does
+not grant general PDF construction, serialization, blank-page or OCR rights.
+
+The configured overload remains different: a non-null `configureDocument`
+callback additionally requires current PDF rights, rechecks Importer rights after
+the callback and uses ordinary public PDF rendering. Removing either product
+right during that callback still fails before output. Custom bridge dispatch
+also remains public; its native calls admit fresh work. A caller-owned output
+stream does not inherit permission to start another protected operation.
+
+Object/graphics/resource mapping, XObject resolution and debug-overlay building
+use fresh analysis admission and internal-only continuations. Recursive mapping
+does not re-admit each child. Form interpretation and bounds computation use the
+existing built-in parser/interpreter/bounds cores. Mapping, XObject and debug
+contexts cannot use regeneration's private PDF dependency.
+
+No content interpretation, recursion limit, filter capability, image conversion,
+shading algorithm or overlay-label behavior changes. XObject form resolution
+still consumes the same supplied encoded/decoded representation as before; this
+is not new compressed-form support. Stream ownership and errors remain unchanged.
+If the caller's output stream partially writes and then fails, atomic rollback
+is not promised. Failures before writing leave its original content untouched.
+
+The local probe compares exact regenerated bytes, reopens mixed-size/rotated
+pages and verifies retained text, paths, images and shadings. It separately tests
+recursive object/resource mapping, form bounds/transforms, overlay items, new-call
+denials and synchronous/asynchronous output/custom-bridge callbacks. See the
+[regeneration continuation milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#regeneration-xobject-and-debug-continuation-milestone)
+for exact evidence and remaining product/package/platform boundaries. Selected
+PDF Importer graphs are covered; other native product graphs and commercial
+protection/packaging acceptance remain open.
+
+### Product Dependencies And Spreadsheet Continuations
+
+The [dependency inventory](../product-metadata/native-library-dependencies.v1.json)
+distinguishes fresh public product operations, internal same-product continuation,
+the existing private byte-only dependencies and future integrations. It is an
+audited technical inventory, not pricing, edition selection or a new universal
+bundle grant. Planned Migration rows remain unenforced work; the later Converter
+milestone updates that product's inventory row to implemented.
+
+| Operation | Admission | Additional product right |
+| --- | --- | --- |
+| Public PDF rendering | PDF | No Converter right |
+| DOCX export or separately started DOCX signing | Word | No PDF/Converter right |
+| Built-in XLSX/XLS/CSV/TSV save or spreadsheet calculation | Spreadsheet | No PDF/Word/Importer/Converter right |
+| HTML/Markdown/CSV/XML/SVG/ODT/PNG/JPEG/TIFF document export | Converter | No PDF/Word/Spreadsheet/Importer right |
+| Spreadsheet-to-design DTO conversion | Spreadsheet | No renderer right is created |
+| Separately started PDF rendering of that DTO | PDF | Fresh public operation |
+| Importer regeneration/blank-page/OCR byte rendering | Importer | Only its existing purpose-bound private dependency |
+| Caller-configured regeneration | Importer and current PDF | Existing callback checks remain fresh |
+
+`SpreadsheetProcessing` retains the original verifier-bound Spreadsheet
+admission through built-in workbook construction, XLSX export/calculation and
+file-save dispatch to XLS or delimited text. Public export, calculation, CSV and
+save operations still admit fresh work. The new purpose has no private PDF
+dependency permission and cannot continue as another product. Its internal entry
+points are assembly-only; public APIs and caller-visible ClosedXML behavior do
+not change.
+
+Authoring/style callbacks remain independently guarded public mutations. A
+custom cell value's `ToString()` can return data during an admitted export, but
+any new native operation it invokes checks current rights. Actual callback-native,
+source IO and filesystem failures retain their original errors. No atomic file
+replacement or rollback guarantee is added; no file is written when processing
+fails before the existing final write.
+
+Existing formula, unsupported-function fallback, workbook layout, BIFF8, CSV/TSV
+formatting and mutation behavior remain unchanged. XLSX/BIFF8 outputs are checked
+semantically, not by byte equality, because package metadata can vary. Third-party
+NPOI distribution approval remains separate and is not granted by successful tests.
+See the [product dependency milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#product-dependency-and-spreadsheet-continuation-milestone)
+for exact local evidence. Other composite graphs and Migration integration,
+native issuance/UI, obfuscation, packaging and platform acceptance remain open.
 
 ## API And Worker Activation
 
@@ -714,10 +1260,12 @@ and browser/operator rehearsals use the same owned-session configuration and
 actual MSBuild target paths. Pack/Publish are blocked for synthetic sessions;
 ordinary release/container jobs remain separate.
 
-Shared test sessions include `importer` for the integrated entry-point milestone,
+Shared test sessions include `importer` and `converter` for the integrated entry-point milestones,
 alongside `pdf`, `word`, and `spreadsheet`. This is a normally signed test grant,
 not evidence that every Importer engine is protected. Product-only fixtures
-remain separate, and no Converter or Migration grants are enabled in advance.
+remain separate. The integrated fixture now additionally carries the tested
+`migration.pdf.code` and `migration.spreadsheet.code` provider lists only; Viewer,
+Designer and Report grants are not enabled in advance.
 
 See [shared workflow sessions](../tools/native-licensing/README.md#shared-workflow-sessions)
 for commands and the launcher coverage table. Before Word enforcement, the
@@ -795,18 +1343,18 @@ preparation must synchronize it without substituting build time for release date
 
 The machine-readable inventory is
 [native-library-products.v1.json](../product-metadata/native-library-products.v1.json).
-Its `pdf-word-and-spreadsheet` status records the integrated PDF generation,
-Word generation/signing, and native Spreadsheet boundaries. The other seven
-product flags remain false.
-They must only change after their own operation-level negative and positive
-tests exist.
+Its `all-native-entry-points` status records the current protected entry boundaries
+for all ten products, not completed package/platform acceptance. The Importer row
+separately records pending cross-product, protected-package and worker/platform
+acceptance. The public-surface and provider inventories prevent newly added
+processing APIs from silently inheriting this status without review and tests.
 
 | Product | Required integration boundaries |
 | --- | --- |
 | PDF | Native generation, byte/stream/file output, mapper rendering |
 | Word | Facade, both direct Word export overloads, and DOCX signing service |
 | Spreadsheet | Builder/retained-handle mutations, calculation, XLSX/XLS/CSV/TSV IO, data operations, and design conversion |
-| Importer (partial) | Built-in imports, PDF load/save, parser/color/font/Analysis, editing/content rewriting, Trust/security/signing/redaction/e-invoice, regeneration/mapping/debug overlays, image analysis, OCR and worker admission guarded; generic bundle rights/lifetime remain open |
+| Importer | All 201 classified public processing entries guarded, including built-in imports, PDF parse/save/edit/Trust, regeneration, image analysis and OCR; separate cross-product/package/platform acceptance remains open |
 | Converter | Each direct exporter/converter implementation |
 | PDF Code migration | Every canonical PDF code provider |
 | PDF Viewer migration | Every canonical PDF viewer provider |

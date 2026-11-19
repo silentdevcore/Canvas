@@ -66,7 +66,16 @@ public static class PdfSrgbColorConverter
         Func<PdfObject?, PdfObject?> resolve,
         int depth = 0)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorResolution);
+        return ResolveAdmitted(value, resolve, depth);
+    }
+
+    internal static PdfResolvedColorSpace ResolveAdmitted(
+        PdfObject? value,
+        Func<PdfObject?, PdfObject?> resolve,
+        int depth = 0)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (depth > MaximumDepth)
         {
             return new PdfResolvedColorSpace(PdfColorSpaceFamily.Unsupported, 0);
@@ -148,7 +157,7 @@ public static class PdfSrgbColorConverter
                     ? 3
                     : (int)PdfFunction.ReadNumber(stream.Dictionary["N"], resolve, 3);
                 var alternate = stream?.Dictionary["Alternate"] is { } alternateValue
-                    ? Resolve(alternateValue, resolve, depth + 1)
+                    ? ResolveAdmitted(alternateValue, resolve, depth + 1)
                     : null;
                 return new PdfResolvedColorSpace(
                     PdfColorSpaceFamily.IccBased,
@@ -159,7 +168,7 @@ public static class PdfSrgbColorConverter
 
             case "Indexed" or "I":
             {
-                var baseSpace = Resolve(array.Items.ElementAtOrDefault(1), resolve, depth + 1);
+                var baseSpace = ResolveAdmitted(array.Items.ElementAtOrDefault(1), resolve, depth + 1);
                 var high = (int)PdfFunction.ReadNumber(array.Items.ElementAtOrDefault(2), resolve, 0);
                 var lookup = resolve(array.Items.ElementAtOrDefault(3)) switch
                 {
@@ -173,16 +182,16 @@ public static class PdfSrgbColorConverter
 
             case "Separation":
             {
-                var alternate = Resolve(array.Items.ElementAtOrDefault(2), resolve, depth + 1);
-                var tint = PdfFunction.TryCreate(array.Items.ElementAtOrDefault(3), resolve);
+                var alternate = ResolveAdmitted(array.Items.ElementAtOrDefault(2), resolve, depth + 1);
+                var tint = PdfFunction.TryCreateAdmitted(array.Items.ElementAtOrDefault(3), resolve);
                 return new PdfResolvedColorSpace(PdfColorSpaceFamily.Separation, 1, alternate, tint);
             }
 
             case "DeviceN":
             {
                 var names = resolve(array.Items.ElementAtOrDefault(1)) as PdfArray;
-                var alternate = Resolve(array.Items.ElementAtOrDefault(2), resolve, depth + 1);
-                var tint = PdfFunction.TryCreate(array.Items.ElementAtOrDefault(3), resolve);
+                var alternate = ResolveAdmitted(array.Items.ElementAtOrDefault(2), resolve, depth + 1);
+                var tint = PdfFunction.TryCreateAdmitted(array.Items.ElementAtOrDefault(3), resolve);
                 return new PdfResolvedColorSpace(
                     PdfColorSpaceFamily.DeviceN, names?.Items.Count ?? 1, alternate, tint);
             }
@@ -190,7 +199,7 @@ public static class PdfSrgbColorConverter
             case "Pattern":
             {
                 var alternate = array.Items.Count > 1
-                    ? Resolve(array.Items[1], resolve, depth + 1)
+                    ? ResolveAdmitted(array.Items[1], resolve, depth + 1)
                     : null;
                 return new PdfResolvedColorSpace(
                     PdfColorSpaceFamily.Pattern,
@@ -208,7 +217,13 @@ public static class PdfSrgbColorConverter
     /// </summary>
     public static double[]? ToSrgb(PdfResolvedColorSpace space, IReadOnlyList<double> components, int depth = 0)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorConversion);
+        return ToSrgbAdmitted(space, components, depth);
+    }
+
+    internal static double[]? ToSrgbAdmitted(PdfResolvedColorSpace space, IReadOnlyList<double> components, int depth = 0)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (depth > MaximumDepth)
         {
             return null;
@@ -247,7 +262,7 @@ public static class PdfSrgbColorConverter
             case PdfColorSpaceFamily.IccBased:
                 return space.IccProfile is null
                     ? null
-                    : PdfIccColorTransform.ToSrgb(space.IccProfile, space.ComponentCount, components);
+                    : PdfIccColorTransform.ToSrgbAdmitted(space.IccProfile, space.ComponentCount, components);
 
             case PdfColorSpaceFamily.Indexed:
             {
@@ -270,7 +285,7 @@ public static class PdfSrgbColorConverter
                     baseComponents[component] = space.IndexedLookup[offset + component] / 255d;
                 }
 
-                return ToSrgb(space.Alternate, baseComponents, depth + 1);
+                return ToSrgbAdmitted(space.Alternate, baseComponents, depth + 1);
             }
 
             case PdfColorSpaceFamily.Separation or PdfColorSpaceFamily.DeviceN:
@@ -280,8 +295,8 @@ public static class PdfSrgbColorConverter
                     return null;
                 }
 
-                var tint = space.TintTransform.Evaluate(components.Select(Clamp).ToArray());
-                return ToSrgb(space.Alternate, tint, depth + 1);
+                var tint = PdfFunction.EvaluateKnownAdmitted(space.TintTransform, components.Select(Clamp).ToArray());
+                return ToSrgbAdmitted(space.Alternate, tint, depth + 1);
             }
 
             default:
@@ -445,7 +460,7 @@ public static class PdfSrgbColorConverter
     {
         try
         {
-            return new Streams.PdfStreamDecoderRegistry().Decode(stream).ToArray();
+            return new Streams.PdfStreamDecoderRegistry().DecodeAdmitted(stream).ToArray();
         }
         catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {

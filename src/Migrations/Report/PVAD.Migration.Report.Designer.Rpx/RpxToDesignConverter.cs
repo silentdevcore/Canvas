@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.Rpx;
 
@@ -53,13 +54,29 @@ public sealed class RpxToDesignConverter
 
     public RpxConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rpx");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal RpxConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rpx");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public RpxConvertResult Convert(string rpxXml, IReadOnlyDictionary<string, string>? resources = null)
-        => ConvertCore(rpxXml, resources, subreportDepth: 0);
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rpx");
+        return ConvertAdmitted(rpxXml, resources);
+    }
+
+    internal RpxConvertResult ConvertAdmitted(string rpxXml, IReadOnlyDictionary<string, string>? resources = null)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rpx");
+        return ConvertCore(rpxXml, resources, subreportDepth: 0);
+    }
 
     private RpxConvertResult ConvertCore(
         string rpxXml,

@@ -170,7 +170,8 @@ try
     Denied(() => exporter.Export(dto), "PVADLIC012", "failed-renewal-keeps-previous-snapshot");
     PvadLicense.LoadFromFile(args[0]);
     Check(workbook.ToXlsx().Length > 0, "renewal-restores-existing-builder");
-    Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedMethods = admissions.Count, processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+    var continuationChecks = SpreadsheetContinuationChecks.Run(args, checks, directory);
+    Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedMethods = admissions.Count, continuationChecks, processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
     return 0;
 
     void Add<T>(string name, Type[] parameters, Action action)

@@ -1,0 +1,10 @@
+{
+  "id": "native-code-migration-provider-admission",
+  "impact": "major",
+  "components": ["migration", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Native PDF and Spreadsheet code migration now requires a signed license for the selected domain and provider, including direct library and interface calls. Provider metadata remains available without a license; generated code requires its own execution rights.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

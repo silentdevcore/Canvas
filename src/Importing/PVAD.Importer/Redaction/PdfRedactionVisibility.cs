@@ -19,7 +19,7 @@ internal static class PdfRedactionVisibility
         IReadOnlyList<PdfGroupElement> ancestors,
         out bool isClipped)
     {
-        var elementBounds = element.Bounds ?? bounds.ComputeElementBounds(element);
+        var elementBounds = element.Bounds ?? bounds.ComputeElementBoundsAdmitted(element);
         isClipped = false;
 
         foreach (var clip in EnumerateClippingPaths(element, ancestors))

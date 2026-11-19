@@ -8,6 +8,7 @@
     <NoWarn>$(NoWarn);PVAD0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../NativeSurfaceCoverage.cs" Link="NativeSurfaceCoverage.cs" />
     <Content Include="../../../assets/fonts/liberation/*" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../../src/Importing/PVAD.FileImporter/PVAD.FileImporter.csproj" />
   </ItemGroup>

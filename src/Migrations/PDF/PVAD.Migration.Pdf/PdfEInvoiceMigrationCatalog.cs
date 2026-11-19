@@ -1,4 +1,6 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Migration.Roslyn;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Pdf;
 
@@ -245,9 +247,17 @@ public static class PdfEInvoiceMigrationCatalog
     /// </remarks>
     public static IReadOnlyList<PdfEInvoiceMigrationFinding> Analyze(string providerKey, string source)
     {
+        var provider = Get(providerKey).ProviderKey;
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, provider);
+        return AnalyzeAdmitted(provider, source);
+    }
+
+    internal static IReadOnlyList<PdfEInvoiceMigrationFinding> AnalyzeAdmitted(string providerKey, string source)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
         ArgumentNullException.ThrowIfNull(source);
         var profile = Get(providerKey);
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, profile.ProviderKey);
 
         var findings = new List<(int SourceIndex, PdfEInvoiceMigrationFinding Finding)>();
         foreach (var capability in profile.Capabilities)

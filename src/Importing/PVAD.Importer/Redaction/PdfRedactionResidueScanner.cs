@@ -1,6 +1,7 @@
 using PVAD.Importer.Document;
 using PVAD.Importer.Graphics;
 using PVAD.Importer.Objects;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Redaction;
 
@@ -19,6 +20,17 @@ internal static class PdfRedactionResidueScanner
         IReadOnlyDictionary<int, PdfRectangle[]> regionsByPage,
         ICollection<PdfRedactionFinding> findings)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        ScanAdmitted(graph, document, regionsByPage, findings);
+    }
+
+    internal static void ScanAdmitted(
+        PdfObjectGraph graph,
+        PdfDocumentModel document,
+        IReadOnlyDictionary<int, PdfRectangle[]> regionsByPage,
+        ICollection<PdfRedactionFinding> findings)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var coveredImages = CountCoveredImages(graph, document, regionsByPage);
         if (coveredImages > 0)
         {
@@ -104,7 +116,7 @@ internal static class PdfRedactionResidueScanner
             return 0;
         }
 
-        if (PdfImageRedactionEngine.IsSecurelyRedacted(graph, resources, image, regions, out _))
+        if (PdfImageRedactionEngine.IsSecurelyRedactedAdmitted(graph, resources, image, regions, out _))
         {
             return 0;
         }

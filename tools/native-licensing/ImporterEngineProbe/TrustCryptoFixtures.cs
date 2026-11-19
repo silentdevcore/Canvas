@@ -13,10 +13,12 @@ internal sealed class TrustCryptoFixtures : HttpMessageHandler
     internal DateTimeOffset Now { get; } = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()).AddMinutes(-1);
     internal X509Certificate2 Issuer { get; }
     internal X509Certificate2 Certificate { get; }
+    internal X509Certificate2 TimestampCertificate => timestampCertificate;
     internal byte[] Pfx { get; }
     internal byte[] Crl { get; }
     internal byte[] Ocsp { get; }
     internal int Requests { get; private set; }
+    internal Action? BeforeRequest { get; set; }
 
     internal TrustCryptoFixtures()
     {
@@ -78,6 +80,7 @@ internal sealed class TrustCryptoFixtures : HttpMessageHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests++;
+        BeforeRequest?.Invoke();
         var bytes = await request.Content!.ReadAsByteArrayAsync(cancellationToken);
         if (!Rfc3161TimestampRequest.TryDecode(bytes, out var decoded, out var consumed) || consumed != bytes.Length)
             throw new InvalidDataException("Invalid synthetic timestamp request.");

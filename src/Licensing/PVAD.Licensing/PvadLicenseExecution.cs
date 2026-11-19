@@ -12,6 +12,25 @@ internal enum PvadNativeOperation
     PdfAnalysis,
     DesignerPdfImport,
     PdfEditing,
+    PdfTrustInspection,
+    PdfChangeImpact,
+    PdfSigning,
+    PdfTimestamp,
+    PdfRedaction,
+    PdfRedactionAudit,
+    PdfColorResolution,
+    PdfEInvoice,
+    PdfAssociatedFiles,
+    PdfArchiveConversion,
+    PdfColorConversion,
+    PdfTrustPostProcessing,
+    SpreadsheetProcessing,
+    ConverterExport,
+    PdfCodeMigration,
+    SpreadsheetCodeMigration,
+    PdfViewerMigration,
+    PdfDesignerMigration,
+    ReportDesignerMigration,
 }
 
 internal enum PvadNativeDependency
@@ -46,27 +65,57 @@ internal sealed class PvadLicenseExecution : IDisposable
     internal static string ProductFor(PvadNativeOperation operation) => operation switch
     {
         PvadNativeOperation.PdfSerialization => PvadLicenseProducts.Pdf,
+        PvadNativeOperation.SpreadsheetProcessing => PvadLicenseProducts.Spreadsheet,
+        PvadNativeOperation.ConverterExport => PvadLicenseProducts.Converter,
+        PvadNativeOperation.PdfCodeMigration => PvadLicenseProducts.PdfCodeMigration,
+        PvadNativeOperation.SpreadsheetCodeMigration => PvadLicenseProducts.SpreadsheetCodeMigration,
+        PvadNativeOperation.PdfViewerMigration => PvadLicenseProducts.PdfViewerMigration,
+        PvadNativeOperation.PdfDesignerMigration => PvadLicenseProducts.PdfDesignerMigration,
+        PvadNativeOperation.ReportDesignerMigration => PvadLicenseProducts.ReportDesignerMigration,
         PvadNativeOperation.ImporterRegeneration or PvadNativeOperation.ImporterBlankPage or
         PvadNativeOperation.ImageAnalysis or PvadNativeOperation.ImageOcr or
         PvadNativeOperation.PdfImport or PvadNativeOperation.PdfSave or
         PvadNativeOperation.PdfAnalysis or PvadNativeOperation.DesignerPdfImport or
-        PvadNativeOperation.PdfEditing => PvadLicenseProducts.Importer,
+        PvadNativeOperation.PdfEditing or PvadNativeOperation.PdfTrustInspection or
+        PvadNativeOperation.PdfChangeImpact or PvadNativeOperation.PdfSigning or
+        PvadNativeOperation.PdfTimestamp or PvadNativeOperation.PdfRedaction or
+        PvadNativeOperation.PdfRedactionAudit or PvadNativeOperation.PdfColorResolution or
+        PvadNativeOperation.PdfEInvoice or PvadNativeOperation.PdfAssociatedFiles or
+        PvadNativeOperation.PdfArchiveConversion or PvadNativeOperation.PdfColorConversion or
+        PvadNativeOperation.PdfTrustPostProcessing => PvadLicenseProducts.Importer,
         _ => throw new ArgumentOutOfRangeException(nameof(operation)),
     };
 
     internal static PvadLicenseExecution Enter(PvadNativeOperation operation, PvadLicenseOperation admission, object authority)
     {
-        if (admission.Product != ProductFor(operation))
+        if (admission.Product != ProductFor(operation) ||
+            (PvadLicenseProducts.IsMigration(admission.Product)
+                ? string.IsNullOrWhiteSpace(admission.Provider) || admission.Provider == "auto"
+                : admission.Provider is not null))
             throw new InvalidOperationException("The admission does not match the native operation.");
         return new(operation, admission, authority);
     }
 
-    internal static PvadLicenseOperation Demand(string product, object? expectedAuthority = null)
+    internal static PvadLicenseOperation Demand(string product, object? expectedAuthority = null, string? provider = null)
     {
         var current = Current(expectedAuthority);
         if (product != current.admission.Product)
             throw new InvalidOperationException("An internal continuation cannot change its licensed product.");
+        if (provider != current.admission.Provider)
+            throw new InvalidOperationException("An internal continuation cannot change or omit its licensed provider.");
         return current.admission;
+    }
+
+    internal static PvadLicenseExecution EnterNutrientDesignerPdfImport(object expectedAuthority)
+    {
+        var current = Current(expectedAuthority);
+        var admitted = Demand(PvadLicenseProducts.PdfDesignerMigration, expectedAuthority, "nutrient-viewer");
+        if (current.operation != PvadNativeOperation.PdfDesignerMigration)
+            throw new InvalidOperationException("Only the Nutrient Designer operation may import its source PDF.");
+        // A private source-PDF import, not a transferable Importer or PDF grant.
+        return Enter(PvadNativeOperation.DesignerPdfImport,
+            new PvadLicenseOperation(admitted.LicenseId, PvadLicenseProducts.Importer, null, admitted.IsGracePeriod),
+            expectedAuthority);
     }
 
     internal static PvadLicenseOperation DemandDependency(PvadNativeDependency dependency, object? expectedAuthority = null)

@@ -4,6 +4,7 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -20,6 +21,16 @@ internal static class PdfLongTermValidationWriter
         ReadOnlySpan<byte> cmsSignatureValue,
         PdfLongTermValidationMaterial material)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return AppendAdmitted(signedPdf, cmsSignatureValue, material);
+    }
+
+    internal static PdfLongTermValidationWriteResult AppendAdmitted(
+        ReadOnlyMemory<byte> signedPdf,
+        ReadOnlySpan<byte> cmsSignatureValue,
+        PdfLongTermValidationMaterial material)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(material);
         if (signedPdf.IsEmpty || cmsSignatureValue.IsEmpty)
         {
@@ -90,7 +101,7 @@ internal static class PdfLongTermValidationWriter
         updatedCatalog["DSS"] = new PdfReference(dssId);
         updates.Add(new PdfIncrementalObjectUpdate(rootReference.Id, updatedCatalog));
 
-        var result = new PdfIncrementalUpdateWriter().Append(signedPdf, updates);
+        var result = new PdfIncrementalUpdateWriter().AppendAdmitted(signedPdf, updates);
         return new PdfLongTermValidationWriteResult(result.Bytes, result.RevisionCount);
     }
 
@@ -145,12 +156,12 @@ internal static class PdfLongTermValidationWriter
     private static ParsedPdf Parse(ReadOnlyMemory<byte> source)
     {
         var context = new PdfParseContext(source, new PdfImporterOptions());
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF revision chain is invalid: {table.Diagnostics[0].Code}.");
         }
-        return new ParsedPdf(table, new PdfObjectParser(context, table).ParseDocumentGraph());
+        return new ParsedPdf(table, new PdfObjectParser(context, table).ParseDocumentGraphAdmitted());
     }
 
     private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value)
@@ -221,7 +232,7 @@ internal static class PdfLongTermValidationWriter
                 {
                     return false;
                 }
-                bytes = (stream.IsDecoded ? stream.DecodedBytes : decoder.Decode(stream)).ToArray();
+                bytes = (stream.IsDecoded ? stream.DecodedBytes : decoder.DecodeAdmitted(stream)).ToArray();
                 return bytes.Length > 0;
             }
             catch (Exception exception) when (exception is InvalidDataException or NotSupportedException)

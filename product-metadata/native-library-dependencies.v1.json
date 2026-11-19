@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "policySource": "src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs",
+  "rules": [
+    { "id": "pdf-serialization", "product": "pdf", "boundary": "fresh-public", "status": "implemented", "source": "src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "word-export", "product": "word", "boundary": "fresh-public", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Word/WordDocumentExporter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "word-signing", "product": "word", "boundary": "fresh-public", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Word/DigitalSigningService.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "spreadsheet-export-calculate-save", "product": "spreadsheet", "boundary": "internal-continuation", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Spreadsheet/ExcelWorkbookExporter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "spreadsheet-design-dto", "product": "spreadsheet", "boundary": "fresh-public", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Spreadsheet/SpreadsheetToDesignConverter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "spreadsheet-subsequent-pdf-render", "product": "pdf", "boundary": "fresh-public", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Pdf/PdfDocumentRenderer.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "importer-regeneration", "product": "importer", "boundary": "private-byte-dependency", "status": "implemented", "source": "src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs", "additionalGrants": [], "privateDependency": "RegenerationPdf" },
+    { "id": "importer-blank-page", "product": "importer", "boundary": "private-byte-dependency", "status": "implemented", "source": "src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs", "additionalGrants": [], "privateDependency": "BlankPagePdf" },
+    { "id": "importer-ocr-pdf", "product": "importer", "boundary": "private-byte-dependency", "status": "implemented", "source": "src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs", "additionalGrants": [], "privateDependency": "OcrResultPdf" },
+    { "id": "importer-configured-generator", "product": "importer", "boundary": "fresh-public-callback", "status": "implemented", "source": "src/Importing/PVAD.Importer/Generation/PvadPdfGeneratorBridge.cs", "additionalGrants": ["pdf"], "privateDependency": null },
+    { "id": "converter-exports", "product": "converter", "boundary": "internal-continuation", "status": "implemented", "source": "src/Infrastructure/PVAD.Infrastructure.Converters/ImageDocumentExporter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-code-provider-entry", "product": "migration.pdf.code", "boundary": "fresh-provider", "status": "implemented", "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Aspose/AsposePdfMigration.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "spreadsheet-code-provider-entry", "product": "migration.spreadsheet.code", "boundary": "fresh-provider", "status": "implemented", "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Aspose/AsposeCellsMigration.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-code-trust-analysis", "product": "migration.pdf.code", "boundary": "internal-continuation", "status": "implemented", "source": "src/Migrations/Common/PVAD.Migration.Roslyn/CSharpPdfTrustEvidenceScanner.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-code-einvoice-analysis", "product": "migration.pdf.code", "boundary": "internal-continuation", "status": "implemented", "source": "src/Migrations/PDF/PVAD.Migration.Pdf/PdfEInvoiceMigrationCatalog.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-code-preview", "product": "migration.pdf.code", "boundary": "fresh-public", "status": "implemented", "source": "PVAD.WebApi/Services/Converters/BasePdfConverter.cs", "additionalGrants": ["pdf"], "privateDependency": null },
+    { "id": "spreadsheet-code-preview", "product": "migration.spreadsheet.code", "boundary": "internal-continuation", "status": "implemented", "source": "PVAD.WebApi/Services/Converters/BaseSpreadsheetConverter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-viewer-migration", "product": "migration.pdf.viewer", "boundary": "fresh-provider", "status": "implemented", "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient/NutrientViewerSourceConverter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "pdf-designer-migration", "product": "migration.pdf.designer", "boundary": "fresh-provider", "status": "implemented", "source": "PVAD.WebApi/Services/NutrientViewerDesignMigrationService.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "nutrient-designer-source-pdf-import", "product": "migration.pdf.designer", "boundary": "internal-continuation", "status": "implemented", "source": "src/Importing/PVAD.FileImporter/PdfFileImporter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "nutrient-designer-viewer-mapping", "product": "migration.pdf.designer", "boundary": "internal-continuation", "status": "implemented", "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient/NutrientInstantJsonConverter.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "report-designer-migration", "product": "migration.report.designer", "boundary": "fresh-provider", "status": "implemented", "source": "src/Migrations/Report/PVAD.Migration.Report/ReportMigrationProviders.cs", "additionalGrants": [], "privateDependency": null },
+    { "id": "report-source-resources-and-subreports", "product": "migration.report.designer", "boundary": "internal-continuation", "status": "implemented", "source": "PVAD.WebApi/Services/ReportMigrationService.cs", "additionalGrants": [], "privateDependency": null }
+  ],
+  "notes": [
+    "This inventory records technical boundaries, not prices, commercial editions or universal cross-product bundle rights.",
+    "A subsequent public product operation requires its own grant; DTO creation and metadata access do not imply renderer permission.",
+    "Code, Viewer, PDF Designer and all eight Report Designer providers now enforce native admission. Cross-product and protected-package acceptance remain separate.",
+    "Report detection and generic package utilities do not grant conversion rights; auto is resolved to a concrete canonical provider before resource merging and conversion. Standalone DevExpress resource parsing needs DevExpress rights; shared in-operation RESX handling uses only the selected report provider grant.",
+    "Nutrient Designer alone may enter a private DesignerPdfImport continuation and internal Viewer mapping for its source PDF. It cannot invoke public Importer, Viewer or PDF operations without fresh rights.",
+    "PDF Code preview starts independently licensed public PDF creation/serialization; Code admission reserves no future PDF rights. Spreadsheet preview is text-to-HTML replay, not workbook processing.",
+    "Only existing purpose-bound private byte dependencies avoid an additional public PDF grant. No new private PDF rights are introduced."
+  ]
+}

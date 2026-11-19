@@ -27,7 +27,13 @@ public sealed class PdfDebugOverlayBuilder
 {
     public IReadOnlyList<PdfDebugOverlayItem> Build(PdfScenePage page)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildAdmitted(page);
+    }
+
+    internal IReadOnlyList<PdfDebugOverlayItem> BuildAdmitted(PdfScenePage page)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var overlays = new List<PdfDebugOverlayItem>();
         foreach (var primitive in page.Layers.SelectMany(static layer => layer.Objects).SelectMany(Expand))
         {

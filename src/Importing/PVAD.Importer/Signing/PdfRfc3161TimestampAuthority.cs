@@ -41,7 +41,16 @@ public sealed class PdfRfc3161TimestampAuthority : IPdfTimestampAuthority
         HashAlgorithmName digestAlgorithm,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTimestamp);
+        return await GetTimestampTokenAdmittedAsync(signatureDigest, digestAlgorithm, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfTimestampToken> GetTimestampTokenAdmittedAsync(
+        ReadOnlyMemory<byte> signatureDigest,
+        HashAlgorithmName digestAlgorithm,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         try
         {
             return await GetTimestampTokenCoreAsync(

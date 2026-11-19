@@ -6,4 +6,7 @@ public static class DevExpressReportResourceParser
 {
     public static Dictionary<string, string> ParseResx(string resxXml) =>
         PvadDevExpressReportResourceParser.ParseResx(resxXml);
+
+    internal static Dictionary<string, string> ParseResxForReport(string resxXml, string provider) =>
+        PvadDevExpressReportResourceParser.ParseResxForReport(resxXml, provider);
 }

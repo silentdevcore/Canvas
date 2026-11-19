@@ -203,7 +203,9 @@ internal sealed class RegenerationChecks : IDisposable
     private void ResetOutput() { output.SetLength(0); output.Write("sentinel"u8); output.Position = 3; }
     private string Add<T>(string name, Action call, params Type[] parameters)
     {
-        var key = Key(typeof(T).GetMethod(name, parameters)!); calls.Add(key, call); return key;
+        var method = typeof(T).GetMethod(name, parameters)!;
+        NativeSurfaceCoverage.Record(method);
+        var key = Key(method); calls.Add(key, call); return key;
     }
     private static string Key(MethodInfo method) => $"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(p => p.ParameterType.ToString()))})";
     private static void Await(Task task) => task.GetAwaiter().GetResult();

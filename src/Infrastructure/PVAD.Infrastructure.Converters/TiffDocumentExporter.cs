@@ -1,5 +1,6 @@
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using PVAD.Core.Primitives;
 using SkiaSharp;
 
@@ -22,6 +23,7 @@ public sealed class TiffDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
         var dpi   = options?.Dpi ?? DefaultDpi;
         var scale = dpi / 72f;
         var ps    = design.PageSettings ?? new PageSettingsDto();

@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Migration.Report.Designer.Rdl;
 using PVAD.Core.Contracts;
 
@@ -11,7 +12,14 @@ public sealed class RdlReportMigration : IReportMigration
 
     public ReportMigrationResult Convert(string source)
     {
-        var result = inner.ConvertAuto(source);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rdl");
+        return ConvertAdmitted(source);
+    }
+
+    internal ReportMigrationResult ConvertAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rdl");
+        var result = inner.ConvertAutoAdmitted(source);
         return new ReportMigrationResult
         {
             Design = result.Design,

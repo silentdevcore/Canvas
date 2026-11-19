@@ -24,8 +24,8 @@ internal sealed class PvadLicenseAuthority(
     internal PvadLicenseOperation Require(string product, string? provider)
         => Require(Volatile.Read(ref current)?.Payload, product, provider);
 
-    internal PvadLicenseExecution Begin(PvadNativeOperation operation) =>
-        PvadLicenseExecution.Enter(operation, Require(PvadLicenseExecution.ProductFor(operation), null), this);
+    internal PvadLicenseExecution Begin(PvadNativeOperation operation, string? provider = null) =>
+        PvadLicenseExecution.Enter(operation, Require(PvadLicenseExecution.ProductFor(operation), provider), this);
 
     // The worker receives signed bytes from the same immutable snapshot being admitted.
     internal byte[] CaptureImporterWorkerLicense()

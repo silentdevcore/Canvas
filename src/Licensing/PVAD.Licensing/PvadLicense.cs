@@ -44,11 +44,17 @@ public static class PvadLicense
 
     internal static byte[] CaptureImporterWorkerLicense() => Authority.Value.CaptureImporterWorkerLicense();
 
-    internal static PvadLicenseExecution BeginOperation(PvadNativeOperation operation) => Authority.Value.Begin(operation);
+    internal static PvadLicenseExecution BeginOperation(PvadNativeOperation operation, string? provider = null) => Authority.Value.Begin(operation, provider);
 
     internal static PvadLicenseOperation DemandContinuation(string product) => PvadLicenseExecution.Demand(product, Authority.Value);
 
+    internal static PvadLicenseOperation DemandMigrationContinuation(string product, string provider) =>
+        PvadLicenseExecution.Demand(product, Authority.Value, provider);
+
     internal static PvadLicenseOperation DemandDependency(PvadNativeDependency dependency) => PvadLicenseExecution.DemandDependency(dependency, Authority.Value);
+
+    internal static PvadLicenseExecution BeginNutrientDesignerPdfImport() =>
+        PvadLicenseExecution.EnterNutrientDesignerPdfImport(Authority.Value);
 
     private static PvadLicenseAuthority CreateAuthority()
     {

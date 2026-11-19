@@ -28,7 +28,17 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         PdfRedactionPreflightOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return await PreflightAdmittedAsync(pdfStream, regions, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfRedactionPreflightReport> PreflightAdmittedAsync(
+        Stream pdfStream,
+        IReadOnlyList<PdfRedactionRegion> regions,
+        PdfRedactionPreflightOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         ArgumentNullException.ThrowIfNull(regions);
         options ??= new PdfRedactionPreflightOptions();
@@ -55,8 +65,8 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         var documentFindings = new List<PdfRedactionFinding>();
 
         var context = new PdfParseContext(source, new PdfImporterOptions(), cancellationToken);
-        var table = new PdfCrossReferenceParser().Parse(context);
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
 
         if (table.Trailer?["Encrypt"] is not null)
         {
@@ -82,7 +92,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
                 $"The document could not be parsed in full ({diagnostic.Code}), so covered content cannot be assessed."));
         }
 
-        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).Build(graph);
+        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).BuildAdmitted(graph);
         InspectDocumentCarriers(graph, table, document, documentFindings);
 
         var regionReports = new List<PdfRedactionRegionReport>(regions.Count);
@@ -204,7 +214,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
         {
             if (group.MarkedContentTag is "OC")
             {
-                var bounds = group.Bounds ?? _bounds.ComputeElementBounds(group);
+                var bounds = group.Bounds ?? _bounds.ComputeElementBoundsAdmitted(group);
                 if (bounds.Intersects(region))
                 {
                     findings.Add(new PdfRedactionFinding(
@@ -264,7 +274,7 @@ public sealed class PdfRedactionPreflight : IPdfRedactionPreflight
             case PdfImageElement image:
                 var imageCapability = PdfRedactionCapability.Removable;
                 if (coverage == PdfRedactionCoverage.Partial &&
-                    !PdfImageRedactionEngine.CanRedactPartial(graph, resources, image, out var reason))
+                    !PdfImageRedactionEngine.CanRedactPartialAdmitted(graph, resources, image, out var reason))
                 {
                     imageCapability = PdfRedactionCapability.ReviewRequired;
                     var masked = PdfImageRedactionEngine.RequiresMaskReconstruction(graph, resources, image);

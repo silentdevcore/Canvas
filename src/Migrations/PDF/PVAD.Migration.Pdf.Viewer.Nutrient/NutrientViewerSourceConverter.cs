@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using Esprima;
 using Esprima.Ast;
 
@@ -19,6 +20,18 @@ public sealed class NutrientViewerSourceConverter
     };
 
     public NutrientViewerSourceResult Convert(string source, string sourceLanguage = "javascript", string? sourceName = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfViewerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertCore(source, sourceLanguage, sourceName);
+    }
+
+    internal NutrientViewerSourceResult ConvertForDesigner(string source, string sourceLanguage, string? sourceName)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.PdfDesignerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertCore(source, sourceLanguage, sourceName);
+    }
+
+    private static NutrientViewerSourceResult ConvertCore(string source, string sourceLanguage, string? sourceName)
     {
         ArgumentNullException.ThrowIfNull(source);
         if (!string.Equals(sourceLanguage, "javascript", StringComparison.OrdinalIgnoreCase)
@@ -37,6 +50,20 @@ public sealed class NutrientViewerSourceConverter
         string transpiledJavaScript,
         string? sourceName = null,
         IReadOnlyList<string>? compilerDiagnostics = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfViewerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertTranspiledTypeScriptCore(source, transpiledJavaScript, sourceName, compilerDiagnostics);
+    }
+
+    internal NutrientViewerSourceResult ConvertTranspiledTypeScriptForDesigner(
+        string source, string transpiledJavaScript, string? sourceName, IReadOnlyList<string>? compilerDiagnostics)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.PdfDesignerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertTranspiledTypeScriptCore(source, transpiledJavaScript, sourceName, compilerDiagnostics);
+    }
+
+    private static NutrientViewerSourceResult ConvertTranspiledTypeScriptCore(
+        string source, string transpiledJavaScript, string? sourceName, IReadOnlyList<string>? compilerDiagnostics)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(transpiledJavaScript);

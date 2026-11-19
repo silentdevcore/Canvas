@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Compile Include="../../tools/native-licensing/ReportMigrationFixtures.cs" Link="NativeReportMigrationFixtures.cs" />
     <Using Include="System.Net.Http.Json" />
     <Using Include="PVAD.Core.Contracts" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,10 +13,17 @@ namespace PVAD.Migration.Spreadsheet.Code.Syncfusion;
 /// <c>Workbooks.Create</c> → <c>new PvadWorkbook()</c>, <c>Range["A1"]</c> indexer, Text/Value/Number/
 /// Formula, CellStyle.Font.Bold, merge, SetColumnWidth, SaveAs.
 /// </summary>
-public sealed class SyncfusionXlsIoMigration : CSharpSourceMigration
+public sealed class SyncfusionXlsIoMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.SpreadsheetCodeMigration, "syncfusion-xlsio");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.SpreadsheetCodeMigration, "syncfusion-xlsio");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

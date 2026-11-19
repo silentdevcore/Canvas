@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Migration.Report.Designer.FastReport;
 using PVAD.Core.Contracts;
 
@@ -11,7 +12,14 @@ public sealed class FastReportMigration : IReportMigration
 
     public ReportMigrationResult Convert(string source)
     {
-        var result = inner.ConvertAuto(source);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "fastreport");
+        return ConvertAdmitted(source);
+    }
+
+    internal ReportMigrationResult ConvertAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "fastreport");
+        var result = inner.ConvertAutoAdmitted(source);
         return new ReportMigrationResult
         {
             Design = result.Design,

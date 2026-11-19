@@ -53,6 +53,11 @@ function readSession(descriptor, verifyArtifacts = true) {
   assert.deepEqual(session.files, { trustPath: join(secret, 'trust.json'), pdf: join(secret, 'pdf.json'),
     word: join(secret, 'word.json'), spreadsheet: join(secret, 'spreadsheet.json'),
     importer: join(secret, 'importer.json'),
+    converter: join(secret, 'converter.json'),
+    'migration-code': join(secret, 'migration-code.json'),
+    'migration-viewer': join(secret, 'migration-viewer.json'),
+    'migration-designer': join(secret, 'migration-designer.json'),
+    'migration-report': join(secret, 'migration-report.json'),
     integrated: join(secret, 'integrated.json'), expired: join(secret, 'expired.json') });
   if (verifyArtifacts) {
     assert.equal(hash(trustFile), session.sourceTrustSha256, 'Source trust was modified.');

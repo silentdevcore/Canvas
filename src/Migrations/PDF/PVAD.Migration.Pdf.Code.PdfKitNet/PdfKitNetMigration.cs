@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,10 +7,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.PdfKitNet;
 
-public sealed class PdfKitNetMigration : CSharpSourceMigration
+public sealed class PdfKitNetMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "pdfkitnet");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, "pdfkitnet");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

@@ -11,6 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Esprima" Version="3.0.6" />
     <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
 </Project>

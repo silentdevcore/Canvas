@@ -127,9 +127,18 @@ public sealed class MigrationService
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
         var converter = GetConverter(frameworkId);
+        PVAD.Migration.Abstractions.MigrationResult? nativeResult = null;
         if (PdfProviderKeysByFrameworkId.TryGetValue(converter.FrameworkId, out var providerKey))
         {
-            var nativeResult = PdfMigrationProviders.Migrate(providerKey, sourceCode);
+            nativeResult = PdfMigrationProviders.Migrate(providerKey, sourceCode);
+        }
+        else if (converter.Kind == "spreadsheet" &&
+                 PVAD.Migration.Abstractions.MigrationProviderCatalog.TryGet("spreadsheet", "code", converter.FrameworkId, out var provider))
+        {
+            nativeResult = PVAD.Migration.Spreadsheet.SpreadsheetMigrationProviders.Migrate(provider.ProviderKey, sourceCode);
+        }
+        if (nativeResult is not null)
+        {
             var nativeDiagnostics = nativeResult.Diagnostics
                 .Select(static diagnostic => new MigrationDiagnostic(
                     diagnostic.Id,

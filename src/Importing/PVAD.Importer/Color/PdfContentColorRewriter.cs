@@ -43,8 +43,14 @@ public sealed class PdfContentColorRewriter
 
     public PdfColorRewriteResult Rewrite(ReadOnlyMemory<byte> content)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
-        var commands = new PdfContentStreamParser().Parse(content);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorConversion);
+        return RewriteAdmitted(content);
+    }
+
+    internal PdfColorRewriteResult RewriteAdmitted(ReadOnlyMemory<byte> content)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        var commands = new PdfContentStreamParser().ParseAdmitted(content);
         var edits = new List<(int Start, int End, string Replacement)>();
         var unconvertible = new SortedSet<string>(StringComparer.Ordinal);
         var convertedPatternSpaces = new SortedSet<string>(StringComparer.Ordinal);
@@ -122,7 +128,7 @@ public sealed class PdfContentColorRewriter
                     var colorSpaceObject = inlineImage?.Dictionary["ColorSpace"] ?? inlineImage?.Dictionary["CS"];
                     var inlineSpace = colorSpaceObject is null
                         ? new PdfResolvedColorSpace(PdfColorSpaceFamily.Unsupported, 0)
-                        : PdfSrgbColorConverter.Resolve(colorSpaceObject, _resolve);
+                        : PdfSrgbColorConverter.ResolveAdmitted(colorSpaceObject, _resolve);
                     if (inlineSpace.Family is not (PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.DeviceRgb))
                     {
                         unconvertible.Add("InlineImage");
@@ -162,7 +168,7 @@ public sealed class PdfContentColorRewriter
                         if (paintType == 2 && space.Alternate is { IsConvertible: true } baseSpace &&
                             spaceName is not null && patternName is not null)
                         {
-                            var patternRgb = PdfSrgbColorConverter.ToSrgb(baseSpace, ReadNumbers(command.Operands));
+                            var patternRgb = PdfSrgbColorConverter.ToSrgbAdmitted(baseSpace, ReadNumbers(command.Operands));
                             if (patternRgb is not null)
                             {
                                 edits.Add((
@@ -205,7 +211,7 @@ public sealed class PdfContentColorRewriter
                         break;
                     }
 
-                    var rgb = PdfSrgbColorConverter.ToSrgb(space, ReadNumbers(command.Operands));
+                    var rgb = PdfSrgbColorConverter.ToSrgbAdmitted(space, ReadNumbers(command.Operands));
                     if (rgb is null)
                     {
                         if (spaceName is not null)
@@ -224,7 +230,7 @@ public sealed class PdfContentColorRewriter
                 case "k" or "K":
                 {
                     var stroke = command.Operator.Name == "K";
-                    var rgb = PdfSrgbColorConverter.ToSrgb(
+                    var rgb = PdfSrgbColorConverter.ToSrgbAdmitted(
                         new PdfResolvedColorSpace(PdfColorSpaceFamily.DeviceCmyk, 4),
                         ReadNumbers(command.Operands));
                     if (rgb is null)
@@ -282,11 +288,11 @@ public sealed class PdfContentColorRewriter
 
         if (name is "DeviceGray" or "DeviceRGB" or "DeviceCMYK" or "Pattern" or "G" or "RGB" or "CMYK")
         {
-            return PdfSrgbColorConverter.Resolve(new PdfName(name), _resolve);
+            return PdfSrgbColorConverter.ResolveAdmitted(new PdfName(name), _resolve);
         }
 
         return _colorSpaceResources.TryGetValue(name, out var resource)
-            ? PdfSrgbColorConverter.Resolve(resource, _resolve)
+            ? PdfSrgbColorConverter.ResolveAdmitted(resource, _resolve)
             : null;
     }
 
@@ -336,8 +342,8 @@ public sealed class PdfContentColorRewriter
         var colorValue = dictionary["ColorSpace"];
         var colorSpace = _resolve(colorValue) is PdfName name &&
             !IsStandardColorSpaceName(name.Value) && _colorSpaceResources.TryGetValue(name.Value, out var resource)
-                ? PdfSrgbColorConverter.Resolve(resource, _resolve)
-                : PdfSrgbColorConverter.Resolve(colorValue, _resolve);
+                ? PdfSrgbColorConverter.ResolveAdmitted(resource, _resolve)
+                : PdfSrgbColorConverter.ResolveAdmitted(colorValue, _resolve);
         return colorSpace.Family switch
         {
             PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.DeviceRgb => true,

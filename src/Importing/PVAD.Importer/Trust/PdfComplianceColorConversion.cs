@@ -29,6 +29,15 @@ internal static class PdfComplianceColorConversion
         PdfObjectGraph graph,
         IReadOnlyList<PdfIncrementalObjectUpdate>? existingUpdates = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorConversion);
+        return AnalyzeAdmitted(graph, existingUpdates);
+    }
+
+    internal static PdfColorConversionAnalysis AnalyzeAdmitted(
+        PdfObjectGraph graph,
+        IReadOnlyList<PdfIncrementalObjectUpdate>? existingUpdates = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var blocking = new List<PdfComplianceConversionFinding>();
         var updates = new Dictionary<PdfObjectId, PdfObject>();
         var existing = existingUpdates?.ToDictionary(static update => update.Id, static update => update.Value) ?? [];
@@ -39,10 +48,10 @@ internal static class PdfComplianceColorConversion
         foreach (var indirectObject in EnumerateReachableImages(graph, resolve))
         {
             var stream = (PdfStreamObject)indirectObject.Value;
-            var conversion = PdfImageColorConverter.Convert(stream, resolve);
+            var conversion = PdfImageColorConverter.ConvertAdmitted(stream, resolve);
             if (conversion.BlockingReason is { } reason)
             {
-                var imageSpace = PdfSrgbColorConverter.Resolve(stream.Dictionary["ColorSpace"], resolve);
+                var imageSpace = PdfSrgbColorConverter.ResolveAdmitted(stream.Dictionary["ColorSpace"], resolve);
                 blocking.Add(new PdfComplianceConversionFinding(
                     "PVADPDFACONVERT010",
                     PdfTrustDiagnosticSeverity.Error,
@@ -83,7 +92,7 @@ internal static class PdfComplianceColorConversion
             PdfColorRewriteResult result;
             try
             {
-                result = rewriter.Rewrite(decoded);
+                result = rewriter.RewriteAdmitted(decoded);
             }
             catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
             {
@@ -459,7 +468,7 @@ internal static class PdfComplianceColorConversion
     private static byte[] Decode(PdfStreamObject stream) =>
         stream.IsDecoded
             ? stream.DecodedBytes.ToArray()
-            : new Streams.PdfStreamDecoderRegistry().Decode(stream).ToArray();
+            : new Streams.PdfStreamDecoderRegistry().DecodeAdmitted(stream).ToArray();
 
     private static string Describe(PdfResolvedColorSpace space) => space.Family switch
     {

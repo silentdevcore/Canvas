@@ -63,13 +63,19 @@ public sealed class PvadWorkbook
     /// <summary>Writes the workbook to disk; format is chosen by extension (.xlsx, .xls, .csv, .tsv).</summary>
     public void Save(string path)
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        SaveAdmitted(path);
+    }
+
+    internal void SaveAdmitted(string path)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         var bytes = Path.GetExtension(path).ToLowerInvariant() switch
         {
-            ".xls" => new XlsWorkbookIo().Export(_wb),
-            ".csv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsv(_wb.Sheets[0]) : ""),
-            ".tsv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsv(_wb.Sheets[0], '\t') : ""),
-            _ => ToXlsx(),
+            ".xls" => new XlsWorkbookIo().ExportAdmitted(_wb),
+            ".csv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsvAdmitted(_wb.Sheets[0]) : ""),
+            ".tsv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsvAdmitted(_wb.Sheets[0], '\t') : ""),
+            _ => new ExcelWorkbookExporter().ExportAdmitted(_wb),
         };
         File.WriteAllBytes(path, bytes);
     }

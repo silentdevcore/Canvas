@@ -12,6 +12,8 @@ node tools/native-licensing/pvad-native-licensing.mjs rehearse
 node tools/native-licensing/with-test-license.mjs pdf
 node tools/native-licensing/with-test-license.mjs word
 node tools/native-licensing/with-test-license.mjs spreadsheet
+node tools/native-licensing/with-test-license.mjs converter
+node tools/native-licensing/with-test-license.mjs migration-code
 node tools/native-licensing/with-test-license.mjs importer
 node tools/native-licensing/with-test-license.mjs test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj
 ```
@@ -52,6 +54,10 @@ test key into the source register. It removes all test licenses and candidate
 binaries in `finally`; reports and TRX results remain under
 `artifacts/native-engine-tests/`. No synthetic package is published.
 
+Probe and test builds disable both compiler-server and MSBuild node reuse to
+avoid inheriting stale build processes. This affects the isolated test runner,
+not production compilation or licensing rules.
+
 Use `test <repository-test-project.csproj> [dotnet test options]` for an existing
 suite. The runner owns restore/build, trust properties, and artifacts placement;
 do not pass `--no-build`, `--no-restore`, or alternate build properties. Native
@@ -70,7 +76,8 @@ operation without restarting. The probe also checks actual DOCX content and a
 synthetically signed OPC package, not Microsoft Office signature acceptance.
 
 General test sessions and `test` runs now activate a signed fixture containing
-only `pdf`, `word`, `spreadsheet`, and the partial `importer` entry-point grant. Separate
+`pdf`, `word`, `spreadsheet`, `converter`, the partial `importer` entry-point grant,
+and explicit provider lists for the tested PDF/Spreadsheet Code migration entries. Separate
 product-only fixtures remain for negative tests. No other product grants are preemptively
 enabled. The key stays in memory, source trust stays empty, and the runner
 removes synthetic fixtures and binaries in `finally`. The dedicated native CI
@@ -112,6 +119,52 @@ Earlier full API and coverage runs remain separate historical checkpoints.
 
 ## Importer Entry-Point Tests
 
+The current complete public API gate is:
+
+```bash
+node tools/native-licensing/importer-surface.mjs verify
+```
+
+It compares four freshly built Importer assemblies against
+[`native-importer-public-surface.v1.json`](../../product-metadata/native-importer-public-surface.v1.json),
+then runs both native probes in the same signed isolated session. All 363
+exported types, 5,087 declared public members and two explicit interface bindings
+are tracked. All 201 protected members must match the successful probes'
+`testedSurface` registration sets exactly. New public types, constructors,
+methods, properties, base types or interface bindings fail until reviewed.
+
+`capture` writes a review candidate only under the owned artifacts directory;
+it cannot update or accept the source inventory. The contract includes current
+free models/helpers and interface declarations without confusing declarations
+with permission to execute implementations. Pure value/graph helpers are tested
+without Importer rights. Image analysis has explicit/default interface tests.
+The worker executable retains separate request/admission tests.
+
+Signature registration plus a successful probe is a coverage gate, not a claim
+that shape comparison can detect every behavioral change. Existing functional,
+output, callback, expiry and cancellation tests remain required. Package,
+cross-product and platform acceptance are still separate. The generic protected-
+package API probe is unchanged; this contract adds no runtime bypass or key.
+See the [public API checkpoint](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#importer-public-api-contract-milestone).
+
+The importer probe also validates the versioned
+[registry entry inventory](../../product-metadata/native-file-importer-entries.v1.json)
+against all exported importer implementations and their public processing
+overloads. `FileImporterContinuationChecks` exercises 30 non-PDF direct,
+registry and cancellation-interface call paths after a license replacement from
+inside a stream read. Each path compares the document contents, geometry and
+diagnostics and rejects the next public call before input consumption. Source
+bytes remain unchanged and caller-owned streams remain open.
+
+The seven non-PDF parsers need only their existing entry check: their private
+work does not dispatch another protected engine. No ambient scope or extra
+product entitlement is added. Yielded Markdown asset callbacks check that new
+public imports still use current rights; resolver failures propagate unchanged.
+All callbacks and inputs are synthetic and make no remote requests. These
+checks supplement, rather than replace, the PDF-specific continuation tests.
+Whole Importer acceptance remains partial. See the
+[continuation checkpoint](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#non-pdf-file-importer-continuation-and-stream-ownership-milestone).
+
 The `importer` probe starts unlicensed, exercises the eight registered file
 importers and their static/optional overloads, then checks PDF facade/direct
 load and high-level rewrite/incremental save entry points. Valid operations run
@@ -127,9 +180,11 @@ the existing full Importer suite. No real keys, customer files, or external OCR
 service are used.
 
 Probe output explicitly records `completeImporterEnforcement: false`. The
-operation matrix keeps the product's `enforced` flag false until
-generic bundle dependency-rights/lifetime are implemented and tested. Image
-analysis and OCR-worker admission are covered by the later milestone below.
+coarse flag does not declare whole-product package/platform acceptance. The
+current operation matrix now records public entry enforcement separately, with
+`enforced: true` and explicit `remainingAcceptance` gates. The public API checkpoint
+below supersedes the original partial-entry inventory, not its historical results.
+Image analysis and OCR-worker admission are covered by the later milestone below.
 CI now prepares this probe and complete
 file/PDF importer regressions; the outer job budget is 30 minutes for the added
 workload, not evidence that a cross-platform run has succeeded.
@@ -215,8 +270,11 @@ encrypted inputs are prepared in a separate PDF-only fixture phase before
 restoring Importer-only admission. Private fixtures are disposed and PFX bytes
 are cleared; no certificate or key is included in the JSON evidence.
 
-The Trust inspector is also tested when a stream callback replaces the license
-mid-read. Its native failure must propagate, not become an invalid-PDF report.
+At this historical checkpoint, replacing the license mid-read caused a nested
+public parser admission to fail. That failure propagated rather than becoming
+an invalid-PDF report. The later Trust continuation milestone changes the
+replacement-only case to finish the admitted inspection; genuine callback
+license failures still propagate.
 DTOs, metadata/capability checks, certificate URI locators, and disposal remain
 free. At that checkpoint general regeneration, image analysis, and OCR remained
 open; the following milestones cover those boundaries. Composite operation
@@ -431,6 +489,394 @@ unchanged processing/validation bodies after explicit admission normalization;
 hashes and cleanup. This is local macOS/x64 .NET evidence, not full API/PostgreSQL,
 cross-platform, protected-package or new visual-baseline acceptance.
 
+### Trust Inspection And Change-Impact Continuations
+
+`TrustContinuationChecks` extends the Importer probe with normal and genuinely
+asynchronous stream replacement, full-report comparisons, PDF/A-2b/3b, AES-256,
+valid and tampered signatures, DocMDP violations, and real synthetic embedded
+CRL/OCSP evidence. It exercises all save-strategy/mutation combinations, retained
+public evidence validators, custom evidence-provider callbacks, and IO, size,
+cancellation and genuine callback-license failures. Only the volatile structural
+validation timestamp is excluded from full-report comparisons.
+
+The fixture phase signs with a synthetic CA and an in-memory timestamp handler;
+it never sends a request to the configured synthetic hostname. The verification
+phase keeps network policy unchanged. Reentrant and subsequent public work must
+check the current license; neither Trust purpose grants a private PDF dependency.
+Signing, redaction, e-invoice, archival conversion/post-processing and advanced
+regeneration remain separate continuation work. See the
+[Trust continuation evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-trust-inspection-and-change-impact-continuation-milestone).
+
+The final Trust probe passed 1,669 distinct checks, including 235 new Trust
+continuation checks. Cleanup confirms removed ephemeral grants/builds and
+unchanged source trust and regular licensing outputs. The direct internal DSS
+extractor retains a fresh entry for independent calls; inspection uses only its
+admitted core. The existing extractor regression is preserved.
+
+The final signed regression session passed all 1,683 selected .NET cases, 51
+tooling contracts and 45 local documentation links/anchors. Its independent
+`trust-validation-audit.json` verifies exact result rows, unchanged compiled
+inputs, normalized processing bodies and cleanup. These are local macOS/x64
+results, not full API/PostgreSQL, cross-platform or protected-package acceptance.
+
+### PDF Signing And Timestamp Continuations
+
+`SigningContinuationChecks` covers PAdES B/T/LT/LTA and all three supported
+SHA-2 digests, visible signature appearance, document/RFC 3161 timestamps and
+real synthetic CRL/OCSP evidence. It replaces the license inside source reads,
+the in-memory HTTP handler and asynchronous material providers. Every successful
+PDF is inspected cryptographically after restoring the test license; timestamp
+tokens are independently checked with the BCL CMS verifier.
+
+Only sealed built-in signing keys and timestamp authorities use private
+continuations. Custom key/timestamp/material providers retain interface dispatch
+and freshly checked public native calls. Synchronous `SignAsync` license denial,
+source preservation, no general PDF dependency, actual errors and cancellation
+remain covered. All HTTP is handled in memory, never by the synthetic hostname.
+The failed initial probe attempted to derive a sealed key in a test; the test
+was corrected to use the supported interface, without unsealing the API.
+
+See the [signing continuation evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-signing-and-timestamp-continuation-milestone).
+
+The native signing checkpoint passed 1,948 distinct checks, retaining all 1,669
+previous checks and adding 279 signing cases. Its cleanup report verifies
+removed ephemeral licenses/builds, unchanged source trust and unchanged regular
+license outputs. The normalized body audit preserves all cryptographic,
+timestamp/certificate and PDF validation algorithms; it does not claim byte-equal
+timestamped PDFs, production TSA acceptance or cross-platform package readiness.
+
+The final signing session passed 1,326 selected .NET result rows, 52 tooling
+contracts and 47 local documentation links/anchors. Its independent
+`signing-validation-audit.json` verifies exact counters, source/dispatch hashes,
+all retained native checks and complete cleanup. This does not replace a full
+API/PostgreSQL or new visual/platform/protected-package acceptance run.
+
+### PDF Redaction And Audit Continuations
+
+`RedactionContinuationChecks` compares preflight findings and exact output bytes
+with licensed reference executions, then independently reopens the output. It
+covers mixed-size pages, text, metadata/attachments, RGB/gray/CMYK/indexed/inline
+images, masks, optional audit CMS/timestamps, record tampering, custom providers,
+IO/cancellation/preflight-size failures and denied calls before source access.
+It verifies one rewritten revision and no remaining metadata/attachment payload.
+
+The scope includes bounded color-space/function construction, not general color
+evaluation. The historical sampled/PostScript/ICC replacement cases now separate
+admitted completion from actual resolver-native failures. Additional memory-
+manager cases throw a real native license error during decoded-byte access and
+verify it is not swallowed. Public conversion/evaluation stays freshly guarded.
+
+Existing forged-marker/residual-image tests are unchanged. Their direct scanner
+entry has its own guard, while apply uses the admitted core. Audit timestamps
+use synthetic keys and an in-memory HTTP handler only. The
+[Redaction continuation evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#pdf-redaction-and-audit-continuation-milestone)
+records exact runs and limitations.
+
+The final native redaction checkpoint passed 2,257 distinct checks, including
+303 redaction cases and six extra completion/fresh-denial cases around the three
+explicitly migrated historical color failures. The nine-file body audit restores
+only eleven entry wrappers, built-in dispatch and admitted call names before
+comparison; geometry, text removal, sanitization and resource inspection remain
+byte-identical. Cleanup confirms removed synthetic grants/builds and unchanged
+source trust/regular license outputs. This is not new codec, platform or package
+acceptance evidence.
+
+The final Redaction session passed all 1,683 selected .NET result rows, 53 tooling
+contracts and 49 local documentation links/anchors. Its independent
+`redaction-validation-audit.json` verifies exact counters, historical assertion
+migrations, current source hashes, unchanged safety helpers and complete cleanup.
+The original forged-marker/live-image tests are unchanged and pass. General
+color conversion/evaluation was not included at that checkpoint; the following
+milestone adds its built-in continuations. These results are not broad release
+acceptance.
+
+### E-Invoice And Archival Continuations
+
+`EInvoiceContinuationChecks` adds 186 checks to the native probe. It compares
+preflight and exact attachment output against licensed reference executions for
+PDF/A-3 incremental updates, approved plain-PDF conversion and PDF/A-2 with CMYK
+content. Synchronous and truly asynchronous replacement are exercised separately.
+It independently extracts XML, checks declared size/checksum, preserves unrelated
+attachments and verifies mixed page geometry and structural archival status.
+The fixture XML is synthetic, not a validated tax invoice.
+
+Standalone PDF/A-2b/3b conversion and associated-file extraction keep admission;
+new calls after replacement remain denied. Unapproved archive conversion and
+signature modification, duplicate invoice conflicts, encryption, size limits,
+IO, cancellation and real callback-native errors retain their existing failure
+behavior. Custom converters and Trust inspectors retain fresh native dispatch.
+All five built-in function families, tint/alternate recursion, real LittleCMS
+transforms and named-color rewriting are covered; custom function subclasses
+are denied before their bodies when the current license lacks Importer rights.
+
+Run with `PVAD_REQUIRE_LCMS2=1` to require the actual native color library.
+The final probe at `artifacts/native-engine-tests/1794901459357-889c6c7e/`
+passed 2,443 distinct checks with unchanged source trust/normal licensing outputs
+and complete temporary-file cleanup. The first attempt retained its failed
+report: its rewriter assertion expected an exact whitespace splice and did not
+select a named color resource. Correcting that fixture did not change product
+algorithms. See the
+[E-Invoice continuation evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#e-invoice-and-archival-continuation-milestone)
+for suite results, body comparisons and remaining acceptance boundaries.
+
+The final signed session at
+`artifacts/native-test-sessions/739f7803-836b-4619-a8b7-0262279631fd/` passed
+all 1,683 selected .NET result rows. The independent validation audit reconciles
+all eight TRX files, 1,089 unchanged compiled/test inputs, nine unchanged
+processing bodies after fourteen explicit wrapper/dispatch normalizations and
+both complete cleanup reports. All 54 tooling tests and 51 documentation
+links/anchors pass. This is local macOS/x64 evidence, not new full API/PostgreSQL,
+visual, platform or protected-package acceptance. Trust post-processing,
+advanced regeneration/XObject/debug and other product composites remain open.
+
+### Trust Post-Processing Continuations
+
+`TrustPipelineContinuationChecks` adds 410 checks to the native probe. It covers
+validation-only, Redaction-only, signing and combined flows across PAdES B/T/LT/LTA,
+including signed/timestamped Redaction audits and asynchronously supplied CRL/OCSP
+material. License replacement during source access, region inspection, timestamp
+HTTP and material-provider completion must not interrupt admitted built-in stages.
+New pipeline, signing, Redaction, inspector and audit calls remain denied.
+
+The probe verifies stage order, exact final-byte hashes, independently reopened
+Trust reports, signature integrity/profile, embedded evidence, mixed page geometry,
+removed/retained text and untouched input. Custom stage/key/timestamp/provider
+interfaces are never bypassed. Actual callback-native, IO, cancellation, encrypted
+Redaction and timestamp failures propagate; all five final-policy failures retain
+their codes/reports. No general PDF permission is granted by pipeline completion.
+
+The probe at `artifacts/native-engine-tests/1794902476581-693cafab/` passed
+2,853 distinct checks, retaining all prior 2,443 assertions. It required real
+LittleCMS and used synthetic license/signing material with in-memory timestamp
+HTTP only. Cleanup confirms deleted synthetic grants/builds, unchanged source trust
+and unchanged regular licensing outputs. See the
+[Trust pipeline evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#trust-post-processing-continuation-milestone)
+for final regression and algorithm-comparison results. Advanced regeneration,
+other products, protected packages and platform acceptance remain separate work.
+
+The signed session at
+`artifacts/native-test-sessions/0b32773c-533e-4428-b65a-a1d9c23ec7c9/` passed all
+1,689 selected .NET result rows across eight suites, including 672 Importer cases
+and 407 selected API cases. Six new focused cases reject unsuccessful Redaction
+verification and invalid signing plans before stage dispatch. The independent
+audit verifies actual TRX counters, 1,090 unchanged compiled/test inputs,
+unchanged pipeline/signing algorithms after explicit entry/dispatch normalization
+and complete cleanup. All 55 tooling contracts and 53 documentation links pass.
+This is local macOS/x64 evidence, not broad platform or package release approval.
+
+### Regeneration, XObject And Debug Continuations
+
+`RegenerationContinuationChecks` adds 183 native checks. It compares exact
+regenerated bytes for metadata, RGB/indexed images, compressed palettes, soft masks
+and shadings after Importer rights are replaced inside data access. Both direct
+regeneration and the built-in save pipeline are covered. Independent reimport
+checks mixed dimensions/rotation, text, paths, image and shading counts.
+
+Recursive object/resource mapping, form transforms/bounds and debug overlays
+retain their outputs. Missing XObjects, recursion limits and empty-form bounds
+retain existing behavior. Analysis/mapping grant no private renderer access.
+Caller configuration still requires both current Importer and PDF rights; all
+previous configuration/revocation/retained-document tests stay unchanged.
+
+Synchronous and genuinely asynchronous output/custom-bridge callbacks verify
+fresh public admission. Source/output IO, cancellation and actual callback-native
+errors retain their failure types. Tests asserting untouched output throw before
+writing; arbitrary streams that partially write then fail are not promised atomic
+rollback. This milestone does not add form decoding or image/shading capabilities.
+
+`artifacts/native-engine-tests/1794906763186-0dcfaf93/` passed 3,036 distinct
+checks, retaining all previous 2,853 assertions. The first attempt at
+`artifacts/native-engine-tests/1794906662714-e48d1c06/` retained its failed status:
+the probe incorrectly expected general PDF denial after switching to a PDF-only
+license. The corrected check runs under Importer-only rights; product code was
+not changed for that assertion. Both cleanup reports confirm deleted synthetic
+grants/builds and unchanged production trust/normal licensing outputs. See the
+[regeneration evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#regeneration-xobject-and-debug-continuation-milestone)
+for regression results, algorithm comparisons and remaining boundaries.
+
+The final signed session at
+`artifacts/native-test-sessions/b1c2d74f-cb1f-4b8d-810a-bfb1aa77b775/` passed
+all 1,690 selected .NET result rows across eight suites, including the new
+regeneration-expiry/dependency case. Independent reconciliation checks all raw
+TRX counters, 1,091 unchanged compiled/test inputs, five processing-body
+comparisons and both final cleanup reports. All 56 tooling contracts and 55 local
+documentation links/anchors pass. This is local macOS/x64 evidence, not new
+full API/PostgreSQL, visual, cross-platform or protected-package acceptance.
+
+### Product Dependency And Spreadsheet Continuations
+
+The product matrix links a validated dependency inventory with explicit
+implemented/planned boundaries. It does not replace the runtime verifier or
+introduce cross-product bundle access. Its guard rejects duplicate IDs, unknown
+products/statuses, unsafe source paths and invented private PDF dependencies.
+
+`SpreadsheetContinuationChecks` adds 157 checks to the Spreadsheet probe,
+covering direct XLSX/XLS/CSV/TSV output, calculation, builder export and all four
+file-save paths after a cell value replaces the current license. Reentrant
+construction, export and calculation are denied while admitted processing
+finishes. Independent reimport verifies text, formulas and calculated values.
+Error cases cover actual native callback denial, source IO and missing-directory
+failures without masking their types or writing a result before validation.
+Style callback mutations remain fresh public calls.
+
+The Spreadsheet probe at
+`artifacts/native-engine-tests/1794915905592-2b3255ed/` passed 302 distinct
+checks across its existing 40 protected method signatures and new continuation
+cases. The unchanged Word probe at
+`artifacts/native-engine-tests/1794916023581-d01ee29a/` passed 34 checks for
+Word-only DOCX export/signing and independent PDF/Converter denial. Cleanup for
+both probes removed synthetic licenses/builds and preserved source trust/normal
+licensing outputs. NPOI distribution warnings remain an open, separately approved
+license decision; tests do not accept its terms. See the
+[product dependency evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#product-dependency-and-spreadsheet-continuation-milestone)
+for regression and algorithm-comparison results.
+
+The signed regression session
+`artifacts/native-test-sessions/fc549b8c-d959-43a7-a8c0-af2070f0eeb4/`
+passed 1,710 TRX rows across ten selected suites, including 407 API cases.
+`sheet-validation-audit.json` checks all result rows and process statuses, 1,092
+unchanged compiled/test source inputs, native-probe cleanup and the five-file,
+six-entry processing-body comparison. No tests were skipped, failed, aborted or
+timed out. `sheet-doc-links.json` validates 59 local links/anchors; all 58 tooling
+tests, naming guards and metadata/fragment checks passed. Temporary licenses and
+isolated builds were removed. Product version, published releases, production
+trusted keys and native release metadata remain unchanged. These local
+macOS/x64 checks do not constitute full API/PostgreSQL, visual, cross-platform or
+obfuscated-package acceptance.
+
+### Converter Export Enforcement
+
+`with-test-license.mjs converter` starts a separate unlicensed process and discovers
+all nine concrete exporters. Its reflection inventory requires exactly thirteen
+declared public export methods; another eighteen calls cover both interface
+overloads, including inherited default dispatch. A Converter-only license must
+produce HTML, Markdown, CSV, XML, SVG, ODT, PNG, JPEG and TIFF without other
+product grants. Metadata stays free and denied exports do not traverse the input.
+
+The probe verifies real output signatures, text, image dimensions and mixed-page
+ZIP entries, including default and explicit DPI paths. Eight style-value callback
+cases replace the live license during rendering; admitted multi-page work still
+finishes, while reentrant and subsequent public calls check current rights.
+Callback-native and source IO failures retain their types. CSV has no synthetic
+style callback; verifier-core tests cover expiry without inventing such a hook.
+
+The final local probe at
+`artifacts/native-engine-tests/1794917388776-4af2568d/` passed 519 distinct
+checks, with synthetic-license/build cleanup confirmed. Two earlier harness
+attempts failed on SVG BOM parsing and an uninitialized synthetic style
+dictionary; they are not counted as passing. Their evidence remains at
+`1794917245295-83845bca` and `1794917324742-a2b3a9a2` in the same parent directory.
+The final probe compiles without warnings. Product rendering algorithms are
+unchanged; this is not a new cancellation, asset-network or format-fidelity
+implementation. Native-license failures through the API must remain typed
+Problem Details, not document downloads.
+
+The workflow now triggers on Converter/dependency-inventory changes, runs the
+probe and compatibility suite, and includes Converter API diagnostics. Its
+prepared matrix is not evidence of an actual Windows/Linux run. See the
+[Converter milestone](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-converter-enforcement-milestone)
+for final regressions and remaining release gates.
+
+The signed session
+`artifacts/native-test-sessions/853ca2b7-bc20-4cc1-902e-f8a045b1a95c/`
+passed 596 .NET cases (92 Licensing, 10 Converters, 78 selected Export and 416
+selected API), without failures/skips. Its `converter-validation-audit.json`
+reconciles actual TRX rows, all four process statuses, 1,095 unchanged
+compiled/test source inputs and cleanup. `converter-body-audit.json` verifies
+eight processing files unchanged except admission and 300 unchanged other-product
+source inputs. All 59 tooling tests and 61 local links pass. The current CI naming
+guard passes; the old JSON audit's 475 pre-existing findings remain separately
+recorded, with its 48 affected files/audit inputs unchanged from `HEAD`. These
+tests do not accept NPOI terms or replace full API/PostgreSQL, visual, platform
+or protected-package acceptance.
+
+### Code Migration Provider Entries
+
+`with-test-license.mjs migration-code` starts unlicensed and checks all sixteen
+PDF Code and eight Spreadsheet Code native providers. The test-only
+`native-code-migration-entries.v1.json` inventory is compared against the canonical
+provider catalog and actual sealed classes. It is not a second runtime registry.
+Direct, abstract-base, interface, factory/wrapper and PDF-aggregate calls must
+reach the same provider-bound license check before source parsing.
+
+The runner signs one combined Code-only fixture and 24 individual provider
+fixtures only for this probe. Each individual license is tried against all 24
+Code providers. No wildcard, vendor-family or cross-domain grant is used.
+Routing aliases resolve to canonical keys; aliases are not signed-license keys.
+Converted output is text only and is not executed by the native probe. Existing
+provider suites separately test concrete framework constructs and diagnostics.
+
+The initial native run at
+`artifacts/native-engine-tests/1794919955149-1c186c7e/` passed 1,187 unique checks.
+It records 24 output checksums and successful cleanup. The existing Apryse unused
+field warning is not suppressed. Test sessions extend their integrated fixture
+with only `migration.pdf.code` and `migration.spreadsheet.code`, using explicit
+canonical provider lists. Product-only fixtures are unchanged; Viewer, Designer
+and Report grants are not pre-enabled. No new production trust key is added.
+
+The later composite milestone adds standalone source analysis and provider-bound
+internal lifetime rules. Code products are enforced; the subsequent Viewer/Designer
+and Report Designer milestones add their separate grants. Private PDF dependencies are not granted to Code
+migration. Prepared CI is not an actual cross-platform or protected-package
+acceptance run. See the
+[Code provider milestone](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-code-migration-provider-entry-milestone)
+for final regression evidence and remaining work.
+
+The signed regression session
+`artifacts/native-test-sessions/2b4aee9c-5ecc-4107-8720-19f39b8a0a94/`
+passed 712 cases across 30 suites, including every existing Code-provider suite
+and 116 selected API cases. Actual canonical/alias/legacy routes reject PDF-only
+native rights and recover after signed renewal. The validation audit reconciles
+all TRX rows and process statuses without failures/skips, 1,098 unchanged
+compiled/test source inputs and removed synthetic grants/builds. The body audit
+verifies 24 provider implementations unchanged except admission and 436 unchanged
+other-product sources. All 62 tooling tests and 63 local links pass. These are
+local macOS/x64 entry-point regressions, not full API/PostgreSQL, visual,
+cross-platform, protected-package or complete Migration-product acceptance.
+
+### Code Analysis And Composite Continuations
+
+The extended migration probe checks standalone Trust/E-Invoice source analysis
+for every provider, cross-domain single-provider denial and equivalent results.
+Caller-supplied Trust capability lists inject a mid-analysis license replacement:
+built-in work completes from its admission while nested/public conversions and
+analyses remain fresh boundaries. Source IO and native callback errors keep their
+types. The immutable E-Invoice catalog is not modified to manufacture a callback;
+its tests cover public admission, equivalent output, denial and renewal. Expiry,
+provider omission/switching, nested scopes, foreign verifiers and private-PDF
+denials are covered in the verifier core.
+
+API tests cover Code-only HTML preview without other engine rights, real PDF
+preview requiring current PDF rights, and custom-converter errors. Custom
+converters never receive internal dispatch based only on a claimed framework ID.
+Conversion/diagnostics share one native result. PDF construction and serialization
+stay separate public processing steps; a Code continuation cannot reserve a
+future PDF grant or bypass either check. The preview rendering/replay algorithms
+remain unchanged. See the
+[composite checkpoint](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#code-migration-analysis-and-composite-milestone)
+for exact local evidence and still-open release requirements.
+
+The final native run `artifacts/native-engine-tests/1794923471792-e3600ded/`
+passed 2,039 unique checks, including 812 analysis checks and unchanged code
+checksums for all 24 providers. The earlier extended attempt
+`1794923256615-54cc6639` failed on an immutable-catalog test-fixture assumption;
+the catalog was not loosened, and failed evidence is retained. All native attempts
+removed temporary synthetic licenses/builds and preserved source trust.
+
+The signed session
+`artifacts/native-test-sessions/1a44debf-1860-4156-891a-6a35a247d8c0/`
+passed 715 .NET cases across 30 suites, including 95 Licensing and 117 selected
+API cases, without failures/skips. `code-composite-validation-audit.json` checks
+actual TRX rows/process statuses, 1,100 unchanged compiled/test source inputs and
+owned-session cleanup. The body audit verifies 24 converter bodies, two analysis
+tails and two preview bodies without algorithm changes, plus 429 unchanged
+other-product source inputs and an unchanged private PDF dependency switch.
+All 63 tooling tests and 65 local links pass. The current CI naming guards pass;
+the historical JSON-audit findings remain a separate recorded issue. Product
+version, published releases, production trust and native release metadata are
+unchanged. These local macOS/x64 checks do not replace complete solution,
+API/PostgreSQL, visual, cross-platform or protected-package acceptance.
+
 ## Shared Workflow Sessions
 
 ```bash
@@ -491,6 +937,119 @@ empty result. This closes the manually confirmed labeled-container post-check,
 not an agent-executed inspection, an audit of unlabeled resources, or platform
 acceptance.
 See the [checkpoint and evidence](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#complete-api-and-postgresql-acceptance).
+
+## Nutrient Viewer And PDF Designer Admission
+
+Run the native Viewer boundary probe without production trust or licenses:
+
+```bash
+node tools/native-licensing/with-test-license.mjs migration-viewer
+node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests.csproj --verbosity minimal
+node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter FullyQualifiedName~PvadNativeViewerMigrationLicenseTests --verbosity minimal
+```
+
+The default signed session now contains 12 files: a public synthetic trust
+register, the previous product/Code/integrated/expired fixtures, and separate
+Viewer-only, Designer-only and Report-only fixtures. Its integrated profile contains both
+explicit `nutrient-viewer` grants and all eight concrete report providers. Product-only and Code-only profiles retain
+their original narrow grants. The Code-provider probe adds its 24 individual
+fixtures, for 36 files total. The Report probe instead adds eight individual
+provider fixtures, for 20 files total. No private key is written to disk.
+
+The Viewer probe starts without an active license and checks all three native
+entries, validation ordering, unrelated-product denial, exact provider keys,
+public reentrancy, replacement during caller-owned page/diagnostic enumeration,
+original callback errors and renewed output. Output comparisons validate the
+real hashes before normalizing only the existing Instant JSON export timestamp
+and its dependent hashes. They do not change the converter or its fidelity.
+
+The Designer API checks use a mixed-orientation, two-page synthetic PDF.
+Composed-output comparisons validate and normalize only the existing newly
+generated document ID and sidecar export timestamp; page/element IDs, layout,
+content and other metadata remain compared.
+Designer-only admission includes private source import and Viewer mapping but
+cannot be reused for independent public Importer, Viewer or PDF calls. The
+private import purpose cannot gain any private PDF output dependency. Existing
+route authorization and tenant/entitlement checks remain separate from native
+licenses. A canonical Designer route returns native license Problem Details,
+not a parse-error replacement. Tests exercise source-stream and TypeScript-list
+callbacks, fresh nested calls, completion under the original admission, callback
+errors, renewal and layout preservation.
+
+See the [Viewer and Designer milestone](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#nutrient-viewer-and-pdf-designer-milestone)
+for actual local evidence and remaining package/platform acceptance. Report
+Designer is covered by the subsequent milestone; these checks do not close the full licensing plan.
+
+The final scoped session
+`artifacts/native-test-sessions/2d5d551b-7f0e-43b7-8c02-99eb5764aed5/`
+passed all 230 TRX rows in five suites, including 77 selected API cases. Its
+authenticated Viewer fixture uses synthetic tenant/user identities, in-memory
+policies and the real feature gate with a restricted synthetic Designer
+entitlement. Separate requests prove that native rights do not replace the
+legacy route's 401/403 authorization rules. The raw validation audit checks all
+result rows, 1,337 compiled source/project inputs and completed cleanup. All
+1,344 snapshotted source/test/tool inputs were unchanged during execution.
+
+The final native probe at
+`artifacts/native-engine-tests/1794936135959-a16ee8f2/` passes 60 unique checks;
+all three normalized checksums match the preceding successful run. Seven exact
+body/dispatch comparisons, all 64 tooling/versioning tests and 67 local links
+also pass. Earlier incomplete authentication/feature-context fixtures and the
+waiting build remain failed or interrupted evidence. The isolated runner now
+disables parallel project builds; no runtime algorithm or test threshold was
+changed to make these runs pass. Native keys/test binaries were removed and
+production trust/version data remain unchanged. This is local macOS/x64
+validation, not complete browser authentication, live PostgreSQL, remote CI,
+Linux/Windows, visual parity or protected-package acceptance.
+
+## Report Designer Admission
+
+```bash
+node tools/native-licensing/with-test-license.mjs migration-report
+node tools/native-licensing/report-regressions.mjs
+```
+
+The Report probe starts without a license and inventories all 19 native converter
+overloads, both RESX entry paths, and canonical/uppercase factory-interface
+dispatch for eight providers. It validates the canonical catalog against
+`native-report-migration-entries.v1.json`, admits one explicit provider at a time,
+rejects other providers/products, validates admission before source parsing,
+checks expired renewal and compares output after valid renewal. Only each
+converter's pre-existing random root document ID is validated and normalized;
+page/element IDs, content, diagnostics and geometry remain compared.
+
+The regression runner shares one signed session across the eight native report
+suites, aggregate facade suite, licensing core and selected API tests. It records
+per-project logs, TRX and process status, checks unchanged source inputs, fails
+on any child failure/timeout and removes synthetic licenses and binaries in its
+owned-session cleanup. API cases include explicit aliases and auto detection,
+legacy routes, binary/ZIP input, resource preprocessing without an extra
+DevExpress grant, replacement/reentrancy during resources, retained RPX subreport
+resolution, original caller errors and renewal. Existing permission tests remain
+separate from native licensing checks.
+
+Detection and generic package extraction are free input utilities, not an `auto`
+license or a promise of full source compatibility. Conversion is admitted for the
+resolved concrete provider before caller-owned resources are merged. Shared
+in-operation RESX parsing uses that same provider; standalone DevExpress RESX
+processing requires `devexpress-report`. No private PDF dependency or public
+rights for other engines are granted.
+
+See the [Report Designer milestone](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#report-designer-migration-milestone)
+for actual results, interrupted attempts and remaining platform/package gates.
+
+The local signed session
+`artifacts/native-test-sessions/37f05ac5-b11b-4299-8b23-a1ebf4eb1998/`
+passed all 490 TRX rows across eleven suites, with no failed/skipped/aborted cases.
+Its raw-report audit verifies unchanged sources (1,349 inputs) and synthetic
+cleanup. The native probe at `1795115577122-5a2e33c6` passed 703 unique checks;
+the earlier waiting build at `1795114430736-b38bd13b` remains interrupted, not
+passing. The successful local probe retry used `MSBUILDNOINPROCNODE=1` without
+changing shipped build settings or runtime checks. All 16 converter/wrapper
+algorithm bodies, resource parsing/detection/merge and private PDF dependency
+policy are unchanged apart from admission/private dispatch. All 65 tooling tests
+and 69 local links pass. Manufacturer trust, protected packages, full API/DB,
+visual and Linux/Windows acceptance remain outside this local checkpoint.
 
 ## Coverage Instrumentation Acceptance
 

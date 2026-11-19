@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.ActiveReportsJs;
 
@@ -42,13 +43,27 @@ public sealed class ActiveReportsJsToDesignConverter
 
     public ActiveReportsJsConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "activereports-js");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal ActiveReportsJsConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "activereports-js");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public ActiveReportsJsConvertResult Convert(string json)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "activereports-js");
+        return ConvertAdmitted(json);
+    }
+
+    internal ActiveReportsJsConvertResult ConvertAdmitted(string json)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "activereports-js");
         if (string.IsNullOrWhiteSpace(json))
             throw new ArgumentException("Source cannot be null or empty.", nameof(json));
 

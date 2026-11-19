@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,10 +13,17 @@ namespace PVAD.Migration.Spreadsheet.Code.GemBox;
 /// workbook/worksheet/cell-indexer/value/formula/font-weight style/save calls. GemBox cell indexes are
 /// already 0-based (no shift). Charts, pivots, and range merges are flagged for manual review.
 /// </summary>
-public sealed class GemBoxSpreadsheetMigration : CSharpSourceMigration
+public sealed class GemBoxSpreadsheetMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.SpreadsheetCodeMigration, "gembox-spreadsheet");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.SpreadsheetCodeMigration, "gembox-spreadsheet");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

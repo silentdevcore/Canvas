@@ -1,14 +1,19 @@
 {
   "schemaVersion": 1,
-  "enforcementStatus": "pdf-word-and-spreadsheet",
+  "enforcementStatus": "all-native-entry-points",
+  "dependencyInventory": "product-metadata/native-library-dependencies.v1.json",
+  "codeMigrationEntries": "product-metadata/native-code-migration-entries.v1.json",
+  "reportMigrationEntries": "product-metadata/native-report-migration-entries.v1.json",
+  "fileImporterEntries": "product-metadata/native-file-importer-entries.v1.json",
+  "importerPublicSurface": "product-metadata/native-importer-public-surface.v1.json",
   "continuationCoverage": {
-    "status": "partial-image-ocr-and-pdf-import-save-editing",
+    "status": "partial-image-ocr-and-pdf-import-save-editing-trust-signing-redaction-einvoice-archive-pipeline-regeneration-sheet-converter",
     "policySource": "src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs",
     "publicAdmission": "fresh-current-license",
     "authorityBinding": "originating-process-verifier",
     "workerAdmission": "fresh-at-dispatch-and-worker-start",
-    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis", "pdf-editing-page-composition-content-rewrite-and-facade"],
-    "remaining": ["composite-pdf-trust-advanced-regeneration", "other-product-composite-call-chains"]
+    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis", "pdf-editing-page-composition-content-rewrite-and-facade", "pdf-trust-inspection-embedded-evidence-and-change-impact", "pdf-signing-cades-long-term-and-timestamp", "pdf-redaction-preflight-apply-audit-and-image-sanitization", "bounded-color-space-and-function-resolution", "pdf-einvoice-attachment-and-associated-file-extraction", "pdf-archive-conversion-and-built-in-color-processing", "pdf-trust-postprocessing-redaction-signing-final-validation", "pdf-regeneration-mapping-xobject-and-debug-composites", "spreadsheet-built-in-export-calculation-and-file-save", "converter-built-in-export-and-multipage-raster-output"],
+    "remaining": ["other-product-composite-call-chains"]
   },
   "products": [
     { "id": "pdf", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Generation/PVAD.Pdf", "src/Infrastructure/PVAD.Infrastructure.Pdf"], "entryPoints": ["Pdf.CreateDocument", "PdfDocument constructor", "PdfDocument.ToBytes/Save", "PdfWriter.Write"], "enforced": true },
@@ -18,8 +23,10 @@
       "id": "importer",
       "projectDirectories": ["src/Importing/PVAD.Importer", "src/Importing/PVAD.FileImporter", "src/Importing/PVAD.FileImporter.ImageAnalysis", "src/Importing/PVAD.FileImporter.ImageOcr", "src/Importing/PVAD.FileImporter.ImageOcr.Worker"],
       "entryPoints": ["PdfImporter.LoadAsync", "PdfDocumentSaver", "IFileImporter.ImportAsync", "image analysis and OCR"],
-      "enforced": false,
-      "coverageStatus": "partial-entry-points",
+      "enforced": true,
+      "coverageStatus": "public-entry-points-and-built-in-continuations",
+      "acceptanceStatus": "partial-cross-product-packaging-and-platform-validation",
+      "remainingAcceptance": ["cross-product dependency acceptance", "protected packages", "worker/platform execution"],
       "coveredEntryPoints": [
         "all eight registry importers and their static entry points",
         "PdfImporter.LoadAsync overloads and Pdf facade",
@@ -61,15 +68,30 @@
         "Designer PdfFileImporter carries original admission through typed loading, scene analysis, chart recognition and DTO mapping across all pages",
         "19 public geometry/primitive/classification/reading-order/grouping/reconstruction/scene/semantic processing methods admit fresh work and share only internal continuations",
         "page editing, composition, content rewriting and the migration-friendly editable facade retain original admission through parsing, validation, decryption and saving",
-        "editing may create only private blank-page PDF bytes; general PDF generation, regeneration and OCR rendering are not granted by that purpose"
+        "editing may create only private blank-page PDF bytes; general PDF generation, regeneration and OCR rendering are not granted by that purpose",
+        "Trust inspection retains admission through parsing, signature revision certification, embedded CRL/OCSP evidence and structural PDF/A validation; change-impact evaluation retains admission through report enumeration",
+        "Trust and change-impact purposes have no private PDF dependency rights; public evidence validators and custom callback calls still admit fresh work",
+        "PAdES B/T/LT/LTA, CAdES assembly, DSS/VRI writing and document/RFC3161 timestamps retain original admission through built-in dependencies and post-sign Trust inspection",
+        "signing/timestamp purposes grant no private PDF dependencies; only the sealed built-in PKCS12 key and timestamp authority use internal continuations, while custom interface dispatch stays fresh",
+        "Redaction retains admission through built-in preflight, graphics/bounds, image decoding and sanitization, full rewrite, residue verification and optional audit CMS/timestamp creation; custom preflight/key/authority dispatch stays fresh",
+        "public audit verification and bounded color-space/function construction have fresh entries with internal continuations",
+        "E-Invoice attachment/preflight and associated-file extraction retain admission through parsing, decoding, incremental writing and byte-for-byte attachment verification",
+        "explicitly approved PDF/A-2b/3b conversion retains admission through full rewrite, built-in color/function/ICC conversion and sealed built-in Trust inspection; custom converters, inspectors and function subclasses remain fresh public boundaries",
+        "E-Invoice, associated-file, archival and color purposes grant no private PDF dependencies; modification and signature-invalidation approvals and existing validation remain mandatory",
+        "Trust post-processing retains one admission through sealed built-in redaction, signing and exact-final-byte inspection; custom services, signing keys, timestamp authorities and provider-native calls retain fresh public boundaries",
+        "Trust post-processing grants no private PDF dependency rights; stage order, plan checks and final validation policy stay unchanged",
+        "built-in PDF regeneration/save carries admission through trusted private rendering, image/palette decoding and shading parse/rewrite/save, using only the existing ImporterRegeneration dependency",
+        "recursive object/graphics/resource mapping, XObject resolution and debug overlays use fresh PdfAnalysis entries with internal continuations and no private PDF dependency rights",
+        "custom bridges and public native output callbacks remain fresh boundaries; configureDocument still requires explicit current PDF rights and rechecks Importer rights after the callback",
+        "all seven non-PDF file importers admit before processing and finish their private parsing after license replacement without borrowing other product rights; public reentrant imports and Markdown asset resolver calls remain fresh boundaries, and input streams remain caller-owned"
       ],
-      "remainingEntryPoints": ["generic scoped dependency rights across product bundles and admitted-operation lifetime"]
+      "remainingEntryPoints": []
     },
-    { "id": "converter", "projectDirectories": ["src/Infrastructure/PVAD.Infrastructure.Converters"], "entryPoints": ["IDocumentExporter implementations"], "enforced": false },
-    { "id": "migration.pdf.code", "projectDirectories": ["src/Migrations/PDF"], "entryPoints": ["all PDF code provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
-    { "id": "migration.pdf.viewer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["Nutrient viewer conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
-    { "id": "migration.pdf.designer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["Nutrient source-PDF designer conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
-    { "id": "migration.spreadsheet.code", "projectDirectories": ["src/Migrations/Spreadsheet"], "entryPoints": ["all Spreadsheet code provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false },
-    { "id": "migration.report.designer", "projectDirectories": ["src/Migrations/Report"], "entryPoints": ["all Report Designer provider conversion operations"], "providerCatalog": "MigrationProviderCatalog", "enforced": false }
+    { "id": "converter", "projectDirectories": ["src/Infrastructure/PVAD.Infrastructure.Converters"], "entryPoints": ["HtmlDocumentExporter.Export", "MarkdownDocumentExporter.Export", "CsvDocumentExporter.Export", "XmlDocumentExporter.Export", "SvgDocumentExporter.Export", "OdtDocumentExporter.Export (both overloads)", "ImageDocumentExporter.Export (both overloads)", "JpegDocumentExporter.Export (both overloads)", "TiffDocumentExporter.Export (both overloads)", "IDocumentExporter dispatch including default options overload"], "enforced": true },
+    { "id": "migration.pdf.code", "projectDirectories": ["src/Migrations/PDF"], "entryPoints": ["all PDF code provider conversion operations", "CSharpPdfTrustEvidenceScanner.Scan", "PdfEInvoiceMigrationCatalog.Analyze", "PdfMigrationProviders.Migrate", "built-in Code migration preview conversion"], "providerCatalog": "MigrationProviderCatalog", "enforced": true, "coverageStatus": "provider-analysis-and-built-in-conversion", "coveredEntryPoints": ["all 16 sealed native Migrate methods, their interface/base dispatch and factory delegates", "provider-bound Trust/E-Invoice source analysis and conversion continuations", "PDF preview conversion requires Code admission; PDF rendering and serialization retain separate fresh PDF checks"], "remainingEntryPoints": [] },
+    { "id": "migration.pdf.viewer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["NutrientViewerSourceConverter.Convert", "NutrientViewerSourceConverter.ConvertTranspiledTypeScript", "NutrientInstantJsonConverter.Convert"], "providerCatalog": "MigrationProviderCatalog", "enforced": true, "coverageStatus": "provider-entry-and-built-in-conversion", "remainingEntryPoints": [] },
+    { "id": "migration.pdf.designer", "projectDirectories": ["src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient"], "entryPoints": ["NutrientViewerDesignMigrationService.ConvertAsync"], "providerCatalog": "MigrationProviderCatalog", "enforced": true, "coverageStatus": "composed-source-pdf-and-viewer-mapping", "remainingEntryPoints": [] },
+    { "id": "migration.spreadsheet.code", "projectDirectories": ["src/Migrations/Spreadsheet"], "entryPoints": ["all Spreadsheet code provider conversion operations", "SpreadsheetMigrationProviders.Migrate", "built-in Code migration HTML preview"], "providerCatalog": "MigrationProviderCatalog", "enforced": true, "coverageStatus": "provider-analysis-and-built-in-conversion", "coveredEntryPoints": ["all 8 sealed native Migrate methods, their interface/base dispatch and compatibility wrappers", "one provider-bound admission for conversion and diagnostics", "HTML preview replays converted text without additional Spreadsheet, PDF or Converter rights"], "remainingEntryPoints": [] },
+    { "id": "migration.report.designer", "projectDirectories": ["src/Migrations/Report"], "entryPoints": ["all eight report converter public overloads", "all report compatibility wrappers and factory/interface dispatch", "DevExpressReportResourceParser.ParseResx", "ReportMigrationService.Convert"], "providerCatalog": "MigrationProviderCatalog", "enforced": true, "coverageStatus": "provider-conversion-resource-and-subreport-continuations", "remainingEntryPoints": [] }
   ]
 }

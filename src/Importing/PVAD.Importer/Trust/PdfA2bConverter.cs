@@ -24,7 +24,16 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConversionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfArchiveConversion);
+        return await PreflightAdmittedAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfA2bConversionPreflightReport> PreflightAdmittedAsync(
+        Stream pdfStream,
+        PdfA2bConversionOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
         return BuildPreflight(parsed, options.Profile);
@@ -35,7 +44,16 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         PdfA2bConversionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfArchiveConversion);
+        return await ConvertAdmittedAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfA2bConversionResult> ConvertAdmittedAsync(
+        Stream pdfStream,
+        PdfA2bConversionOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= new PdfA2bConversionOptions();
         var parsed = await ParseAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
         var preflight = BuildPreflight(parsed, options.Profile);
@@ -54,12 +72,12 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         }
 
         var updates = BuildUpdates(parsed.Graph, parsed.SignatureCount > 0, options.Profile).ToList();
-        updates.AddRange(PdfComplianceColorConversion.Analyze(parsed.Graph, updates).Updates);
+        updates.AddRange(PdfComplianceColorConversion.AnalyzeAdmitted(parsed.Graph, updates).Updates);
         if (options.Profile == PdfArchiveProfile.PdfA3b)
         {
             AddEmbeddedFileAssociationUpdates(parsed.Graph, updates);
         }
-        var rewritten = new PdfFullRewriteWriter().RewriteWithUpdates(
+        var rewritten = new PdfFullRewriteWriter().RewriteWithUpdatesAdmitted(
             parsed.Source,
             updates,
             new PdfFullRewriteOptions
@@ -70,10 +88,10 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
             });
 
         await using var validationStream = new MemoryStream(rewritten.Bytes, writable: false);
-        var trust = await trustInspector.InspectAsync(
-            validationStream,
-            new PdfTrustInspectionOptions { MaximumFileSizeBytes = options.MaximumFileSizeBytes },
-            cancellationToken).ConfigureAwait(false);
+        var inspectionOptions = new PdfTrustInspectionOptions { MaximumFileSizeBytes = options.MaximumFileSizeBytes };
+        var trust = trustInspector is PdfTrustInspector builtIn
+            ? await builtIn.InspectAdmittedAsync(validationStream, inspectionOptions, cancellationToken).ConfigureAwait(false)
+            : await trustInspector.InspectAsync(validationStream, inspectionOptions, cancellationToken).ConfigureAwait(false);
         if (trust.PdfA.Status != PdfTrustStatus.Valid)
         {
             throw new InvalidDataException(
@@ -92,7 +110,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
     {
         var findings = new List<PdfComplianceConversionFinding>();
         var validatorDiagnostics = new List<PdfTrustDiagnostic>();
-        PdfA2bConformanceValidator.Validate(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics, profile);
+        PdfA2bConformanceValidator.ValidateAdmitted(parsed.Graph, parsed.IsEncrypted, validatorDiagnostics, profile);
         foreach (var diagnostic in validatorDiagnostics.Where(item =>
                      item.Severity == PdfTrustDiagnosticSeverity.Error &&
                      item.Code is not ("PVADPDFTRUST312" or "PVADPDFTRUST313" or
@@ -107,7 +125,7 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 diagnostic.Generation));
         }
 
-        var color = PdfComplianceColorConversion.Analyze(parsed.Graph);
+        var color = PdfComplianceColorConversion.AnalyzeAdmitted(parsed.Graph);
         foreach (var finding in color.Blocking)
         {
             findings.Add(finding);
@@ -523,8 +541,8 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
                 IReadOnlyList<PdfContentCommand> commands;
                 try
                 {
-                    var bytes = stream.IsDecoded ? stream.DecodedBytes : decoder.Decode(stream);
-                    commands = parser.Parse(bytes);
+                    var bytes = stream.IsDecoded ? stream.DecodedBytes : decoder.DecodeAdmitted(stream);
+                    commands = parser.ParseAdmitted(bytes);
                 }
                 catch (Exception exception) when (exception is InvalidDataException or NotSupportedException)
                 {
@@ -729,10 +747,10 @@ public sealed class PdfA2bConverter(IPdfTrustInspector trustInspector) : IPdfA2b
         var source = memory.ToArray();
         var limits = new PdfParseLimits();
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = limits }, cancellationToken);
-        var xref = new PdfCrossReferenceParser().Parse(context);
+        var xref = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (xref.Diagnostics.Count > 0)
             throw new InvalidDataException($"The source PDF cross-reference data is invalid: {xref.Diagnostics[0].Code}.");
-        var graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, xref).ParseDocumentGraphAdmitted();
         if (context.Diagnostics.Count > 0 || graph.Objects.Count == 0)
             throw new InvalidDataException("The source PDF could not be parsed completely.");
 

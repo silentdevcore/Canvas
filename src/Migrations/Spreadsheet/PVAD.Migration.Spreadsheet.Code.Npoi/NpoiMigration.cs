@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,12 +13,19 @@ namespace PVAD.Migration.Spreadsheet.Code.Npoi;
 /// code to map row/cell variables to their (sheet, row, col) and inlines the writes as
 /// <c>sheet.Cell(r, c).Value(..)/Formula(..)</c>. Stream-based <c>Write</c> and column-width units are flagged.
 /// </summary>
-public sealed class NpoiMigration : CSharpSourceMigration
+public sealed class NpoiMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     private readonly record struct CellRef(ExpressionSyntax Sheet, ExpressionSyntax Row, ExpressionSyntax Col);
 
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.SpreadsheetCodeMigration, "npoi");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.SpreadsheetCodeMigration, "npoi");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

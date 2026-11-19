@@ -96,7 +96,12 @@ internal sealed class EditingChecks : IDisposable
         var dto = new[] { typeof(PdfPageOperationStatus), typeof(PdfEditablePageSize), typeof(PdfEditablePageBox), typeof(PdfEditableMeasurementUnit), typeof(PdfEditableMergeOptions), typeof(PdfPageEditOperation), typeof(PdfDeletePageOperation), typeof(PdfMovePageOperation), typeof(PdfPageBoxKind), typeof(PdfSetPageBoxOperation), typeof(PdfRemovePageBoxOperation), typeof(PdfPageEditOptions), typeof(PdfPageEditResult), typeof(PdfPageBoxCoordinates), typeof(PdfPageImport), typeof(PdfPageRange), typeof(PdfDocumentSplitResult), typeof(PdfPageCompositionOptions), typeof(PdfPageCompositionResult), typeof(PdfPageRangeParser) };
         Equal(typeof(PdfPageEditor).Assembly.GetExportedTypes().Where(type => type.Namespace == typeof(PdfPageEditor).Namespace).ToHashSet().SetEquals(paid.Where(type => type.Namespace == typeof(PdfPageEditor).Namespace).Concat(dto)));
 
-        void Add<T>(string name, Action action, params Type[] parameters) => calls.Add(Key(typeof(T).GetMethod(name, parameters)!), action);
+        void Add<T>(string name, Action action, params Type[] parameters)
+        {
+            var method = typeof(T).GetMethod(name, parameters)!;
+            calls.Add(Key(method), action);
+            NativeSurfaceCoverage.Record(method);
+        }
         IEnumerable<PdfGraphicsElement> RewriteElements() { reads++; yield return rewritePage.GraphicsObjects[0]; }
         void Facade(string name, Action<PdfEditableDocument> action, params Type[] parameters)
         {

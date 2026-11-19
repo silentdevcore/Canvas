@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { createTestLicenses, main } from './with-test-license.mjs';
+import { createTestLicenses, main, migrationCodeTestGrants, migrationReportTestGrant } from './with-test-license.mjs';
 
 test('synthetic artifacts are signed with one ephemeral P-256 key and no private key is written', () => {
   const directory = mkdtempSync(join(tmpdir(), 'pvad-native-fixture-contract-'));
@@ -12,20 +12,48 @@ test('synthetic artifacts are signed with one ephemeral P-256 key and no private
     const now = Date.parse('2026-11-15T12:00:00Z');
     const paths = createTestLicenses(directory, now);
     const trust = JSON.parse(readFileSync(paths.trustPath));
-    for (const name of ['pdf', 'word', 'spreadsheet', 'importer', 'integrated', 'expired']) {
+    for (const name of ['pdf', 'word', 'spreadsheet', 'importer', 'converter', 'integrated', 'expired', 'migration-code', 'migration-viewer', 'migration-designer', 'migration-report']) {
       const envelope = JSON.parse(readFileSync(paths[name]));
       const bytes = Buffer.from(envelope.payload, 'base64');
       assert.equal(envelope.keyId, trust.keys[0].keyId);
       assert.ok(verify('sha256', bytes, { key: trust.keys[0].publicKeyPem, dsaEncoding: 'ieee-p1363' }, Buffer.from(envelope.signature, 'base64')));
       const payload = JSON.parse(bytes);
-      assert.deepEqual(payload.grants, (name === 'integrated' ? ['pdf', 'word', 'spreadsheet', 'importer'] : [name === 'expired' ? 'pdf' : name])
-        .map(product => ({ product, providers: [] })));
+      const expected = (name === 'integrated' ? ['pdf', 'word', 'spreadsheet', 'importer', 'converter'] : [name === 'expired' ? 'pdf' : name])
+        .map(product => ({ product, providers: [] }));
+      if (name === 'integrated') expected.push(...migrationCodeTestGrants());
+      if (name === 'integrated') expected.push(...['viewer', 'designer'].map(kind => ({ product: `migration.pdf.${kind}`, providers: ['nutrient-viewer'] })));
+      if (name === 'integrated') expected.push(migrationReportTestGrant());
+      const actualExpected = name === 'migration-code' ? migrationCodeTestGrants()
+        : /^migration-(viewer|designer)$/.test(name) ? [{ product: `migration.pdf.${name.slice(10)}`, providers: ['nutrient-viewer'] }] : expected;
+      assert.deepEqual(payload.grants, name === 'migration-report' ? [migrationReportTestGrant()] : actualExpected);
       assert.equal(Date.parse(payload.validUntil) - Date.parse(payload.validFrom), 30 * 86400_000);
       assert.equal(Date.parse(payload.validUntil) < now, name === 'expired');
       assert.equal(payload.redistributionAllowed, false);
     }
-    assert.equal(readdirSync(directory).length, 7);
+    assert.equal(readdirSync(directory).length, 12);
     assert.ok(!readFileSync(paths.trustPath, 'utf8').includes('PRIVATE'));
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('code-provider probes receive explicit single-provider grants without broadening product-only fixtures', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'pvad-code-license-contract-'));
+  try {
+    const paths = createTestLicenses(directory, Date.now(), true);
+    const trust = JSON.parse(readFileSync(paths.trustPath));
+    const grants = migrationCodeTestGrants();
+    assert.deepEqual(grants.map(grant => grant.providers.length), [16, 8]);
+    for (const [name, path] of Object.entries(paths).filter(([name]) => name.startsWith('migration.'))) {
+      const envelope = JSON.parse(readFileSync(path));
+      const bytes = Buffer.from(envelope.payload, 'base64');
+      assert.ok(verify('sha256', bytes, { key: trust.keys[0].publicKeyPem, dsaEncoding: 'ieee-p1363' }, Buffer.from(envelope.signature, 'base64')));
+      const payload = JSON.parse(bytes);
+      assert.equal(payload.grants.length, 1);
+      assert.equal(payload.grants[0].providers.length, 1);
+      assert.equal(name, `${payload.grants[0].product}-${payload.grants[0].providers[0]}`);
+    }
+    assert.equal(readdirSync(directory).length, 36);
+    const pdf = JSON.parse(Buffer.from(JSON.parse(readFileSync(paths.pdf)).payload, 'base64'));
+    assert.deepEqual(pdf.grants, [{ product: 'pdf', providers: [] }]);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

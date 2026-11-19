@@ -26,6 +26,19 @@
     <InternalsVisibleTo Include="PVAD.Importer" />
     <InternalsVisibleTo Include="PVAD.FileImporter" />
     <InternalsVisibleTo Include="PVAD.WebApi" />
+    <InternalsVisibleTo Include="PVAD.Infrastructure.Spreadsheet" />
+    <InternalsVisibleTo Include="PVAD.Infrastructure.Converters" />
+    <InternalsVisibleTo Include="PVAD.Migration.Roslyn" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Viewer.Nutrient" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.ActiveReportsJs" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.DevExpress" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.FastReport" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.JasperReports" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.Rdl" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.Rpx" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.Stimulsoft" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report.Designer.Telerik" />
     <None Update="README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
   <Target Name="PvadSelectProtectedAssembly">

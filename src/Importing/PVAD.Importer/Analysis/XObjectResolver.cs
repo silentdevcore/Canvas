@@ -35,7 +35,13 @@ public sealed class XObjectResolver
 
     public ResolvedXObject? Resolve(string resourceName, PdfDictionary resources, PdfMatrix inheritedTransform, int recursionDepth = 0)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ResolveAdmitted(resourceName, resources, inheritedTransform, recursionDepth);
+    }
+
+    internal ResolvedXObject? ResolveAdmitted(string resourceName, PdfDictionary resources, PdfMatrix inheritedTransform, int recursionDepth = 0)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (recursionDepth > 16 ||
             resources["XObject"] is not PdfDictionary xobjects ||
             xobjects[resourceName] is not { } xobjectValue ||
@@ -47,29 +53,41 @@ public sealed class XObjectResolver
 
         return subtype.Value switch
         {
-            "Form" => ResolveForm(resourceName, stream, inheritedTransform, recursionDepth),
-            "Image" => ResolveImage(resourceName, stream, inheritedTransform),
+            "Form" => ResolveFormAdmitted(resourceName, stream, inheritedTransform, recursionDepth),
+            "Image" => ResolveImageAdmitted(resourceName, stream, inheritedTransform),
             _ => null
         };
     }
 
     public ResolvedXObject ResolveForm(string resourceName, PdfStreamObject form, PdfMatrix inheritedTransform, int recursionDepth = 0)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ResolveFormAdmitted(resourceName, form, inheritedTransform, recursionDepth);
+    }
+
+    internal ResolvedXObject ResolveFormAdmitted(string resourceName, PdfStreamObject form, PdfMatrix inheritedTransform, int recursionDepth = 0)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var matrix = ReadMatrix(form.Dictionary["Matrix"]) ?? PdfMatrix.Identity;
         var transform = inheritedTransform.Multiply(matrix);
-        var commands = _contentParser.Parse(form.IsDecoded ? form.DecodedBytes : form.EncodedBytes);
-        var children = _graphicsInterpreter.Interpret(commands);
+        var commands = _contentParser.ParseAdmitted(form.IsDecoded ? form.DecodedBytes : form.EncodedBytes);
+        var children = _graphicsInterpreter.InterpretAdmitted(commands);
         var bounds = children.Count == 0
             ? MatrixEngine.TransformBounds(ReadRectangle(form.Dictionary["BBox"]) ?? new PdfRectangle(0, 0, 0, 0), transform)
-            : ReadingOrderEngine.Union(children.Select(child => _bounds.ComputeElementBounds(child)));
+            : ReadingOrderEngine.Union(children.Select(child => _bounds.ComputeElementBoundsAdmitted(child)));
 
         return new ResolvedXObject(resourceName, "Form", transform, bounds, children, form);
     }
 
     public ResolvedXObject ResolveImage(string resourceName, PdfStreamObject image, PdfMatrix inheritedTransform)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return ResolveImageAdmitted(resourceName, image, inheritedTransform);
+    }
+
+    internal ResolvedXObject ResolveImageAdmitted(string resourceName, PdfStreamObject image, PdfMatrix inheritedTransform)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var bounds = MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 1, 1), inheritedTransform);
         return new ResolvedXObject(resourceName, "Image", inheritedTransform, bounds, [], image);
     }

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using PVAD.Core.Primitives;
 using SkiaSharp;
 
@@ -21,6 +22,7 @@ public sealed class SvgDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 
         // Web fonts used by the editor (Google Fonts) must be linked so the standalone

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "scope": "provider-entry-points-only",
+  "entries": [
+    {
+      "product": "migration.pdf.code",
+      "provider": "active-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs",
+      "type": "ActivePdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "apryse",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Apryse/ApryseMigration.cs",
+      "type": "ApryseMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "aspose-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Aspose/AsposePdfMigration.cs",
+      "type": "AsposePdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "devexpress-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs",
+      "type": "DevExpressPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "dspdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.DsPdf/DsPdfMigration.cs",
+      "type": "DsPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "foxit-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Foxit/FoxitPdfMigration.cs",
+      "type": "FoxitPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "gembox-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs",
+      "type": "GemBoxPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "iron-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.IronPdf/IronPdfMigration.cs",
+      "type": "IronPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "itext7",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.IText7/IText7Migration.cs",
+      "type": "IText7Migration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "leadtools-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs",
+      "type": "LeadtoolsPdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "nutrient",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Nutrient/NutrientMigration.cs",
+      "type": "NutrientMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "pdfkitnet",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs",
+      "type": "PdfKitNetMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "pdftools",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs",
+      "type": "PdfToolsMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "pdftools-toolbox",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs",
+      "type": "PdfToolsToolboxMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "spire-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Spire/SpirePdfMigration.cs",
+      "type": "SpirePdfMigration"
+    },
+    {
+      "product": "migration.pdf.code",
+      "provider": "syncfusion-pdf",
+      "source": "src/Migrations/PDF/PVAD.Migration.Pdf.Code.Syncfusion/SyncfusionPdfMigration.cs",
+      "type": "SyncfusionPdfMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "aspose-cells",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Aspose/AsposeCellsMigration.cs",
+      "type": "AsposeCellsMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "closedxml",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.ClosedXml/ClosedXmlSpreadsheetMigration.cs",
+      "type": "ClosedXmlSpreadsheetMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "epplus",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Epplus/EpplusSpreadsheetMigration.cs",
+      "type": "EpplusSpreadsheetMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "gembox-spreadsheet",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.GemBox/GemBoxSpreadsheetMigration.cs",
+      "type": "GemBoxSpreadsheetMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "npoi",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Npoi/NpoiMigration.cs",
+      "type": "NpoiMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "spire-xls",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Spire/SpireXlsMigration.cs",
+      "type": "SpireXlsMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "spreadsheetlight",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.SpreadsheetLight/SpreadsheetLightMigration.cs",
+      "type": "SpreadsheetLightMigration"
+    },
+    {
+      "product": "migration.spreadsheet.code",
+      "provider": "syncfusion-xlsio",
+      "source": "src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet.Code.Syncfusion/SyncfusionXlsIoMigration.cs",
+      "type": "SyncfusionXlsIoMigration"
+    }
+  ]
+}

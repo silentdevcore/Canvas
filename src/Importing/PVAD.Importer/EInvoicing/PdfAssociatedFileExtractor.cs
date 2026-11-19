@@ -34,7 +34,16 @@ public sealed class PdfAssociatedFileExtractor
         PdfAssociatedFileExtractionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAssociatedFiles);
+        return await ExtractAdmittedAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<IReadOnlyList<PdfExtractedAssociatedFile>> ExtractAdmittedAsync(
+        Stream pdfStream,
+        PdfAssociatedFileExtractionOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         options ??= new PdfAssociatedFileExtractionOptions();
         ValidateOptions(options);
@@ -44,13 +53,13 @@ public sealed class PdfAssociatedFileExtractor
             options.MaximumPdfSizeBytes,
             cancellationToken).ConfigureAwait(false);
         var context = new PdfParseContext(source, new PdfImporterOptions(), cancellationToken);
-        var xref = new PdfCrossReferenceParser().Parse(context);
+        var xref = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (xref.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF cross-reference data is invalid: {xref.Diagnostics[0].Code}.");
         }
 
-        var graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, xref).ParseDocumentGraphAdmitted();
         if (context.Diagnostics.Count > 0 || graph.Objects.Count == 0)
         {
             throw new InvalidDataException("The PDF could not be parsed completely.");
@@ -60,13 +69,22 @@ public sealed class PdfAssociatedFileExtractor
             throw new NotSupportedException("Associated files cannot be extracted before the PDF is decrypted.");
         }
 
-        return Extract(graph, options);
+        return ExtractAdmitted(graph, options);
     }
 
     internal static IReadOnlyList<PdfExtractedAssociatedFile> Extract(
         PdfObjectGraph graph,
         PdfAssociatedFileExtractionOptions options)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAssociatedFiles);
+        return ExtractAdmitted(graph, options);
+    }
+
+    internal static IReadOnlyList<PdfExtractedAssociatedFile> ExtractAdmitted(
+        PdfObjectGraph graph,
+        PdfAssociatedFileExtractionOptions options)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var catalog = Resolve(graph, graph.Trailer?["Root"]) as PdfDictionary;
         var associatedFiles = Resolve(graph, catalog?["AF"]) as PdfArray;
         if (associatedFiles is null)
@@ -144,7 +162,7 @@ public sealed class PdfAssociatedFileExtractor
         {
             throw new NotSupportedException("An associated file uses an unsupported PDF stream filter.");
         }
-        return decoder.Decode(stream).ToArray();
+        return decoder.DecodeAdmitted(stream).ToArray();
     }
 
     private static async Task<byte[]> ReadBoundedAsync(

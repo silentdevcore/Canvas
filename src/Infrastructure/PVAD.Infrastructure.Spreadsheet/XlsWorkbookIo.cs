@@ -17,7 +17,13 @@ public sealed class XlsWorkbookIo
 {
     public byte[] Export(SpreadsheetDto workbook)
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        return ExportAdmitted(workbook);
+    }
+
+    internal byte[] ExportAdmitted(SpreadsheetDto workbook)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         using var wb = new HSSFWorkbook();
         foreach (var sheet in workbook.Sheets)
         {

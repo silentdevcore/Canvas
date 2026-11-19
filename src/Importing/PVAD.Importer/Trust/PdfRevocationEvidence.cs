@@ -224,7 +224,26 @@ public static class PdfCrlEvidenceValidator
         string source,
         bool historical)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustInspection);
+        return ValidateAdmitted(encodedCrl, certificate, issuer, validationTime, source, historical);
+    }
+
+    internal static PdfRevocationEvidence ValidateHistoricalAdmitted(
+        ReadOnlyMemory<byte> encodedCrl,
+        X509Certificate2 certificate,
+        X509Certificate2 issuer,
+        DateTimeOffset trustedReferenceTime,
+        string source) => ValidateAdmitted(encodedCrl, certificate, issuer, trustedReferenceTime, source, historical: true);
+
+    private static PdfRevocationEvidence ValidateAdmitted(
+        ReadOnlyMemory<byte> encodedCrl,
+        X509Certificate2 certificate,
+        X509Certificate2 issuer,
+        DateTimeOffset validationTime,
+        string source,
+        bool historical)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var reader = new AsnReader(encodedCrl, AsnEncodingRules.DER);
         var certificateList = reader.ReadSequence();
         var encodedTbs = certificateList.ReadEncodedValue();

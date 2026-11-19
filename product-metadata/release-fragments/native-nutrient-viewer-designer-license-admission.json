@@ -1,0 +1,10 @@
+{
+  "id": "native-nutrient-viewer-designer-license-admission",
+  "impact": "major",
+  "components": ["migration", "importer", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Nutrient Viewer conversion now requires Viewer migration rights. Editable source-PDF migration requires separate Designer migration rights, including its internal PDF import and Viewer mapping without additional engine licenses.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

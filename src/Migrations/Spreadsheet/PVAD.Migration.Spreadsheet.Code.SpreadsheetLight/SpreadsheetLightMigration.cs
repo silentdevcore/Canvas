@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,10 +13,17 @@ namespace PVAD.Migration.Spreadsheet.Code.SpreadsheetLight;
 /// worksheet; PVAD separates them, so this maps the document to a <c>PvadWorkbook</c>, <b>injects</b>
 /// <c>var sheet = &lt;doc&gt;.AddSheet("Sheet1");</c>, and retargets the cell calls to that worksheet.
 /// </summary>
-public sealed class SpreadsheetLightMigration : CSharpSourceMigration
+public sealed class SpreadsheetLightMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.SpreadsheetCodeMigration, "spreadsheetlight");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.SpreadsheetCodeMigration, "spreadsheetlight");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

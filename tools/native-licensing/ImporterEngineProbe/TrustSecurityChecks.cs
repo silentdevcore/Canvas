@@ -78,6 +78,7 @@ internal sealed class TrustSecurityChecks : IDisposable
         Add<PdfStandardSecurityHandler>("DecryptValue", () => Equal(security!.DecryptValue(ciphertext).AsSpan().SequenceEqual("protected"u8)), retainedInstance: true);
         Add<PdfStandardSecurityHandler>("BuildEncryptDictionary", () => Equal(security!.BuildEncryptDictionary()["Filter"] is PdfName), retainedInstance: true);
         calls.Add("PdfPkcs12SigningKey..ctor", () => { using var created = new PdfPkcs12SigningKey(crypto.Pfx); Equal(created.Certificate.HasPrivateKey); });
+        NativeSurfaceCoverage.Record(typeof(PdfPkcs12SigningKey).GetConstructors().Single());
         Add<PdfPkcs12SigningKey>("SignHash", () => Equal(key!.SignHash(SHA256.HashData(source), HashAlgorithmName.SHA256).Length > 0), retainedInstance: true);
         Add<PdfPadesSigningService>("Sign", () => Signed(signer.Sign(source, callbackKey)));
         Add<PdfPadesSigningService>("SignAsync", () => Signed(Await(signer.SignAsync(source, callbackKey))));
@@ -151,10 +152,14 @@ internal sealed class TrustSecurityChecks : IDisposable
         RunPositive("renewed", checks);
         using (var input = new LicenseSwitchingStream(source, () => PvadLicense.LoadFromFile(licenses[1])))
         {
-            try { Denied(() => Await(inspector.InspectAsync(input)), "PVADLIC012"); }
+            try
+            {
+                Equal(Await(inspector.InspectAsync(input)).StructureStatus == PdfTrustStatus.Valid);
+                Denied(() => Read(source, stream => Await(inspector.InspectAsync(stream))), "PVADLIC012");
+            }
             finally { PvadLicense.LoadFromFile(licenses[0]); }
         }
-        checks.Add("trust:mid-read-license-failure-is-not-an-invalid-pdf-report");
+        checks.Add("trust:admitted-mid-read-inspection-completes-next-public-call-denied");
         Equal(before.SequenceEqual(SHA256.HashData(source)));
         checks.Add("trust:source-unchanged-after-all-phases");
         return calls.Count;
@@ -210,6 +215,7 @@ internal sealed class TrustSecurityChecks : IDisposable
     private void Add(Type type, MethodInfo method, Action call, bool retainedInstance)
     {
         if (method is null) throw new InvalidOperationException("Missing public method on " + type.Name);
+        NativeSurfaceCoverage.Record(method);
         var name = Key(method); calls.Add(name, call); if (retainedInstance) retained.Add(name);
     }
     private static string Key(MethodInfo method) => $"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(parameter => parameter.ParameterType.ToString()))})";

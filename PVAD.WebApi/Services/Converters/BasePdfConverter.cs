@@ -18,7 +18,8 @@ public abstract class BasePdfConverter : ICodeConverter
 
     public virtual byte[] GeneratePreview(string sourceCode)
     {
-        var converted = ConvertCode(sourceCode);
+        using var operation = CodeMigrationPreview.Begin(this);
+        var converted = CodeMigrationPreview.Convert(this, sourceCode);
 #pragma warning disable PVAD0001 // Converter preview replays generated PVAD.Pdf migration output.
         var document = new PdfDocument();
 #pragma warning restore PVAD0001

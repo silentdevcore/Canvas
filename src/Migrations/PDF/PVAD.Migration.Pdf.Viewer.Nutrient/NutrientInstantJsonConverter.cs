@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Pdf.Viewer.Nutrient;
 
@@ -34,6 +35,20 @@ public sealed class NutrientInstantJsonConverter
         string instantJson,
         IReadOnlyList<NutrientPageGeometry> pages,
         string? sourceName = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfViewerMigration, ProviderKey);
+        return ConvertCore(instantJson, pages, sourceName);
+    }
+
+    internal NutrientInstantJsonResult ConvertForDesigner(
+        string instantJson, IReadOnlyList<NutrientPageGeometry> pages, string? sourceName)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.PdfDesignerMigration, ProviderKey);
+        return ConvertCore(instantJson, pages, sourceName);
+    }
+
+    private static NutrientInstantJsonResult ConvertCore(
+        string instantJson, IReadOnlyList<NutrientPageGeometry> pages, string? sourceName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(instantJson);
         ArgumentNullException.ThrowIfNull(pages);

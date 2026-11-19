@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Migration.Report.Designer.Stimulsoft;
 using PVAD.Core.Contracts;
 
@@ -11,7 +12,14 @@ public sealed class StimulsoftReportMigration : IReportMigration
 
     public ReportMigrationResult Convert(string source)
     {
-        var result = inner.ConvertAuto(source);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "stimulsoft");
+        return ConvertAdmitted(source);
+    }
+
+    internal ReportMigrationResult ConvertAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "stimulsoft");
+        var result = inner.ConvertAutoAdmitted(source);
         return new ReportMigrationResult
         {
             Design = result.Design,

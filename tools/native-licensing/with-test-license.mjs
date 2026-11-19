@@ -8,24 +8,69 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
+export function migrationCodeTestGrants() {
+  const inventory = JSON.parse(readFileSync(join(root, 'product-metadata/native-code-migration-entries.v1.json')));
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.scope, 'provider-entry-points-only');
+  assert.equal(inventory.entries.length, 24);
+  return ['migration.pdf.code', 'migration.spreadsheet.code'].map(product => {
+    const providers = inventory.entries.filter(entry => entry.product === product).map(entry => entry.provider);
+    assert.ok(providers.length && new Set(providers).size === providers.length);
+    assert.ok(providers.every(provider => /^[a-z][a-z0-9-]*$/.test(provider) && provider !== 'auto'));
+    return { product, providers };
+  });
+}
+
+export function migrationReportTestGrant() {
+  const inventory = JSON.parse(readFileSync(join(root, 'product-metadata/native-report-migration-entries.v1.json')));
+  assert.equal(inventory.schemaVersion, 1);
+  assert.equal(inventory.scope, 'report-converter-and-wrapper-entry-points');
+  const providers = inventory.entries.map(entry => entry.provider);
+  assert.equal(providers.length, 8);
+  assert.equal(new Set(providers).size, 8);
+  assert.ok(providers.every(provider => /^[a-z][a-z0-9-]*$/.test(provider) && provider !== 'auto'));
+  return { product: 'migration.report.designer', providers };
+}
+
 // Synthetic keys never enter the source trust store or regular bin/obj directories.
-export function createTestLicenses(directory, now = Date.now()) {
+export function createTestLicenses(directory, now = Date.now(), includeCodeProviders = false, includeReportProviders = false) {
   const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1',
     publicKeyEncoding: { type: 'spki', format: 'pem' } });
   const keyId = 'ephemeral-native-engine-test';
   const trustPath = join(directory, 'trust.json');
   writeFileSync(trustPath, JSON.stringify({ schemaVersion: 1, keys: [{ keyId, publicKeyPem: publicKey }] }), { mode: 0o600 });
   const paths = { trustPath };
-  for (const [name, products, start] of [
+  const profiles = [
     ['pdf', ['pdf'], now - 60_000], ['word', ['word'], now - 60_000],
     ['spreadsheet', ['spreadsheet'], now - 60_000],
     ['importer', ['importer'], now - 60_000],
-    ['integrated', ['pdf', 'word', 'spreadsheet', 'importer'], now - 60_000], ['expired', ['pdf'], now - 31 * 86400_000],
-  ]) {
+    ['converter', ['converter'], now - 60_000],
+    ['integrated', ['pdf', 'word', 'spreadsheet', 'importer', 'converter'], now - 60_000], ['expired', ['pdf'], now - 31 * 86400_000],
+  ].map(([name, products, start]) => [name, products.map(product => ({ product, providers: [] })), start]);
+  const migrationGrants = migrationCodeTestGrants();
+  profiles.find(([name]) => name === 'integrated')[1].push(...migrationGrants);
+  profiles.push(['migration-code', migrationGrants, now - 60_000]);
+  for (const kind of ['viewer', 'designer']) {
+    const grants = [{ product: `migration.pdf.${kind}`, providers: ['nutrient-viewer'] }];
+    profiles.find(([name]) => name === 'integrated')[1].push(...grants);
+    profiles.push([`migration-${kind}`, grants, now - 60_000]);
+  }
+  const reportGrant = migrationReportTestGrant();
+  profiles.find(([name]) => name === 'integrated')[1].push(reportGrant);
+  profiles.push(['migration-report', [reportGrant], now - 60_000]);
+  if (includeReportProviders)
+    for (const provider of reportGrant.providers)
+      profiles.push([`migration.report.designer-${provider}`, [{ product: reportGrant.product, providers: [provider] }], now - 60_000]);
+  if (includeCodeProviders) {
+    for (const { product, providers } of migrationGrants)
+      for (const provider of providers)
+        profiles.push([`${product}-${provider}`, [{ product, providers: [provider] }], now - 60_000]);
+  }
+  for (const [name, grants, start] of profiles) {
     const bytes = Buffer.from(JSON.stringify({ schemaVersion: 1, licenseId: randomUUID(), customerReference: 'synthetic-native-engine-test',
       model: 'trial', issuedAt: new Date(start).toISOString(), validFrom: new Date(start).toISOString(),
       validUntil: new Date(start + 30 * 86400_000).toISOString(), updatesUntil: null,
-      redistributionAllowed: false, grants: products.map(product => ({ product, providers: [] })) }));
+      redistributionAllowed: false, grants }));
     const envelope = { schemaVersion: 1, keyId, algorithm: 'ECDSA_P256_SHA256_P1363', payload: bytes.toString('base64'),
       signature: sign('sha256', bytes, { key: privateKey, dsaEncoding: 'ieee-p1363' }).toString('base64') };
     paths[name] = join(directory, `${name}.json`);
@@ -57,7 +102,7 @@ function regularLicenseBuildSnapshot() {
 }
 
 export function main(args) {
-  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | test tests/<project>/<project>.csproj [dotnet test options]');
+  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'converter', 'migration-code', 'migration-viewer', 'migration-report', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | converter | migration-code | migration-viewer | migration-report | test tests/<project>/<project>.csproj [dotnet test options]');
   if (args[0] === 'test') {
     assert.ok(args[1] && /^tests\/.+\.csproj$/.test(args[1]) && !args[1].split('/').includes('..') && existsSync(join(root, args[1])), 'Expected an existing repository test project.');
     assert.ok(!args.slice(2).some(arg => /^(--no-build|--no-restore|--artifacts-path|-p:|\/p:)/i.test(arg)), 'The runner owns isolated builds and their trust configuration.');
@@ -70,13 +115,13 @@ export function main(args) {
   const originalLicenseBuild = regularLicenseBuildSnapshot();
   let succeeded = false;
   try {
-    const paths = createTestLicenses(secret);
+    const paths = createTestLicenses(secret, Date.now(), args[0] === 'migration-code', args[0] === 'migration-report');
     const env = { ...process.env, PVAD_NATIVE_LICENSE_PATH: paths.integrated, NativeLicensing__LicensePath: paths.integrated };
     const properties = [`-p:PvadLicenseTrustStorePath=${paths.trustPath}`];
     if (args[0] !== 'test') {
-      const probe = { pdf: 'PdfEngineProbe', word: 'WordEngineProbe', spreadsheet: 'SpreadsheetEngineProbe', importer: 'ImporterEngineProbe', image: 'ImageEngineProbe' }[args[0]];
+      const probe = { pdf: 'PdfEngineProbe', word: 'WordEngineProbe', spreadsheet: 'SpreadsheetEngineProbe', importer: 'ImporterEngineProbe', image: 'ImageEngineProbe', converter: 'ConverterEngineProbe', 'migration-code': 'MigrationCodeEngineProbe', 'migration-viewer': 'MigrationViewerEngineProbe', 'migration-report': 'MigrationReportEngineProbe' }[args[0]];
       const project = `tools/native-licensing/${probe}/${probe}.csproj`;
-      run(['build', project, '--artifacts-path', build, '--disable-build-servers', '-m:1', ...properties,
+      run(['build', project, '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false', '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties,
         '-p:PvadNativeLicenseTestBootstrap=true'], env);
       const dll = join(build, `bin/${probe}/debug/${probe}.dll`);
       const licenses = [paths[args[0] === 'image' ? 'importer' : args[0]], args[0] === 'pdf' ? paths.word : paths.pdf];
@@ -86,7 +131,7 @@ export function main(args) {
       writeFileSync(join(output, `${args[0]}-admission.json`), JSON.stringify(result, null, 2) + '\n');
       console.log(`${args[0].toUpperCase()} admission: ${result.checks.length} checks passed.`);
     } else {
-      run(['test', args[1], '--artifacts-path', build, '--disable-build-servers', '-m:1', ...properties,
+      run(['test', args[1], '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false', '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties,
         '-p:PvadNativeLicenseTestBootstrap=true', '--results-directory', output,
         '--logger', 'trx;LogFileName=licensed-tests.trx', ...args.slice(2)], env);
     }

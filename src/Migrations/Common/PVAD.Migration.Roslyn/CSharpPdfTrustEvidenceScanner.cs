@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Roslyn;
 
@@ -8,8 +9,20 @@ public static class CSharpPdfTrustEvidenceScanner
 {
     public static PdfTrustMigrationReport Scan(string sourceCode, PdfTrustProviderProfile profile)
     {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (profile.MigrationKind != MigrationKinds.Code)
+            throw new ArgumentException("Expected a PDF Code migration profile.", nameof(profile));
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, profile.ProviderKey);
+        return ScanAdmitted(sourceCode, profile);
+    }
+
+    internal static PdfTrustMigrationReport ScanAdmitted(string sourceCode, PdfTrustProviderProfile profile)
+    {
         ArgumentNullException.ThrowIfNull(sourceCode);
         ArgumentNullException.ThrowIfNull(profile);
+        if (profile.MigrationKind != MigrationKinds.Code)
+            throw new ArgumentException("Expected a PDF Code migration profile.", nameof(profile));
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, profile.ProviderKey);
 
         var root = CSharpSyntaxTree.ParseText(sourceCode).GetCompilationUnitRoot();
         var identifiers = root.DescendantNodes()

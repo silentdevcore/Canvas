@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-trust-pipeline-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF post-processing retains its license admission across built-in redaction, signing and final validation. New calls and custom providers still check current rights; stage order and validation rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

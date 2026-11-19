@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Migration.Report.Designer.JasperReports;
 using PVAD.Core.Contracts;
 
@@ -14,7 +15,14 @@ public sealed class JasperReportsMigration : IReportMigration
 
     public ReportMigrationResult Convert(string source, IReadOnlyDictionary<string, string>? subreportSources)
     {
-        var result = inner.Convert(source, subreportSources);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "jasperreports");
+        return ConvertAdmitted(source, subreportSources);
+    }
+
+    internal ReportMigrationResult ConvertAdmitted(string source, IReadOnlyDictionary<string, string>? subreportSources)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "jasperreports");
+        var result = inner.ConvertAdmitted(source, subreportSources);
         return new ReportMigrationResult
         {
             Design = result.Design,

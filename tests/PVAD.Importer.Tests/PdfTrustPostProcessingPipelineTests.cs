@@ -170,6 +170,62 @@ public sealed class PdfTrustPostProcessingPipelineTests
             new PdfTrustInspector());
     }
 
+    [Fact]
+    public async Task FailedRedactionVerification_DoesNotContinueToSigning()
+    {
+        var calls = new List<string>();
+        var pipeline = new PdfTrustPostProcessingPipeline(
+            new RecordingRedactionApplier(calls, verified: false),
+            new RecordingSigningService(calls), new PdfTrustInspector());
+        using var key = new TestSigningKey();
+
+        var exception = await Assert.ThrowsAsync<PdfTrustPipelineValidationException>(() =>
+            pipeline.ProcessAsync(CreatePdf(), new()
+            {
+                Redaction = new() { Regions = [new(1, new(10, 10, 20, 20))] },
+                Signing = new()
+            }, new() { DocumentSigningKey = key }));
+
+        Assert.Equal("PVADPDFPIPELINE102", exception.Code);
+        Assert.Equal(["redaction"], calls);
+    }
+
+    [Theory]
+    [InlineData("organization-reference", "PVADPDFPIPELINE103")]
+    [InlineData("missing-material", "PVADPDFPIPELINE106")]
+    [InlineData("duplicate-material", "PVADPDFPIPELINE106")]
+    [InlineData("unexpected-material", "PVADPDFPIPELINE106")]
+    [InlineData("revocation-policy", "PVADPDFPIPELINE107")]
+    public async Task InvalidPlan_IsRejectedBeforeAnyProcessing(string scenario, string expectedCode)
+    {
+        var calls = new List<string>();
+        var pipeline = new PdfTrustPostProcessingPipeline(
+            new RecordingRedactionApplier(calls), new RecordingSigningService(calls), new PdfTrustInspector());
+        using var key = new TestSigningKey();
+        var options = new PdfTrustPostProcessingOptions
+        {
+            Redaction = new() { Regions = [new(1, new(10, 10, 20, 20))] },
+            Signing = new()
+            {
+                Profile = scenario is "organization-reference" or "unexpected-material" ? PdfPadesProfile.BaselineB : PdfPadesProfile.BaselineLT,
+                CertificateSource = new() { Kind = scenario == "organization-reference" ? PdfSigningCertificateSourceKind.OrganizationKeyProvider : PdfSigningCertificateSourceKind.ExternalSigningKey },
+                RevocationData = scenario == "revocation-policy" ? PdfRevocationDataPolicy.None : null,
+            }
+        };
+        var context = new PdfTrustPipelineContext
+        {
+            DocumentSigningKey = key, DocumentTimestampAuthority = new UnexpectedTimestampAuthority(),
+            LongTermValidationMaterial = scenario is "duplicate-material" or "unexpected-material" or "revocation-policy" ? new() : null,
+            LongTermValidationProvider = scenario == "duplicate-material" ? new UnexpectedMaterialProvider() : null,
+        };
+
+        var exception = await Assert.ThrowsAsync<PdfTrustPipelineValidationException>(() =>
+            pipeline.ProcessAsync(CreatePdf(), options, context));
+
+        Assert.Equal(expectedCode, exception.Code);
+        Assert.Empty(calls);
+    }
+
     private static byte[] CreatePdf()
     {
 #pragma warning disable PVAD0001
@@ -179,7 +235,7 @@ public sealed class PdfTrustPostProcessingPipelineTests
         return document.ToBytes();
     }
 
-    private sealed class RecordingRedactionApplier(List<string> calls) : IPdfRedactionApplier
+    private sealed class RecordingRedactionApplier(List<string> calls, bool verified = true) : IPdfRedactionApplier
     {
         public async Task<PdfRedactionApplyResult> ApplyAsync(
             Stream pdfStream,
@@ -193,7 +249,7 @@ public sealed class PdfTrustPostProcessingPipelineTests
             var bytes = output.ToArray();
             var preflight = new PdfRedactionPreflightReport(
                 PdfRedactionCapability.Removable, "source", bytes.Length, 1, 1, [], []);
-            var verification = new PdfRedactionVerificationReport(true, 0, 0, []);
+            var verification = new PdfRedactionVerificationReport(verified, 0, 0, []);
             var audit = new PdfRedactionAuditRecord(
                 "source", "result", DateTimeOffset.UnixEpoch, options?.Actor, options?.Reason,
                 regions, [], true, "record");
@@ -253,5 +309,17 @@ public sealed class PdfTrustPostProcessingPipelineTests
             Certificate.Dispose();
             _rsa.Dispose();
         }
+    }
+
+    private sealed class UnexpectedTimestampAuthority : IPdfTimestampAuthority
+    {
+        public Task<PdfTimestampToken> GetTimestampTokenAsync(ReadOnlyMemory<byte> digest, HashAlgorithmName algorithm, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("Invalid plans must not request timestamps.");
+    }
+
+    private sealed class UnexpectedMaterialProvider : IPdfLongTermValidationMaterialProvider
+    {
+        public Task<PdfLongTermValidationMaterial> GetMaterialAsync(PdfLongTermValidationContext context, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("Invalid plans must not resolve validation material.");
     }
 }

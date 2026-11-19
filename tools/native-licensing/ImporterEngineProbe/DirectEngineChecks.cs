@@ -138,7 +138,7 @@ internal static class DirectEngineChecks
         PvadLicense.LoadFromFile(licenses[0]);
         foreach (var (name, call) in calls) { call(); checks.Add("direct:valid:" + name); }
         colorFont.VerifyFunctionFamilies(checks);
-        colorFont.VerifyNestedDenials(licenses, checks);
+        colorFont.VerifyNestedContinuations(licenses, checks);
         Equal(registry.Decode(customStream).Span.SequenceEqual("AB"u8) && customDecoder.Calls == 1);
         checks.Add("direct:licensed-custom-decoder-dispatch");
         var parsedGraph = new PdfObjectParser(context, xref.Parse(context)).ParseDocumentGraph();
@@ -185,6 +185,7 @@ internal static class DirectEngineChecks
             types.Add(type);
             var method = type.GetMethod(name, parameters) ?? throw new InvalidOperationException("Missing processing entry.");
             calls.Add(Key(method), call);
+            NativeSurfaceCoverage.Record(method);
         }
         void Decoder(IPdfStreamDecoder decoder, byte[] bytes, PdfDictionary dictionary, byte[] expected)
         {

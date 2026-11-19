@@ -1504,7 +1504,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             Encoding.UTF8,
             detectEncodingFromByteOrderMarks: true,
             bufferSize: 8192,
-            leaveOpen: false);
+            leaveOpen: true);
         var buffer = new char[8192];
         var text = new StringBuilder();
 
@@ -1530,7 +1530,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             Encoding.UTF8,
             detectEncodingFromByteOrderMarks: true,
             bufferSize: 8192,
-            leaveOpen: false);
+            leaveOpen: true);
         var buffer = new char[8192];
         var text = new StringBuilder();
 

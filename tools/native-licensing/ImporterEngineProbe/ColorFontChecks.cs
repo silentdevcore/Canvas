@@ -68,6 +68,7 @@ internal sealed class ColorFontChecks
         {
             types.Add(type);
             var method = type.GetMethod(name, parameters) ?? throw new InvalidOperationException("Missing color/font entry.");
+            NativeSurfaceCoverage.Record(method);
             calls.Add($"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(parameter => parameter.ParameterType.ToString()))})", action);
         }
     }
@@ -177,9 +178,10 @@ internal sealed class ColorFontChecks
         }
     }
 
-    internal void VerifyNestedDenials(string[] licenses, List<string> checks)
+    internal void VerifyNestedContinuations(string[] licenses, List<string> checks)
     {
         foreach (var kind in new[] { "sampled", "postscript", "icc" })
+        foreach (var callbackFailure in new[] { false, true })
         {
             try
             {
@@ -192,22 +194,34 @@ internal sealed class ColorFontChecks
                         "postscript" => value is PdfInteger { Value: 4 },
                         _ => value is PdfStreamObject,
                     };
-                    if (target && !switched) { switched = true; PvadLicense.LoadFromFile(licenses[1]); }
+                    if (target && !switched)
+                    {
+                        switched = true; PvadLicense.LoadFromFile(licenses[1]);
+                        if (callbackFailure) PvadLicense.Require(PvadLicenseProducts.Importer);
+                    }
                     return value;
                 }
                 try
                 {
                     if (kind == "icc")
-                        PdfSrgbColorConverter.Resolve(new PdfArray([new PdfName("ICCBased"), new PdfStreamObject(new PdfDictionary { ["N"] = new PdfInteger(3) }, new byte[128])]), Revoke);
+                        Equal(PdfSrgbColorConverter.Resolve(new PdfArray([new PdfName("ICCBased"), new PdfStreamObject(new PdfDictionary { ["N"] = new PdfInteger(3) }, new byte[128])]), Revoke).ComponentCount == 3);
                     else
-                        PdfFunction.TryCreate(kind == "sampled" ? Sampled() : PostScript(), Revoke);
+                        Equal(PdfFunction.TryCreate(kind == "sampled" ? Sampled() : PostScript(), Revoke) is not null);
                 }
-                catch (PvadLicenseException error) when (error.Code == "PVADLIC012" && switched)
+                catch (PvadLicenseException error) when (error.Code == "PVADLIC012" && switched && callbackFailure)
                 {
-                    checks.Add("color-font:nested-decoder-denial-not-hidden:" + kind);
+                    checks.Add("color-font:resolver-native-denial-not-hidden:" + kind);
                     continue;
                 }
-                throw new InvalidOperationException("A nested color decoder swallowed license replacement.");
+                Equal(switched && !callbackFailure);
+                checks.Add("color-font:admitted-resolution-survives-license-replacement:" + kind);
+                try { PdfSrgbColorConverter.Resolve(new PdfName("DeviceRGB"), value => value); }
+                catch (PvadLicenseException error) when (error.Code == "PVADLIC012")
+                {
+                    checks.Add("color-font:new-resolution-stays-fresh:" + kind);
+                    continue;
+                }
+                throw new InvalidOperationException("A new color resolution reused a closed admission.");
             }
             finally { PvadLicense.LoadFromFile(licenses[0]); }
         }
