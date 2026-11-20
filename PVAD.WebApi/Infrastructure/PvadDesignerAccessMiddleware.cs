@@ -220,6 +220,7 @@ public sealed class PvadDesignerAccessMiddleware(RequestDelegate next)
         var problem = PvadApiProblems.Create(context, status, title, detail, code);
         if (requiredPermission is not null)
             problem.Extensions["requiredPermission"] = requiredPermission;
-        await context.Response.WriteAsJsonAsync(problem, cancellationToken: context.RequestAborted);
+        await context.Response.WriteAsJsonAsync(problem, options: null,
+            contentType: "application/problem+json", cancellationToken: context.RequestAborted);
     }
 }

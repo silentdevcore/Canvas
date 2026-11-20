@@ -93,7 +93,7 @@ export function comparableSemantics(semantics) {
   return { ...semantics, spreadsheet };
 }
 
-function regularOutputs(profile) {
+export function regularOutputs(profile) {
   const snapshot = {};
   function visit(path) {
     if (!existsSync(path)) return;

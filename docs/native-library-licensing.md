@@ -1547,6 +1547,20 @@ dependencies or original fixture contents. The HTTP-hosted PDF Designer
 composition, full WebApi integration and distribution/platform gates remain
 outside this native package milestone.
 
+The [protected host rehearsal](../tools/native-licensing/README.md#joint-webapi-host-rehearsal)
+adds WebApi and persistence to the joint graph so internal native references are
+rewritten consistently. Host/persistence names are preserved for framework
+activation; native private implementations remain eligible for renaming. The
+synthetic HTTP probe compares real authorization, CSRF, entitlement, migration,
+export and CodeWorker behavior against an original baseline. This isolated
+test-server/EF-InMemory setup does not establish real browser-session,
+PostgreSQL, production-sandbox or cross-platform acceptance.
+
+Designer access errors explicitly use the Problem Details media type
+`application/problem+json`. Authentication and authorization denials remain
+distinct from native-library license failures; the host comparison checks both
+without relaxing any permission, entitlement or native-license boundary.
+
 Pinned Obfuscar and ILSpy tools protect/audit candidate output. Public APIs and
 serialization metadata must survive, third-party binaries stay unchanged, and
 debugging maps stay private. The [support-retention tooling](../tools/native-licensing/README.md#private-support-retention)

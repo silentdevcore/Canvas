@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-access-problem-media-type",
+  "impact": "patch",
+  "components": ["api", "designer"],
+  "category": "fixed",
+  "summary": "Designer access failures now consistently return structured Problem Details responses.",
+  "breaking": false
+}

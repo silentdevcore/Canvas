@@ -19,6 +19,7 @@ public sealed class PvadDesignerFeatureGateMiddleware(RequestDelegate next)
         ("/api/document/import-pdf-engine", "designer.pdf-chart-recognition"),
         ("/api/pvad/document/import-pdf-engine", "designer.pdf-chart-recognition"),
         ("/api/pvad/v1/migrations/pdf/viewer", "designer.nutrient-viewer-migration"),
+        ("/api/pvad/v1/migrations/pdf/designer/nutrient-viewer", "designer.nutrient-viewer-migration"),
         ("/api/pdf-viewer", "designer.pdf-viewer"),
         ("/api/pvad/pdf-viewer", "designer.pdf-viewer"),
         ("/api/spreadsheet", "designer.spreadsheet"),

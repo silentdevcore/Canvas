@@ -48,6 +48,70 @@ cross-platform run; those acceptance items remain open until executed.
 See the [guide](../../docs/native-library-licensing.md) and
 [checklist](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md).
 
+## Joint WebApi Host Rehearsal
+
+```bash
+node --test tools/native-licensing/webapi-protection-rehearsal.test.mjs
+node tools/native-licensing/webapi-protection-rehearsal.mjs
+```
+
+This explicit 56-assembly profile adds the real WebApi and persistence assembly
+to all 54 native modules. It builds an isolated synthetic baseline and rewrites
+the entire first-party graph together, including both separate workers. It is
+not safe to drop protected native binaries into an unprocessed WebApi: internal
+friend references must be rewritten in the same protection run.
+
+Only WebApi and persistence type/member names are deliberately retained for
+framework activation, reflection and EF metadata. Their references to renamed
+native implementations are still rewritten. Native modules keep the existing
+public-API and generated-code preservation rules; private implementation-name
+removal is checked using ILSpy. This is native-library protection, not a claim
+that the host's own implementations are concealed. Public surfaces are compared
+for all 56 modules; vendor files remain unchanged. No package is published.
+
+The executable probe starts the actual application through an in-process ASP.NET
+test server. Only the authentication transport is synthetic; authorization,
+Designer permissions, CSRF, tenant context, entitlements, feature policies,
+audit/usage writes and the native bootstrap use product implementations. EF
+InMemory replaces PostgreSQL, and hosted services (including general startup
+option validation and background maintenance) are removed except the real
+native bootstrap. Production startup validation remains a separate gate.
+Seeded data, keys and documents are synthetic.
+No production switch enables this test authentication in the real application.
+
+The synthetic `Hardened=true` option permits the host's configured CodeWorker
+client to be tested; it is not evidence of an OS sandbox. The report keeps
+worker-sandbox deployment acceptance false. Unlicensed startup is tested in a
+separate fresh process so a previously loaded native license cannot mask it.
+
+The same probe runs against original and jointly processed binaries. It checks
+authorized export, missing authentication/permissions/CSRF, wrong tenant,
+disabled product/feature access, incorrect/revoked native rights and rejected
+expired replacements without losing the previous license,
+Nutrient's PDF-to-Designer friend boundary with mixed page layouts, actual
+CodeWorker execution, forwarded revocations, denied source and audit/usage
+tenant boundaries. Export and worker PDFs are raster-compared at 72 DPI.
+The full mapping also goes through encrypted support recovery.
+
+Only report/cleanup JSON remains after removal of licenses, archives, binaries,
+data-protection material and private build work. The prepared CI job uploads
+only those two reports. Actual browser/cookie/session flows, PostgreSQL
+transactions and migrations, native OCR execution through this host, complete
+API/visual/fuzz suites, OS sandbox deployment and cross-platform execution remain
+separate acceptance gates. Existing 52-package acceptance is separate: this
+profile validates a disposable host runtime, not new customer NuGet packages.
+
+The real HTTP comparison exposed a Designer access-error media-type mismatch.
+The middleware now explicitly writes `application/problem+json`, retaining
+status codes, diagnostic IDs and authorization behavior. A focused API test
+covers both anonymous and stale-permission early exits without invoking native
+processing or downstream dependencies.
+
+Viewer and Designer Nutrient routes now evaluate the same organization feature
+policy before conversion. The HTTP comparison uses the real database-backed
+feature decision for both paths, and focused route regressions cover dispatch
+to that gate. The separate public release sentence is human-approved.
+
 ## Private Support Retention
 
 `support-artifacts.mjs` prepares encrypted archives of explicit joint Obfuscar

@@ -172,15 +172,23 @@ function run(command, args, options = {}) {
 
 const xml = text => text.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 
-export function protect(input, output, expectedModules) {
+export function protect(input, output, expectedModules, { preserveHostContracts = false } = {}) {
   mkdirSync(output, { recursive: false });
   const modules = readdirSync(input).filter(file => /^PVAD\..+\.dll$/.test(file) && !/Tests|LicenseIssuer/.test(file));
   assert.ok(modules.length, 'No first-party libraries found.');
   if (expectedModules) assert.deepEqual(modules.sort(), [...expectedModules].sort(), 'The joint protection graph differs from the reviewed profile.');
-  const runtime = run('dotnet', ['--list-runtimes']).trim().split(/\r?\n/)
+  if (preserveHostContracts) {
+    assert.equal(modules.length, 56, 'Host preservation requires the reviewed complete WebApi graph.');
+    for (const name of ['PVAD.WebApi.dll', 'PVAD.Infrastructure.Persistence.dll']) assert.ok(modules.includes(name));
+  }
+  const runtimes = run('dotnet', ['--list-runtimes']).trim().split(/\r?\n/);
+  const runtime = runtimes
     .filter(line => line.startsWith('Microsoft.NETCore.App 10.'))
     .map(line => { const match = line.match(/^Microsoft.NETCore.App (\S+) \[(.+)\]$/); return join(match[2], match[1]); }).at(-1);
   assert.ok(runtime, 'A .NET 10 runtime is required.');
+  const aspnet = runtimes.filter(line => line.startsWith('Microsoft.AspNetCore.App 10.'))
+    .map(line => { const match = line.match(/^Microsoft.AspNetCore.App (\S+) \[(.+)\]$/); return join(match[2], match[1]); }).at(-1);
+  if (preserveHostContracts) assert.ok(aspnet, 'The protected WebApi requires an ASP.NET Core 10 runtime.');
   const config = join(output, 'obfuscar.xml');
   writeFileSync(config, `<?xml version="1.0"?>\n<Obfuscator>
   <Var name="InPath" value="${xml(input)}" />
@@ -192,7 +200,10 @@ export function protect(input, output, expectedModules) {
   <Var name="HideStrings" value="false" />
   <Var name="SkipGenerated" value="true" />
   <AssemblySearchPath path="${xml(runtime)}" />
+  ${preserveHostContracts ? `<AssemblySearchPath path="${xml(aspnet)}" />` : ''}
   ${modules.map(file => `<Module file="${xml(join(input, file))}">
+    ${preserveHostContracts && ['PVAD.WebApi.dll', 'PVAD.Infrastructure.Persistence.dll'].includes(file)
+      ? '<SkipType name="*" skipMethods="true" skipFields="true" skipProperties="true" skipEvents="true" />' : ''}
     <SkipType name="*" decorator="System.Runtime.CompilerServices.CompilerGeneratedAttribute" skipMethods="true" skipFields="true" skipProperties="true" skipEvents="true" />
     <SkipType name="*&lt;*" skipMethods="true" skipFields="true" skipProperties="true" skipEvents="true" />
   </Module>`).join('\n  ')}

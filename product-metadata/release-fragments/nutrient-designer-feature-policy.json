@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "nutrient-designer-feature-policy",
+  "impact": "patch",
+  "components": ["api", "migration"],
+  "category": "security",
+  "summary": "Nutrient Designer migration now consistently respects organization feature policies.",
+  "securityReviewed": true,
+  "breaking": false
+}

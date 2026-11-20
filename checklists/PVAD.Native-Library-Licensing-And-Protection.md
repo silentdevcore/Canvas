@@ -2864,6 +2864,125 @@ releases, native release metadata, manufacturer trust, databases, unrelated
 solution changes and private IDE files remain untouched. No commit, push,
 service restart, public package publication or deployment is performed.
 
+## Joint Protected WebApi Milestone
+
+- [x] Define and validate the complete 56-project native/WebApi/persistence graph with isolated builds, explicit worker bundles and preservation limited to host/persistence names.
+- [x] Jointly rewrite native friend references, compare all public surfaces and vendor hashes, verify private-name samples and recover the complete mapping through encrypted support retention.
+- [x] Run the same real HTTP/DI/CSRF/permission/entitlement/feature/tenant/audit/export/migration/worker matrix against original and protected hosts, including fresh-process unlicensed startup and PDF text/pixel parity.
+- [x] Complete targeted access-error regressions, tooling/documentation validation and report-only CI contracts, then record independent final evidence and cleanup.
+
+This milestone uses an in-process ASP.NET test server and synthetic authentication
+transport, with EF InMemory instead of PostgreSQL. Product middleware, native
+bootstrap, entitlement/feature evaluation, audits and CodeWorker client remain
+real. Background maintenance is disabled except the native bootstrap. No
+production authentication or authorization bypass is added.
+
+WebApi and persistence type/member names are retained for activation and EF
+metadata; their native references are rewritten jointly. This does not conceal
+the host's own implementations or grant a public server-mode exemption. Native
+protection uses the existing rules. Complete browser/cookie/session flows,
+PostgreSQL migrations/transactions, native OCR through the host, full API/fuzz/
+visual/platform suites, production keys and deployment sandbox acceptance remain
+open under their existing gates.
+
+### Intermediate Host Evidence
+
+The first run at
+`artifacts/native-webapi-protection/1795195589994-b1529000/` failed at the new
+probe's compile step because it used a nonexistent `ElementDto.Properties`
+field. The fixture now uses the actual `Content` contract. No product DTO or
+fixture geometry was changed. Its failed cleanup record verifies removed
+candidate material and unchanged source trust/product build outputs.
+
+The next run at
+`artifacts/native-webapi-protection/1795195901169-5bb806b1/` built all source
+projects and reached real HTTP checks. It correctly rejected an anonymous
+Designer request with HTTP 401, but the access middleware wrote the wrong JSON
+media type. The product correction explicitly supplies
+`application/problem+json`; statuses, diagnostic codes and permission behavior
+remain unchanged. Two focused API cases cover anonymous and stale-permission
+early exits. This correction has a separate Patch release fragment; the joint
+host rehearsal itself has impact `none`. Failed evidence is retained honestly;
+it is not a completed protected-host acceptance run.
+
+The third run at
+`artifacts/native-webapi-protection/1795196226832-e4d4a7eb/` rejected an already
+expired test replacement during `LoadFromFile`, as the existing license
+contract requires. The probe had incorrectly expected installation of that
+expired snapshot. The corrected probe verifies rejection with the stable expiry
+diagnostic, retention of the previous license ID and unchanged previous product
+rights. No production licensing rule is loosened.
+
+The fourth run at
+`artifacts/native-webapi-protection/1795196618011-42639b97/` reached real
+Nutrient conversion but its new test page omitted orientation and inherited the
+document's portrait setting. The fixture now explicitly requests landscape
+alongside 842-by-595 dimensions and asserts both output dimensions. The existing
+layout resolver and import geometry are unchanged; no threshold is relaxed.
+Both failed attempts remove private work and preserve trust/regular outputs.
+
+The scoped HTTP review also found that the canonical Nutrient Designer route
+did not evaluate the same declared organization feature as its Viewer route.
+The existing feature middleware now covers both paths. The exact public
+Security/Patch sentence was approved by the owner in this conversation before
+being added; technical details remain in internal evidence only.
+
+All four focused API regressions pass without failures or skips at
+`artifacts/native-engine-tests/1795196255247-fc61d6d3/`: two Problem Details
+early-exit cases and both Nutrient feature-route cases. The signed test session
+removes its private artifacts and leaves source trust and normal license builds
+unchanged. These are focused tests, not the complete API suite.
+
+### Final Protected Host Evidence
+
+The final local macOS/x64 run at
+`artifacts/native-webapi-protection/1795208408748-cd9086ac/` passes. It jointly
+processes all 56 modules and compares 1,548 public types without API drift.
+Each side passes the same 61 licensed-host assertions and 34 fresh-process
+unlicensed-host assertions: 190 total across the four process runs. Assertion
+names are unique within each run, and complete reports compare equal.
+
+Real checks cover authentication, permission, CSRF, tenant, product-entitlement
+and organization-feature failures; wrong-product rights; expired-replacement
+rejection without losing the prior snapshot; native revocation and forwarding
+to a real CodeWorker; successful PDF export and Nutrient Designer conversion;
+denied source; and tenant-scoped usage/audit writes. The mixed-layout fixture
+preserves 595-by-842 portrait and 842-by-595 landscape pages. Export/worker PDFs
+produce three identical raster pages and identical extracted text. No visual or
+semantic threshold is relaxed.
+
+The CodeWorker bundle contains ten matching protected first-party DLLs and the
+OCR bundle four; all their vendor DLLs remain byte-identical. Actual OCR through
+this host is not executed. ILSpy confirms removal of the sampled native
+authority/writer names; host/persistence name preservation is not applied to
+native implementations. The full 56-module mapping passes encrypted recovery,
+tamper and retention checks. Candidate binaries, synthetic keys/licenses,
+support maps/archives and work directories are removed. Source trust and normal
+product builds remain unchanged; only report/cleanup JSON survives.
+
+All 104 native/version/release-author tooling tests and 73 Documentation tests
+pass; Documentation builds successfully. The four focused API cases pass
+without skips. Prepared CI is read-only and uploads only the two explicit
+reports; it has not run remotely. Runtime tests use EF InMemory and synthetic
+authentication, not PostgreSQL or real browser sessions. Hosted maintenance and
+general startup-options validation are excluded except the real native bootstrap;
+production startup, sandbox and broad application/platform acceptance remain
+open. Post-run logging now excludes structured JSON lines from warning scans,
+so a public API member named `Warning` does not dump a full contract to logs.
+
+The current reviewed former-name guard and tracked-Markdown zero-hit check pass.
+An additional run of the older JSON naming audit reports 475 pre-existing
+baseline findings (463 stale retained pointers, ten changed protected-evidence
+pins and two unclassified files). Its tracked JSON inputs and audit tooling are
+unchanged from HEAD for this milestone. No historical audit or pin is rewritten
+to hide those findings; that reconciliation is outside native host protection
+and must not be presented as a passed legacy audit.
+
+No commit of this new milestone, push, service restart, package publication,
+version change or deployment is performed. The prior licensing/protection work
+is preserved in local commit `cbdca5a5`; unrelated solution and private IDE
+changes remain outside that commit and this milestone.
+
 ## Acceptance Criteria
 
 - [ ] All native products enforce the same signed-license contract, including direct low-level operations.
