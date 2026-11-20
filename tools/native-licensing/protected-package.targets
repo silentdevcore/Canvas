@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup Condition="'$(PvadProtectedPackageDirectory)' != ''">
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PvadSelectJointProtectedAssembly</TargetsForTfmSpecificBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+    <EmbedAllSources>false</EmbedAllSources>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PvadProtectedPackageDirectory)' != '' And '$(MSBuildProjectName)' == 'PVAD.Infrastructure.Spreadsheet'">
+    <!-- The NPOI dependency graph reaches this task in external consumers too. -->
+    <PackageReference Update="Microsoft.Build.Tasks.Git" PrivateAssets="contentfiles;analyzers;build;buildMultitargeting;buildTransitive" />
+  </ItemGroup>
+  <Target Name="PvadSelectJointProtectedAssembly">
+    <PropertyGroup>
+      <PvadJointAssembly>$(PvadProtectedPackageDirectory)/$(TargetFileName)</PvadJointAssembly>
+    </PropertyGroup>
+    <Error Condition="'$(PvadProtectedPackageDirectory)' == '' Or !Exists('$(PvadJointAssembly)')"
+           Text="A joint protected package requires its explicitly prepared assembly." />
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <BuiltProjectOutputGroupOutput Include="$(PvadJointAssembly)">
+        <FinalOutputPath>$(PvadJointAssembly)</FinalOutputPath>
+        <TargetPath>$(TargetFileName)</TargetPath>
+      </BuiltProjectOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+</Project>

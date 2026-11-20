@@ -618,7 +618,7 @@
         {
           "type": "PVAD.Importer.EInvoicing.PdfEInvoiceAttacher",
           "category": "processing",
-          "surfaceHash": "d96f516ad2ace7091f8c7a248280f735c8459628b0b6e9608ea160123f8528ab",
+          "surfaceHash": "daa78145a31fc354f80f1c4faf0c09a94a9c39c0396e15cf45902472add72cc2",
           "protectedMembers": [
             "Method:System.Threading.Tasks.Task`1[PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentPreflightReport] PreflightAsync(System.IO.Stream, PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentPayload, PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentOptions, System.Threading.CancellationToken)",
             "Method:System.Threading.Tasks.Task`1[PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentResult] AttachAsync(System.IO.Stream, PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentPayload, PVAD.Importer.EInvoicing.PdfEInvoiceAttachmentOptions, System.Threading.CancellationToken)"

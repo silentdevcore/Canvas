@@ -100,6 +100,40 @@ public sealed class NativeLicenseIssuerTests : IDisposable
         Assert.False(File.Exists(Path.Combine(directory, "license.json")));
     }
 
+    [Fact]
+    public void Revocation_preparation_signs_exact_bytes_without_rewriting_existing_artifacts_or_logging_ids()
+    {
+        var args = Prepare();
+        var now = new DateTimeOffset(2026, 11, 20, 12, 0, 0, TimeSpan.Zero);
+        var id = Guid.NewGuid();
+        var payload = new PvadNativeRevocationList(1, PvadNativeRevocationList.DocumentKind, 3, now, now.AddDays(7), [id]);
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(payload, new JsonSerializerOptions(PvadLicenseJson.Options) { WriteIndented = true });
+        File.WriteAllBytes(Path.Combine(directory, "payload.json"), bytes);
+        using var output = new StringWriter(); using var error = new StringWriter();
+        var command = new[] { "revocations" }.Concat(args).ToArray();
+        Assert.Equal(0, NativeLicenseIssuer.Run(command, output, error));
+        var artifact = File.ReadAllBytes(Path.Combine(directory, "license.json"));
+        var verifier = new PvadLicenseVerifier(new Dictionary<string, string> { ["synthetic"] = key.ExportSubjectPublicKeyInfoPem() });
+        var verified = verifier.VerifyRevocations(artifact);
+        Assert.Equal(id, Assert.Single(verified.List.RevokedLicenseIds));
+        var envelope = JsonSerializer.Deserialize<PvadSignedNativeRevocationList>(artifact, PvadLicenseJson.Options)!;
+        Assert.Equal(bytes, Convert.FromBase64String(envelope.Payload));
+        Assert.DoesNotContain(id.ToString(), output.ToString()); Assert.Empty(error.ToString());
+        Assert.Equal(1, NativeLicenseIssuer.Run(command, output, error));
+        Assert.Equal(artifact, File.ReadAllBytes(Path.Combine(directory, "license.json")));
+    }
+
+    [Fact]
+    public void Revocation_preparation_rejects_license_payloads_and_malformed_lists_before_writing_output()
+    {
+        var args = Prepare(); using var output = new StringWriter(); using var error = new StringWriter();
+        Assert.Equal(1, NativeLicenseIssuer.Run(new[] { "revocations" }.Concat(args).ToArray(), output, error));
+        Assert.False(File.Exists(Path.Combine(directory, "license.json")));
+        File.WriteAllText(Path.Combine(directory, "payload.json"), "{}");
+        Assert.Equal(1, NativeLicenseIssuer.Run(new[] { "revocations" }.Concat(args).ToArray(), output, error));
+        Assert.False(File.Exists(Path.Combine(directory, "license.json")));
+    }
+
     private string[] Prepare()
     {
         WritePrivateKey(key.ExportECPrivateKeyPem());

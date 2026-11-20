@@ -6,23 +6,55 @@ internal sealed class PvadLicenseAuthority(
     DateTimeOffset libraryPublishedAt)
 {
     private sealed record ActiveLicense(PvadLicensePayload Payload, byte[] Envelope);
+    private sealed record ActiveRevocations(PvadNativeRevocationList List, HashSet<Guid> Revoked, byte[] Envelope, string Hash);
+    private readonly object gate = new();
     private ActiveLicense? current;
+    private ActiveRevocations? revocations;
 
     internal PvadLicenseStatus Load(Stream stream)
     {
         var envelope = PvadLicenseJson.ReadBounded(stream);
         var candidate = verifier.Verify(envelope);
-        var status = Status(candidate);
-        if (!status.CanStartOperation)
-            throw PvadLicenseJson.Error(status.Code, "The license is not valid for starting operations with this library.");
-        Interlocked.Exchange(ref current, new ActiveLicense(candidate, envelope));
-        return status;
+        lock (gate)
+        {
+            var status = Status(candidate);
+            if (!status.CanStartOperation)
+                throw PvadLicenseJson.Error(status.Code, "The license is not valid for starting operations with this library.");
+            current = new ActiveLicense(candidate, envelope);
+            return status;
+        }
     }
 
-    internal PvadLicenseStatus GetStatus() => Status(Volatile.Read(ref current)?.Payload);
+    internal PvadLicenseStatus GetStatus() { lock (gate) return Status(current?.Payload); }
+
+    internal PvadNativeRevocationStatus ImportRevocations(Stream stream)
+    {
+        var envelope = PvadLicenseJson.ReadBounded(stream);
+        var (candidate, hash) = verifier.VerifyRevocations(envelope);
+        var ids = candidate.RevokedLicenseIds.ToHashSet();
+        lock (gate)
+        {
+            if (candidate.IssuedAt > timeProvider.GetUtcNow() || revocations is { } previous &&
+                (candidate.Sequence < previous.List.Sequence ||
+                 candidate.Sequence == previous.List.Sequence && hash != previous.Hash ||
+                 candidate.IssuedAt < previous.List.IssuedAt || !previous.Revoked.IsSubsetOf(ids)))
+                throw PvadLicenseJson.Error("PVADLIC015", "The revocation list is future-dated, rolls back history, or removes known revocations.");
+            if (revocations?.List.Sequence != candidate.Sequence)
+                revocations = new(candidate, ids, envelope, hash);
+            return RevocationStatus();
+        }
+    }
+
+    internal PvadNativeRevocationStatus GetRevocationStatus() { lock (gate) return RevocationStatus(); }
+    internal byte[]? CaptureRevocations() { lock (gate) return revocations?.Envelope.ToArray(); }
+
+    private PvadNativeRevocationStatus RevocationStatus() => revocations is null ? new(false) :
+        new(true, revocations.List.Sequence, revocations.List.IssuedAt, revocations.List.NextUpdate,
+            revocations.Revoked.Count, timeProvider.GetUtcNow() >= revocations.List.NextUpdate || timeProvider.GetUtcNow() < revocations.List.IssuedAt,
+            revocations.Hash);
 
     internal PvadLicenseOperation Require(string product, string? provider)
-        => Require(Volatile.Read(ref current)?.Payload, product, provider);
+    { lock (gate) return Require(current?.Payload, product, provider); }
 
     internal PvadLicenseExecution Begin(PvadNativeOperation operation, string? provider = null) =>
         PvadLicenseExecution.Enter(operation, Require(PvadLicenseExecution.ProductFor(operation), provider), this);
@@ -30,9 +62,16 @@ internal sealed class PvadLicenseAuthority(
     // The worker receives signed bytes from the same immutable snapshot being admitted.
     internal byte[] CaptureImporterWorkerLicense()
     {
-        var snapshot = Volatile.Read(ref current);
-        Require(snapshot?.Payload, PvadLicenseProducts.Importer, null);
-        return snapshot!.Envelope.ToArray();
+        return CaptureImporterWorkerConfiguration().License;
+    }
+
+    internal PvadNativeWorkerLicense CaptureImporterWorkerConfiguration()
+    {
+        lock (gate)
+        {
+            Require(current?.Payload, PvadLicenseProducts.Importer, null);
+            return new(current!.Envelope.ToArray(), revocations?.Envelope.ToArray());
+        }
     }
 
     private PvadLicenseOperation Require(PvadLicensePayload? snapshot, string product, string? provider)
@@ -57,7 +96,9 @@ internal sealed class PvadLicenseAuthority(
         var graceEnd = license.Model == PvadLicenseModel.Subscription ? license.ValidUntil?.AddDays(7) : null;
         var state = PvadLicenseState.Active;
         var code = "PVADLIC000";
-        if (now < license.ValidFrom || now < license.IssuedAt)
+        if (revocations?.Revoked.Contains(license.LicenseId) == true)
+            (state, code) = (PvadLicenseState.Revoked, "PVADLIC014");
+        else if (now < license.ValidFrom || now < license.IssuedAt)
             (state, code) = (PvadLicenseState.NotYetValid, "PVADLIC008");
         else if (license.Model == PvadLicenseModel.Perpetual && libraryPublishedAt > license.UpdatesUntil)
             (state, code) = (PvadLicenseState.UpdateNotCovered, "PVADLIC011");

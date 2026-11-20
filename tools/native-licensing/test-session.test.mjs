@@ -480,6 +480,25 @@ test('E-Invoice and archive continuations preserve public and custom-provider ad
     assert.ok(probe.includes(name));
 });
 
+test('E-Invoice byte comparisons use a fixed metadata clock without weakening native admission', () => {
+  const source = path => readFileSync(resolve(root, path), 'utf8');
+  const attach = source('src/Importing/PVAD.Importer/EInvoicing/PdfEInvoiceAttacher.cs');
+  assert.ok(attach.includes('public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter)'));
+  assert.ok(attach.includes(': this(archiveConverter, TimeProvider.System)'));
+  assert.ok(attach.includes('public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter, TimeProvider timeProvider)'));
+  assert.ok(attach.includes('BuildAttachmentUpdates(working, payload, options, timeProvider.GetUtcNow())'));
+  assert.ok(!attach.includes('DateTimeOffset.UtcNow'));
+  const probe = source('tools/native-licensing/ImporterEngineProbe/EInvoiceContinuationChecks.cs');
+  assert.ok(probe.includes('new PdfEInvoiceAttacher(converter, clock)'));
+  assert.ok(probe.includes('return new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero)'));
+  assert.ok(probe.includes('result.Bytes.SequenceEqual(baseline.Bytes)'));
+  assert.ok(probe.includes('clock.Reads == clockReads'));
+  const tests = source('tests/PVAD.Importer.Tests/PdfEInvoiceAttachmentClockTests.cs');
+  for (const text of ['Assert.Equal(first.Bytes, second.Bytes)', 'first.Bytes.SequenceEqual(third.Bytes)',
+    'D:20260102030405Z', 'D:20260102030407Z', 'LegacyConstructor_UsesTheSystemUtcClock',
+    'PreflightAndBlockedAttachment_DoNotReadTheMetadataClock']) assert.ok(tests.includes(text), text);
+});
+
 test('Trust post-processing keeps one internal admission without bypassing custom services or policy', () => {
   const read = name => readFileSync(resolve(root, `src/Importing/PVAD.Importer/${name}.cs`), 'utf8');
   const pipeline = read('Trust/PdfTrustPostProcessingPipeline');

@@ -334,6 +334,15 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0,
         }));
+    options.AddPolicy("native-license-issuance", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
     options.AddPolicy("identity-action", context => RateLimitPartition.GetFixedWindowLimiter(
         $"{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{context.Request.Path}",
         _ => new FixedWindowRateLimiterOptions
@@ -436,6 +445,18 @@ builder.Services.AddSingleton<IPvadLicenseSigningService>(
     services => services.GetRequiredService<PvadLicenseSigningService>());
 builder.Services.AddSingleton<IPvadLicenseSignatureVerifier, PvadLicenseSignatureVerifier>();
 builder.Services.AddSingleton<PvadOfflineLicenseValidator>();
+builder.Services.AddOptions<PvadNativeIssuerOptions>()
+    .Bind(builder.Configuration.GetSection(PvadNativeIssuerOptions.SectionName))
+    .Validate(options => !options.Enabled || (!string.IsNullOrWhiteSpace(options.KeyId) && options.KeyId.Length <= 100 &&
+        !string.IsNullOrWhiteSpace(options.PrivateKeyPath) && Path.IsPathRooted(options.PrivateKeyPath) &&
+        options.AllowedUserIds is { Length: > 0 and <= 128 } && !options.AllowedUserIds.Contains(Guid.Empty)),
+        "Native manufacturer issuance requires an explicit key ID, absolute secret path and operator user IDs.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<PvadNativeLicenseSigner>();
+builder.Services.AddScoped(services => new PvadNativeLicenseIssuanceService(
+    services.GetRequiredService<PvadDbContext>(), services.GetRequiredService<PvadNativeLicenseSigner>(),
+    services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PvadNativeIssuerOptions>>(), services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PvadStepUpOptions>>(),
+    services.GetRequiredService<PvadSystemOperatorAccess>(), services.GetRequiredService<TimeProvider>()));
 var dataProtectionKeysPath = PvadDataProtection.KeysPath(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(dataProtectionKeysPath);
 builder.Services.AddDataProtection()

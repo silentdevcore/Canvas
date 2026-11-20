@@ -13,8 +13,10 @@ internal static class NativeLicenseIssuer
 {
     internal static int Run(string[] args, TextWriter output, TextWriter error)
     {
+        var revocations = args.Length > 0 && args[0] == "revocations";
+        if (revocations) args = args[1..];
         if (args.Length != 8)
-            return Fail("Usage: --payload <file> --private-key <file> --key-id <id> --output <new-file>", error);
+            return Fail("Usage: [revocations] --payload <file> --private-key <file> --key-id <id> --output <new-file>", error);
         var options = new Dictionary<string, string>(StringComparer.Ordinal);
         for (var index = 0; index < args.Length; index += 2)
         {
@@ -29,8 +31,10 @@ internal static class NativeLicenseIssuer
         {
             using var payloadStream = File.OpenRead(options["--payload"]);
             var payloadBytes = PvadLicenseJson.ReadBounded(payloadStream);
-            var payload = PvadLicenseJson.Read<PvadLicensePayload>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes);
-            PvadLicenseVerifier.ValidatePayload(payload);
+            if (revocations)
+                PvadLicenseVerifier.ValidateRevocations(PvadLicenseJson.Read<PvadNativeRevocationList>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes));
+            else
+                PvadLicenseVerifier.ValidatePayload(PvadLicenseJson.Read<PvadLicensePayload>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes));
             var keyPath = options["--private-key"];
             if (!OperatingSystem.IsWindows() &&
                 (File.GetUnixFileMode(keyPath) & (UnixFileMode.GroupRead | UnixFileMode.GroupWrite |
@@ -54,16 +58,20 @@ internal static class NativeLicenseIssuer
                     CryptographicOperations.ZeroMemory(privateParameters.D);
             }
             var signature = signer.SignData(payloadBytes, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-            var envelope = new PvadSignedNativeLicense(1, options["--key-id"], PvadLicenseJson.Algorithm,
-                Convert.ToBase64String(payloadBytes), Convert.ToBase64String(signature));
-            var serialized = JsonSerializer.SerializeToUtf8Bytes(envelope, PvadLicenseJson.Options);
+            var serialized = revocations
+                ? JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeRevocationList(1, PvadNativeRevocationList.DocumentKind,
+                    options["--key-id"], PvadLicenseJson.Algorithm, Convert.ToBase64String(payloadBytes), Convert.ToBase64String(signature)), PvadLicenseJson.Options)
+                : JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeLicense(1, options["--key-id"], PvadLicenseJson.Algorithm,
+                    Convert.ToBase64String(payloadBytes), Convert.ToBase64String(signature)), PvadLicenseJson.Options);
             var fileOptions = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
             if (!OperatingSystem.IsWindows())
                 fileOptions.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
             using var file = new FileStream(options["--output"], fileOptions);
             file.Write(serialized);
             file.Flush(flushToDisk: true);
-            output.WriteLine("Native license artifact created. Publication and trust-key approval are separate steps.");
+            output.WriteLine(revocations
+                ? "Native revocation artifact created. Authorization, durable sequencing and distribution are separate operator responsibilities."
+                : "Native license artifact created. Publication and trust-key approval are separate steps.");
             return 0;
         }
         catch (PvadLicenseException exception)

@@ -6,8 +6,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(PvadProtectedMigrationConsumer)' != 'true'">
     <ProjectReference Include="../../../src/Migrations/Report/PVAD.Migration.Report/PVAD.Migration.Report.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadProtectedMigrationConsumer)' == 'true'">
+    <PackageReference Include="PVAD.Migration.Report" Version="$(PvadVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="../ReportMigrationFixtures.cs" Link="ReportMigrationFixtures.cs" />
   </ItemGroup>
 </Project>

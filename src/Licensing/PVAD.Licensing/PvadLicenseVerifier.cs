@@ -14,18 +14,47 @@ internal sealed class PvadLicenseVerifier
         var envelope = PvadLicenseJson.Read<PvadSignedNativeLicense>(document, PvadLicenseJson.MaximumEnvelopeBytes);
         if (envelope.SchemaVersion != 1 || envelope.Algorithm != PvadLicenseJson.Algorithm)
             throw PvadLicenseJson.Error("PVADLIC005", "The license schema or signature algorithm is unsupported.");
-        if (string.IsNullOrWhiteSpace(envelope.KeyId) || envelope.KeyId.Length > 100 ||
-            !publicKeys.TryGetValue(envelope.KeyId, out var publicKey))
+        var payload = VerifySignedPayload(envelope.KeyId, envelope.Payload, envelope.Signature);
+        var license = PvadLicenseJson.Read<PvadLicensePayload>(payload, PvadLicenseJson.MaximumPayloadBytes);
+        ValidatePayload(license);
+        return license;
+    }
+
+    internal (PvadNativeRevocationList List, string PayloadSha256) VerifyRevocations(ReadOnlyMemory<byte> document)
+    {
+        var envelope = PvadLicenseJson.Read<PvadSignedNativeRevocationList>(document, PvadLicenseJson.MaximumEnvelopeBytes);
+        if (envelope.SchemaVersion != 1 || envelope.Kind != PvadNativeRevocationList.DocumentKind || envelope.Algorithm != PvadLicenseJson.Algorithm)
+            throw PvadLicenseJson.Error("PVADLIC005", "The native revocation schema or signature algorithm is unsupported.");
+        var payload = VerifySignedPayload(envelope.KeyId, envelope.Payload, envelope.Signature);
+        var list = PvadLicenseJson.Read<PvadNativeRevocationList>(payload, PvadLicenseJson.MaximumPayloadBytes);
+        ValidateRevocations(list);
+        return (list, Convert.ToHexStringLower(SHA256.HashData(payload)));
+    }
+
+    internal static void ValidateRevocations(PvadNativeRevocationList list)
+    {
+        if (list.SchemaVersion != 1 || list.Purpose != PvadNativeRevocationList.DocumentKind)
+            throw PvadLicenseJson.Error("PVADLIC005", "The native revocation payload schema is unsupported.");
+        if (list.Sequence < 1 || !IsUtc(list.IssuedAt) || !IsUtc(list.NextUpdate) || list.NextUpdate <= list.IssuedAt ||
+            list.RevokedLicenseIds is null || list.RevokedLicenseIds.Length > 512 || list.RevokedLicenseIds.Contains(Guid.Empty) ||
+            list.RevokedLicenseIds.Distinct().Count() != list.RevokedLicenseIds.Length)
+            throw PvadLicenseJson.Error("PVADLIC004", "The native revocation metadata is malformed or exceeds its limits.");
+    }
+
+    private byte[] VerifySignedPayload(string keyId, string encodedPayload, string encodedSignature)
+    {
+        if (string.IsNullOrWhiteSpace(keyId) || keyId.Length > 100 ||
+            !publicKeys.TryGetValue(keyId, out var publicKey))
             throw PvadLicenseJson.Error("PVADLIC006", "The license signing key is not trusted by this library.");
-        if (envelope.Payload is null || envelope.Payload.Length > 44 * 1024 || envelope.Signature is null || envelope.Signature.Length != 88)
+        if (encodedPayload is null || encodedPayload.Length > 44 * 1024 || encodedSignature is null || encodedSignature.Length != 88)
             throw PvadLicenseJson.Error("PVADLIC004", "The license payload or signature encoding is malformed.");
 
         byte[] payload;
         byte[] signature;
         try
         {
-            payload = Convert.FromBase64String(envelope.Payload);
-            signature = Convert.FromBase64String(envelope.Signature);
+            payload = Convert.FromBase64String(encodedPayload);
+            signature = Convert.FromBase64String(encodedSignature);
             if (signature.Length != 64)
                 throw new FormatException();
         }
@@ -49,9 +78,7 @@ internal sealed class PvadLicenseVerifier
             throw PvadLicenseJson.Error("PVADLIC007", "The license signature is invalid.");
         }
 
-        var license = PvadLicenseJson.Read<PvadLicensePayload>(payload, PvadLicenseJson.MaximumPayloadBytes);
-        ValidatePayload(license);
-        return license;
+        return payload;
     }
 
     internal static void ValidatePayload(PvadLicensePayload license)

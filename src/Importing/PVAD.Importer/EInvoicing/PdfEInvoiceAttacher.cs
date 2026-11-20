@@ -20,8 +20,27 @@ namespace PVAD.Importer.EInvoicing;
 /// approved that explicitly. The caller's input stream is never written to; when an operation
 /// is blocked the original file is simply left alone.
 /// </summary>
-public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPdfEInvoiceAttacher
+public sealed class PdfEInvoiceAttacher : IPdfEInvoiceAttacher
 {
+    private readonly IPdfA2bConverter archiveConverter;
+    private readonly TimeProvider timeProvider;
+
+    /// <summary>Creates an attacher using the system UTC clock for attachment metadata.</summary>
+    public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter)
+        : this(archiveConverter, TimeProvider.System)
+    {
+    }
+
+    /// <summary>Creates an attacher using the supplied clock for attachment metadata.</summary>
+    /// <remarks>The clock does not control licensing, signature validation or archival validation.</remarks>
+    public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter, TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(archiveConverter);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        this.archiveConverter = archiveConverter;
+        this.timeProvider = timeProvider;
+    }
+
     internal const int MaximumFileNameLength = 120;
     internal const int MaximumDescriptionLength = 512;
 
@@ -108,7 +127,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
             working = await ConvertAsync(source, options, preflight, cancellationToken).ConfigureAwait(false);
         }
 
-        var updates = BuildAttachmentUpdates(working, payload, options);
+        var updates = BuildAttachmentUpdates(working, payload, options, timeProvider.GetUtcNow());
         byte[] bytes;
         try
         {
@@ -436,7 +455,8 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
     private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildAttachmentUpdates(
         ParsedSource source,
         PdfEInvoiceAttachmentPayload payload,
-        PdfEInvoiceAttachmentOptions options)
+        PdfEInvoiceAttachmentOptions options,
+        DateTimeOffset modificationTime)
     {
         var graph = source.Graph;
         if (graph.Trailer?["Root"] is not PdfReference rootReference ||
@@ -462,7 +482,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
                 {
                     ["Size"] = new PdfInteger(content.Length),
                     ["CheckSum"] = new PdfString(MD5.HashData(content), false),
-                    ["ModDate"] = new PdfString(Encoding.ASCII.GetBytes(PdfDate(DateTimeOffset.UtcNow)), false)
+                    ["ModDate"] = new PdfString(Encoding.ASCII.GetBytes(PdfDate(modificationTime)), false)
                 }
             },
             content);

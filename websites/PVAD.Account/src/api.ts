@@ -3,6 +3,7 @@ const accountProfileBase = '/api/pvad/v1/account/profile';
 const accountOrganizationBase = '/api/pvad/v1/account/organization';
 const accountSubscriptionBase = '/api/pvad/v1/account/subscription';
 const accountLicensesBase = '/api/pvad/v1/account/licenses';
+const accountNativeLicensesBase = '/api/pvad/v1/account/native-licenses';
 const accountServiceAccountsBase = '/api/pvad/v1/account/service-accounts';
 const accountSecurityBase = '/api/pvad/v1/account/security';
 const accountClosureBase = '/api/pvad/v1/account/closure';
@@ -178,6 +179,30 @@ export interface AccountLicenseResponse {
   issuedAt: string;
   revokedAt: string | null;
   revocationReason: string | null;
+}
+
+export interface NativeLicenseResponse {
+  id: string;
+  organizationId: string;
+  previousLicenseId: string | null;
+  model: string;
+  issuedAt: string;
+  validFrom: string;
+  validUntil: string | null;
+  updatesUntil: string | null;
+  artifactSha256: string;
+}
+export interface NativeLicensePage {
+  items: NativeLicenseResponse[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface NativeLicenseDetails {
+  license: NativeLicenseResponse;
+  grants: { product: string; providers: string[] }[];
+  redistributionAllowed: boolean;
+  renewedByLicenseId: string | null;
 }
 
 export interface AccountLicenseValidationResponse {
@@ -390,6 +415,12 @@ export const validateAccountLicense = (licenseId: string) =>
   request<AccountLicenseValidationResponse>(`${accountLicensesBase}/${encodeURIComponent(licenseId)}/validate`);
 export const accountLicenseDownloadUrl = (licenseId: string) =>
   `${accountLicensesBase}/${encodeURIComponent(licenseId)}/download`;
+
+export const getAccountNativeLicenses = (page = 1) => request<NativeLicensePage>(
+  `${accountNativeLicensesBase}?${new URLSearchParams({ page: String(page), pageSize: '25' })}`);
+export const getAccountNativeLicense = (id: string) => request<NativeLicenseDetails>(
+  `${accountNativeLicensesBase}/${encodeURIComponent(id)}`);
+export const accountNativeLicenseDownloadUrl = (id: string) => `${accountNativeLicensesBase}/${encodeURIComponent(id)}/download`;
 
 export const getAccountServiceAccounts = () =>
   request<AccountServiceAccountResponse[]>(accountServiceAccountsBase);

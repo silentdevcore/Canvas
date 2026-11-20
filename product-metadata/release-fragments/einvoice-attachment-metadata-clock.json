@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "einvoice-attachment-metadata-clock",
+  "impact": "minor",
+  "components": ["importer", "documentation"],
+  "category": "added",
+  "summary": "E-invoice attachments support a caller-supplied metadata clock for reproducible processing while retaining the existing system-clock default.",
+  "breaking": false
+}

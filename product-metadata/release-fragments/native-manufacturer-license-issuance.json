@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-manufacturer-license-issuance",
+  "impact": "minor",
+  "components": ["api", "infrastructure", "sdk", "documentation"],
+  "category": "added",
+  "summary": "Added an authorized manufacturer workflow for native license issuance and renewal with immutable records, retry protection and auditable license history.",
+  "breaking": false
+}

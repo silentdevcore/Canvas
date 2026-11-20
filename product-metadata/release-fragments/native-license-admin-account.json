@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-license-admin-account",
+  "impact": "minor",
+  "components": ["admin", "account", "api", "documentation"],
+  "category": "added",
+  "summary": "Added native license management in Admin and organization-scoped license details and downloads in Account, separate from existing server licenses.",
+  "breaking": false
+}

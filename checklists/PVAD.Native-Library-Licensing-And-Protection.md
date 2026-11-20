@@ -36,17 +36,17 @@ a claim that obfuscation prevents reverse engineering.
 ## P0: Issuer And Server Separation
 
 - [x] Add a private-key-file-controlled offline preparation CLI; explicitly distinguish it from authenticated issuance and durable audit.
-- [ ] Implement manufacturer-only issuance/renewal with authorization and audit.
+- [x] Implement manufacturer-only issuance/renewal with authorization and audit; see the [manufacturer backend milestone](#manufacturer-native-issuance-and-renewal-backend-milestone). Native Admin/Account screens remain separate.
 - [ ] Keep private keys outside packages, customer images, logs, and source control; never generate production replacement keys automatically.
 - [x] Split the existing server signing/verifying services without changing existing server artifacts.
 - [x] Default server deployments to verification-only mode; block issuance/replacement even for System Administrators unless issuer mode is explicitly configured.
 - [x] Load issuer private keys lazily, validate the key pair, and never generate missing keys in any environment.
 - [x] Mount only the public verification key in customer Compose; supply a separate manufacturer-only issuer overlay.
 - [x] Keep license listing, reads, downloads, and schema-1/schema-2 validation functional without a private key.
-- [ ] Add Admin management and authorized Account downloads for native licenses.
+- [x] Add Admin management and authorized Account downloads for native licenses; see the [Admin and Account milestone](#native-admin-and-account-license-workflow-milestone).
 - [ ] Use the same verification core in WebApi and workers while preserving tenant, session, entitlement, and feature checks.
 - [ ] Transfer only locally verifiable worker configuration; no source-visible secrets or public bypass modes.
-- [ ] Support explicit import of signed revocation lists; document offline revocation limitations.
+- [x] Support explicit import of signed revocation lists; document offline revocation limitations. See the [offline revocation milestone](#signed-offline-revocation-list-milestone).
 
 ## P0: Product And Operation Coverage
 
@@ -86,9 +86,9 @@ is the starting inventory, not completed enforcement coverage.
 - [ ] Pin Obfuscar and preserve public APIs, serializers, reflection/DI contracts, resources, friend assemblies, and generated C#.
 - [ ] Obfuscate related first-party assemblies together; leave third-party binaries unchanged.
 - [ ] Exclude sources, embedded sources, SourceLink source references, private symbols, and signing material from release packages.
-- [ ] Retain mapping files and symbols only as protected support artifacts.
+- [x] Provide encrypted private retention and checksum-bound recovery for joint mappings and original portable symbols; production recipient/storage custody remains a separate deployment gate in the support-retention milestone below.
 - [ ] Audit protected output with ILSpy; compare public API and internal-name visibility without claiming logic is unrecoverable.
-- [ ] Test local-feed package consumers and complete transitive dependency graphs.
+- [x] Test local-feed package consumers and complete native transitive dependency graphs; the 54-assembly/52-library milestone below closes local graph acceptance, not WebApi/friend-boundary or cross-platform acceptance.
 - [ ] Verify protected packages on Windows, Linux, and macOS, including native dependencies and code execution.
 - [ ] Supply EULA references, third-party notices, XML documentation, and offline examples.
 - [x] Exclude anti-debugger crashes, process scanning, self-modifying loaders, and antivirus-hostile techniques.
@@ -2276,6 +2276,593 @@ Existing compiler/native/NPOI warnings remain visible and no supplier terms were
 accepted. VERSION, published releases, trusted keys and native release metadata
 remain unchanged. No commit, push, service restart, live database change or
 deployment was performed; solution and private IDE changes remain untouched.
+
+## Manufacturer Native Issuance And Renewal Backend Milestone
+
+- [x] Add a separate default-disabled manufacturer issuer profile; require an explicit user-ID allowlist, actual global System Administrator role, permission, verified active user, platform-operator access and a live recent persistent session.
+- [x] Keep native signing separate from existing server licenses; validate every new artifact with the native embedded public trust and never generate replacement keys.
+- [x] Atomically append the native artifact and successful audit event in PostgreSQL without recording customer references, payloads or key material in audit details.
+- [x] Protect issued records against EF and direct SQL update/delete, including a database trigger and immutable renewal chain.
+- [x] Support idempotent request retries and reject changed replays, invalid providers, inactive customer organizations and concurrent duplicate successors.
+- [x] Renew subscription end dates or perpetual update cutoffs without expanding rights or modifying old artifacts; reject Trial renewal.
+- [x] Protect manufacturer HTTP mutations with CSRF, recent authentication, rate limits and request-size limits; exclude the internal API from public OpenAPI and disable response caching.
+- [x] Test all three models, cryptographic verification, transaction rollback, concurrent renewal, denied manufacturer access, HTTP download and protected operator-guide access using synthetic keys and real PostgreSQL.
+- [x] Document the operator workflow in a protected runbook, add a prepared Linux PostgreSQL CI job and keep production trust, customer deployments and published versions unchanged.
+
+### Evidence And Boundaries
+
+On 2026-11-20 the isolated run at
+`artifacts/native-engine-tests/1795153517612-c70eea5a/` passed all 39 selected
+API tests without skips. Eight database-backed native issuance cases used the
+actual production signer with ephemeral embedded test trust, not the fallback
+business-transaction test double. Existing server-profile separation and
+replacement tests also passed. The core run at
+`artifacts/native-issuer-core-tests/results/core.trx` passed all 99 cases.
+All 72 native/version/release-author contracts and six operator-guide contracts
+passed. The mutation contract now covers 52 Admin mutations. Documentation
+production build and all 73 Documentation tests pass; the built public output
+contains neither the native issuer configuration nor the protected runbook.
+An independent XML audit reconciles all 138 raw .NET result rows with their
+total/executed/passed counters and confirms all eight real-signer database cases.
+
+The issuer run removes its temporary private key, licenses and isolated binaries;
+its cleanup record confirms unchanged source trust and regular licensing build
+output. The subsequent exact-label Docker query returned no testcontainers.
+Only an additive EF migration was generated; no live database was migrated.
+
+Native Admin management screens, tenant-authorized Account downloads, signed
+revocation-list import, joint obfuscated packages, full worker/platform/visual
+acceptance, and production key provisioning remain open. Renewal preserves old
+offline artifacts; it does not remotely revoke them. The prepared CI job has not
+been executed remotely. The initial local test selection did not include the
+existing AdminSystemController test class; the updated prepared selection does.
+The new native HTTP test directly verifies the protected guide route.
+
+The current former-name guard, Markdown zero-match, version synchronization,
+release-fragment validation and `git diff --check` pass. The historical JSON
+naming-audit tool still reports stale pre-hard-cut baseline findings; it is not
+the current CI naming gate and was not rewritten as part of licensing work.
+Existing compiler/NPOI warnings remain visible; no supplier terms were accepted.
+The new customer-facing fragment is `minor`. VERSION, published releases,
+manufacturer trust and release-date metadata remain unchanged. No commit,
+push, service restart, live database update or deployment was performed.
+Unrelated solution and private IDE changes remain untouched.
+
+## Native Admin And Account License Workflow Milestone
+
+- [x] Add a separate manufacturer-only Admin workspace with catalog-driven product/provider selection, organization search, model-specific terms, paginated records, details, downloads and immutable renewal navigation.
+- [x] Preserve draft contents and idempotency keys on failed retries; expose disabled, loading, error, recent-sign-in and success states without putting signing secrets in the browser.
+- [x] Add Account list, details and exact downloads with server-resolved organization context and active verified user, membership, organization and persistent-session checks; deny API-key access and foreign records.
+- [x] Keep customer reads independent of manufacturer mode/private keys and server offline-license schemas; verify stored content integrity before delivery without rewriting or re-signing artifacts.
+- [x] Discard late responses after identity/workspace changes and stop Account SPA routing from intercepting API/file downloads, including existing server-license downloads.
+- [x] Exercise issuance, renewal, exact downloads and organization switching at desktop/mobile sizes, inspect screenshots, and enforce control/heading bounds in addition to document-width checks.
+- [x] Add protected Admin handbook coverage and synthetic screenshots; publish only the three read-only Account API routes and required DTOs while excluding manufacturer routes from public OpenAPI.
+- [x] Pass selected API/PostgreSQL, frontend, contract, build and naming checks; add a customer-facing Minor fragment without changing VERSION, production trust or published releases.
+
+### Evidence And Boundaries
+
+The successful isolated run on 2026-11-20 at
+`artifacts/native-engine-tests/1795155409384-6a3c69d2/` passes all 54 selected
+API tests without skips. This includes all 13 native issuance/workflow cases,
+ten of them database-backed with the real signer and ephemeral embedded trust,
+existing server licensing separation/replacement, Admin System workflows,
+mutation contracts and canonical/OpenAPI tests. Customer HTTP reads work with
+manufacturer configuration disabled, reject anonymous and foreign requests,
+return exact bytes, and do not grant manufacturer access. Direct database cases
+also cover revoked sessions, removed memberships, cross-context access,
+pagination, catalog grants and renewal history.
+
+The first combined `dotnet test` attempt at
+`artifacts/native-engine-tests/1795154679110-e251d24d/` stopped making progress
+inside its own MSBuild node. SIGINT and SIGTERM did not complete cancellation;
+only the two identified owned build processes were stopped. The Node runner
+then confirmed removal of synthetic licenses, keys and binaries with unchanged
+source trust and regular build outputs. The successful repeat uses explicit
+restore, serial build and VSTest phases. No IDE or unrelated build process was
+terminated, and the interrupted attempt is not passing evidence.
+
+Frontend evidence: 48 Admin tests, 57 Account tests, Account type-check and both
+production builds pass. All 73 native/version/release-author contracts and 73
+Documentation tests pass; Documentation also builds with the updated public
+Account API contract. Only three new paths and their four required schemas were
+merged from the generated OpenAPI; existing paths and schemas are unchanged.
+
+`artifacts/native-license-ui/report.json` records successful 1440px/390px
+Chromium rehearsals. Browser HTTP is explicitly mocked with non-usable synthetic
+artifacts, not represented as a real login or cryptographic test. Initial
+rehearsals exposed an actual Account download-routing defect and clipped layout
+inside mobile Admin grids; both are corrected. Other failed attempts corrected
+Playwright datetime input and mobile-navigation fixture assumptions. Final
+screenshots were visually inspected; controls and headings fit, and only the
+tables intentionally scroll horizontally. Protected desktop/mobile screenshots
+are stored under the Admin API asset directory, never public Documentation.
+
+The final raw-result audit checks all 54 result rows and counters, ten real-signer
+database outputs, the passing browser report and cleanup metadata. The exact-label
+Docker query reports no remaining testcontainers. Current naming, Markdown,
+version/fragment and whitespace checks pass. Existing NPOI/compiler/Vite warnings
+remain visible; no supplier terms were accepted.
+
+This closes the native Admin/Account task, not complete SDK distribution or
+platform acceptance. Signed offline revocation-list import, joint Obfuscar
+processing of product assemblies, local-feed consumers, cross-platform/visual
+acceptance and manufacturer key provisioning remain open. Next recommended work
+is the signed revocation-list contract and local verifier/import path. No product
+version bump, key provisioning, live database migration, commit, push or deployment
+was performed. Unrelated solution and private IDE changes remain untouched.
+
+## Signed Offline Revocation List Milestone
+
+- [x] Add a bounded, purpose-separated, versioned signed-list contract using exact payload bytes, ECDSA-P256/SHA-256/P1363 and only embedded known manufacturer keys.
+- [x] Provide explicit file/stream import and content-free status; serialize list changes and license activation so rejected imports/reloads preserve accepted state.
+- [x] Require increasing global sequences and cumulative revoked IDs; reject changed same-sequence payloads, future dates, backward issue dates and removed revocations across known-key rotation.
+- [x] Preserve known revocations in stale lists, deny new operations and revoked-license reloads, and allow previously admitted private continuations to finish.
+- [x] Extend the owner-controlled offline preparation CLI to sign revocation lists without generating keys, overwriting artifacts or claiming authenticated durable revocation management.
+- [x] Import configured lists before API/worker activation; propagate verified signed snapshots to Code/OCR workers without source-visible secrets or inherited unverified OCR configuration.
+- [x] Test cryptographic/JSON boundaries, rollback, concurrency, stream ownership, issuer preparation, real worker admission and cleanup; document freshness and restart limitations and prepare a Minor fragment.
+
+### Evidence And Boundaries
+
+On 2026-11-20 the core run at
+`artifacts/native-revocation-core-tests/results/core.trx` passes all 118 tests,
+including 17 revocation cases and two additional revocation-issuer cases. An
+independent XML audit reconciles every result row and total/executed/passed
+counter; no failures, skipped, aborted or other non-passing results remain.
+
+The final isolated run at
+`artifacts/native-engine-tests/1795170672176-5973d8f5/` passes all 13 named
+integration checks. The actual CodeWorker rejects a revoked configured PDF
+license with `PVADLIC014` and no design/PDF result, while a non-revoked license
+still produces a real PDF. The real OCR worker rejects a revoked Importer license
+before reading its input. A controlled child of the real OCR process runner
+separately verifies signed-list propagation and removal of inherited unverified
+configuration; this is a transport/admission test, not a Tesseract recognition
+accuracy claim. API bootstrap rejects an unreadable configured list without
+discarding the existing valid license. License reload cannot erase revocations.
+
+The runner confirms removal of synthetic licenses, lists and isolated binaries,
+unchanged source trust, and unchanged regular licensing build output. The earlier
+successful run at `artifacts/native-engine-tests/1795170216414-12143dee/` had 11
+checks before the two additional bootstrap assertions; the final report above
+supersedes it. No private key is exported for this integration probe.
+
+All 77 native/version/release-author tooling tests and 73 Documentation tests
+pass. Documentation builds successfully; all 82 local links/anchors in the five
+licensing guides/checklist resolve. Current naming, Markdown zero-match,
+version/fragment and whitespace checks pass. The isolated WebApi/Code/OCR build
+succeeds with existing compiler/NPOI warnings visible; no supplier terms were
+accepted. This is not a new full API/PostgreSQL, solution, visual or cross-platform
+acceptance run. The added CI command is prepared but has not run remotely.
+
+Lists are optional explicit offline inputs, limited to 512 cumulative license
+IDs. Stale lists keep all known denials and expose freshness without expiring
+unrelated valid licenses. Anti-rollback state is process-local: operators must
+persist and reimport the latest approved file after restart. No trusted clock,
+mandatory Internet, automatic remote kill, public reset/unrevoke, signing-key
+revocation, Admin revoke button, automated durable sequence allocation or
+revocation-distribution service is claimed. Those management/scale extensions
+remain separate follow-ups, not silently completed by the offline signing CLI.
+
+The customer-facing fragment is `native-offline-license-revocations` with Minor
+impact. Next recommended work is joint first-party Obfuscar processing and
+independent local-feed package consumers, followed by platform acceptance.
+VERSION, published releases, embedded production trust and release-date metadata
+remain unchanged. No commit, push, service restart, live database update or
+deployment was performed. Unrelated solution and private IDE changes remain
+untouched.
+
+## Joint Generator Protection And Package Consumer Milestone
+
+- [x] Define and validate the complete nine-assembly Generator project closure; fail on missing or unexpected first-party projects instead of silently shrinking coverage.
+- [x] Process Licensing, Core, Domain, Application, Pdf, Infrastructure.Pdf, Infrastructure.Word, Infrastructure.Spreadsheet and Generator in one pinned Obfuscar invocation; leave third-party binaries unchanged.
+- [x] Compare 413 exported types across public signatures, parameter names/defaults, literal values and JSON member attributes; use ILSpy to verify renaming of two known internal implementation types.
+- [x] Prepare opt-in packages containing each exact protected DLL, XML API documentation and no source/private-symbol/key files; retain the existing prohibition on synthetic test-session publication.
+- [x] Restore an independent package-only consumer from source-mapped local feeds and an empty private cache; verify all nine product versions/hashes and the downstream build-task constraint.
+- [x] Compare baseline and protected JSON/DOCX/XLSX semantics and two PDF pages at 72 DPI; test missing, incorrect and revoked rights, retained objects, embedded resources and friend metadata.
+- [x] Remove candidate binaries, packages, maps, caches and synthetic licenses on success/failure; document limits, prepare separate Linux CI and add an internal-only release fragment without publishing.
+
+### Evidence And Boundaries
+
+The successful local macOS/x64 run on 2026-11-20 is recorded in
+`artifacts/native-joint-packages/1795171992772-f8655f81/report.json` and
+`cleanup.json`. All 30 original baseline assertions and 187 protected-consumer
+assertions pass. The consumer uses only NuGet package references, not source
+project references. Its nine loaded first-party DLL hashes equal the protected
+DLLs and package entries. All 413 public types compare equal; the license
+authority and PDF writer internal names no longer appear in ILSpy's type list.
+Thirty third-party DLL resolution inputs are byte-identical. Thirty-six original
+third-party packages provide the offline consumer feed. The consumer's existing
+Git build-task pin resolves to 10.0.403 rather than being lost at the package
+boundary. Normal source/project build settings remain unchanged.
+
+Both PDF page rasters match exactly. JSON and Word document XML compare equal;
+Spreadsheet cells, formulas, values and styles compare equal. Only the freshly
+generated workbook/sheet workspace IDs are normalized, after validating their
+GUID shape; XLSX does not carry these PVAD workspace identities. This comparison
+does not relax geometry, pixel or semantic thresholds or replace existing golden
+PDF Trust/visual-parity matrices.
+
+The initial run at `artifacts/native-joint-packages/1795171420263-bc30c4a9/`
+exposed the missing downstream build-task constraint and is not passing evidence.
+The following run at `artifacts/native-joint-packages/1795171636669-32416b7d/`
+resolved dependencies but stopped making progress in its own external MSBuild
+node. Only its identified build process was interrupted/terminated; its child
+node also exited. The runner cleaned its temporary material. The final run
+removes the forced external-node environment setting only for the single-project
+consumer build. Both earlier cleanup reports show failure honestly and confirm
+unchanged source trust/regular product outputs and removed candidate files.
+
+All 83 native/version/release-author tooling tests and 73 Documentation tests
+pass, as do the Documentation build, current naming/Markdown gates, version and
+fragment validation and `git diff --check`. Existing compiler, Vite and NPOI
+warnings remain visible. No NPOI supplier terms were accepted. Offline consumer
+restore disables only its network NuGet audit, not repository security gates.
+The prepared Linux job uploads only non-secret report/cleanup JSON, never the
+candidate feed, binaries, source listings, maps or synthetic artifacts. It has
+not been executed remotely.
+
+This closes a scoped nine-assembly rehearsal, not the P1 protection/package
+acceptance for every native product. Importer, Converter and Migration assemblies,
+actual Code/OCR workers and API integration, complete DI/serialization/rendering
+regressions, Windows/Linux/macOS acceptance and support-map retention remain
+open. Do not mix this protected subset into an unprocessed platform deployment:
+friend-visible internal members can change names, so consuming first-party
+assemblies must join the graph or use reviewed preservation boundaries. Commercial
+approval, manufacturer keys, notices/EULA and distribution gates remain separate.
+
+The fragment `native-generator-protected-package-rehearsal` has impact `none`:
+these are disposable internal candidates, not a shipped SDK change. The next
+recommended step is to extend the reviewed graph to Importer and its worker
+boundaries before addressing the remaining native providers. VERSION, published
+releases, production trust and native release-date metadata remain unchanged.
+No commit, push, service restart, live database change or deployment occurred.
+Unrelated solution and private IDE changes remain untouched.
+
+## Joint Importer And OCR Worker Protection Milestone
+
+- [x] Add an explicit 14-assembly Generator/Importer/ImageAnalysis/OCR profile, preserving the existing nine-assembly profile and rejecting unexpected project closures.
+- [x] Jointly protect all profile assemblies, package 13 libraries and prepare a separate OCR runtime bundle with four matching first-party DLLs; never package the executable as a library.
+- [x] Preserve the four reflection-resolved PDF regeneration types and the page element field with narrow annotations; retain compiler-generated types/members and their unmarked nested collection helpers without excluding ordinary product implementations.
+- [x] Verify 776 public types, package/loaded-DLL hashes, all eight registry import formats, source-stream ownership, PDF load/rewrite/regeneration and real Skia image analysis in an independent package consumer.
+- [x] Run actual original/protected OCR workers on macOS/x64 with synthetic English text, bundled font/native libraries/language data and exact recognized word/bounds/confidence comparison; enforce real worker license denials before input reads.
+- [x] Preserve typed `PVADLIC014`/`PVADLIC015` errors through the parent OCR engine and verify error-path cleanup with targeted source tests and protected-package assertions.
+- [x] Retain named assertion evidence, remove all private candidates on every completed run, extend prepared CI/documentation and add separate internal-only and Patch fragments without publication.
+
+### Evidence And Remaining Regression Gate
+
+The successful local macOS/x64 run on 2026-11-20 is
+`artifacts/native-joint-packages/1795176805589-8def3ffd/`. It passes 100 unique
+baseline assertions and 465 unique protected-consumer assertions. All 776 public
+types compare equal. The 13 restored libraries match their protected package
+DLL hashes. The worker bundle records matching Core, Licensing, ImageOcr and
+Worker assembly hashes. Thirty-four third-party DLL resolution inputs remain
+byte-identical; 40 original dependency packages supply the offline restore feed.
+
+Actual native OCR executes on both sides and must recognize the synthetic
+English text. Recognized words, bounds and confidence compare exactly. Real
+worker processes reject missing, wrong-product and revoked licenses before
+reading the request. Parent-engine tests retain both revocation codes and remove
+staged files. The fixture projection compares page layout/extensions and element
+type/content/geometry, not every import property or provider fidelity. Both
+Generator PDF pages and the regenerated PDF raster match their baselines.
+No image threshold, geometry threshold or source fixture content was relaxed.
+
+The targeted source run at
+`artifacts/native-engine-tests/1795175620846-4d3679dc/` passes all nine OCR engine
+tests, including four native-diagnostic theory cases, without skips. Its raw TRX
+rows/counters and cleanup record were independently reconciled. All 85
+native/version/release-author tooling contracts and 73 Documentation tests pass;
+Documentation builds successfully. Existing compiler, Vite and NPOI warnings
+remain visible; no supplier terms were accepted.
+
+Earlier candidate runs are retained only as failed cleanup records, never passing
+evidence: `1795175571564-fab458c1` exposed inconsistent record virtual-method
+rules; `1795175736484-d45b1643` exposed the global short-alias collision;
+`1795176107230-831da152` and `1795176342223-eacacac4` exposed generated generic
+collection field-reference failures; `1795176565975-2e09e17c` narrowed the remaining
+failure to an unmarked nested enumerator. `SkipGenerated` alone was insufficient.
+The final decorator/member and compiler-name rules preserve that machinery.
+The writer and license-authority ILSpy checks still confirm implementation-name
+obfuscation. Shared fixture implementation/literals remain byte-identical after
+removing only the added namespace directive. Its aliases are now namespace-scoped;
+Obfuscar's short internal namespaces remain a documented consumer-source caveat.
+
+**The broader source Importer regression is not green.** The additional run at
+`artifacts/native-engine-tests/1795176550618-cc838b49/` compiled successfully but
+failed `pdfa2-cmyk:async:identical-output-and-strategy` in the existing E-Invoice
+continuation test. `PdfEInvoiceAttacher` writes attachment `ModDate` using current
+UTC time, a known nondeterministic input to this raw byte comparison. The failed
+run is not counted as acceptance. Make that clock/input deterministic, preserve
+the strict byte comparison and rerun the full source probe before closing the
+existing broad Trust/regression gate. No E-Invoice production behavior or test
+assertion was changed in this milestone.
+
+The final package and source-test runners confirm removed synthetic material and
+unchanged source trust/regular build outputs. This is a scoped package/OCR smoke
+milestone, not complete Importer/Trust/platform or native-product acceptance.
+Converter, CodeWorker, WebApi, Migration/provider protection, general source/DI
+compatibility, other native OCR runtime bundles, support-map retention and
+commercial distribution remain open. The Linux CI step is prepared but has not
+run remotely. No protected subset may replace unprocessed platform DLLs.
+
+The packaging fragment has impact `none`; typed OCR diagnostic propagation has
+impact `patch`. Next recommended work is the deterministic E-Invoice regression
+input/clock, followed by the remaining CodeWorker/Converter and provider graph.
+VERSION, published releases, production keys and native release-date metadata
+remain unchanged. No commit, push, live database mutation, service restart or
+deployment occurred. Unrelated solution and private IDE changes remain untouched.
+
+## Deterministic E-Invoice Attachment Clock Follow-Up
+
+- [x] Keep the original public attacher constructor and add an explicit `TimeProvider` overload for attachment metadata only; reject null dependencies and leave license/signature/archival clocks independent.
+- [x] Supply a fixed UTC metadata clock in the continuation probe without stripping metadata, normalizing output bytes or relaxing its exact PDF comparison.
+- [x] Pass 29 focused E-Invoice tests, including five clock cases covering exact bytes, advancing time, UTC conversion, system-clock compatibility, blocked preflight/attachment behavior and null dependencies.
+- [x] Review the sole public-surface change and pass the complete Importer/Image API and processing-coverage verification with 363 types, 5,088 members, 201 protected entries and two explicit interface bindings.
+- [x] Complete the full Importer source regression and independently reconcile its raw results and cleanup before claiming this follow-up is closed.
+- [x] Document the clock contract and add a backward-compatible Minor fragment; retain existing package/platform/commercial gates and unchanged product version, published releases and source trust.
+
+The focused run at
+`artifacts/native-engine-tests/1795178358043-be33f51b/` passes all 29 selected
+result rows without skips. The five new clock cases parse the actual embedded
+file `Params/ModDate`, compare full output bytes and result hashes for equal
+inputs, and require different metadata and result hashes after advancing time.
+XML bytes, attachment/source hashes, archival strategy and incremental source
+prefix remain checked. No sleep or wall-clock coincidence is needed for the
+determinism test. The legacy constructor is separately checked against real UTC.
+
+The public-surface capture at
+`artifacts/native-test-sessions/fbe7c163-39f2-4cc3-a859-a469f9ee72fd/` identifies
+only the additional `PdfEInvoiceAttacher(IPdfA2bConverter, TimeProvider)` overload.
+The original constructor and both processing methods remain. Only this type's
+reviewed inventory hash changes; no protected-entry classification is relaxed.
+
+The subsequent complete surface/processing run at
+`artifacts/native-test-sessions/4926e42e-bc62-4309-ab4c-68667fbd1316/` passes
+3,729 unique Importer checks and 252 unique Image/OCR checks. It covers 194
+E-Invoice/archive/color checks with the optional native LittleCMS requirement
+unset: all six synchronous/asynchronous byte comparisons pass, including the
+previously failing CMYK source; three cases assert fixed attachment metadata,
+and six cases confirm a newly denied attachment never reads the clock.
+All 1,720 snapshotted source inputs stay unchanged during verification, and
+temporary builds/licenses are removed. This supersedes the preceding failed
+run only for the verified source-processing scope, not protected packages,
+cross-platform/native dependency matrices or whole-product release acceptance.
+
+The complete Importer test-project run at
+`artifacts/native-engine-tests/1795178721316-f9677cdb/` passes all 677 tests with
+no failures or skips, including the five new clock cases. An independent raw TRX
+audit reconciles both result-row sets and all counters for the 29-test focused
+run and 677-test full run. Their cleanup records confirm removed ephemeral
+material, unchanged source trust and unchanged regular licensing build outputs.
+This closes the failed E-Invoice follow-up for local macOS/x64 source processing;
+the earlier failed run remains a failed historical record, never rewritten as
+passing. No pre-existing test assertion or input fixture was weakened.
+
+All 86 tooling/version/release-author tests and 73 Documentation tests pass;
+Documentation builds successfully. All 84 local documentation links/anchors,
+current naming/Markdown gates, version/fragment validation and `git diff --check`
+pass. Existing compiler, Vite and NPOI warnings remain visible and supplier terms
+are not accepted. The additional public constructor is a Minor capability,
+recorded in `einvoice-attachment-metadata-clock`; no release is prepared.
+
+No new protected-package run, API/database acceptance, visual baseline approval,
+Windows/Linux acceptance or remote CI execution is claimed. Continue with the
+remaining jointly protected CodeWorker/Converter/provider graphs and their
+consumer tests. VERSION, published release history, production trust, release
+metadata, live databases and unrelated solution/private IDE changes remain
+untouched. No commit, push, server restart, package publication or deployment
+occurred.
+
+## Joint Converter And CodeWorker Protection Milestone
+
+- [x] Add an explicit 16-assembly profile while retaining the nine- and fourteen-assembly profiles; validate the full dependency closure and exclude both executables from the 14 library packages.
+- [x] Prepare separate OCR/CodeWorker bundles with four/ten matching protected first-party DLLs, unchanged vendor resolution inputs and isolated source-free consumer restore.
+- [x] Compare nine Converter formats across 13 direct overloads and 18 interface calls, single/multiple-page output, missing/wrong rights and Converter-only entitlement without general PDF rights.
+- [x] Execute original and protected CodeWorkers for Model, Base64, semantic PDF Builder and legacy low-level PDF; retain source maps, fidelity, canonical models, actual mixed-size PDF pixels and stable error/license diagnostics.
+- [x] Correct late worker failures to clear unvalidated canonical design, PDF bytes and source maps while retaining diagnostics; reproduce the duplicate-ID failure before the fix and pass the same raw-worker test afterward.
+- [x] Complete the full CodeWorkspace conversion test class and Converter source regressions, then independently reconcile raw result rows and cleanup.
+- [x] Prepare a separate Linux CI job with report/cleanup-only artifact uploads, document exact comparison scope and add independent internal-only/Patch fragments without preparing a release or claiming remote/platform acceptance.
+
+### Joint Candidate Evidence
+
+The local macOS/x64 run at
+`artifacts/native-joint-packages/1795190540843-3ec08eb9/` passes all 359 baseline
+and 739 protected-consumer assertions, each with a unique name. All 788 exported
+types retain their reviewed public APIs. The 14 libraries match their package
+DLL hashes, and the separate bundles retain four OCR and ten CodeWorker
+first-party module hashes from the same joint protection output.
+
+The Converter comparison executes 62 single/multiple-page cases across all 31
+direct/interface paths. Text and extracted image bytes compare exactly. ZIP
+container timestamps are excluded by comparing parts. ODT `meta.xml` is parsed
+and reserialized with only its validated generated creation-date value replaced;
+the remaining metadata values are covered semantically and other parts remain
+byte-hashed. The two generated Spreadsheet workspace IDs retain the prior narrow
+normalization. No image, page-geometry or PDF raster threshold is relaxed.
+
+Twelve real CodeWorker requests run on each side. Model/Base64 DTO operations
+remain license-free. PDF Builder and low-level PDF requests require current PDF
+rights. Canonical models, source maps, fidelity and diagnostics compare without
+normalization. All five compared PDF pages pass: two Generator pages, one
+regenerated page and two mixed-size worker pages. The semantic Builder returns a
+canonical model for trusted host rendering, not a PDF rendered inside the worker.
+Missing, wrong-product, expired and revoked licenses produce stable diagnostics
+without design/PDF output; file-capability rejection, compilation errors, invalid
+Base64 and duplicate IDs remain covered. Real native OCR executes on macOS/x64.
+
+Thirty-eight vendor DLL resolution inputs stay byte-identical; 40 original
+dependency packages supply the offline restore feed. The usual licensing-authority
+and PDF-writer ILSpy checks pass. An additional independent type-name inspection
+of these same candidates confirms `StyleExtensions` and `PdfSnapshotDesignMapper`
+are present before protection and renamed afterward. This does not establish
+unrecoverable methods or general decompilation prevention.
+
+The first attempt at `1795179251768-78308296` failed on a syntax error in the new
+consumer and is not passing evidence. The second at `1795190349029-80d1f0c6`
+exposed a real late-validation error: the worker returned an unvalidated model
+despite a failure diagnostic. The same raw duplicate-ID request passes after
+central failure-result cleanup. Both failed cleanup records confirm removed
+private candidates, unchanged source trust and unchanged regular build outputs;
+the successful run confirms those same cleanup invariants.
+
+The full `CodeWorkspaceConversionTests` class at
+`artifacts/native-engine-tests/1795190809599-9bc7034a/` passes all 52 tests,
+including three new Model/Base64/PDF failed-result cases. The complete Converter
+test project at `artifacts/native-engine-tests/1795191177915-381a7294/` passes
+all ten tests. Neither run has failures or skips. Independent TRX audits
+reconcile the result rows, counters, new regressions and cleanup records.
+The package run's generated `validation.json` joins those source-test facts
+with the 16-assembly candidate counters and unique assertions; broad acceptance
+and publication remain explicitly false. The WebApi compiled for this filtered
+test class, but the entire API test suite and live tenant/database flows were
+not rerun.
+
+All 88 native/version/release-author tooling tests, 73 Documentation tests,
+Documentation production build, 85 local documentation links/anchors, current
+naming/Markdown guards, version/fragment validation and `git diff --check` pass.
+Existing compiler, analyzer, Vite and NPOI warnings remain visible; no supplier
+terms are accepted and no test threshold is relaxed.
+
+This milestone excludes Migration provider protection, WebApi/tenant integration,
+general OS sandbox hardening, remote CI execution, other native OCR platforms,
+full visual/fuzz/platform matrices, support-map retention and commercial package
+distribution. The two release fragments are independent: internal package
+rehearsal has impact `none`; failed-result cleanup has impact `patch`. VERSION,
+published releases, manufacturer trust, native release metadata, live databases
+and unrelated solution/private IDE changes remain untouched. No commit, push,
+service restart, registry publication or deployment occurred.
+
+## Joint Native Migration Package Milestone
+
+- [x] Add an explicit 54-assembly profile covering all 38 Migration projects, 52 library packages and both separate workers; reject incomplete project or package dependency closures.
+- [x] Reuse the full Code/Report/Viewer admission probes against original project outputs and independent protected-package consumers, including all 33 native providers and 24 representative Code fixtures read through Roslyn.
+- [x] Preserve public API, provider aliases, diagnostics, checksums and existing narrow Report/Viewer normalization contracts without modifying fixture contents or product dependency versions.
+- [x] Retain the complete Generator/Importer/Converter/worker comparisons, separate Roslyn runtime bundles and no-publication/cleanup safeguards while extending the graph.
+- [x] Complete the final strict run with the union of all original dependency feeds and per-probe third-party version checks, without the initial dependency substitution warning.
+- [x] Independently audit final counters, provider coverage, source fixture checksums, public API, cleanup and documentation before closing this milestone.
+
+### Intermediate Evidence And Tightened Dependency Gate
+
+The first attempt at `artifacts/native-joint-packages/1795191974278-23c99462/`
+failed because the fixture reader recognized `source` but the Spreadsheet tests
+use `src`. The correction still uses Roslyn syntax/literal APIs and leaves the
+source fixtures untouched. Its failed cleanup record confirms removed private
+material, unchanged source trust and unchanged regular product build outputs.
+
+The next run at `artifacts/native-joint-packages/1795192412078-4edbb01e/` passed
+its then-configured checks: 54 modules, 52 packages, 909 public types, 397
+baseline and 1,347 protected main-consumer assertions; each side also passed
+2,063 Code, 703 Report and 60 Viewer assertions. All 24 representative Code
+fixture source/result hashes matched. An independent ILSpy inspection of those
+same candidates confirms renamed private Roslyn admission, Aspose PDF rewriter,
+ClosedXML rewriter and RDL report implementation names. This verifies reduced
+name readability, not unrecoverable logic or general anti-tamper protection.
+
+That intermediate run also emitted NU1603: its Code consumer restored PKCS
+10.0.14 instead of the original smaller project's 10.0.13 because only the
+combined graph's dependency package set had populated the local feed. Although
+outputs matched and the recorded run succeeded, it is not the final dependency-
+parity acceptance. The harness now copies the union of the main and all three
+original probe restores and requires every original third-party package version
+in the corresponding protected restore. Product package references remain
+unchanged; no warning is suppressed. The final strict rerun is recorded below.
+
+The prepared Linux job uploads only report/cleanup JSON, not licenses, source
+code, packages, worker bundles or maps. The release fragment has impact `none`:
+these are disposable internal candidates, not a shipped SDK or deployment.
+Full WebApi/friend-boundary integration, HTTP Nutrient Designer composition,
+cross-platform/native dependency matrices, support-map retention, general
+fuzz/visual acceptance and commercial distribution remain separate gates.
+
+### Final Strict Migration Evidence
+
+The final local macOS/x64 run at
+`artifacts/native-joint-packages/1795193227001-5eb94299/` passes the tightened
+dependency-version assertions without the intermediate NU1603 substitution.
+Its offline dependency feed contains 45 original package versions. The 39
+vendor DLL resolution inputs remain byte-identical; the two separately recorded
+Roslyn resolution/standalone-worker variants stay unchanged in their own bundles.
+No product dependency version is changed or warning suppressed.
+
+The same 54 modules, 52 independently restored library packages and 909 public
+types pass. There are 397 baseline and 1,347 protected main-consumer assertions,
+plus 2,063 Code, 703 Report and 60 Viewer assertions on each side: 7,396 total.
+Assertion names are unique within each run. All 24 Code fixture source/output
+checksums, 37 Report entry outputs and three Viewer outputs match exactly under
+the documented existing projections. Full original/protected probe reports
+compare equal, not only their case counts. The Generator, regeneration and
+CodeWorker PDF raster comparisons and actual macOS/x64 OCR still pass.
+
+The generated `validation.json` independently reconciles provider counts,
+representative fixtures, public types, unique assertions, comparisons and
+cleanup. Candidate packages, workers, synthetic licenses, private support maps
+and caches are removed. Source trust and normal product build outputs remain
+unchanged. The original fixture files are read-only. This closes the local-feed
+native graph task above; broader preservation/DI, protected-support retention,
+platform and application integration tasks remain open.
+
+All 90 native/version/release-author tooling tests and 73 Documentation tests
+pass; Documentation builds successfully. Existing compiler, Vite and NPOI
+warnings remain visible, and supplier terms are not accepted. No complete
+Solution/API/fuzz/visual/platform regression run is claimed in this milestone.
+The prepared Linux workflow has not been executed remotely. VERSION, published
+release history, native release-date metadata, manufacturer trust, databases
+and unrelated solution/private IDE changes remain untouched. No commit, push,
+service restart, package publication or deployment occurred.
+
+## Private Support Retention Milestone
+
+- [x] Add an explicit map/portable-symbol allowlist and build manifest containing commit, dirty-state flag, version, tool version, retention deadline and original/protected assembly hashes.
+- [x] Seal the private manifest and payload with fresh authenticated encryption using only an approved public recipient key; never generate or register a production recipient implicitly.
+- [x] Require an independently recorded archive checksum for recovery; validate payload hashes, retention, names, limits and regular paths before creating an exclusive private restore directory.
+- [x] Prove exact recovery using a real isolated DLL, pinned Obfuscar mapping and original portable PDB after deleting the plaintext staging copy; verify tamper rejection, expiry and cleanup.
+- [x] Complete the final joint-package regression with its mapping-retention check and unchanged API, package-content and PDF-pixel gates.
+- [x] Add operator instructions, synthetic CI preparation and report-only upload contracts; keep customer packages, public symbol feeds and routine artifact uploads free of support material.
+- [ ] Provision the reviewed production recipient, independent checksum ledger, protected storage/Windows ACLs, key backups, retention lifecycle and access audit under an approved operational owner before retaining real release artifacts.
+
+### Support Retention Evidence And Boundaries
+
+The dedicated final local run at
+`artifacts/native-support-retention/1795194958028-736afc2f/` verifies one real
+DLL, joint mapping and original portable PDB. Node runs as ARM64; the actual
+.NET host is x64. The mapping and symbols are sealed using an ephemeral
+synthetic RSA recipient and recovered byte-for-byte after removing their
+plaintext staging copy. Tampering and expired recovery are rejected. Cleanup
+confirms removed candidate material, unchanged source trust and unchanged
+regular product outputs. No private key, archive, mapping or PDB is uploaded.
+
+The final nine-assembly package regression at
+`artifacts/native-joint-packages/1795194888364-264507fb/` also passes: nine
+independently restored protected packages, 413 unchanged public types, 30
+baseline and 187 protected-consumer assertions, identical PDF pixels and
+JSON/Word/Spreadsheet semantics, and byte-identical third-party assemblies.
+Its complete joint mapping survives encrypted recovery with matching hashes;
+no private PDB is generated in that package profile. Both final directories
+contain only report/cleanup JSON after their private work is removed. The final
+counters, restore flags and cleanup records were independently reconciled.
+The earlier 54-assembly Migration evidence remains valid for that earlier
+milestone; the new support-retention integration is not claimed as rerun across
+all 54 assemblies or remote operating systems in this milestone.
+
+The tooling provides AES-256-GCM encryption with RSA-OAEP/SHA-256 key wrapping
+and an independently required archive hash. Encryption does not authenticate a
+producer by itself; trusted ledger/provenance controls remain required. Original
+portable symbols describe pre-obfuscation DLLs, not rewritten protected-code
+debugger symbols. Input ownership and matching debug-directory identities are
+trusted build responsibilities, not certified by the PDB-header check.
+
+All 100 native/version/release-author tooling tests and 73 Documentation tests
+pass, and Documentation builds. Synthetic CI preparation spans three operating
+systems but has not been executed remotely. The dedicated and joint rehearsals
+remove synthetic archives; durable production storage, key ownership, automatic
+lifecycle deletion, Windows ACLs and access auditing remain open above. The
+operator procedure is recorded in
+[Native Library Support Artifacts](../operator-docs/PVAD.Native-Support-Artifacts.md).
+
+The internal-only release fragment has impact `none`. VERSION, published
+releases, native release metadata, manufacturer trust, databases, unrelated
+solution changes and private IDE files remain untouched. No commit, push,
+service restart, public package publication or deployment is performed.
 
 ## Acceptance Criteria
 

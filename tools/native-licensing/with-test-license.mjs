@@ -33,13 +33,17 @@ export function migrationReportTestGrant() {
 }
 
 // Synthetic keys never enter the source trust store or regular bin/obj directories.
-export function createTestLicenses(directory, now = Date.now(), includeCodeProviders = false, includeReportProviders = false) {
+export function createTestLicenses(directory, now = Date.now(), includeCodeProviders = false, includeReportProviders = false, includeIssuer = false, includeRevocations = false) {
   const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1',
     publicKeyEncoding: { type: 'spki', format: 'pem' } });
   const keyId = 'ephemeral-native-engine-test';
   const trustPath = join(directory, 'trust.json');
   writeFileSync(trustPath, JSON.stringify({ schemaVersion: 1, keys: [{ keyId, publicKeyPem: publicKey }] }), { mode: 0o600 });
   const paths = { trustPath };
+  if (includeIssuer) {
+    paths.issuerPrivateKey = join(directory, 'issuer-private.pem');
+    writeFileSync(paths.issuerPrivateKey, privateKey.export({ type: 'pkcs8', format: 'pem' }), { mode: 0o600 });
+  }
   const profiles = [
     ['pdf', ['pdf'], now - 60_000], ['word', ['word'], now - 60_000],
     ['spreadsheet', ['spreadsheet'], now - 60_000],
@@ -76,6 +80,15 @@ export function createTestLicenses(directory, now = Date.now(), includeCodeProvi
     paths[name] = join(directory, `${name}.json`);
     writeFileSync(paths[name], JSON.stringify(envelope), { mode: 0o600 });
   }
+  if (includeRevocations) {
+    const ids = ['pdf', 'importer'].map(name => JSON.parse(Buffer.from(JSON.parse(readFileSync(paths[name])).payload, 'base64')).licenseId);
+    const bytes = Buffer.from(JSON.stringify({ schemaVersion: 1, purpose: 'PVAD.NativeLicenseRevocations', sequence: 1,
+      issuedAt: new Date(now - 60_000).toISOString(), nextUpdate: new Date(now + 86400_000).toISOString(), revokedLicenseIds: ids }));
+    paths.revocations = join(directory, 'revocations.json');
+    writeFileSync(paths.revocations, JSON.stringify({ schemaVersion: 1, kind: 'PVAD.NativeLicenseRevocations', keyId,
+      algorithm: 'ECDSA_P256_SHA256_P1363', payload: bytes.toString('base64'),
+      signature: sign('sha256', bytes, { key: privateKey, dsaEncoding: 'ieee-p1363' }).toString('base64') }), { mode: 0o600 });
+  }
   return paths;
 }
 
@@ -102,7 +115,12 @@ function regularLicenseBuildSnapshot() {
 }
 
 export function main(args) {
-  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'converter', 'migration-code', 'migration-viewer', 'migration-report', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | converter | migration-code | migration-viewer | migration-report | test tests/<project>/<project>.csproj [dotnet test options]');
+  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'converter', 'migration-code', 'migration-viewer', 'migration-report', 'native-issuer', 'revocation', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | converter | migration-code | migration-viewer | migration-report | native-issuer | revocation | test tests/<project>/<project>.csproj [dotnet test options]');
+  if (args[0] === 'revocation') assert.equal(args.length, 1);
+  if (args[0] === 'native-issuer') {
+    assert.equal(args.length, 1);
+    assert.equal(process.env.PVAD_RUN_POSTGRES_TESTS, '1', 'native-issuer requires real PostgreSQL tests; skipped database checks are not acceptance.');
+  }
   if (args[0] === 'test') {
     assert.ok(args[1] && /^tests\/.+\.csproj$/.test(args[1]) && !args[1].split('/').includes('..') && existsSync(join(root, args[1])), 'Expected an existing repository test project.');
     assert.ok(!args.slice(2).some(arg => /^(--no-build|--no-restore|--artifacts-path|-p:|\/p:)/i.test(arg)), 'The runner owns isolated builds and their trust configuration.');
@@ -115,10 +133,31 @@ export function main(args) {
   const originalLicenseBuild = regularLicenseBuildSnapshot();
   let succeeded = false;
   try {
-    const paths = createTestLicenses(secret, Date.now(), args[0] === 'migration-code', args[0] === 'migration-report');
+    const paths = createTestLicenses(secret, Date.now(), args[0] === 'migration-code', args[0] === 'migration-report', args[0] === 'native-issuer', args[0] === 'revocation');
     const env = { ...process.env, PVAD_NATIVE_LICENSE_PATH: paths.integrated, NativeLicensing__LicensePath: paths.integrated };
     const properties = [`-p:PvadLicenseTrustStorePath=${paths.trustPath}`];
-    if (args[0] !== 'test') {
+    if (args[0] === 'native-issuer') {
+      env.PVAD_TEST_NATIVE_ISSUER_PRIVATE_KEY = paths.issuerPrivateKey;
+      env.PVAD_REQUIRE_NATIVE_ISSUER = '1';
+      run(['restore', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--artifacts-path', build, '--disable-parallel', ...properties,
+        '-p:PvadNativeLicenseTestBootstrap=true'], env);
+      run(['build', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-restore', '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false',
+        '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties, '-p:PvadNativeLicenseTestBootstrap=true',
+        '--verbosity', 'minimal'], env);
+      const filter = 'FullyQualifiedName~PvadNativeLicenseIssuanceTests|FullyQualifiedName~PvadLicensingSeparationTests|FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~AdminMutationContractTests|FullyQualifiedName~AdminSystemControllerTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~OpenApiNamingSnapshotTests';
+      run(['vstest', join(build, 'bin/PVAD.Api.Tests/debug/PVAD.Api.Tests.dll'), `/TestCaseFilter:${filter}`,
+        `/ResultsDirectory:${output}`, '/Logger:trx;LogFileName=licensed-tests.trx'], env);
+    } else if (args[0] === 'revocation') {
+      const project = 'tools/native-licensing/RevocationEngineProbe/RevocationEngineProbe.csproj';
+      run(['restore', project, '--artifacts-path', build, '--disable-parallel', ...properties, '-p:PvadNativeLicenseTestBootstrap=true'], env);
+      run(['build', project, '--no-restore', '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false',
+        '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties, '-p:PvadNativeLicenseTestBootstrap=true'], env);
+      const result = JSON.parse(run([join(build, 'bin/RevocationEngineProbe/debug/RevocationEngineProbe.dll'),
+        paths.integrated, paths.pdf, paths.importer, paths.revocations, join(build, 'bin/PVAD.CodeWorker/debug'),
+        join(build, 'bin/PVAD.FileImporter.ImageOcr.Worker/debug/PVAD.FileImporter.ImageOcr.Worker.dll')], env, true));
+      writeFileSync(join(output, 'revocation-admission.json'), JSON.stringify(result, null, 2) + '\n');
+      console.log(`REVOCATION admission: ${result.checks.length} checks passed.`);
+    } else if (args[0] !== 'test') {
       const probe = { pdf: 'PdfEngineProbe', word: 'WordEngineProbe', spreadsheet: 'SpreadsheetEngineProbe', importer: 'ImporterEngineProbe', image: 'ImageEngineProbe', converter: 'ConverterEngineProbe', 'migration-code': 'MigrationCodeEngineProbe', 'migration-viewer': 'MigrationViewerEngineProbe', 'migration-report': 'MigrationReportEngineProbe' }[args[0]];
       const project = `tools/native-licensing/${probe}/${probe}.csproj`;
       run(['build', project, '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false', '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties,

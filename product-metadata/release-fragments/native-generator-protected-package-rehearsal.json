@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-generator-protected-package-rehearsal",
+  "impact": "none",
+  "components": ["sdk", "generator", "infrastructure", "spreadsheet", "documentation"],
+  "category": "improved",
+  "summary": "Added a local verification workflow for jointly protected PDF, Word and Spreadsheet packages.",
+  "breaking": false,
+  "reason": "This is an internal rehearsal using disposable synthetic candidates; it does not publish packages or change deployed product behavior."
+}

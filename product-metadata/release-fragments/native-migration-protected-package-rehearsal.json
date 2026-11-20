@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-migration-protected-package-rehearsal",
+  "impact": "none",
+  "components": ["migration", "generator", "importer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Extended protected-package compatibility checks to all native migration providers.",
+  "reason": "Adds disposable local candidates and provider validation; no public package or deployed runtime is replaced.",
+  "breaking": false
+}

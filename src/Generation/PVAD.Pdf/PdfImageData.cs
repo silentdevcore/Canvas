@@ -1,5 +1,7 @@
 namespace PVAD.Pdf;
 
+// The Importer regeneration bridge resolves this contract by name.
+[System.Reflection.Obfuscation(Exclude = true, ApplyToMembers = true)]
 internal sealed class PdfImageData
 {
     public required int Width { get; init; }

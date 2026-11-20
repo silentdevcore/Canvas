@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using PVAD.WebApi.Services.Licensing;
 
 namespace PVAD.WebApi.Application.Designer;
@@ -73,6 +74,21 @@ public sealed class PvadCodeWorkerClient(
             if (!string.IsNullOrWhiteSpace(nativeLicensing?.Value.LicensePath))
                 process.StartInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] =
                     Path.GetFullPath(nativeLicensing.Value.LicensePath, environment.ContentRootPath);
+            if (request.Language == PvadCodeLanguages.CSharpPdf)
+            {
+                var revocations = PvadLicense.CaptureRevocations();
+                if (revocations is not null)
+                {
+                    var path = Path.Combine(directory, "native-revocations.json");
+                    var fileOptions = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+                    if (!OperatingSystem.IsWindows()) fileOptions.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+                    await using (var stream = new FileStream(path, fileOptions)) await stream.WriteAsync(revocations, cancellationToken);
+                    process.StartInfo.Environment["PVAD_NATIVE_REVOCATIONS_PATH"] = path;
+                }
+                else if (!string.IsNullOrWhiteSpace(nativeLicensing?.Value.RevocationListPath))
+                    process.StartInfo.Environment["PVAD_NATIVE_REVOCATIONS_PATH"] =
+                        Path.GetFullPath(nativeLicensing.Value.RevocationListPath, environment.ContentRootPath);
+            }
             try
             {
                 if (!process.Start())

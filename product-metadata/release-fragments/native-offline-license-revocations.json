@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-offline-license-revocations",
+  "impact": "minor",
+  "components": ["sdk", "api", "importer", "documentation"],
+  "category": "added",
+  "summary": "Added explicitly imported, signed offline license revocation lists with cumulative history, rollback rejection and propagation to PDF code and OCR workers.",
+  "breaking": false
+}

@@ -459,6 +459,8 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
 function bindEvents(): void {
   document.querySelectorAll<HTMLAnchorElement>('a[href^="/"]').forEach((link) => link.addEventListener('click', (event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (link.hasAttribute('data-native') || link.hasAttribute('download') || link.target ||
+        new URL(link.href).origin !== location.origin || new URL(link.href).pathname.startsWith('/api/')) return;
     event.preventDefault();
     closeAccountNavigation();
     navigate(link.getAttribute('href')!);

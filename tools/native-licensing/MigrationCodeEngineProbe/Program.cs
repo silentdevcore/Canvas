@@ -7,6 +7,9 @@ using PVAD.Migration.Abstractions;
 using PVAD.Migration.Pdf;
 using PVAD.Migration.Roslyn;
 using PVAD.Migration.Spreadsheet;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 if (args.Length != 3) return 64;
 var checks = new List<string>();
@@ -47,6 +50,25 @@ PvadLicense.LoadFromFile(args[0]);
 foreach (var product in new[] { "pdf", "word", "spreadsheet", "importer", "converter" })
     Denied(() => PvadLicense.Require(product), "PVADLIC012", "migration-license-not-generator:" + product);
 var baselines = entries.ToDictionary(entry => entry.Id, entry => entry.Direct.Migrate(source).MigratedCode);
+var fixtureSourceChecksums = new Dictionary<string, string>();
+var fixtureOutputChecksums = new Dictionary<string, string>();
+foreach (var entry in entries)
+{
+    var record = inventory.Entries.Single(value => value.Provider == entry.Descriptor.ProviderKey && value.Product == entry.Product);
+    var assembly = Path.GetFileName(Path.GetDirectoryName(record.Source))!;
+    var file = Path.Combine(FindRoot(), "tests", assembly + ".Tests", record.Type + "Tests.cs");
+    var fixture = CSharpSyntaxTree.ParseText(File.ReadAllText(file)).GetRoot().DescendantNodes()
+        .OfType<VariableDeclaratorSyntax>().Where(node => string.Equals(node.Identifier.ValueText, "source", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(node.Identifier.ValueText, "src", StringComparison.OrdinalIgnoreCase))
+        .Select(node => node.Initializer?.Value).OfType<LiteralExpressionSyntax>()
+        .Where(node => node.IsKind(SyntaxKind.StringLiteralExpression)).Select(node => node.Token.ValueText)
+        .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))
+        ?? throw new InvalidOperationException("No representative literal fixture for " + entry.Id);
+    var direct = JsonSerializer.Serialize(entry.Direct.Migrate(fixture));
+    Check(direct == JsonSerializer.Serialize(entry.Factory.Migrate(fixture)) && direct.Contains("PVAD", StringComparison.Ordinal), entry.Id + ":representative-source-direct-and-factory");
+    fixtureSourceChecksums.Add(entry.Id, Hash(fixture));
+    fixtureOutputChecksums.Add(entry.Id, Hash(direct));
+}
 foreach (var entry in entries)
 {
     foreach (var call in Calls(entry)) Equivalent(call.Run(source), baselines[entry.Id], entry.Id + ":" + call.Name + ":licensed");
@@ -90,9 +112,12 @@ var analysisChecks = MigrationAnalysisChecks.Run(args, checks);
 Check(checks.Distinct().Count() == checks.Count, "unique-check-identifiers");
 Console.WriteLine(JsonSerializer.Serialize(new { checks, providers = entries.Length, pdfProviders = 16, spreadsheetProviders = 8,
     analysisChecks,
+    fixtureSourceChecksums, fixtureOutputChecksums,
     outputChecksums = baselines.ToDictionary(pair => pair.Key, pair => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(pair.Value)))),
     processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;
+
+static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
 IEnumerable<(string Name, Func<string, MigrationResult> Run)> Calls(Entry entry)
 {

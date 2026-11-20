@@ -68,6 +68,44 @@ Status contains no full license, customer name, key material, or filesystem path
 An admitted operation may finish after subscription expiry; new operations
 must obtain fresh admission.
 
+## Manufacturer Issuance And Renewal
+
+A separate, default-disabled manufacturer backend can now issue and renew native
+license artifacts. It requires explicit issuer-user allowlisting, the actual
+global System Administrator role, license-management permission, and a recent
+live verified-user session. Customer servers must remain verification-only;
+their server offline-license configuration cannot authorize native issuance.
+
+Signing uses a separately mounted manufacturer private key and validates every
+new artifact against the native embedded public-key register before storage.
+It never generates a replacement key or trusts a key supplied by a request.
+Production native public-key provisioning remains an explicit release gate.
+
+Issuance records and successful audit events commit atomically to an immutable
+ledger. Idempotency keys prevent duplicate retries; concurrent renewals produce
+at most one successor. Renewal extends subscription validity or perpetual update
+eligibility without changing customer, model, product/provider rights, start date,
+or redistribution permission. Trials cannot be renewed. Original artifacts are
+not rewritten or remotely revoked.
+
+PVADE Admin now has a separate **Native library licenses** manufacturer workspace
+for catalog-driven issuance, inspection, download and renewal. It is distinct
+from server offline licenses and disabled on verification-only deployments.
+PVADE Account > Licenses lists native artifacts for the active organization, with
+product/provider details and downloads. These read-only customer endpoints need
+an active verified session and membership, not issuer mode or private keys.
+Foreign IDs return 404 within an otherwise authorized workspace. Stale responses
+are discarded after user or organization changes. Native downloads retain the
+original bytes; they check stored integrity, while activation independently
+verifies signatures and current processing rights. Neither downloading nor
+renewing an artifact remotely revokes old offline copies.
+
+The restricted manufacturer API is excluded from public OpenAPI. Operational
+configuration and delivery procedures belong to the protected
+[manufacturer runbook](../operator-docs/PVAD.Native-Library-License-Issuance.md),
+not the public Documentation navigation. These capabilities do not provision
+production keys or replace commercial and package-distribution approval.
+
 PDF construction admits creation; the shared internal writer separately admits
 each serialization. Replacing the active license with one that lacks `pdf`
 prevents subsequent `ToBytes` and `Save` calls on existing documents. Rejection
@@ -104,7 +142,7 @@ Word license. Export and signing failures propagate to the existing HTTP 503
 Problem Details handler; they must not be treated as bad document content or a
 user-subscription denial. Do not edit the signed payload to add grants: obtain
 an authorized replacement and load it explicitly. Manufacturer key provisioning
-and native-license Admin/Account issuance remain open prerequisites, not an
+and protected-package acceptance remain open prerequisites, not an
 automatic action performed by this integration.
 
 ## Code Migration Provider Activation
@@ -1054,6 +1092,15 @@ for exact historical tests, source comparisons and scope.
 
 ### E-Invoice And Archival Conversion Continuations
 
+Attachment metadata uses the system UTC clock by default. For reproducible
+processing, `PdfEInvoiceAttacher` also accepts a `TimeProvider` as its second
+constructor argument. A fixed clock makes repeated attachments byte-identical
+when the source, payload, options and conversion inputs are identical. An
+advancing clock updates the embedded file's UTC `ModDate`; it does not control
+license validity, signature validation or archival validation. The original
+one-argument constructor remains available. The native continuation probe uses
+a fixed metadata clock and retains its strict full-PDF byte comparison.
+
 Attachment preflight, attachment writing, associated-file extraction and
 PDF/A-2b/3b conversion check current Importer rights at every public entry. An
 admitted operation keeps its original verifier-bound admission through parsing,
@@ -1199,8 +1246,9 @@ formatting and mutation behavior remain unchanged. XLSX/BIFF8 outputs are checke
 semantically, not by byte equality, because package metadata can vary. Third-party
 NPOI distribution approval remains separate and is not granted by successful tests.
 See the [product dependency milestone](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#product-dependency-and-spreadsheet-continuation-milestone)
-for exact local evidence. Other composite graphs and Migration integration,
-native issuance/UI, obfuscation, packaging and platform acceptance remain open.
+for exact local evidence. That checkpoint predates the subsequent Migration and
+manufacturer Admin/Account milestones described above. Remaining composite,
+obfuscation, packaging and platform acceptance must be assessed separately.
 
 ## API And Worker Activation
 
@@ -1320,7 +1368,55 @@ API/PostgreSQL, coverage-matrix, or visual-parity acceptance is implied.
 - Provider grants use explicit canonical keys scoped by migration domain/kind. Aliases, wildcards, roles, and Cloud editions are not native grants.
 - Developer seats and redistribution rights are contractual. Offline operation cannot guarantee global seat/instance counting, immediate revocation, or a trustworthy clock.
 
-Signed revocation-list import remains a separate milestone.
+## Signed Offline Revocation Lists
+
+Native revocations are explicit local imports, not an online activation service.
+Applications without a configured list keep their existing behavior. Import the
+latest approved manufacturer artifact before activation and on every restart:
+
+```csharp
+PvadLicense.ImportRevocationsFromFile(configuration["PVAD:RevocationsPath"]!);
+PvadLicense.LoadFromFile(configuration["PVAD:LicensePath"]!);
+var revocations = PvadLicense.GetRevocationStatus();
+```
+
+`ImportRevocationsFromStream` reads from the current position, leaves the stream
+open and enforces the same 64 KiB envelope / 32 KiB payload limits as licenses.
+The separate version-one envelope adds `kind: "PVAD.NativeLicenseRevocations"`.
+Its exact signed payload contains `schemaVersion`, the matching `purpose`, a
+positive global `sequence`, UTC `issuedAt` / `nextUpdate`, and at most 512 unique,
+non-empty `revokedLicenseIds`. It contains no customer names, document data or
+private/public keys. ECDSA-P256/SHA-256/P1363 and the existing embedded manufacturer
+key register are authoritative; changing the signer does not reset sequencing.
+
+Each newer list must retain every known revoked ID and must not move its issue
+date backward. Lower sequences, altered same-sequence payloads, future-dated
+lists, malformed data and invalid signatures leave the accepted list untouched.
+Re-signing the identical payload is an idempotent import. No public reset or
+unrevoke operation exists. Correct an erroneous revocation by separately issuing
+a replacement license ID, not by removing historical entries.
+
+An active license in the list reports `Revoked` / `PVADLIC014`. New native
+operations, license reloads and worker admissions fail; already admitted private
+continuations may finish under their original snapshot. Loading a different
+valid license never clears the revocation state. Updates and concurrent license
+replacements are serialized so a successful reload cannot lose known revocations.
+
+`nextUpdate` is a freshness warning, not a hidden mandatory Internet or renewal
+requirement. An overdue list still blocks all known revoked IDs, permits otherwise
+valid unrelated licenses, and reports `IsStale`. Operators must distribute new
+signed lists explicitly. There is no background fetch, automatic remote kill,
+trusted offline clock or guaranteed protection against an operator restoring an
+old file after process restart. Protect and back up the latest approved artifact
+and sequencing record. Larger lists, sharding, signer-key revocation and a durable
+manufacturer revocation-management API remain separate follow-ups.
+
+API hosts can set `NativeLicensing:RevocationListPath`; startup imports that list
+before activating the license and fails on invalid configured input. C# PDF and
+OCR workers receive only a snapshot of the accepted signed list, never a signing
+key or source-visible bypass. OCR captures license and list atomically and removes
+temporary handoff files. Customer Account downloads and manufacturer renewal
+history do not themselves revoke an artifact or change a server's imported list.
 
 ## Signature And Trust Contract
 
@@ -1383,8 +1479,10 @@ dotnet run --project tools/PVAD.LicenseIssuer -- \
   --output /secure/new-native-license.json
 ```
 
-Authenticated native-license issuance, durable native-license audit,
-Admin/Account integration, and authorized native-license downloads remain open.
+The separate manufacturer service now provides authenticated native-license
+issuance, immutable audit records, Admin management and authorized Account
+downloads, as described above. The offline tool does not provide these controls;
+automated durable revocation-list management remains a separate follow-up.
 Existing server-license verification and issuance are now separate services;
 the default customer Compose mounts only a public verification key. Manufacturer
 server-license issuance requires an explicit, separately provisioned issuer mode.
@@ -1410,12 +1508,53 @@ Do not mount manufacturer private keys into customer containers.
 | `PVADLIC011` | Release outside perpetual update rights |
 | `PVADLIC012` | Product/provider not licensed |
 | `PVADLIC013` | File/stream could not be read |
+| `PVADLIC014` | License ID revoked by an explicitly imported signed list |
+| `PVADLIC015` | Future-dated, rolled-back, altered or non-cumulative revocation update |
 
 ## Protection And Packaging
 
+The local joint Generator rehearsal now processes nine related first-party
+assemblies together and builds independent NuGet consumers from the protected
+output. It compares public API contracts, JSON/DOCX/XLSX semantics, license
+failures and two-page PDF pixels with an unprotected baseline. See the
+[rehearsal guide](../tools/native-licensing/README.md#joint-generator-package-rehearsal)
+for the exact scope and prerequisites. Synthetic candidates are never published
+and are removed after the run. Third-party dependencies are not obfuscated.
+An additional [Importer/OCR rehearsal](../tools/native-licensing/README.md#joint-importer-and-ocr-worker-rehearsal)
+extends the graph to 14 assemblies and tests 13 library packages plus the separate
+OCR worker bundle. It covers the eight registry imports, PDF regeneration,
+image analysis, worker license denials and actual OCR on macOS/x64. Other native
+OCR platforms explicitly remain unexecuted. This does not replace complete
+Importer/Trust tests or establish API, CodeWorker, Migration, visual/platform,
+support-artifact or commercial distribution acceptance.
+
+The [Converter/CodeWorker profile](../tools/native-licensing/README.md#joint-converter-and-codeworker-rehearsal)
+extends the same local graph to 16 assemblies, 14 library packages and two
+separate worker bundles. It compares all nine Converter formats and real
+CodeWorker Model/Base64/PDF Builder/low-level PDF execution against original
+binaries, including two-page PDF pixels and license/error contracts. ODT
+comparison normalizes only its validated generated creation date; ZIP entries
+are compared independently of ZIP timestamps. This scoped test does not bring
+WebApi, migration providers or general OS sandbox acceptance into the graph.
+
+The [Migration rehearsal](../tools/native-licensing/README.md#joint-migration-provider-rehearsal)
+adds all 38 native Migration projects, producing a 54-assembly graph and 52
+library packages while keeping both workers separate. Existing native provider
+probes run against original assemblies and independently restored protected
+packages. Representative provider fixtures, per-provider licensing, diagnostics,
+aliases and normalized output checksums are compared without changing product
+dependencies or original fixture contents. The HTTP-hosted PDF Designer
+composition, full WebApi integration and distribution/platform gates remain
+outside this native package milestone.
+
 Pinned Obfuscar and ILSpy tools protect/audit candidate output. Public APIs and
 serialization metadata must survive, third-party binaries stay unchanged, and
-debugging maps stay private. Renaming internal code raises inspection effort;
+debugging maps stay private. The [support-retention tooling](../tools/native-licensing/README.md#private-support-retention)
+seals joint mappings and optional original portable symbols independently of
+customer packages; synthetic restore tests cover checksums and tampering.
+Production recipient keys, private storage and its access/retention policies
+remain separate deployment requirements. Original symbols are not rewritten
+post-obfuscation debugger symbols. Renaming internal code raises inspection effort;
 it does not prevent decompilation or patching. Signatures authenticate licenses,
 not customer-controlled runtime integrity.
 

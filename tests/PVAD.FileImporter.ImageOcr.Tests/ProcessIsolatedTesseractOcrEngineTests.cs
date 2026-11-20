@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using PVAD.FileImporter.ImageOcr;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter.ImageOcr.Tests;
 
@@ -122,6 +123,25 @@ public sealed class ProcessIsolatedTesseractOcrEngineTests
             engine.RecognizeAsync([new OcrImagePage(0, 10, 10, [1])], new ImageToPdfConversionOptions()));
 
         Assert.Contains("worker failed", ex.Message);
+        Assert.False(Directory.Exists(runner.LastWorkingDirectory));
+    }
+
+    [Theory]
+    [InlineData("PVADLIC009")]
+    [InlineData("PVADLIC012")]
+    [InlineData("PVADLIC014")]
+    [InlineData("PVADLIC015")]
+    public async Task RecognizeAsync_PreservesNativeLicenseDiagnosticsAndDeletesTempDirectory(string code)
+    {
+        var runner = new FakeRunner(async context =>
+        {
+            await WriteResponseAsync(context.ResponsePath, new OcrWorkerResponse { LicenseErrorCode = code });
+            return new OcrWorkerProcessResult(1, false, "", "");
+        });
+        using var tempRoot = new TestTempDirectory();
+        var engine = new ProcessIsolatedTesseractOcrEngine("/fake/worker.dll", tempRoot: tempRoot.Path, runner: runner);
+        var error = await Assert.ThrowsAsync<PvadLicenseException>(() => engine.RecognizeAsync([], new()));
+        Assert.Equal(code, error.Code);
         Assert.False(Directory.Exists(runner.LastWorkingDirectory));
     }
 

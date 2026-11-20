@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { verify } from 'node:crypto';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { verify, createPublicKey } from 'node:crypto';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -57,8 +57,39 @@ test('code-provider probes receive explicit single-provider grants without broad
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
+test('manufacturer signer tests alone opt into an ephemeral owner-only private key matching synthetic trust', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'pvad-issuer-fixture-contract-'));
+  try {
+    const paths = createTestLicenses(directory, Date.now(), false, false, true);
+    const trust = JSON.parse(readFileSync(paths.trustPath));
+    assert.equal(createPublicKey(readFileSync(paths.issuerPrivateKey)).export({ type: 'spki', format: 'pem' }), trust.keys[0].publicKeyPem);
+    if (process.platform !== 'win32') assert.equal(statSync(paths.issuerPrivateKey).mode & 0o777, 0o600);
+    assert.equal(readdirSync(directory).length, 13);
+    assert.ok(!readFileSync(paths.trustPath, 'utf8').includes('PRIVATE'));
+    assert.throws(() => main(['native-issuer', '--no-build']));
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
 test('isolated runner rejects foreign projects and build-directory overrides before building', () => {
   assert.throws(() => main(['test', '../foreign.csproj']));
   assert.throws(() => main(['test', 'tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj', '--no-build']));
   assert.throws(() => main(['test', 'tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj', '-p:ArtifactsPath=elsewhere']));
+});
+
+test('revocation fixtures are domain-separated signed cumulative metadata and never export a private key', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'pvad-revocation-fixture-contract-'));
+  try {
+    const paths = createTestLicenses(directory, Date.now(), false, false, false, true);
+    const envelope = JSON.parse(readFileSync(paths.revocations));
+    const trust = JSON.parse(readFileSync(paths.trustPath));
+    const bytes = Buffer.from(envelope.payload, 'base64');
+    assert.ok(verify('sha256', bytes, { key: trust.keys[0].publicKeyPem, dsaEncoding: 'ieee-p1363' }, Buffer.from(envelope.signature, 'base64')));
+    const payload = JSON.parse(bytes);
+    assert.equal(envelope.kind, 'PVAD.NativeLicenseRevocations');
+    assert.equal(payload.purpose, envelope.kind); assert.equal(payload.sequence, 1);
+    assert.deepEqual(payload.revokedLicenseIds, ['pdf', 'importer'].map(name => JSON.parse(Buffer.from(JSON.parse(readFileSync(paths[name])).payload, 'base64')).licenseId));
+    assert.equal(readdirSync(directory).length, 13);
+    assert.equal(paths.issuerPrivateKey, undefined);
+    assert.throws(() => main(['revocation', '--foreign-build']));
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });

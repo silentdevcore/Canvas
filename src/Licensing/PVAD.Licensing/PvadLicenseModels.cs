@@ -24,7 +24,7 @@ public static class PvadLicenseProducts
 }
 
 public enum PvadLicenseModel { Trial, Subscription, Perpetual }
-public enum PvadLicenseState { Unlicensed, Active, GracePeriod, NotYetValid, Expired, UpdateNotCovered }
+public enum PvadLicenseState { Unlicensed, Active, GracePeriod, NotYetValid, Expired, UpdateNotCovered, Revoked }
 
 /// <summary>A product grant. Migration providers use canonical registry keys, never aliases.</summary>
 public sealed record PvadLicenseGrant(string Product, string[] Providers);

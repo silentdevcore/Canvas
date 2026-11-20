@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-ocr-revocation-diagnostic-propagation",
+  "impact": "patch",
+  "components": ["importer", "sdk", "api"],
+  "category": "fixed",
+  "summary": "OCR now preserves native-license revocation diagnostics across isolated worker boundaries.",
+  "breaking": false
+}

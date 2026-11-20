@@ -3,6 +3,7 @@ const adminUsersBase = '/api/pvad/v1/admin/users';
 const adminOrganizationsBase = '/api/pvad/v1/admin/organizations';
 const adminSubscriptionsBase = '/api/pvad/v1/admin/subscriptions';
 const adminLicensesBase = '/api/pvad/v1/admin/licenses';
+const nativeLicensesBase = '/api/pvad/v1/admin/native-licenses';
 const adminServiceAccountsBase = '/api/pvad/v1/admin/service-accounts';
 const adminAuditBase = '/api/pvad/v1/admin/audit';
 const adminRolesBase = '/api/pvad/v1/admin/roles';
@@ -10,11 +11,12 @@ const adminLegalBase = '/api/pvad/v1/admin/legal';
 const adminRetentionBase = '/api/pvad/v1/admin/system/retention';
 
 async function request(path, options = {}) {
+  const { localForbidden = false, ...fetchOptions } = options;
   let response;
   try {
     response = await fetch(path, {
       credentials: 'include',
-      ...options,
+      ...fetchOptions,
       headers: {
         Accept: 'application/json',
         ...options.headers,
@@ -45,7 +47,7 @@ async function request(path, options = {}) {
     error.traceId = body?.traceId;
     if (response.status === 401)
       window.dispatchEvent(new CustomEvent('pvad:session-expired', { detail: error }));
-    else if (response.status === 403)
+    else if (response.status === 403 && !localForbidden)
       window.dispatchEvent(new CustomEvent('pvad:access-denied', { detail: error }));
     throw error;
   }
@@ -140,9 +142,10 @@ export async function bulkUpdateAdminUsers(userIds, action) {
   return adminMutation(`${adminUsersBase}/bulk`, 'POST', { userIds, action });
 }
 
-async function adminMutation(path, method, body) {
+async function adminMutation(path, method, body, options = {}) {
   const { token } = await request(`${authBase}/csrf`);
   return request(path, {
+    ...options,
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -151,6 +154,15 @@ async function adminMutation(path, method, body) {
     body: JSON.stringify(body),
   });
 }
+
+export const getNativeLicenseCapabilities = () => request(`${nativeLicensesBase}/capabilities`, { localForbidden: true });
+export const getNativeLicenses = ({ page = 1, organizationId = '' } = {}) => request(
+  `${nativeLicensesBase}?${new URLSearchParams({ page: String(page), pageSize: '25', ...(organizationId ? { organizationId } : {}) })}`,
+  { localForbidden: true });
+export const getNativeLicenseDetails = id => request(`${nativeLicensesBase}/${encodeURIComponent(id)}/details`, { localForbidden: true });
+export const issueNativeLicense = payload => adminMutation(nativeLicensesBase, 'POST', payload, { localForbidden: true });
+export const renewNativeLicense = (id, payload) => adminMutation(`${nativeLicensesBase}/${encodeURIComponent(id)}/renew`, 'POST', payload, { localForbidden: true });
+export const nativeLicenseDownloadUrl = id => `${nativeLicensesBase}/${encodeURIComponent(id)}/download`;
 
 export async function updateAdminUserStatus(userId, isActive) {
   return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/status`, 'PATCH', { isActive });

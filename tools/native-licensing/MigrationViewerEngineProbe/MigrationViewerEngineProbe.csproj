@@ -6,7 +6,10 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(PvadProtectedMigrationConsumer)' != 'true'">
     <ProjectReference Include="../../../src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient/PVAD.Migration.Pdf.Viewer.Nutrient.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadProtectedMigrationConsumer)' == 'true'">
+    <PackageReference Include="PVAD.Migration.Pdf.Viewer.Nutrient" Version="$(PvadVersion)" />
   </ItemGroup>
 </Project>

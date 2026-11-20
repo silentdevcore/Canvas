@@ -33,7 +33,7 @@ public sealed partial class AdminMutationContractTests
             .ThenBy(value => value.Method.Name, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(50, mutations.Length);
+        Assert.Equal(52, mutations.Length);
         Assert.Contains(mutations, value => value.Controller == typeof(AdminLicensesController)
             && value.Method.Name == nameof(AdminLicensesController.ReplaceLicense));
         foreach (var mutation in mutations)

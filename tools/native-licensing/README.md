@@ -1,8 +1,11 @@
 # Native License Preparation And Protection
 
-This tooling is a local preparation foundation, not complete native product
-enforcement or an authenticated licensing service. The production trust register
-is intentionally empty until manufacturer keys are approved.
+This tooling provides local preparation and isolated native-license tests, not
+a public licensing service. All current native entry points are guarded; broader
+package/platform acceptance remains open. A separate default-disabled
+manufacturer API now handles authenticated native issuance and renewal.
+The production trust register is intentionally empty until manufacturer keys
+are approved.
 
 ```bash
 node tools/native-licensing/pvad-native-licensing.mjs check
@@ -45,7 +48,296 @@ cross-platform run; those acceptance items remain open until executed.
 See the [guide](../../docs/native-library-licensing.md) and
 [checklist](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md).
 
+## Private Support Retention
+
+`support-artifacts.mjs` prepares encrypted archives of explicit joint Obfuscar
+mappings and original portable PDBs. Build identity, tool version and exact
+original/protected DLL hashes bind the files to their build. Recovery requires
+both the separate recipient private key and an independently recorded archive
+checksum; encryption alone does not authenticate the producer. These files
+never belong in customer packages, public symbols or ordinary CI uploads.
+
+```bash
+node --test tools/native-licensing/support-artifacts.test.mjs
+node tools/native-licensing/support-retention-rehearsal.mjs
+```
+
+The second command builds a real isolated DLL and portable PDB, protects it,
+seals its mapping/symbols with a disposable synthetic recipient, removes the
+plaintext staging copy, and verifies exact recovery, tamper rejection, expiry
+and cleanup. Joint-package profiles now exercise their complete mapping too;
+they intentionally produce no private PDBs. Only non-secret report/cleanup JSON
+is eligible for CI upload. No production key, storage backend, automatic
+retention deletion or rewritten post-obfuscation symbols are supplied.
+
+The [operator guide](../../operator-docs/PVAD.Native-Support-Artifacts.md)
+describes the request contract, explicit seal/restore commands, separate key
+custody, Windows ACL requirements, retention and remaining deployment gates.
+
+## Manufacturer Issuance Tests
+
+Use an available Docker daemon and opt into the real PostgreSQL container tests:
+
+```bash
+PVAD_RUN_POSTGRES_TESTS=1 node tools/native-licensing/with-test-license.mjs native-issuer
+```
+
+With Rancher Desktop on macOS, set `DOCKER_HOST` to its actual user socket and
+`TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` when required by the
+local Docker configuration. Do not point the runner at a live application
+database. The test harness owns and disposes its PostgreSQL containers.
+
+Only this explicit mode writes an ephemeral owner-only private key matching its
+isolated embedded trust. Ordinary test fixtures and workers do not receive that
+key. The runner tests the real production signer, native manufacturer
+authorization, issuance/renewal, atomic audit rollback, append-only SQL triggers,
+concurrent successor rejection, CSRF, and existing server-license separation.
+Database-test opt-in is mandatory; skipped PostgreSQL tests are not acceptance.
+Native Admin and customer Account workflows are covered by the same selected
+API suite; customer reads remain independent of manufacturer signing keys.
+
+Temporary signed licenses, the private key, and synthetic-trust binaries are
+removed in `finally`. Only synthetic TRX and cleanup/run metadata are uploaded
+by the prepared Ubuntu CI job; never upload the private directory or isolated
+build. Local execution is not evidence that the remote CI job has run.
+
+See the protected [manufacturer runbook](../../operator-docs/PVAD.Native-Library-License-Issuance.md)
+for deployment boundaries, configuration and safe operator procedures.
+
+With the Admin and Account dev servers on their usual localhost ports, run:
+
+```bash
+node tools/native-licensing/license-ui-smoke.mjs
+```
+
+This Playwright rehearsal intercepts all API requests with synthetic data. It
+checks issuance, renewal, exact downloads, organization switching and visible
+control geometry at 1440px and 390px. It does not establish real authentication
+or cryptographic acceptance; the PostgreSQL/HTTP suite does that separately.
+Reports and screenshots are written to ignored `artifacts/native-license-ui/`.
+Use `--capture-docs` only to refresh the protected Admin screenshots with the
+same non-usable synthetic artifacts. No private key or production license enters
+the browser fixture. Restore, build and VSTest run as separate phases in the
+explicit manufacturer runner so a nested test build cannot silently stall.
+
 ## PDF Enforcement Tests
+
+### Joint Generator Package Rehearsal
+
+```bash
+node tools/native-licensing/joint-package-rehearsal.mjs
+```
+
+Requires .NET 10, the pinned Obfuscar/ILSpy tools, the repository's Node parser
+dependencies and `pdftoppm` (Poppler). The reviewed profile contains exactly nine
+assemblies: Licensing, Core, Domain, Application, Pdf, Infrastructure.Pdf,
+Infrastructure.Word, Infrastructure.Spreadsheet and Generator. A changed project
+closure fails until the profile is reviewed. All nine are processed in one
+Obfuscar invocation; third-party DLLs are resolution inputs, never rename targets.
+
+The original project-reference baseline and independent package-only consumer
+use different isolated output directories. The latter restores all nine packages
+from a private local feed with source mapping and a separate package cache.
+Only third-party packages already resolved by the original build are copied into
+the second local feed. Consumer restore has no remote package source and disables
+NuGet's network audit only for that offline restore; existing dependency-security
+gates are not replaced by this rehearsal.
+
+The opt-in `protected-package.targets` selects the exact protected DLL for every
+package and excludes sources and private symbols. Restore/build and pack must
+use the same opt-in properties. The Spreadsheet build-task pin is preserved as
+a downstream package constraint, with build/analyzer assets still private; the
+normal project-only build retains its existing private dependency configuration.
+No NPOI supplier terms are accepted or suppressed.
+
+The consumer checks missing/wrong/revoked rights, cross-assembly internal calls,
+public reflection and friend metadata, JSON DTO serialization, DOCX content,
+XLSX formulas/styles, and exact package/loaded-assembly hashes. API comparison
+includes public signatures, parameter names/defaults, literal values and JSON
+member attributes. ILSpy checks two known internal implementation names. PDF
+pages are rasterized at 72 DPI and must match the original pixels exactly on the
+same machine. Only the two newly generated XLSX workbook/sheet workspace IDs are
+normalized after their GUID shape is checked; no cell/style data is discarded.
+
+`artifacts/native-joint-packages/<run>/report.json` and `cleanup.json` retain only
+non-secret evidence. Candidate packages, binaries, mapping files, local caches
+and synthetic licenses are removed even on failure; source trust and regular
+product build outputs must be unchanged. This does not yet establish Importer,
+Migration, Worker, full rendering/DI compatibility, support-map retention,
+commercial/NPOI distribution approval or cross-platform acceptance. The prepared
+Linux CI job is not evidence until an actual remote run completes.
+
+Do not replace DLLs in an existing API/worker deployment with this protected
+subset. Obfuscation can rename friend-visible internal members: every consuming
+first-party assembly must join the protection graph or have an explicitly
+reviewed preserved boundary. This milestone proves only the package consumer
+within the nine-assembly profile, not binary interchangeability with the rest
+of the platform.
+
+### Joint Importer And OCR Worker Rehearsal
+
+```bash
+node tools/native-licensing/joint-package-rehearsal.mjs --importer
+```
+
+This reviewed profile adds Importer, FileImporter, ImageAnalysis, ImageOcr and
+the OCR executable to the Generator graph: 14 assemblies are protected together,
+13 libraries are packaged, and the worker remains a separate runtime bundle,
+not a NuGet library. Its four first-party DLLs are replaced from the same joint
+output, preserving the original runtime configuration, native dependencies and
+language data. Other providers, Converter, CodeWorker and WebApi are not included.
+
+The independent package consumer exercises all eight registry formats, missing
+and incorrect rights before stream reads, typed PDF load/rewrite/regeneration,
+the retained reflection contracts and the anonymous PDF page-box JSON contract.
+It compares page layouts and element type/content/geometry projections, not every
+imported design field or provider fidelity. Generated workspace identities are
+not treated as source document identities. Regenerated PDF pixels must match.
+
+Image analysis runs with the real Skia implementation. On macOS/x64, the original
+and protected OCR workers must recognize synthetic English text using the
+existing app-owned native bundle, English language data and a bundled local
+font; recognized words, bounds and confidence compare exactly. Other platforms
+explicitly report native OCR as not executed until suitable standalone bundles
+are validated. Missing, wrong-product and revoked licenses are tested against
+the real worker before input reading on every platform. Typed worker diagnostics
+also retain `PVADLIC014` and `PVADLIC015` through the parent engine.
+
+The regeneration bridge resolves four internal PDF types and one page field by
+name. Their narrowly scoped attributes preserve only this required metadata;
+the record type annotations deliberately leave inherited/generated methods
+eligible for consistent renaming. No module-wide exclusion or license bypass is
+introduced. The existing writer/authority ILSpy checks still apply.
+
+Obfuscar 2.2.50 can create short internal namespaces such as `A`. Global
+single-letter source aliases with that same name can conflict in external C#
+compilations. The shared synthetic fixture therefore scopes its aliases inside
+`PVAD.NativeLicenseTestFixtures`, without changing fixture bytes. This known
+source-compilation limitation is not hidden by the public-signature comparison;
+general consumer-source compatibility remains a release acceptance gate.
+
+`SkipGenerated=true` preserves compiler-generated type/generic-parameter identity.
+A matching `CompilerGeneratedAttribute` module rule also preserves generated
+methods, fields, properties and events, including generic collection helpers and
+anonymous serialization shapes. Ordinary implementation types and methods remain
+eligible for renaming. The runtime package consumer, not configuration inspection
+alone, is the acceptance check for these rules.
+The matching compiler-name rule also covers nested collection enumerators that
+do not carry their own generated attribute. C# metadata generic names use
+backticks, so the angle-bracket rule targets compiler-created names rather than
+excluding ordinary generic product classes.
+
+Reports retain named assertion lists and worker bundle hashes. All candidate
+material is removed, including the OCR bundle and language-data copies. This is
+not full Importer/Trust/fuzz/platform acceptance or approval to redistribute
+native dependencies. Neither this bundle nor the protected libraries may be
+mixed into an unprocessed API/CodeWorker deployment without reviewing all
+remaining friend/reference boundaries.
+
+### Joint Converter And CodeWorker Rehearsal
+
+```bash
+node tools/native-licensing/joint-package-rehearsal.mjs --execution
+```
+
+This profile extends the Importer graph with `PVAD.Infrastructure.Converters`
+and `PVAD.CodeWorker`: 16 first-party modules, 14 library packages, and separate
+OCR/CodeWorker bundles with four/ten matching protected first-party DLLs. Worker
+executables are never packaged as libraries. The nine- and fourteen-module
+profiles remain available independently. Foreign resolution DLLs remain intact.
+
+The independent package consumer checks all nine Converter formats through 13
+direct overloads and 18 interface calls. Missing/wrong rights are rejected;
+Converter-only rights suffice without separately granting PDF generation.
+Single/multiple-page exports compare exact text or extracted ZIP-part hashes,
+including encoded image bytes. ZIP container timestamps are excluded by comparing
+parts. Only ODT `meta.xml`'s generated `meta:creation-date` value is validated and
+replaced in the comparison projection; other XML fields, package paths and
+content stay covered. No production ODT behavior or fixture geometry is changed.
+
+Original and protected CodeWorker processes execute synthetic C# Model, Base64,
+semantic PDF Builder and legacy low-level PDF requests. Canonical models,
+fidelity, diagnostics and source maps compare without normalization. The legacy
+PDF is also rasterized and compared at 72 DPI across two differently sized pages.
+The semantic builder returns a canonical design for trusted host rendering;
+that host renderer is not brought into this dependency graph. Model/Base64 DTO
+operations stay license-free. PDF requests require current PDF rights and test
+missing, wrong-product, expired and revoked configurations, without returning
+design/PDF content on failure. Existing forbidden-file references, compiler
+errors, invalid Base64 and duplicate IDs retain stable diagnostics.
+Every unsuccessful worker response clears canonical design, PDF bytes and
+source maps and reports unsupported fidelity, including errors discovered only
+after a model has been evaluated. Diagnostics remain available.
+
+The harness bounds each owned worker process and removes request/response files;
+it runs trusted synthetic code only and does not prove general C# sandbox
+security, OS/container isolation or live WebApi/tenant behavior. The separate
+Linux CI job is prepared, not evidence of a remote/platform run. Actual native
+OCR retains the macOS/x64-only acceptance boundary described above. Candidate
+feeds, runtime bundles, keys and maps are disposable, not commercial artifacts.
+
+### Joint Migration Provider Rehearsal
+
+```bash
+node tools/native-licensing/joint-package-rehearsal.mjs --migrations
+```
+
+This explicit profile adds all 38 Migration projects to the execution graph:
+54 first-party assemblies, 52 library packages and two separate workers. It
+covers 16 PDF Code, eight Spreadsheet Code, eight Report Designer providers and
+the Nutrient Viewer provider, their common/aggregate libraries and the existing
+Generator/Importer/Converter tests. Namespace/project closure and consumer
+NuGet dependencies are validated; no WebApi or persistence assembly is added.
+
+The existing complete Code, Report and Viewer probes run first from project
+outputs and then as independent consumers of the local protected feed. Their
+public calls, wrong/missing/provider-specific rights, aliases, output checksums
+and continuation behavior must agree. The Code probe also uses Roslyn to read
+the first nonempty literal source fixture from each provider's test file and
+compares its direct/factory result. These are trusted synthetic test inputs,
+not vendor binaries or an assertion that generated code compiles for every case.
+Full test bodies are not imported into the product or executed by this parser.
+
+Historical Report root GUID and Viewer export-timestamp normalizations remain
+the existing narrow probe rules. The Viewer verifies actual sidecar/generated
+checksums before normalizing its timestamp. All other probe result fields and
+diagnostics compare exactly. Original inventories/fixture contents are read
+without modification. The package consumers compile harness code, never product
+project references, and cannot reach network package sources during restore.
+The offline dependency feed is the union of the main and all three original
+probe restores. Every originally resolved third-party package version must
+also be present in its protected probe restore; a larger combined graph must
+not silently upgrade a smaller consumer's dependency.
+
+Migration's Roslyn 5.9 and the standalone CodeWorker's Roslyn 5.3 stay in their
+respective runtime bundles. Only the two reviewed CodeAnalysis/Common and CSharp
+DLL resolution conflicts may differ; both hashes are recorded and original
+vendor bytes remain intact. Other dependency conflicts fail. Real worker runs
+verify the protected CodeWorker against its original standalone dependencies.
+No product dependency version is changed to make the rehearsal pass.
+
+The Linux job is prepared separately and uploads only report/cleanup JSON.
+Check the implementation checklist for executed local evidence. This profile
+does not grant production keys, publisher/legal approval, WebApi/tenant or
+cross-platform acceptance. In particular, it does not cover the HTTP-hosted
+Nutrient PDF Designer composition or permit mixing protected libraries with an
+unprocessed WebApi, which uses friend-visible internal members.
+
+### Signed Revocation Tests
+
+```bash
+node tools/native-licensing/with-test-license.mjs revocation
+```
+
+This isolated probe creates a signed revocation list without exporting a private
+key, checks public import/status APIs and runs real C# PDF/OCR workers. It verifies
+that a revoked-but-valid license is rejected, unrelated PDF execution still
+works, and OCR transfers the verified list rather than inheriting an arbitrary
+parent environment path. The OCR transport child validates configuration only;
+the separate real OCR-worker rejection happens before input/Tesseract access.
+Evidence is `revocation-admission.json` plus `run.json`; synthetic licenses,
+lists and binaries are removed in `finally`. This is not manufacturer production
+provisioning or a durable revocation-issuance service.
 
 Native PDF creation and serialization now require a signed `pdf` grant. The
 `with-test-license.mjs` runner creates temporary signed fixtures and a separate
@@ -592,7 +884,14 @@ acceptance.
 
 ### E-Invoice And Archival Continuations
 
-`EInvoiceContinuationChecks` adds 186 checks to the native probe. It compares
+The continuation probe supplies a fixed `TimeProvider` to the attacher so
+baseline and license-replacement executions use the same attachment metadata
+timestamp. The complete PDF bytes still compare exactly; neither metadata nor
+timestamps are stripped from results. Separate runtime tests advance the clock,
+verify the parsed UTC `ModDate` and retain the original system-clock constructor.
+This clock is independent of native-license expiry and Trust validation clocks.
+
+The initial `EInvoiceContinuationChecks` milestone added 186 checks to the native probe. It compares
 preflight and exact attachment output against licensed reference executions for
 PDF/A-3 incremental updates, approved plain-PDF conversion and PDF/A-2 with CMYK
 content. Synchronous and truly asynchronous replacement are exercised separately.

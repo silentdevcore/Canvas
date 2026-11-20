@@ -1,3 +1,4 @@
+namespace PVAD.NativeLicenseTestFixtures;
 using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Text;

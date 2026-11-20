@@ -1257,3 +1257,14 @@ tbody tr:hover { background: #f8fafc; }
   .admin-legal-diff-metadata { grid-template-columns: 1fr; }
   .admin-legal-comparison-controls button { grid-column: auto; }
 }
+.native-license-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; width: 100%; }
+.native-license-workspace > * { min-width: 0; }
+.native-license-workspace h2 { overflow-wrap: anywhere; }
+.native-license-workspace :is(input, select, button) { max-width: 100%; }
+.native-license-workspace .pvad-button { white-space: normal; }
+.native-license-products { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; padding: 16px 0; border: 0; min-width: 0; }
+.native-license-products > div { min-width: 0; }
+.native-license-products label { overflow-wrap: anywhere; }
+.native-license-hash { overflow-wrap: anywhere; }
+#native-license-issue > fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+@media (max-width: 700px) { .native-license-products { grid-template-columns: 1fr; } }

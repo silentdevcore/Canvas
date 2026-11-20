@@ -182,6 +182,41 @@
           "apiExample": null
         },
         {
+          "title": "Native library licenses",
+          "group": "Commercial",
+          "permission": "Manufacturer-authorized System Administrator with licenses.manage and recent authentication",
+          "summary": "Issue and renew native library licenses separately from server offline licenses. Customers download only their own organization's artifacts through Account.",
+          "prerequisites": [
+            "Use an active, verified System Administrator with explicit native issuer allowlisting.",
+            "Use a recent live session and an explicitly enabled manufacturer deployment.",
+            "Confirm approved customer, model, products, exact provider keys, validity and redistribution rights."
+          ],
+          "steps": [
+            "Open Native library licenses; a customer verification-only deployment shows issuance disabled.",
+            "Search for the customer organization, choose the license model, UTC term and explicit product/provider grants.",
+            "Issue the signed artifact and inspect its Details before private delivery.",
+            "For renewal, open Details and extend only subscription validity or perpetual update eligibility. Trials cannot be renewed.",
+            "Download the new artifact; the prior artifact and audit remain unchanged. Customers use Account > Licenses > Native library licenses."
+          ],
+          "result": "A new immutable native license is stored with its successful audit event. Native licenses never inherit Cloud editions or server-license signing rights.",
+          "failures": [
+            "403 requires recent authentication and explicit manufacturer authorization; customer servers cannot enable issuance through a role alone.",
+            "409 indicates a changed retry, an existing renewal successor or stored artifact integrity failure.",
+            "Customer downloads require a live verified session, active organization and membership; foreign IDs return 404 and removed memberships cannot download."
+          ],
+          "audit": "Issuance and renewal append native-licenses.issue/native-licenses.renew events atomically. Audit details omit the full artifact, customer reference and private signing material. Downloads do not create license mutations.",
+          "endpoint": "GET/POST /api/pvad/v1/admin/native-licenses; POST /api/pvad/v1/admin/native-licenses/{licenseId}/renew; GET /api/pvad/v1/account/native-licenses/{licenseId}/download",
+          "screenshot": "native-licenses.png",
+          "notes": [
+            "Native issuer configuration and private keys are never entered in Admin or Account forms. Deployment details remain in the protected operator runbook.",
+            "Account is read-only for native licenses and always resolves organization context server-side. It works with issuance disabled and never requires a private key.",
+            "Renewal does not remotely revoke an older offline artifact. Signed revocation-list import remains a separate milestone.",
+            "The screenshot uses synthetic organizations and non-usable sample artifacts, not customer data."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
           "title": "Offline licenses",
           "group": "Commercial",
           "permission": "System Administrator",
@@ -783,6 +818,10 @@
     [
       "/licenses and /licenses/{id}",
       "Offline licenses"
+    ],
+    [
+      "/native-licenses",
+      "Native library licenses"
     ],
     [
       "/service-accounts",

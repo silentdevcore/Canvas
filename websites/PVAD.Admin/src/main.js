@@ -95,6 +95,10 @@ import {
 
 initializeBrowserTelemetry({ application: 'admin' });
 
+import * as nativeLicenseApi from './api.js';
+import { createNativeLicensePage } from './nativeLicenses.js';
+const nativeLicenses = createNativeLicensePage(nativeLicenseApi, escapeHtml, () => render());
+
 const app = document.querySelector('#app');
 
 const navigation = [
@@ -104,6 +108,7 @@ const navigation = [
   { path: '/roles', label: 'Roles & permissions', group: 'Identity' },
   { path: '/subscriptions', label: 'Subscriptions', group: 'Commercial' },
   { path: '/licenses', label: 'Licenses', group: 'Commercial' },
+  { path: '/native-licenses', label: 'Native library licenses', group: 'Commercial', systemOnly: true },
   { path: '/service-accounts', label: 'Service accounts', group: 'Access' },
   { path: '/mail', label: 'Mail delivery', group: 'Operations' },
   { path: '/audit', label: 'Audit', group: 'Operations' },
@@ -3055,6 +3060,7 @@ async function handleLogout(event) {
   try {
     await logout();
   } finally {
+    nativeLicenses.clear();
     state.user = null;
     navigate('/login', true);
   }
@@ -3140,6 +3146,15 @@ function render() {
     renderShell(dependencyCompliancePage(), 'Dependency compliance');
     bindDependencyComplianceEvents();
     if (!state.dependencyCompliance.loaded && !state.dependencyCompliance.loading) loadDependencyCompliance();
+    return;
+  }
+
+  if (location.pathname === '/native-licenses') {
+    if (!isSystemAdministrator()) { renderShell(forbiddenPage(), 'Access denied'); return; }
+    nativeLicenses.setContext(state.user.id);
+    renderShell(nativeLicenses.html(), 'Native library licenses');
+    nativeLicenses.bind();
+    nativeLicenses.ensureLoaded();
     return;
   }
 
@@ -3293,6 +3308,7 @@ document.addEventListener('keydown', (event) => {
 window.addEventListener('popstate', render);
 window.addEventListener('pvad:session-expired', () => {
   if (!state.user) return;
+  nativeLicenses.clear();
   state.user = null;
   state.notice = 'Your secure session expired or was revoked. Sign in again.';
   navigate('/login', true);

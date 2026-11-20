@@ -102,7 +102,8 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
                 if (response.LicenseErrorCode is { } code &&
                     code is "PVADLIC001" or "PVADLIC002" or "PVADLIC003" or "PVADLIC004" or
                         "PVADLIC005" or "PVADLIC006" or "PVADLIC007" or "PVADLIC008" or
-                        "PVADLIC009" or "PVADLIC010" or "PVADLIC011" or "PVADLIC012" or "PVADLIC013")
+                        "PVADLIC009" or "PVADLIC010" or "PVADLIC011" or "PVADLIC012" or "PVADLIC013" or
+                        "PVADLIC014" or "PVADLIC015")
                     throw new PvadLicenseException(code, "The OCR worker could not admit the licensed operation.");
                 throw new InvalidOperationException(response.Error ?? "OCR worker failed.");
             }
@@ -217,9 +218,10 @@ public sealed class DefaultOcrWorkerProcessRunner : IOcrWorkerProcessRunner
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var license = PvadLicense.CaptureImporterWorkerLicense();
+        var configuration = PvadLicense.CaptureImporterWorkerConfiguration();
         cancellationToken.ThrowIfCancellationRequested();
         var licensePath = Path.Combine(workingDirectory, $"native-license-{Guid.NewGuid():N}.json");
+        var revocationPath = Path.Combine(workingDirectory, $"native-revocations-{Guid.NewGuid():N}.json");
         try
         {
             var fileOptions = new FileStreamOptions
@@ -231,22 +233,28 @@ public sealed class DefaultOcrWorkerProcessRunner : IOcrWorkerProcessRunner
             if (!OperatingSystem.IsWindows())
                 fileOptions.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
             await using (var stream = new FileStream(licensePath, fileOptions))
-                await stream.WriteAsync(license, cancellationToken);
+                await stream.WriteAsync(configuration.License, cancellationToken);
+            if (configuration.Revocations is not null)
+                await using (var stream = new FileStream(revocationPath, fileOptions))
+                    await stream.WriteAsync(configuration.Revocations, cancellationToken);
             return await RunLicensedAsync(workerPath, requestPath, responsePath, workingDirectory,
-                licensePath, timeout, cancellationToken);
+                licensePath, configuration.Revocations is null ? null : revocationPath, timeout, cancellationToken);
         }
         finally
         {
             File.Delete(licensePath);
+            File.Delete(revocationPath);
         }
     }
 
     private static async Task<OcrWorkerProcessResult> RunLicensedAsync(
         string workerPath, string requestPath, string responsePath, string workingDirectory,
-        string licensePath, TimeSpan timeout, CancellationToken cancellationToken)
+        string licensePath, string? revocationPath, TimeSpan timeout, CancellationToken cancellationToken)
     {
         var startInfo = BuildStartInfo(workerPath, requestPath, responsePath, workingDirectory);
         startInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] = licensePath;
+        startInfo.Environment.Remove("PVAD_NATIVE_REVOCATIONS_PATH");
+        if (revocationPath is not null) startInfo.Environment["PVAD_NATIVE_REVOCATIONS_PATH"] = revocationPath;
         using var process = new Process { StartInfo = startInfo };
         process.Start();
 

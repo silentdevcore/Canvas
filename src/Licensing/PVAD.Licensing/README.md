@@ -13,10 +13,24 @@ var status = PvadLicense.LoadFromFile(licensePath);
 var admission = PvadLicense.Require(PvadLicenseProducts.Pdf);
 ```
 
+Optional offline revocations must be imported explicitly, including after restart:
+
+```csharp
+PvadLicense.ImportRevocationsFromFile(revocationListPath);
+var revocations = PvadLicense.GetRevocationStatus();
+```
+
+Only cumulative manufacturer-signed lists are accepted. Revoked IDs cannot be
+restored by loading another list or reloading their license. Stale lists retain
+known revocations and report freshness metadata; they do not require networking.
+Rollback rejection is process-local, not persistent hardware-backed protection.
+Preserve and reimport the latest approved file. Previously admitted operations
+may complete; new processing with a revoked ID fails with `PVADLIC014`.
+
 A manufacturer-signed license and an approved embedded public verification key
 are required. The development source trust register is intentionally empty.
-Product integrations, authenticated issuance, and public distribution are still
-being completed. This package alone does not add enforcement to existing engines.
+Current PVAD product integrations and manufacturer issuance use this verifier;
+joint protected packaging and public distribution are still being completed.
 
 Obfuscation raises inspection effort; it does not prevent reverse engineering.
 Offline use cannot guarantee immediate revocation or global seat counting.

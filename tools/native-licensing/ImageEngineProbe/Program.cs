@@ -87,7 +87,7 @@ var converted = await converter.ConvertAsync(converterInput, "synthetic.png", ne
 Check(fake.Calls == 1 && converted.Design.Pages.Count == 1 && converted.DebugOverlayPng is { Length: > 8 }, "importer-only-custom-ocr-and-overlay");
 await isolated.RecognizeAsync([], new());
 Check(runner.Calls == 1 && !Directory.Exists(runner.WorkDir), "isolated-success-and-cleanup");
-foreach (var code in new[] { "PVADLIC009", "PVADLIC012" })
+foreach (var code in new[] { "PVADLIC009", "PVADLIC012", "PVADLIC014", "PVADLIC015" })
 {
     runner.Code = code;
     await Denied(() => isolated.RecognizeAsync([], new()), code, "worker-error-transfer:" + code);

@@ -20,6 +20,8 @@ Activity? workerActivity = null;
 
 try
 {
+    var revocationPath = Environment.GetEnvironmentVariable("PVAD_NATIVE_REVOCATIONS_PATH");
+    if (!string.IsNullOrWhiteSpace(revocationPath)) PvadLicense.ImportRevocationsFromFile(revocationPath);
     var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
     if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
     PvadLicense.Require(PvadLicenseProducts.Importer);

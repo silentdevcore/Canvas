@@ -48,6 +48,8 @@ static async Task<int> RunAsync(string[] args)
         {
             // Host configuration is consumed outside the script. Scripts cannot access
             // the environment, filesystem, or licensing APIs through the sandbox.
+            var revocationPath = Environment.GetEnvironmentVariable("PVAD_NATIVE_REVOCATIONS_PATH");
+            if (!string.IsNullOrWhiteSpace(revocationPath)) PvadLicense.ImportRevocationsFromFile(revocationPath);
             var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
             if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
             _ = PvadLicense.Require(PvadLicenseProducts.Pdf);
@@ -189,6 +191,13 @@ static List<MetadataReference> TrustedReferences() =>
 
 static async Task<int> WriteAsync(string path, PvadCodeWorkerResponse response)
 {
+    if (!response.Success)
+    {
+        response.CanonicalDesign = null;
+        response.PdfBytes = null;
+        response.SourceMap.Clear();
+        response.Fidelity = PvadCodeFidelity.Unsupported;
+    }
     await File.WriteAllTextAsync(path, JsonSerializer.Serialize(response, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

@@ -6,6 +6,8 @@ on:
     branches: [develop, main]
     paths:
       - 'src/Licensing/**'
+      - 'src/Core/PVAD.Domain/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Persistence/**'
       - 'src/Generation/PVAD.Pdf/**'
       - 'src/Generation/PVAD.Generator/**'
       - 'src/Infrastructure/PVAD.Infrastructure.Word/**'
@@ -14,8 +16,11 @@ on:
       - 'src/Importing/**'
       - 'src/Execution/PVAD.CodeWorker/**'
       - 'PVAD.WebApi/**'
+      - 'websites/PVAD.Admin/**'
+      - 'websites/PVAD.Account/**'
       - 'tools/PVAD.LicenseIssuer/**'
       - 'tools/native-licensing/**'
+      - 'operator-docs/PVAD.Native-Library-License-Issuance.md'
       - 'tests/PVAD.Licensing.Tests/**'
       - 'tests/Directory.Build.props'
       - 'tests/Shared/PvadNativeLicenseBootstrap.cs'
@@ -72,12 +77,16 @@ jobs:
         run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
       - name: Validate native metadata and preparation contracts
         run: node --test tools/native-licensing/*.test.mjs
+      - name: Rehearse encrypted support retention using disposable recipient keys
+        run: node tools/native-licensing/support-retention-rehearsal.mjs
       - name: Test signed license verification and all registered provider grants
         run: dotnet test tests/PVAD.Licensing.Tests/PVAD.Licensing.Tests.csproj -c Release --logger "trx;LogFileName=native-licensing.trx" --results-directory artifacts/native-licensing-tests
       - name: Rehearse a protected synthetic package without publishing
         run: node tools/native-licensing/pvad-native-licensing.mjs rehearse
       - name: Verify direct PDF admission and non-destructive export failures
         run: node tools/native-licensing/with-test-license.mjs pdf
+      - name: Verify offline revocations and Code/OCR worker propagation
+        run: node tools/native-licensing/with-test-license.mjs revocation
       - name: Verify direct Word export and signing admission
         run: node tools/native-licensing/with-test-license.mjs word
       - name: Verify Spreadsheet admission, retained handles, and non-destructive IO
@@ -130,8 +139,11 @@ jobs:
           path: |
             artifacts/native-licensing-tests/*.trx
             artifacts/native-licensing/*/report.json
+            artifacts/native-support-retention/*/report.json
+            artifacts/native-support-retention/*/cleanup.json
             artifacts/native-engine-tests/*/run.json
             artifacts/native-engine-tests/*/pdf-admission.json
+            artifacts/native-engine-tests/*/revocation-admission.json
             artifacts/native-engine-tests/*/word-admission.json
             artifacts/native-engine-tests/*/spreadsheet-admission.json
             artifacts/native-engine-tests/*/converter-admission.json
@@ -144,6 +156,147 @@ jobs:
             artifacts/native-test-sessions/*/cleanup.json
             artifacts/native-engine-tests/*/importer-admission.json
             artifacts/native-engine-tests/*/image-admission.json
+            artifacts/native-test-sessions/*/surface-validation.json
             artifacts/native-engine-tests/*/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+
+  generator-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse joint Generator packages without publication
+        run: node tools/native-licensing/joint-package-rehearsal.mjs
+      - name: Rehearse protected Importer packages and OCR worker boundaries
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --importer
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-generator-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  execution-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse protected Converter packages and CodeWorker execution
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --execution
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-execution-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  migration-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse all native packages and Migration providers
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --migrations
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-migration-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  native-issuer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PVAD_RUN_POSTGRES_TESTS: '1'
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Test manufacturer issuance and immutable renewal against PostgreSQL
+        run: node tools/native-licensing/with-test-license.mjs native-issuer
+      - name: Upload synthetic test results and cleanup evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-issuer-evidence
+          path: |
+            artifacts/native-engine-tests/*/licensed-tests.trx
+            artifacts/native-engine-tests/*/run.json
           if-no-files-found: warn
           retention-days: 14

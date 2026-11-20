@@ -32,7 +32,8 @@ internal static class EInvoiceContinuationChecks
         PvadLicense.LoadFromFile(licenses[0]);
         var inspector = new PdfTrustInspector();
         var converter = new PdfA2bConverter(inspector);
-        var attacher = new PdfEInvoiceAttacher(converter);
+        var clock = new AttachmentClock();
+        var attacher = new PdfEInvoiceAttacher(converter, clock);
         var extractor = new PdfAssociatedFileExtractor();
         var xml = "<invoice id=\"synthetic\"><total>42.00</total></invoice>"u8.ToArray();
         var payload = new PdfEInvoiceAttachmentPayload { Xml = xml, FileName = "factur-x.xml", Description = "Synthetic licensing fixture, not a validated tax invoice" };
@@ -46,6 +47,7 @@ internal static class EInvoiceContinuationChecks
             using var baselineInput = new MemoryStream(bytes);
             var baseline = await attacher.AttachAsync(baselineInput, payload, options);
             Check(baseline.PageCount == 2 && baseline.Bytes.Length > 0, name + ":baseline");
+            Check(Encoding.ASCII.GetString(baseline.Bytes).Contains("/ModDate <443A32303236303130323033303430355A>", StringComparison.Ordinal), name + ":fixed-attachment-time");
             foreach (var asynchronous in new[] { false, true })
             {
                 var phase = name + (asynchronous ? ":async" : ":sync");
@@ -61,7 +63,9 @@ internal static class EInvoiceContinuationChecks
                 Check(source.Changes == 1 && source.CanRead && preflightSource.CanRead && sourceHash.SequenceEqual(SHA256.HashData(bytes)), phase + ":source-and-ownership");
                 Check(result.Bytes.SequenceEqual(baseline.Bytes) && result.AttachmentSha256 == baseline.AttachmentSha256 && result.Strategy == baseline.Strategy && result.PagesUnchanged == baseline.PagesUnchanged, phase + ":identical-output-and-strategy");
                 await Denied(() => extractor.ExtractAsync(new MemoryStream(result.Bytes)), phase + ":new-extraction-denied");
+                var clockReads = clock.Reads;
                 await Denied(() => attacher.AttachAsync(source, payload), phase + ":new-attach-denied");
+                Check(clock.Reads == clockReads, phase + ":denied-before-clock");
                 PvadLicense.LoadFromFile(licenses[0]);
                 using var output = new MemoryStream(result.Bytes);
                 var files = await extractor.ExtractAsync(output);
@@ -212,6 +216,17 @@ internal static class EInvoiceContinuationChecks
             try { PvadLicense.Require(PvadLicenseProducts.Importer); }
             catch (PvadLicenseException e) when (e.Code == "PVADLIC012") { Check(true, name + ":current-license-changed"); return; }
             throw new InvalidOperationException("Replacement did not revoke Importer rights.");
+        }
+    }
+
+    private sealed class AttachmentClock : TimeProvider
+    {
+        internal int Reads { get; private set; }
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            Reads++;
+            return new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero);
         }
     }
 

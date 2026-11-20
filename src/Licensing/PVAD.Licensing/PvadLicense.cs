@@ -39,10 +39,32 @@ public static class PvadLicense
 
     public static PvadLicenseStatus GetStatus() => Authority.Value.GetStatus();
 
+    /// <summary>Explicitly imports a signed cumulative offline list. Invalid replacements preserve all known revocations.</summary>
+    public static PvadNativeRevocationStatus ImportRevocationsFromFile(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        try { using var stream = File.OpenRead(path); return ImportRevocationsFromStream(stream); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        { throw PvadLicenseJson.Error("PVADLIC013", "The native revocation file could not be read."); }
+    }
+
+    /// <summary>Imports from the current position, leaves the stream open, and never makes network requests.</summary>
+    public static PvadNativeRevocationStatus ImportRevocationsFromStream(Stream stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        try { return Authority.Value.ImportRevocations(stream); }
+        catch (Exception exception) when (exception is IOException or NotSupportedException or ObjectDisposedException)
+        { throw PvadLicenseJson.Error("PVADLIC013", "The native revocation stream could not be read."); }
+    }
+
+    public static PvadNativeRevocationStatus GetRevocationStatus() => Authority.Value.GetRevocationStatus();
+
     /// <summary>Admits one operation against a single immutable license snapshot.</summary>
     public static PvadLicenseOperation Require(string product, string? provider = null) => Authority.Value.Require(product, provider);
 
     internal static byte[] CaptureImporterWorkerLicense() => Authority.Value.CaptureImporterWorkerLicense();
+    internal static PvadNativeWorkerLicense CaptureImporterWorkerConfiguration() => Authority.Value.CaptureImporterWorkerConfiguration();
+    internal static byte[]? CaptureRevocations() => Authority.Value.CaptureRevocations();
 
     internal static PvadLicenseExecution BeginOperation(PvadNativeOperation operation, string? provider = null) => Authority.Value.Begin(operation, provider);
 
@@ -61,7 +83,25 @@ public static class PvadLicense
         try
         {
             var assembly = typeof(PvadLicense).Assembly;
-            using var keysStream = assembly.GetManifestResourceStream("PVAD.Licensing.TrustedKeys.json")!;
+            var verifier = CreateEmbeddedVerifier();
+            using var releaseStream = assembly.GetManifestResourceStream("PVAD.Licensing.LibraryRelease.json")!;
+            var release = PvadLicenseJson.Read<LibraryRelease>(PvadLicenseJson.ReadBounded(releaseStream), PvadLicenseJson.MaximumEnvelopeBytes);
+            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
+            if (release.Version != version || !DateOnly.TryParseExact(release.PublishedAt, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                throw new InvalidOperationException();
+            return new(verifier, TimeProvider.System, new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)));
+        }
+        catch (Exception exception) when (exception is PvadLicenseException or InvalidOperationException or ArgumentException or System.Security.Cryptography.CryptographicException)
+        {
+            throw PvadLicenseJson.Error("PVADLIC002", "The library's embedded license trust or release metadata is invalid.");
+        }
+    }
+
+    internal static PvadLicenseVerifier CreateEmbeddedVerifier()
+    {
+        try
+        {
+            using var keysStream = typeof(PvadLicense).Assembly.GetManifestResourceStream("PVAD.Licensing.TrustedKeys.json")!;
             var store = PvadLicenseJson.Read<TrustStore>(PvadLicenseJson.ReadBounded(keysStream), PvadLicenseJson.MaximumEnvelopeBytes);
             if (store.SchemaVersion != 1 || store.Keys is null || store.Keys.Length > 32)
                 throw new InvalidOperationException();
@@ -77,12 +117,7 @@ public static class PvadLicense
                 if (algorithm.ExportParameters(false).Curve.Oid.Value != System.Security.Cryptography.ECCurve.NamedCurves.nistP256.Oid.Value)
                     throw new InvalidOperationException();
             }
-            using var releaseStream = assembly.GetManifestResourceStream("PVAD.Licensing.LibraryRelease.json")!;
-            var release = PvadLicenseJson.Read<LibraryRelease>(PvadLicenseJson.ReadBounded(releaseStream), PvadLicenseJson.MaximumEnvelopeBytes);
-            var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
-            if (release.Version != version || !DateOnly.TryParseExact(release.PublishedAt, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-                throw new InvalidOperationException();
-            return new(new(keys), TimeProvider.System, new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)));
+            return new(keys);
         }
         catch (Exception exception) when (exception is PvadLicenseException or InvalidOperationException or ArgumentException or System.Security.Cryptography.CryptographicException)
         {

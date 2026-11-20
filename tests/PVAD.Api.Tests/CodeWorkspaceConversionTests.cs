@@ -496,6 +496,33 @@ public sealed class CodeWorkspaceConversionTests
         Assert.Contains(response.Diagnostics, value => value.Code == "PVADCODE041");
     }
 
+    [Theory]
+    [InlineData(PvadCodeLanguages.CSharpModel)]
+    [InlineData(PvadCodeLanguages.CSharpBase64)]
+    [InlineData(PvadCodeLanguages.CSharpPdf)]
+    public async Task Worker_DoesNotReturnAnUnvalidatedDocumentOnFailure(string language)
+    {
+        const string model = "var design = new DesignExportDto { Pages = new List<PageDto> { new PageDto { Id = \"same\" }, new PageDto { Id = \"same\" } } };";
+        var source = model + (language == PvadCodeLanguages.CSharpPdf
+            ? "return new PvadPdfCodeDocument { Design = design };"
+            : "return design;");
+        if (language == PvadCodeLanguages.CSharpBase64)
+        {
+            const string json = "{\"pages\":[{\"id\":\"same\"},{\"id\":\"same\"}]}";
+            var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+            source = $"return JsonSerializer.Deserialize<DesignExportDto>(Encoding.UTF8.GetString(Convert.FromBase64String(\"{payload}\")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;";
+        }
+
+        var response = await CreatePackagedWorkerService().ExecuteAsync(language, source, default);
+
+        Assert.False(response.Success);
+        Assert.Contains(response.Diagnostics, value => value.Code == "PVADCODE104");
+        Assert.Null(response.CanonicalDesign);
+        Assert.Null(response.PdfBytes);
+        Assert.Empty(response.SourceMap);
+        Assert.Equal(PvadCodeFidelity.Unsupported, response.Fidelity);
+    }
+
     [Fact]
     public async Task PdfWorker_ReportsUnknownBuilderOperationsAsCompilationDiagnostics()
     {

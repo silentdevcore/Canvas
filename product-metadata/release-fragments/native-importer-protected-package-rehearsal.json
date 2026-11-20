@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-importer-protected-package-rehearsal",
+  "impact": "none",
+  "components": ["sdk", "importer", "generator", "documentation"],
+  "category": "improved",
+  "summary": "Extended local protected-package verification to document imports, image analysis and the isolated OCR worker.",
+  "breaking": false,
+  "reason": "This extends disposable internal candidate verification without publishing packages or changing product versions."
+}
