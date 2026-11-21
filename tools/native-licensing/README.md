@@ -169,6 +169,116 @@ evidence, not public CI uploads. No baseline, source trust, version or product
 configuration is rewritten. A prepared command is not successful execution;
 consult `regression-report.json` and `cleanup.json` for the actual result.
 
+### Real Session And Worker Admission
+
+The API selection includes the `NativeLicenseHost_` methods in
+`DesignerAuthenticationControllerTests` and the complete
+`PvadNativePdfLicenseTests` class. The runner requires every new host/worker
+method to appear in the actual TRX results; a missing method is not acceptance.
+The PostgreSQL case must execute, not skip.
+
+This profile uses the existing Identity login, PKCE handoff, host-only Designer
+cookie, persistent session validation and permission resolution. It exercises
+native bootstrap and real CodeWorker execution through the actual API pipeline.
+Anonymous access, an Account cookie without a Designer session, missing CSRF,
+foreign templates, disabled entitlements/features, changed roles and revoked
+sessions must remain denied without creating an execution job. Native denial
+inside an admitted job must preserve a tenant-scoped failed record and return
+no document. Restoring the configured worker license permits a new job.
+
+Separate startup tests retain the real native bootstrap and options validators:
+an invalid explicit license must reject startup without replacing the active
+snapshot, and a valid native license cannot override disabled worker hardening.
+Raw worker requests with purported server-mode flags, embedded signed licenses
+or license-path fields cannot replace the external worker configuration.
+Actual worker processes also reject user source that accesses environment,
+files, processes, reflection or licensing APIs.
+
+The integration host uses ASP.NET TestServer in `Testing`, not a real browser
+or a production deployment. Other hosted background services are disabled;
+`Hardened=true` permits this trusted synthetic execution and does not prove an
+OS sandbox. Existing OCR signed-envelope/revocation and original/protected
+host profiles remain separate complementary evidence. General CI, all-platform
+protected packages, production key custody and sandbox deployment retain their
+own acceptance requirements. No production authentication switch is added.
+
+## Native Package Documentation
+
+Every library in the joint package profiles receives a documentation bundle.
+It includes an offline README, the exact verified activation guide, an unchanged
+License Agreement candidate with version/hash references, the pinned public
+compatibility register and a resolved NuGet notice inventory. Candidate status
+does not grant legal acceptance, publishing or redistribution rights.
+
+`PackageDocumentationProbe` uses Roslyn metadata symbols, without loading or
+executing product assemblies, to remove internal/private XML entries and
+non-public first-party references. Public XML must resolve identically against
+the original and protected assemblies. The pack target explicitly replaces the
+documentation output group; changing only `DocumentationFile` still lets NuGet
+select the original file from the output directory. The independent consumer
+checks the exact DLL/XML association and every bundled file checksum.
+Documentation uses a directory-only NuGet package path so extensionless
+`LICENSE` and `NOTICE` files retain their exact nested paths instead of being
+mistaken for output directories.
+
+Notice collection uses the selected projects' fresh restore assets and local
+NuGet metadata. Collected original text bytes, including legacy/UTF-16
+encodings, remain unchanged. Paths, symlinks, sizes, binary content and private
+key markers are checked. A declared expression or URL is never substituted for
+an actual source license. Package-authored attribution is retained without
+inventing permissions or automatically accepting any EULA.
+Roslyn's original RTF notices have one terminal NUL. Only an `.rtf` file with
+the RTF header, closing brace and no embedded NULs receives that format-specific
+validation allowance. The terminal byte is retained unchanged in the packaged
+file; arbitrary binary data, extra NULs and private-key markers remain rejected.
+
+Each package report lists its public XML comment count, removed entries and
+`missingLicenseTexts`. Available comments are not complete API commentary.
+The inventory includes build dependencies and does not certify native/font or
+OS-image attribution. Missing original texts, native/font provenance, final
+contractual references and third-party review remain explicit release work.
+Do not close the original documentation/notices task solely because a bundle
+packs successfully. Existing CI retains report/cleanup JSON only, never the
+synthetic packages, license files or private support data.
+
+The first verified documentation run is
+`artifacts/native-joint-packages/1795279545161-98baa81e/report.json`.
+Its per-package `packageDocumentation` section records the then-open 30 unique
+dependency-version notice gaps and identifies the 19 empty public-comment
+sets. That historical result remains unchanged.
+
+Original source texts for those 30 versions are now retained under
+[`assets/licenses/native-packages`](../../assets/licenses/native-packages/README.md).
+The versioned registry binds the NuGet archive, metadata, declared license,
+repository and exact source-file hashes. The packer validates the registry and
+copies its original bytes offline into separate `upstream/` paths; it does not
+replace package-supplied notices or fetch from the network. Supplemental Unicode
+and compactly named vendor notice files are also retained, but a supplemental
+license does not by itself satisfy a missing main library license.
+
+Twenty-six source mappings use package-embedded commits. The four mappings
+without embedded commits explicitly retain their version-matched release tags
+and fixed commits; they do not claim reproducible binary/source identity.
+Archive, metadata, commit, repository, license or original-text drift fails the
+build. Unknown versions do not inherit a source mapping from a previous version.
+Git text conversion is disabled only for this source directory to preserve
+hash-bound bytes across checkouts. Source collection is not legal approval,
+EULA acceptance or a complete native/font distribution review. In particular,
+the JBig2Decoder original retains both its original BSD and port MIT sections;
+the NuGet SPDX declaration never replaces the actual text.
+
+Public API comments, native/font attribution and final distribution reviews
+remain within the original packaging task; no new primary scope is added.
+Current full-package execution evidence is recorded in the main licensing
+checklist. Existing historical report/cleanup files are never rewritten.
+
+The notice-complete local macOS/x64 run is
+`artifacts/native-joint-packages/1795281447251-3e0fed10/report.json`.
+All 52 package reports have an empty `missingLicenseTexts` list; 962 bundled
+file/hash pairs pass the independent consumer. This closes the original text
+acquisition gap, not the remaining 19 empty public XML comment sets, native/font
+review or legal/publication approvals. PDFs and third-party DLLs are unchanged.
+
 ## Activation Guide Verification
 
 ```bash

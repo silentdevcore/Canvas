@@ -22,6 +22,7 @@ export const apiClasses = [
   'PvadNativeCodeMigrationLicenseTests', 'PvadNativeViewerMigrationLicenseTests', 'PvadNativeReportMigrationLicenseTests',
   'ExportControllerTests', 'SpreadsheetControllerTests', 'DocumentOpsControllerTests',
   'MigrationGeneratedCodeExecutionTests', 'CodeWorkspaceConversionTests', 'CodeWorkspaceApplyTests',
+  'DesignerAuthenticationControllerTests.NativeLicenseHost_',
   'PdfTrust', 'PdfSignature', 'PdfRedaction', 'PdfViewerRedaction', 'PdfViewerAnnotationsControllerTests',
   'PdfEInvoice', 'PvadPdfTrust', 'PvadEInvoice', 'PvadRedaction', 'ImageConversionControllerTests',
 ];
@@ -134,6 +135,13 @@ export async function runRegressions() {
         if (step.filtered) for (const required of ['CodeWorkspaceConversionTests', 'MigrationGeneratedCodeExecutionTests',
           'PdfTrustControllerTests', 'PdfSignaturesControllerTests', 'PdfRedactionsControllerTests', 'PvadNativePdfLicenseTests'])
           assert.ok(audit.testNames.some(value => value.includes(required + '.')), 'Missing API regression group: ' + required);
+        if (step.filtered) for (const required of [
+          'NativeLicenseHost_preserves_real_sessions_tenants_permissions_and_worker_admission',
+          'NativeLicenseHost_invalid_explicit_license_fails_real_host_startup',
+          'NativeLicenseHost_valid_native_license_does_not_bypass_worker_startup_validation',
+          'Worker_process_rejects_user_control_of_licensing_and_host_configuration',
+          'User_request_fields_cannot_supply_native_rights_or_enable_server_mode',
+        ]) assert.ok(audit.testNames.some(value => value.includes(required)), 'Missing host/worker regression method: ' + required);
         const assembly = nativeTestAssemblyPath(project);
         step.assemblySha256 = hash(readFileSync(assembly)); save();
       }

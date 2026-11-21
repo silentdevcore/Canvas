@@ -1,0 +1,742 @@
+{
+  "schemaVersion": 1,
+  "scope": "Exact-version original source texts; not legal approval or native/font completeness.",
+  "packages": [
+    {
+      "id": "ClosedXML.Parser",
+      "version": "2.0.0",
+      "repositoryUrl": "https://github.com/ClosedXML/ClosedXML.Parser",
+      "sourceCommit": "658973aeedc2fe289e0ccba2bb9959f67692ded5",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "c7ea6db9150273036dbf8fbead151abff7df87975e2528bca9e9b617566ca27f",
+      "packageSha256": "85d40168dcb9fa5478c52c6ef26820beedc8e2cb764515906ed37185584ba37f",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "ClosedXML.Parser/2.0.0/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/ClosedXML/ClosedXML.Parser/658973aeedc2fe289e0ccba2bb9959f67692ded5/LICENSE.txt",
+          "sha256": "7133dfd8c1167ffa77389859013ac5bf2d184639f5a291a00d33b0b7d7b84df3",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "ClosedXML",
+      "version": "0.105.1",
+      "repositoryUrl": "https://github.com/ClosedXML/ClosedXML",
+      "sourceCommit": "b4ebe47bd3ecebf8480dea7422188d16b35b9d9a",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "3b044e86595606b1c69c36d537bf67a19f1e8ea3f47d7b99cc167771309a0f77",
+      "packageSha256": "4133b182484a927b8ef2262f6ddf8b4c75dfbdfd01b4987de7945efc0febb1d8",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "ClosedXML/0.105.1/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/ClosedXML/ClosedXML/b4ebe47bd3ecebf8480dea7422188d16b35b9d9a/LICENSE",
+          "sha256": "3071658fba9a054edce74e756314ba926fe3ffe5c6622f209d21a0c8f1d2a99e",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "DocumentFormat.OpenXml.Framework",
+      "version": "3.5.1",
+      "repositoryUrl": "https://github.com/dotnet/Open-XML-SDK",
+      "sourceCommit": "3139fdfd27414548a41555f7848d5728f6e71a42",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "15bde8a3f5eb8089980298eac6a265e9b98b0f331dd77bf5b9a83e6a9780fa1d",
+      "packageSha256": "d317d974986a90d8f6de1832a48fb1052d771ea475a37a2f4e3be85c497fa9c5",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "DocumentFormat.OpenXml.Framework/3.5.1/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/Open-XML-SDK/3139fdfd27414548a41555f7848d5728f6e71a42/LICENSE",
+          "sha256": "ed03ba352313a4ba7019d5bed4bd3218ac17f3e44442a3bb1aaff54dcca9a2bc",
+          "role": "license"
+        },
+        {
+          "file": "DocumentFormat.OpenXml.Framework/3.5.1/NOTICE",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/Open-XML-SDK/3139fdfd27414548a41555f7848d5728f6e71a42/NOTICE",
+          "sha256": "b58ffb033b77dce71dc84018c86c33cc81bcb39336c75c057492e65cfe9e1c34",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "DocumentFormat.OpenXml",
+      "version": "3.5.1",
+      "repositoryUrl": "https://github.com/dotnet/Open-XML-SDK",
+      "sourceCommit": "3139fdfd27414548a41555f7848d5728f6e71a42",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "24269c24eda971be12f86756b8f2ccfceef2e5a008eef12dbd8959cf9ce355c3",
+      "packageSha256": "71375a11a53eeb554005477ce6ca127909aebed474900e92298360b49a68307f",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "DocumentFormat.OpenXml/3.5.1/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/Open-XML-SDK/3139fdfd27414548a41555f7848d5728f6e71a42/LICENSE",
+          "sha256": "ed03ba352313a4ba7019d5bed4bd3218ac17f3e44442a3bb1aaff54dcca9a2bc",
+          "role": "license"
+        },
+        {
+          "file": "DocumentFormat.OpenXml/3.5.1/NOTICE",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/Open-XML-SDK/3139fdfd27414548a41555f7848d5728f6e71a42/NOTICE",
+          "sha256": "b58ffb033b77dce71dc84018c86c33cc81bcb39336c75c057492e65cfe9e1c34",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Enums.NET",
+      "version": "5.0.0",
+      "repositoryUrl": "https://github.com/TylerBrinkley/Enums.NET",
+      "sourceCommit": "1ce2a8836bc40c16fc99cb6ca4f4ceceba713724",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "6faf537459cbf505e4d3e5c45fb23135c4d88316da048e8fe11d17cef6c79ad8",
+      "packageSha256": "f1c45954ebaedfc72ca3b98d00489fc6737ebf45b74fbc41fae478481bd39307",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Enums.NET/5.0.0/LICENSE.md",
+          "sourceUrl": "https://raw.githubusercontent.com/TylerBrinkley/Enums.NET/1ce2a8836bc40c16fc99cb6ca4f4ceceba713724/LICENSE.md",
+          "sha256": "ca33aa7ebf14dc1a97b4d73070552c04981cd3e0f07f7f8feba4caef2b1dcd1b",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Esprima",
+      "version": "3.0.6",
+      "repositoryUrl": "https://github.com/sebastienros/esprima-dotnet",
+      "sourceCommit": "5b601a36aa54956768c943a676ae9d6237bed8b0",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "1812b6e40b0048aaa535cd2cf3bbfb9e0c1d8c7a71e0563d61ca263fad12d26b",
+      "packageSha256": "3d4ac8575bce23d97bede8b2737eab4c3b05af85701164b99ca9d16a975505f6",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "BSD-3-Clause"
+      },
+      "files": [
+        {
+          "file": "Esprima/3.0.6/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/sebastienros/esprima-dotnet/5b601a36aa54956768c943a676ae9d6237bed8b0/LICENSE.txt",
+          "sha256": "c8642f25f131685102609e99b92da47d51c2ad4ecadccb6d96e6d906c2f357d6",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "ExcelNumberFormat",
+      "version": "1.1.0",
+      "repositoryUrl": "https://github.com/andersnm/ExcelNumberFormat",
+      "sourceCommit": "38c6a71919ad3895e3ba61d7a888012670d26303",
+      "sourceBinding": "version-matched-upstream-tag-not-embedded-commit",
+      "nuspecSha256": "e5f439f21cb51cd7c6376bd06778e94b601c0b5bf6779d8fbb92113921fb2001",
+      "packageSha256": "c48af3056098d8f123225b69c16d814f58ff28928e1f6a8fb6fba65fe35366f1",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "ExcelNumberFormat/1.1.0/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/andersnm/ExcelNumberFormat/38c6a71919ad3895e3ba61d7a888012670d26303/LICENSE",
+          "sha256": "6650b0063a39e7dced886e53c6dac66fcd909beb8b9abb868452c9b621fa2018",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted",
+      "releaseTag": "v1.1.0"
+    },
+    {
+      "id": "ExtendedNumerics.BigDecimal",
+      "version": "2025.1001.2.129",
+      "repositoryUrl": "https://github.com/AdamWhiteHat/BigDecimal",
+      "sourceCommit": "8d3de28cf6ee59e9c6be864dacdba7d450c2a026",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "fc4c53009637fe01aa1b30b53453e6c5bb520a06fcafd9eaa6654a3d9246f9b7",
+      "packageSha256": "2c0943f525ac29f5f132ed174eac4f06f5ae37a32b067113ad6b3c055343b159",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "ExtendedNumerics.BigDecimal/2025.1001.2.129/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/AdamWhiteHat/BigDecimal/8d3de28cf6ee59e9c6be864dacdba7d450c2a026/LICENSE.txt",
+          "sha256": "b64442e1584dc870a95be5f923244107b6c43f91178406311c0aa6e195503712",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "JBig2Decoder.NETStandard",
+      "version": "1.5.2",
+      "repositoryUrl": "https://github.com/nicholsab/JBig2Decoder.NETStandard",
+      "sourceCommit": "a91a5ef0c07bab331300f7120e52751e361da743",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "8793f5ce1167037a07f681ce2f91a1022a9e52b2b00d7f67aa9352ff22e5a6d7",
+      "packageSha256": "467f7034f342544e3b6a4d9684155196fec1b24621635c7c9572c4eb5929112e",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "JBig2Decoder.NETStandard/1.5.2/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/nicholsab/JBig2Decoder.NETStandard/a91a5ef0c07bab331300f7120e52751e361da743/LICENSE",
+          "sha256": "4b2076ee892bdcf3bcc6f09e68146d2d0b3a4d2c0c66a00383b6e768be128e68",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Markdig",
+      "version": "0.41.3",
+      "repositoryUrl": "https://github.com/xoofx/markdig",
+      "sourceCommit": "7ff8db9016593b71f9ae17d9b2b053fbd54e9cdf",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "e7abe3dc85e6b4885b78a96596072e8df659afdafa11549a3dce543013ded91f",
+      "packageSha256": "ddeccccf63f84a31638b754705d2c4aff67a80e025f40edf63c64910a6e7ec27",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "BSD-2-Clause"
+      },
+      "files": [
+        {
+          "file": "Markdig/0.41.3/license.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/xoofx/markdig/7ff8db9016593b71f9ae17d9b2b053fbd54e9cdf/license.txt",
+          "sha256": "ae543293657b6782e3d4a76257dc4157210ce88a352ef8392065d3f04dcd88d1",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "MathNet.Numerics.Signed",
+      "version": "5.0.0",
+      "repositoryUrl": "https://github.com/mathnet/mathnet-numerics",
+      "sourceCommit": "4435308e1b0efcb40dc483140059a4e3a2204044",
+      "sourceBinding": "version-matched-upstream-tag-not-embedded-commit",
+      "nuspecSha256": "83dd47a6ee6a05105ea55f6cde24e09a9a567fa80479dee384ab77cf007feff6",
+      "packageSha256": "efacb58da2fe69baa8c8fdcae27f69845d52d614e9ca5930fffbd31ee9113947",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "MathNet.Numerics.Signed/5.0.0/LICENSE.md",
+          "sourceUrl": "https://raw.githubusercontent.com/mathnet/mathnet-numerics/4435308e1b0efcb40dc483140059a4e3a2204044/LICENSE.md",
+          "sha256": "3f87fb0bec6467d87760555e3cb246646a51912b0e97f432c159ba6baf5738f2",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted",
+      "releaseTag": "v5.0.0"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.Analyzers",
+      "version": "5.9.0-1.26328.17",
+      "repositoryUrl": "https://github.com/dotnet/roslyn",
+      "sourceCommit": "411469b8cd5e1ac891644ef6e3bf5cc8fa7943cc",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "eb1300b6e4682da068f5c573cec828b34f059d00a1c0fe320a3edc8c922fc09e",
+      "packageSha256": "a7ef4c9b2cf403bf54e4b52eb8fb89e946a286894f148ecbe7515d81c7b0f612",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.CodeAnalysis.Analyzers/5.9.0-1.26328.17/License.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/411469b8cd5e1ac891644ef6e3bf5cc8fa7943cc/License.txt",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "Microsoft.CodeAnalysis.Analyzers/5.9.0-1.26328.17/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/411469b8cd5e1ac891644ef6e3bf5cc8fa7943cc/THIRD-PARTY-NOTICES.txt",
+          "sha256": "9879407362c623ca2af5d0460a556d25a2fa1afbaa6530707963fc7166102d4d",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.CSharp",
+      "version": "5.9.0",
+      "repositoryUrl": "https://github.com/dotnet/roslyn",
+      "sourceCommit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "cdb47f1a6d4dc3a22615deecc1f920c1fcb6dfb4ed27313ab1e3b1ccdf9405de",
+      "packageSha256": "7602c3dbaa122268f3b26c6cc0dd02eb9224dea9442ed27af5c3fe56d643993f",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.CodeAnalysis.CSharp/5.9.0/License.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "Microsoft.CodeAnalysis.CSharp/5.9.0/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/THIRD-PARTY-NOTICES.txt",
+          "sha256": "9879407362c623ca2af5d0460a556d25a2fa1afbaa6530707963fc7166102d4d",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Microsoft.CodeAnalysis.Common",
+      "version": "5.9.0",
+      "repositoryUrl": "https://github.com/dotnet/roslyn",
+      "sourceCommit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "eebeb51bc61715d495498efafff6f7077cbe53d4c7deed2988d9ed0cc902d2b3",
+      "packageSha256": "77efd4715c24c8cd6b36f9b92980a2f5a86e4a7b53648d4f1ca3b79a3933a429",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.CodeAnalysis.Common/5.9.0/License.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "Microsoft.CodeAnalysis.Common/5.9.0/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/THIRD-PARTY-NOTICES.txt",
+          "sha256": "9879407362c623ca2af5d0460a556d25a2fa1afbaa6530707963fc7166102d4d",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Microsoft.IO.RecyclableMemoryStream",
+      "version": "3.0.1",
+      "repositoryUrl": "https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream",
+      "sourceCommit": "e29a28387da9018fa9605a1dcb3f7a0435aa9974",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "fc55ca81055b708f2ed866249fc50fd343d4ad4f76a0550b51873df18273d771",
+      "packageSha256": "ba7160ff911c53f5ca25ba1be06b500b8dd87608b95637811acee17e18f8118a",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.IO.RecyclableMemoryStream/3.0.1/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/Microsoft/Microsoft.IO.RecyclableMemoryStream/e29a28387da9018fa9605a1dcb3f7a0435aa9974/LICENSE",
+          "sha256": "7d6aa3550cf7aeb25ef542f616d8ead585633e3b607c65e1db4aa804e4971a91",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Microsoft.SourceLink.Common",
+      "version": "8.0.0",
+      "repositoryUrl": "https://github.com/dotnet/sourcelink",
+      "sourceCommit": "ce7339775f8ada5b16c72a874f591c8cd5722c6b",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "223166bf724e5d50ed4d81407cf98b61bc9474dee38677a9ab349932701e9bb1",
+      "packageSha256": "01f52a95e544a96b8713bcf684d8b038b9eab81277b6e62d6e4746329a473977",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.SourceLink.Common/8.0.0/License.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/sourcelink/ce7339775f8ada5b16c72a874f591c8cd5722c6b/License.txt",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Microsoft.SourceLink.GitHub",
+      "version": "8.0.0",
+      "repositoryUrl": "https://github.com/dotnet/sourcelink",
+      "sourceCommit": "ce7339775f8ada5b16c72a874f591c8cd5722c6b",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "4ce7964c29cc84ec5bf7c06becd95112f8fdbceeb67ca3d84bc44ad7090bc0d4",
+      "packageSha256": "84d4e4a4a7422d8e6422e3a6ce70f5998fa945d2743cabb61f2a725e883dbdbd",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Microsoft.SourceLink.GitHub/8.0.0/License.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/sourcelink/ce7339775f8ada5b16c72a874f591c8cd5722c6b/License.txt",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "NodaTime",
+      "version": "3.3.7",
+      "repositoryUrl": "https://github.com/nodatime/nodatime",
+      "sourceCommit": "cee37f17fcb462d0d17c3374844e253c96e4a7cd",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "3545e23c454dbb10754de08ca538826a1c42db9a1c5a88076d64d2c8298a8d86",
+      "packageSha256": "19a0721939061e86911c01efb044a148d5ad40558fe46fe5fd02bf5baf81d243",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "files": [
+        {
+          "file": "NodaTime/3.3.7/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/nodatime/nodatime/cee37f17fcb462d0d17c3374844e253c96e4a7cd/LICENSE.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "role": "license"
+        },
+        {
+          "file": "NodaTime/3.3.7/NOTICE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/nodatime/nodatime/cee37f17fcb462d0d17c3374844e253c96e4a7cd/NOTICE.txt",
+          "sha256": "b20873f8469e39d5d09bfbafa9ceb101d555cf8de61f8c2a31394161d3b4c6dd",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "RBush.Signed",
+      "version": "4.0.0",
+      "repositoryUrl": "https://github.com/viceroypenguin/RBush",
+      "sourceCommit": "b8690322abac35d835baa2fdca4a3918ed77a910",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "d4983dbce60e9e35718273f5870e43860d3d2d66876d38d564a40d881c2236f4",
+      "packageSha256": "23cfc3df93838d472c789bc8f0d5d7a0fa26ee5b08040244897b6720a9b82a89",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "RBush.Signed/4.0.0/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/viceroypenguin/RBush/b8690322abac35d835baa2fdca4a3918ed77a910/LICENSE",
+          "sha256": "f6bfae3ff6477fbca0c850f115da170516b1c633a98619ea5dcc6720dcdcb288",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "SharpZipLib",
+      "version": "1.4.2",
+      "repositoryUrl": "https://github.com/icsharpcode/SharpZipLib",
+      "sourceCommit": "33f64eb0f28cdd2b084cb822fcc224c7c5aba553",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "bcbd41de9f4c1ea78144211b4b4a0a5adc1945c63caa9d6df76687d885f03628",
+      "packageSha256": "fe0895aa2930a2b1b65caa9f37db8bca35125ebdf9cc1b99d855f6afc5ff5946",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "SharpZipLib/1.4.2/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/icsharpcode/SharpZipLib/33f64eb0f28cdd2b084cb822fcc224c7c5aba553/LICENSE.txt",
+          "sha256": "d7fbbc16f871bf24fa5624c7eaf945054b778985f32676dcacba41fddca61133",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "SixLabors.Fonts",
+      "version": "1.0.0",
+      "repositoryUrl": "https://github.com/SixLabors/Fonts",
+      "sourceCommit": "32bef42997adb10268369ca149777f00e4241ce9",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "dbd5856e3bbf6d25087250dbad4fe3140383dfe82610c3cce4929fbc59c7e7a8",
+      "packageSha256": "93201071964e743e742e8ee5ef3f2a9c531eac98e5015eba1cd06aec123a4cd3",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "files": [
+        {
+          "file": "SixLabors.Fonts/1.0.0/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/SixLabors/Fonts/32bef42997adb10268369ca149777f00e4241ce9/LICENSE",
+          "sha256": "f38dc2765451fd2b19d7e0f47ed655f3a1cb889b28341ea6266efd75d8425a6f",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "System.IO.Hashing",
+      "version": "10.0.14",
+      "repositoryUrl": "https://github.com/dotnet/dotnet",
+      "sourceCommit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "70e94121eea38522c403007708e5956291245683a46e7ea240871873024afd8d",
+      "packageSha256": "86917bafb634c4d06dd7f07c5f745141fea220f64e13e7657680e81dac68f941",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "System.IO.Hashing/10.0.14/LICENSE.TXT",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/LICENSE.TXT",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "System.IO.Hashing/10.0.14/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/THIRD-PARTY-NOTICES.txt",
+          "sha256": "5a90be9000b5c2f928dead74be4e86952420d1160fa38f6f2d34526eeee49ff6",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "System.IO.Packaging",
+      "version": "10.0.2",
+      "repositoryUrl": "https://github.com/dotnet/dotnet",
+      "sourceCommit": "44525024595742ebe09023abe709df51de65009b",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "b41f9f8c7f534f01af94fb7b64169a2fea044087821324ce5cab928cdf87d409",
+      "packageSha256": "d75d169bff3840871dfd41f1141bfdd6c6a319a2a53620bdef69106be084f5e9",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "System.IO.Packaging/10.0.2/LICENSE.TXT",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/44525024595742ebe09023abe709df51de65009b/LICENSE.TXT",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "System.IO.Packaging/10.0.2/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/44525024595742ebe09023abe709df51de65009b/THIRD-PARTY-NOTICES.txt",
+          "sha256": "4bef6a7e7b359869d751c9ff70274a80a0f626927afa5a0681583c1b1861267b",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "System.Security.Cryptography.Pkcs",
+      "version": "10.0.13",
+      "repositoryUrl": "https://github.com/dotnet/dotnet",
+      "sourceCommit": "4099f83977f4d29604a9aeb971fb0a7bc1d5f699",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "733efcb3d5563332e6a441368f03c29fce22d32d33b9ce998571d8dd14239123",
+      "packageSha256": "54ed24578ead34b5b50d259084243432f11733e2754b8b196e799d3418d304a7",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "System.Security.Cryptography.Pkcs/10.0.13/LICENSE.TXT",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/LICENSE.TXT",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "System.Security.Cryptography.Pkcs/10.0.13/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/4099f83977f4d29604a9aeb971fb0a7bc1d5f699/THIRD-PARTY-NOTICES.txt",
+          "sha256": "5a90be9000b5c2f928dead74be4e86952420d1160fa38f6f2d34526eeee49ff6",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "System.Security.Cryptography.Pkcs",
+      "version": "10.0.14",
+      "repositoryUrl": "https://github.com/dotnet/dotnet",
+      "sourceCommit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "21d35a0f74d96b14dc11ab34ca0f59ca0751c668324ecf5d725fffdc14971817",
+      "packageSha256": "935442918853215d7d40b5ef5940a764a4387f4f9854ae270092e3492c50d9a2",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "System.Security.Cryptography.Pkcs/10.0.14/LICENSE.TXT",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/LICENSE.TXT",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "System.Security.Cryptography.Pkcs/10.0.14/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/THIRD-PARTY-NOTICES.txt",
+          "sha256": "5a90be9000b5c2f928dead74be4e86952420d1160fa38f6f2d34526eeee49ff6",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "System.Security.Cryptography.Xml",
+      "version": "10.0.14",
+      "repositoryUrl": "https://github.com/dotnet/dotnet",
+      "sourceCommit": "0427b9abbead3fa64c6655eb4290c537397131fa",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "d7842f5367f552121a30e51534df3dd1f9a1c8d1ddd9e1664483a57955bb941f",
+      "packageSha256": "89efff1d453099fdbd4d7a8eea5d87488b61a0452731caa000fb30d2af2a9b26",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "System.Security.Cryptography.Xml/10.0.14/LICENSE.TXT",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/LICENSE.TXT",
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "role": "license"
+        },
+        {
+          "file": "System.Security.Cryptography.Xml/10.0.14/THIRD-PARTY-NOTICES.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/dotnet/dotnet/0427b9abbead3fa64c6655eb4290c537397131fa/THIRD-PARTY-NOTICES.txt",
+          "sha256": "5a90be9000b5c2f928dead74be4e86952420d1160fa38f6f2d34526eeee49ff6",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "Tesseract",
+      "version": "5.2.0",
+      "repositoryUrl": "https://github.com/charlesw/tesseract",
+      "sourceCommit": "2c993543f7fa66576a8890a6c4ab053c4598aaed",
+      "sourceBinding": "version-matched-upstream-tag-not-embedded-commit",
+      "nuspecSha256": "dc5caab65eec3ebfa14823ccacaf6c2e8e090de688540f5179133d1e62aa534c",
+      "packageSha256": "202d82fc7c7d8384df7da57206d5e1f456ccdabd648c46e67cdfaa3a911d4795",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "files": [
+        {
+          "file": "Tesseract/5.2.0/LICENSE.txt",
+          "sourceUrl": "https://raw.githubusercontent.com/charlesw/tesseract/2c993543f7fa66576a8890a6c4ab053c4598aaed/LICENSE.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted",
+      "releaseTag": "5.2.0"
+    },
+    {
+      "id": "Unicode.Bidi",
+      "version": "0.4.0",
+      "repositoryUrl": "https://github.com/erikbra/unicode-bidi-net",
+      "sourceCommit": "1c245e5be963be3dd6d10257345628102e19ba7f",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "c64257fbb435cfd07b60767e5079e8b18da9880f628652ecf51ac0d8365655c7",
+      "packageSha256": "893188e809fee1c5f856e1add88a7436877de3a1769557b36606216237ad1dc3",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "Unicode.Bidi/0.4.0/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/erikbra/unicode-bidi-net/1c245e5be963be3dd6d10257345628102e19ba7f/LICENSE",
+          "sha256": "690ce954ef033e7096c23ab31f53697ea1a4f4f47fe7cbca0f41f91630b89177",
+          "role": "license"
+        },
+        {
+          "file": "Unicode.Bidi/0.4.0/THIRD-PARTY-NOTICES.md",
+          "sourceUrl": "https://raw.githubusercontent.com/erikbra/unicode-bidi-net/1c245e5be963be3dd6d10257345628102e19ba7f/THIRD-PARTY-NOTICES.md",
+          "sha256": "c62cdf522178109e7f26d24b9c47c97cac7ba32d9009572d659fe074f5e8cd29",
+          "role": "notice"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "ZString",
+      "version": "2.6.0",
+      "repositoryUrl": "https://github.com/Cysharp/ZString",
+      "sourceCommit": "3156134075b89a162fe95350a2e92a4c85ccca59",
+      "sourceBinding": "nuspec-repository-commit",
+      "nuspecSha256": "b477b899bb27b51e1aec4a01e8b911872d71e9810052be4dfa46c55f50c5adb2",
+      "packageSha256": "f50fcbd523e623ea15c6f501233db4da6527f9456ca15ff2d8e7e1a291d7cdea",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "MIT"
+      },
+      "files": [
+        {
+          "file": "ZString/2.6.0/LICENSE",
+          "sourceUrl": "https://raw.githubusercontent.com/Cysharp/ZString/3156134075b89a162fe95350a2e92a4c85ccca59/LICENSE",
+          "sha256": "f3e6cffb78d6d94fa37fd26ada7294c3284b6b89940b5645f93ed24cdd5b36b0",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted"
+    },
+    {
+      "id": "ZXing.Net",
+      "version": "0.16.9",
+      "repositoryUrl": "https://github.com/micjahn/ZXing.Net",
+      "sourceCommit": "3d870b70af174a61ae45813d36ece7e811544d70",
+      "sourceBinding": "version-matched-upstream-tag-not-embedded-commit",
+      "nuspecSha256": "781132be28ac5d7f343804e365cef2699885fcb82b1cb8bac081b2f82d5c3f4c",
+      "packageSha256": "00254acaaea069262e6b103d23f1a934e953d503ea43afe2965272718388f32e",
+      "declaredLicense": {
+        "type": "expression",
+        "value": "Apache-2.0"
+      },
+      "files": [
+        {
+          "file": "ZXing.Net/0.16.9/COPYING",
+          "sourceUrl": "https://raw.githubusercontent.com/micjahn/ZXing.Net/3d870b70af174a61ae45813d36ece7e811544d70/COPYING",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "role": "license"
+        }
+      ],
+      "legalApproval": "not-granted",
+      "releaseTag": "v0.16.9.0"
+    }
+  ]
+}

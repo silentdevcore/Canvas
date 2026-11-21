@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-host-worker-boundary-validation",
+  "impact": "none",
+  "components": ["api", "sdk", "designer"],
+  "category": "improved",
+  "summary": "Expanded internal native licensing checks for application sessions and independently verified worker execution.",
+  "breaking": false,
+  "reason": "Test coverage and acceptance evidence only; application authorization, native license contracts and sandbox behavior are unchanged."
+}

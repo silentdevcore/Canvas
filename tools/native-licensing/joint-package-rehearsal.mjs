@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { protect, checkRepository } from './pvad-native-licensing.mjs';
 import { createTestLicenses } from './with-test-license.mjs';
 import { rehearseSupportRetention } from './support-retention-rehearsal.mjs';
+import { preparePackageDocuments } from './package-documents.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = join(root, 'tools/native-licensing');
@@ -215,10 +216,30 @@ export function main(args) {
       assert.ok(!types(protectedDirectory).includes(internalName), `Internal implementation name retained: ${name}`);
     }
     const feed = join(work, 'feed'); mkdirSync(feed);
+    const documentationBuild = join(work, 'documentation-build');
+    run('dotnet', ['build', join(here, 'PackageDocumentationProbe/PackageDocumentationProbe.csproj'), '-c', 'Release',
+      '--artifacts-path', documentationBuild, ...common]);
+    const documentationProbe = join(documentationBuild, 'bin/PackageDocumentationProbe/release/PackageDocumentationProbe.dll');
+    const documentationDirectory = join(work, 'package-documents'); mkdirSync(documentationDirectory);
+    const packageDocumentation = {};
+    for (const name of Object.keys(packageProjects)) {
+      const originalXml = join(build, `bin/${name}/release/${name}.xml`);
+      const publicXml = join(work, name + '.public.xml'), protectedXml = join(work, name + '.protected.xml');
+      const before = jsonResult(run('dotnet', [documentationProbe, join(original, name + '.dll'), originalXml, publicXml]));
+      const after = jsonResult(run('dotnet', [documentationProbe, join(protectedDirectory, name + '.dll'), publicXml, protectedXml]));
+      assert.equal(before.xmlSha256, after.xmlSha256, 'Public documentation changed after protection: ' + name);
+      assert.equal(after.removedMembers, 0, 'Public documentation no longer resolves: ' + name);
+      const projectAssets = readJson(join(build, `obj/${name}/project.assets.json`));
+      const bundle = preparePackageDocuments({ name, version, assets: projectAssets,
+        destination: join(documentationDirectory, name), documentation: { ...before, file: protectedXml, assemblySha256: after.assemblySha256 } });
+      packageDocumentation[name] = { publicMembers: bundle.xml.publicMembers, removedMembers: bundle.xml.removedMembers,
+        xmlSha256: bundle.xml.xmlSha256, missingLicenseTexts: bundle.missingLicenseTexts, thirdPartyPackages: bundle.thirdPartyPackages,
+        legalApprovalGranted: false, publicationReady: false };
+    }
     console.error('Packing exact protected assemblies into an isolated local feed.');
     for (const [name, project] of Object.entries(packageProjects)) run('dotnet', ['pack', project, '-c', 'Release', '--no-build', '--no-restore',
       '--artifacts-path', build, '-o', feed, ...common, ...protectionOptions, `-p:PvadProtectedAssemblyPath=${join(protectedDirectory, name + '.dll')}`,
-      `-p:PvadLicenseTrustStorePath=${licenses.trustPath}`]);
+      `-p:PvadLicenseTrustStorePath=${licenses.trustPath}`, `-p:PvadPackageDocumentationDirectory=${documentationDirectory}`]);
     const dependencies = join(work, 'third-party-feed'); mkdirSync(dependencies);
     const assets = readJson(join(build, 'obj/GeneratorPackageProbe/project.assets.json'));
     const dependencyAssets = [assets, ...(includeMigrations ? Object.values(migrationProbes).map(name => readJson(join(build, `obj/${name}/project.assets.json`))) : [])];
@@ -313,6 +334,7 @@ export function main(args) {
       protectedAssemblyHashes: after.assemblyHashes, pdfPages: pages.length, pdfPixelsEqual: true,
       jsonWordSpreadsheetEqual: true, thirdPartyAssembliesUnchanged: thirdParty.length, offlineDependencyPackages: dependencyCount,
       independentPackageReferences: Object.keys(packageProjects).length, productWideAcceptance: false,
+      packageDocumentation, documentationPublicationReady: false,
       importerSmokeCompared: includeImporter, workerAssemblyHashes: workerHashes,
       codeWorkerAssemblyHashes: codeWorkerHashes, codeWorkerExecuted: includeExecution,
       converterSmokeCompared: includeExecution, codeWorkerPdfPixelsEqual: includeExecution,

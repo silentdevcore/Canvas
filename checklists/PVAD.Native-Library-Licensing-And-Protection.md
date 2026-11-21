@@ -59,8 +59,8 @@ a claim that obfuscation prevents reverse engineering.
 - [x] Mount only the public verification key in customer Compose; supply a separate manufacturer-only issuer overlay.
 - [x] Keep license listing, reads, downloads, and schema-1/schema-2 validation functional without a private key.
 - [x] Add Admin management and authorized Account downloads for native licenses; see the [Admin and Account milestone](#native-admin-and-account-license-workflow-milestone).
-- [ ] Use the same verification core in WebApi and workers while preserving tenant, session, entitlement, and feature checks.
-- [ ] Transfer only locally verifiable worker configuration; no source-visible secrets or public bypass modes.
+- [x] Use the same verification core in WebApi and workers while preserving tenant, session, entitlement, and feature checks; see the real-session host/worker checkpoint below. Production deployment and sandbox acceptance remain separate.
+- [x] Transfer only locally verifiable worker configuration; no source-visible secrets or public bypass modes. Signed OCR envelope/revocation evidence and actual CodeWorker source/protocol denials are recorded below; no OS sandbox approval is implied.
 - [x] Support explicit import of signed revocation lists; document offline revocation limitations. See the [offline revocation milestone](#signed-offline-revocation-list-milestone).
 
 ## P0: Product And Operation Coverage
@@ -105,7 +105,7 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Audit protected output with ILSpy; compare public API and internal-name visibility without claiming logic is unrecoverable.
 - [x] Test local-feed package consumers and complete native transitive dependency graphs; the 54-assembly/52-library milestone below closes local graph acceptance, not WebApi/friend-boundary or cross-platform acceptance.
 - [ ] Verify protected packages on Windows, Linux, and macOS, including native dependencies and code execution.
-- [ ] Supply EULA references, third-party notices, XML documentation, and offline examples.
+- [ ] Supply EULA references, third-party notices, XML documentation, and offline examples; see the [package documentation checkpoint](#package-documentation-checkpoint) for completed tooling and remaining content/review gaps.
 - [x] Exclude anti-debugger crashes, process scanning, self-modifying loaders, and antivirus-hostile techniques.
 - [x] Treat strong names as identities rather than an anti-tamper security boundary.
 
@@ -121,6 +121,150 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Record actual commands/results and leave unavailable platform evidence open.
 
 ### Current Verification Evidence
+
+#### Pinned Dependency Notice Sources
+
+Original license/notice acquisition for the previous 30 missing NuGet package
+versions is complete. The [source registry](../assets/licenses/native-packages/README.md)
+retains 42 unchanged upstream files, exact package/archive and metadata hashes,
+declared licenses, immutable source URLs and content hashes. Twenty-six versions
+use the package-embedded repository commit. ExcelNumberFormat, signed MathNet,
+Tesseract and ZXing use version-matched upstream tags with fixed commits and
+explicitly weaker provenance; no reproducible binary/source identity is claimed.
+The NodaTime pins agree with the pre-existing provenance record, which remains
+unchanged.
+
+The packer reads these files offline, preserves package-supplied originals in
+addition to the separate upstream copies, and rejects changed archives,
+metadata, declared licenses, repositories, commits and source bytes. Unknown
+versions receive no inherited source mapping. Supplemental Unicode notices are
+retained without being mistaken for the main library license. Original JBig2
+BSD/port-MIT attribution is preserved in full, not replaced by the NuGet SPDX
+label. Acquisition grants no EULA acceptance or distribution approval.
+
+`artifacts/native-notice-acquisition/preflight.json` independently checks the
+45 cached dependency versions represented in the previous report: all 30
+source records match, 77 notice files are collected and no main-license text is
+missing. This is a cached-archive preflight, not a fresh restore or full package
+acceptance. The final byte-exact RTF header check preserves that entire retained
+inventory byte-for-byte, including all 77 notice hashes; a high-bit binary
+header disguise is independently rejected by the negative fixture.
+
+The subsequent local macOS/x64 full run at
+`artifacts/native-joint-packages/1795281447251-3e0fed10/` passes. It jointly
+protects 54 assemblies, packs 52 libraries and preserves all 909 public types.
+The original consumer passes 654 assertions; the protected offline-feed
+consumer passes 5,608 unique assertions, including 962 documentation-file and
+962 matching checksum checks. Every package's `missingLicenseTexts` is empty.
+The 569 retained public XML comments and 367 removed private/internal entries
+remain unchanged; 19 assemblies still have no public compiler-XML comments.
+These probe assertions are not additional unit-test cases or completed
+documentation tasks.
+
+Provider comparison, 62 converter cases, 12 actual CodeWorker requests and
+native OCR pass. Normal and CodeWorker PDF pixels remain identical to their
+unprotected counterparts, and all 39 third-party DLLs are unchanged. The final
+cleanup removes synthetic licenses/keys, packages, binaries and private support
+files, preserves source trust and ordinary product outputs, and retains only
+its report/cleanup JSON. Publication readiness and legal approval remain false.
+No Windows/Linux, general CI or production-sandbox execution is claimed here.
+
+The first full attempt at `1795280895450-fb73e74c` correctly rejected Roslyn's
+original RTF notices because they contain one terminal NUL. The correction
+allows only the exact RTF header/closing-brace wrapper with one terminal byte;
+embedded/additional NULs, binary disguises and private-key markers remain
+rejected. Copied RTF bytes are unchanged. Its failed-attempt cleanup confirms
+removal of private work, unchanged source trust and ordinary product outputs.
+
+All 164 native/version/release-author tooling tests pass, including the new
+pin/tampering, version-isolation, tag-provenance and RTF cases. All 73
+Documentation tests and its build pass. Git preserves source bytes/line endings;
+vendor-only whitespace exceptions retain original published text, while hashes
+enforce integrity. All 42 originals pass that scoped whitespace check. Normal
+application, manifest and guide whitespace rules are not disabled.
+
+The original P1 documentation/notices item remains open for public API comments,
+native/font attribution and final contractual/distribution review. Primary
+scope remains 68/76 (89.5%); no new implementation tasks or approvals are added.
+The existing customer-facing package-documentation fragment retains patch
+impact. Product version, published releases, legal candidates/hash pins and
+live databases are unchanged. No commit, push or publication is performed.
+
+#### Package Documentation Checkpoint
+
+The local macOS/x64 package run on 2026-11-21 passes at
+`artifacts/native-joint-packages/1795279545161-98baa81e/`. It builds and jointly
+protects 54 first-party assemblies and packs 52 libraries. All 909 public types
+retain their API contracts. The original consumer passes 654 assertions and
+the protected local-feed consumer 3,888 unique assertions. These are probe
+assertions, not additional unit-test cases.
+
+Each library receives an offline README and the exact activation guide,
+an explicitly unapproved License Agreement candidate with its version/hash,
+the pinned public compatibility reference, available dependency notices and
+public IntelliSense XML. Roslyn metadata inspection retains 569 public comment
+entries and removes 367 private/internal or unresolvable entries. Public XML
+hashes match before and after obfuscation. No product assembly is executed to
+inspect its documentation.
+
+The independent consumer verifies 532 bundled-file entries and their exact
+checksums, including extensionless and nested license texts, and binds each
+documentation manifest to its actual protected DLL. The full local feed is
+restored without online package sources. Existing single-product admission,
+free DTOs, provider comparison, 62 converter cases, 12 CodeWorker requests and
+real native OCR also pass. Original/protected backend and CodeWorker PDFs are
+pixel-identical; all 39 third-party DLLs remain byte-identical.
+
+The original P1 documentation/notices item remains **open**. Across the resolved
+dependency graph, 30 unique package versions have no complete license text
+collected from their resolved NuGet contents. Nineteen assemblies already have zero public compiler-XML
+comments; none of those empty sets was caused by the visibility filter. The
+retained report's per-package `packageDocumentation` entries identify these
+assemblies and every `missingLicenseTexts` value. Original notice acquisition,
+API comments and native/font attribution are still implementation work, not
+automatically external blockers. Final contractual references, the existing
+NPOI decision and distribution approval remain separately required. Both legal
+approval and documentation publication readiness stay false.
+
+Earlier failed runs remain visible with successful cleanup: `1795277922660-6632cffb`
+detected SDK selection of the original XML rather than the filtered output;
+`1795278146712-1791ebc4` exposed a non-UTF-8 original notice; and
+`1795278615453-d3f11b5b` caught NuGet treating extensionless `LICENSE` as a
+directory. The corrections explicitly replace the documentation output group,
+preserve original notice bytes and use a directory-only package path. An
+isolated synthetic NuGet fixture reproduced and verified the path correction;
+no expected checksum, notice text or consumer assertion was relaxed.
+
+All 155 native/version/release-author tooling tests pass, as do the 73
+Documentation tests and its production build. The existing Vite warning and
+NPOI distribution warning remain visible and unaccepted. Former-name,
+tracked-Markdown zero-hit, version/fragment and whitespace checks pass.
+The customer-facing `native-package-documentation` fragment has patch impact;
+the product version and published manifest are unchanged.
+
+The final cleanup confirms removal of candidate packages, binaries, synthetic
+licenses/keys, notice bundles and private support files, with unchanged source
+trust and regular product outputs. Only report/cleanup JSON is retained.
+No publication, commit, push, deployment or live database change occurred.
+This is not new Windows/Linux, general CI or production-sandbox acceptance.
+Primary progress remains **68/76 (89.5%)**, not an increased task count or a
+claim that the remaining documentation item is complete.
+
+The real-session host/worker checkpoint on 2026-11-21 closes the two original
+P0 verifier/configuration integration items. Primary scope remains 76 items:
+68 complete and eight open (89.5%). No application implementation, authorization
+policy, native contract, source trust or rendering behavior changed. This is
+local macOS/x64 .NET evidence, not production or cross-platform acceptance.
+
+- `artifacts/native-engine-tests/1795276694986-8a1cbbca/licensed-tests.trx`: all 25 selected API cases passed, none failed or skipped. Raw rows, counters, identities and execution times were independently audited. All three new `NativeLicenseHost_` methods, seven actual-worker source-denial cases and two raw worker-protocol cases executed. The remaining 13 cases include the existing real Account-to-Designer handoff/replay test and native PDF/Trust regressions; workflow assertions are not counted as extra test cases.
+- The PostgreSQL integration uses real Identity login, PKCE handoff, distinct host-only cookie schemes, persisted session validation, current role resolution, entitlements and feature policies. It accepts a real CodeWorker PDF and a normal backend PDF export, but denies anonymous/Account-only access, missing CSRF, a foreign template, disabled Designer entitlement/feature, a downgraded role and a revoked session before creating an execution job.
+- The actual native bootstrap and options startup validator are retained. An invalid explicitly configured license fails host startup without replacing the prior snapshot. A valid signed license cannot override `CodeWorker:Hardened=false`. The integration host uses `Testing` and TestServer, with other hosted background services disabled; this is not a full production startup, real-browser, TLS/reverse-proxy or OS-sandbox test.
+- Independent worker admission rejects a Word-only worker license while the host retains its valid PDF snapshot. Restoring the configured PDF license succeeds without changing user source. PostgreSQL retains exactly two completed jobs and one native-license failure, with no canonical/PDF result on denial. Job ownership, execution/entitlement audit records and export usage remain tenant-scoped; stored job/audit data do not contain the tested source text. A Word-only host snapshot separately produces HTTP 503 with the stable native product diagnostic instead of a PDF download.
+- Raw worker requests containing an embedded valid signed license, license-path fields and a purported server-mode flag cannot confer rights: absent/wrong-product external configuration retains the expected native diagnostics and produces no document. Seven additional real child-process cases reject environment, filesystem, process, reflection and licensing-API source access, including an alias. Responses and captured output do not expose the synthetic configured license path. No customer-side trust anchor, private key or public bypass API was introduced.
+- The existing Importer/OCR signed-envelope and revocation milestones remain complementary evidence: local native OCR, private temporary envelope forwarding, independent worker verification and denied-dispatch cleanup were executed in their earlier isolated profiles. The existing original/protected 56-module WebApi rehearsal separately verifies rewritten friend references and auth/tenant/feature composition. Neither profile is presented as a newly executed package/platform or OS-sandbox run here.
+- The fixed source-regression selection now includes the three real-session host methods and requires all five new host/worker method groups in actual TRX results. General CI's existing unfiltered PostgreSQL API step discovers the partial test class without an authentication override; no new remote CI execution is claimed. Native tooling/version/release contracts: 145 passed. Naming, Markdown, version/fragment and whitespace checks passed; the internal release fragment `native-host-worker-boundary-validation` has impact `none`.
+- Earlier runs `1795275911684-20c23970` and `1795276284308-f69e21e2` each passed 24 cases and failed the new relational workflow, first for a missing synthetic feature-policy updater and then for an incorrect expectation about the existing endpoint-policy permission diagnostic. The final fixture supplies its real seeded updater and asserts the stable general permission diagnostic and unchanged job count. No FK, authorization rule or error contract was relaxed. The diagnostic/audit consistency finding is retained only under Later Findings.
+- The final `run.json` confirms successful removal of synthetic licenses, isolated binaries and worker request files, unchanged source trust and ordinary licensing outputs. Both earlier cleanup records also passed; `docker ps -aq --filter label=org.testcontainers=true` returned no containers after the final run. No commit, push, registry publication, deployment, live database or product-version change occurred.
 
 The local source-regression checkpoint on 2026-11-21 closes the original P1
 regression item. Primary scope remains 76 items: 66 complete and 10 open
@@ -3118,6 +3262,7 @@ changes remain outside that commit and this milestone.
 
 | Finding | Impact And Priority | Handling |
 | --- | --- | --- |
+| Canonical Code Workspace execution with a downgraded role is rejected by its endpoint authorization policy with the stable general permission diagnostic; the Designer path resolver does not select the operation-specific code permission, so the middleware-specific permission-denial audit is not produced | P2 consistency/observability follow-up. Execution is correctly denied before any job is created; this is not evidence of an authorization bypass. | Preserve the current diagnostic and policy. Review resolver/endpoint audit alignment after native licensing, without expanding this plan's primary task count. |
 | Older JSON naming audit reports 475 pre-existing baseline mismatches | Separate naming/evidence reconciliation; assess before general repository naming acceptance | Preserve original pins/evidence. Review after the native licensing plan; no rename, pin regeneration or new licensing task is authorized here. |
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |
 

@@ -105,6 +105,83 @@ public sealed class PvadNativePdfLicenseTests
     public void Script_cannot_control_the_host_license(string source) =>
         Assert.Contains(SandboxPolicy.Analyze(source), item => item.Severity == "error");
 
+    [Theory]
+    [InlineData("return System.Environment.GetEnvironmentVariables();")]
+    [InlineData("return System.IO.File.ReadAllText(\"license.json\");")]
+    [InlineData("return System.Reflection.Assembly.Load(\"PVAD.Licensing\");")]
+    [InlineData("return System.Diagnostics.Process.Start(\"dotnet\");")]
+    [InlineData("return PVAD.Licensing.PvadLicense.GetStatus();")]
+    [InlineData("PvadLicense.LoadFromFile(\"license.json\"); return new PdfDocument();")]
+    [InlineData("using License = PVAD.Licensing.PvadLicense; return License.GetStatus();")]
+    public async Task Worker_process_rejects_user_control_of_licensing_and_host_configuration(string source)
+    {
+        var request = Request();
+        request.Source = source;
+        var response = await Worker("pdf").RunAsync(request, default);
+        Assert.False(response.Success);
+        Assert.Null(response.CanonicalDesign);
+        Assert.Null(response.PdfBytes);
+        Assert.Contains(response.Diagnostics, item => item.Severity == "error" && (item.Code is "PVADCODE006" or "PVADCODE008"));
+        Assert.DoesNotContain(response.Diagnostics, item => item.Code is "PVADCODE041" or "PVADCODE042");
+    }
+
+    [Theory]
+    [InlineData("missing", "PVADLIC001")]
+    [InlineData("word", "PVADLIC012")]
+    public async Task User_request_fields_cannot_supply_native_rights_or_enable_server_mode(string license, string diagnostic)
+    {
+        var configured = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")!;
+        var licenseDirectory = Path.GetDirectoryName(configured)!;
+        var directory = Directory.CreateTempSubdirectory("pvad-worker-license-request-").FullName;
+        using var process = new System.Diagnostics.Process();
+        var started = false;
+        try
+        {
+            var input = Path.Combine(directory, "request.json");
+            var output = Path.Combine(directory, "response.json");
+            await File.WriteAllTextAsync(input, JsonSerializer.Serialize(new
+            {
+                language = "csharpPdf", operation = "execute", source = Request().Source,
+                serverMode = true, licensePath = configured,
+                nativeLicensePath = configured, nativeLicense = await File.ReadAllTextAsync(configured),
+                nativeLicensing = new { licensePath = configured },
+            }));
+            process.StartInfo = new("dotnet") { UseShellExecute = false, RedirectStandardOutput = true,
+                RedirectStandardError = true, WorkingDirectory = directory };
+            process.StartInfo.ArgumentList.Add(typeof(SandboxPolicy).Assembly.Location);
+            process.StartInfo.ArgumentList.Add(input);
+            process.StartInfo.ArgumentList.Add(output);
+            process.StartInfo.Environment.Clear();
+            process.StartInfo.Environment["DOTNET_EnableDiagnostics"] = "0";
+            if (license != "missing")
+                process.StartInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] = Path.Combine(licenseDirectory, license + ".json");
+            Assert.True(started = process.Start());
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            await process.WaitForExitAsync(timeout.Token);
+            var standardOutput = await stdout;
+            var standardError = await stderr;
+            var body = await File.ReadAllTextAsync(output);
+            var response = JsonSerializer.Deserialize<PvadCodeWorkerResponse>(body, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+            Assert.False(response.Success);
+            Assert.Null(response.CanonicalDesign);
+            Assert.Null(response.PdfBytes);
+            Assert.Contains(response.Diagnostics, item => item.Code == diagnostic);
+            Assert.DoesNotContain(configured, body);
+            Assert.DoesNotContain(configured, standardOutput + standardError);
+        }
+        finally
+        {
+            if (started && !process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private static PvadCodeWorkerRequest Request() => new()
     {
         Language = PvadCodeLanguages.CSharpPdf, Operation = "execute",

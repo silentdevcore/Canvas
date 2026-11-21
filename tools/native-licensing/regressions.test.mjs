@@ -25,9 +25,14 @@ test('fixed regression scope keeps full libraries and explicit API/worker/roundt
   assert.equal(projects.length, 10);
   assert.equal(new Set(projects).size, projects.length);
   for (const project of projects) assert.ok(readFileSync(new URL(`../../tests/${project}/${project}.csproj`, import.meta.url)).length > 0);
-  for (const name of ['CodeWorkspaceConversionTests', 'MigrationGeneratedCodeExecutionTests', 'PdfTrust', 'PdfRedaction', 'PvadNativeTrustLicenseTests'])
+  for (const name of ['CodeWorkspaceConversionTests', 'MigrationGeneratedCodeExecutionTests', 'PdfTrust', 'PdfRedaction', 'PvadNativeTrustLicenseTests',
+    'DesignerAuthenticationControllerTests.NativeLicenseHost_'])
     assert.ok(apiClasses.includes(name));
   assert.ok(!apiClasses.includes('PvadNative'), 'Do not silently include issuer/PostgreSQL workflows in this filtered run.');
+  const runner = readFileSync(new URL('./regressions.mjs', import.meta.url), 'utf8');
+  for (const method of ['NativeLicenseHost_invalid_explicit_license', 'NativeLicenseHost_valid_native_license',
+    'NativeLicenseHost_preserves_real_sessions', 'User_request_fields_cannot_supply_native_rights',
+    'Worker_process_rejects_user_control']) assert.ok(runner.includes(method));
 });
 
 test('regression isolation preserves signed session configuration but discards rendering bypasses', () => {

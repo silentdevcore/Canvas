@@ -141,6 +141,19 @@ if (args.Length == 6)
         using var packaged = dlls[0].Open();
         Check(Convert.ToHexStringLower(SHA256.HashData(packaged)) == assemblyHashes[name], "package-consumer-exact-hash:" + name);
         Check(package.Entries.Any(entry => entry.FullName == "lib/net10.0/" + name + ".xml"), "package-xml-api-documentation:" + name);
+        using var documentationManifestStream = package.GetEntry("docs/documentation-manifest.json")!.Open();
+        using var documentationManifest = JsonDocument.Parse(documentationManifestStream);
+        var bundle = documentationManifest.RootElement;
+        Check(bundle.GetProperty("package").GetString() == name, "package-documentation-identity:" + name);
+        Check(!bundle.GetProperty("publicationReady").GetBoolean() && !bundle.GetProperty("legalApprovalGranted").GetBoolean(), "package-documentation-no-legal-approval:" + name);
+        Check(bundle.GetProperty("xml").GetProperty("assemblySha256").GetString() == assemblyHashes[name], "package-documentation-bound-to-dll:" + name);
+        foreach (var expected in bundle.GetProperty("files").EnumerateObject())
+        {
+            var entry = package.GetEntry(expected.Name);
+            Check(entry is not null, "package-documentation-file:" + name + ":" + expected.Name);
+            using var bytes = entry!.Open();
+            Check(Convert.ToHexStringLower(SHA256.HashData(bytes)) == expected.Value.GetString(), "package-documentation-checksum:" + name + ":" + expected.Name);
+        }
     }
 }
 Console.WriteLine(JsonSerializer.Serialize(new

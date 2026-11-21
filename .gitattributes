@@ -1,1 +1,4 @@
 *.pdf binary
+# Preserve hash-pinned vendor notices, including original whitespace.
+assets/licenses/native-packages/** -text
+assets/licenses/native-packages/*/*/** whitespace=-trailing-space,-space-before-tab,cr-at-eol
