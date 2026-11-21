@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
@@ -40,6 +41,23 @@ try
     var denying = true;
     var admissions = new Dictionary<string, Action>();
     var free = new HashSet<string>();
+    var matrix = new NativeAdmissionMatrix();
+    var workbookConstructor = typeof(PvadWorkbook).GetConstructor([typeof(string)])!;
+    PvadWorkbook workbook = null!;
+    PvadWorksheet sheet = null!;
+    PvadCell cell = null!;
+    PvadCellStyle style = null!;
+    PvadColumn column = null!;
+    PvadRange range = null!;
+    var callbackCalled = false;
+    string Invariant() => JsonSerializer.Serialize(new
+    {
+        dto, design, values, workbook = workbook?.ToWorkbook(), callbackCalled,
+        xlsx = Convert.ToHexString(SHA256.HashData(xlsxBytes)),
+        xls = Convert.ToHexString(SHA256.HashData(xlsBytes)),
+        files = Directory.GetFiles(directory).Order(StringComparer.Ordinal)
+            .Select(path => new { name = Path.GetFileName(path), hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))) }),
+    });
 
     Check(PvadLicense.GetStatus().State == PvadLicenseState.Unlicensed, "initially-unlicensed");
     Check(documentExporter.FormatKey == "excel" && documentExporter.FileExtension == ".xlsx", "free-export-metadata");
@@ -53,14 +71,34 @@ try
     Add<XlsWorkbookIo>("Export", [typeof(SpreadsheetDto)], () => xls.Export(dto));
     Add<XlsWorkbookIo>("Import", [typeof(Stream), typeof(string)], () => Read(xlsBytes, stream => xls.Import(stream)));
     // Static classes cannot be generic type arguments; register their exact methods directly.
-    admissions.Add(Key(typeof(CsvSheetIo).GetMethod(nameof(CsvSheetIo.ToCsv))!), () => CsvSheetIo.ToCsv(dto.Sheets[0]));
-    admissions.Add(Key(typeof(CsvSheetIo).GetMethod(nameof(CsvSheetIo.FromCsv))!), () => CsvSheetIo.FromCsv("A,3"));
+    Register(typeof(CsvSheetIo).GetMethod(nameof(CsvSheetIo.ToCsv))!, () => CsvSheetIo.ToCsv(dto.Sheets[0]));
+    Register(typeof(CsvSheetIo).GetMethod(nameof(CsvSheetIo.FromCsv))!, () => CsvSheetIo.FromCsv("A,3"));
     Add<SpreadsheetToDesignConverter>("Convert", [typeof(SpreadsheetDto), typeof(int), typeof(bool)], () => bridge.Convert(dto));
     Add<SpreadsheetOperations>("SortRange", [typeof(SheetDto), typeof(string), typeof(int), typeof(bool)], () => operations.SortRange(dto.Sheets[0], "A1:A2", 0));
     Add<SpreadsheetOperations>("FindReplace", [typeof(SpreadsheetDto), typeof(string), typeof(string), typeof(bool)], () => operations.FindReplace(dto, "amount", "amount"));
     Add<SpreadsheetData>("FromRows", [typeof(IReadOnlyList<Dictionary<string, JsonElement>>), typeof(string)], () => data.FromRows([values]));
     Add<SpreadsheetData>("Fill", [typeof(SpreadsheetDto), typeof(Dictionary<string, JsonElement>)], () => data.Fill(dto, values));
-    foreach (var (name, action) in admissions) Denied(action, "PVADLIC001", "missing:" + name);
+    var independentEntries = admissions.Keys.ToArray();
+    RegisterBuilderEntries();
+    matrix.Add(typeof(PVAD.Generator.Spreadsheet).GetMethod("CreateWorkbook")!, "facade",
+        () => _ = PVAD.Generator.Spreadsheet.CreateWorkbook(), Invariant);
+    foreach (var parameters in new[] { new[] { typeof(DesignExportDto) }, new[] { typeof(DesignExportDto), typeof(ExportOptions) } })
+    {
+        var withOptions = parameters.Length == 2;
+        matrix.Add(typeof(IDocumentExporter).GetMethod("Export", parameters)!, "interface", () =>
+        {
+            var bytes = withOptions ? ((IDocumentExporter)documentExporter).Export(design, new ExportOptions())
+                : ((IDocumentExporter)documentExporter).Export(design);
+            using var input = new MemoryStream(bytes);
+            using var result = new ClosedXML.Excel.XLWorkbook(input);
+            Check(result.Worksheet(1).Cell(2, 2).GetString() == "3", "matrix-interface-table-content:" + withOptions);
+        }, Invariant);
+    }
+    matrix.RequireSurface(typeof(PVAD.Generator.Spreadsheet));
+    matrix.RequireSurface(typeof(IDocumentExporter));
+    matrix.RequireConstructors(typeof(PvadWorkbook));
+    matrix.Run("missing");
+    foreach (var name in independentEntries) checks.Add("missing:" + name);
     Denied(() => new PvadWorkbook(), "PVADLIC001", "missing:workbook-constructor");
     Denied(() => PVAD.Generator.Spreadsheet.CreateWorkbook(), "PVADLIC001", "missing:generator-facade");
     Denied(() => PvadLicense.LoadFromFile(args[2]), "PVADLIC009", "expired-load-rejected");
@@ -82,43 +120,15 @@ try
     Check(bridge.Convert(dto).Pages[0].Elements[0].Type == "table", "design-bridge");
     Check(((IDocumentExporter)documentExporter).Export(design, new ExportOptions()).Length > 0, "interface-design-export");
 
-    var workbook = PVAD.Generator.Spreadsheet.CreateWorkbook("Fluent workbook");
+    workbook = PVAD.Generator.Spreadsheet.CreateWorkbook("Fluent workbook");
     var emptyWorkbook = new PvadWorkbook("Empty workbook");
-    var sheet = workbook.AddSheet("Data");
-    var cell = sheet.Cell("A1").Value(7);
+    sheet = workbook.AddSheet("Data");
+    cell = sheet.Cell("A1").Value(7);
     PvadCellStyle? capturedStyle = null;
     cell.Style(style => capturedStyle = style);
-    var style = capturedStyle!;
-    var column = sheet.Column(0);
-    var range = sheet.Range("A1:B1");
-    var callbackCalled = false;
-    Add<PvadWorkbook>(".ctor", [typeof(string)], () => new PvadWorkbook());
-    Add<PvadWorkbook>("AddSheet", [typeof(string)], () => workbook.AddSheet("Another"));
-    Add<PvadWorkbook>("DefineName", [typeof(string), typeof(string)], () => workbook.DefineName("Amounts", "Data!$A$1"));
-    Add<PvadWorkbook>("ToXlsx", [typeof(bool)], () => workbook.ToXlsx());
-    Add<PvadWorkbook>("Save", [typeof(string)], () => workbook.Save(Path.Combine(directory, "saved.xlsx")));
-    Add<PvadWorksheet>("Cell", [typeof(int), typeof(int)], () => sheet.Cell(5, 5));
-    Add<PvadWorksheet>("Cell", [typeof(string)], () => sheet.Cell("G7"));
-    Add<PvadWorksheet>("Merge", [typeof(string)], () => sheet.Merge("A1:B1"));
-    Add<PvadWorksheet>("Column", [typeof(int)], () => sheet.Column(4));
-    Add<PvadWorksheet>("Freeze", [typeof(int), typeof(int)], () => sheet.Freeze(1, 1));
-    Add<PvadRange>("Merge", [], () => range.Merge());
-    Add<PvadColumn>("Width", [typeof(double)], () => column.Width(20));
-    Add<PvadColumn>("Hidden", [typeof(bool)], () => column.Hidden());
-    Add<PvadColumn>("OutlineLevel", [typeof(int)], () => column.OutlineLevel(1));
-    Add<PvadCell>("Value", [typeof(object)], () => cell.Value(42));
-    Add<PvadCell>("Formula", [typeof(string)], () => cell.Formula("=1+2"));
-    Add<PvadCell>("NumberFormat", [typeof(string)], () => cell.NumberFormat("0.00"));
-    Add<PvadCell>("Comment", [typeof(string)], () => cell.Comment("Synthetic comment"));
-    Add<PvadCell>("Hyperlink", [typeof(string)], () => cell.Hyperlink("https://example.com"));
-    Add<PvadCell>("Style", [typeof(Action<PvadCellStyle>)], () => cell.Style(_ => callbackCalled = true));
-    Add<PvadCellStyle>("Bold", [typeof(bool)], () => style.Bold());
-    Add<PvadCellStyle>("Italic", [typeof(bool)], () => style.Italic());
-    Add<PvadCellStyle>("Background", [typeof(string)], () => style.Background("#ffffff"));
-    Add<PvadCellStyle>("Color", [typeof(string)], () => style.Color("#000000"));
-    Add<PvadCellStyle>("Font", [typeof(string)], () => style.Font("Arial"));
-    Add<PvadCellStyle>("FontSize", [typeof(double)], () => style.FontSize(14));
-    Add<PvadCellStyle>("Align", [typeof(string)], () => style.Align("center"));
+    style = capturedStyle!;
+    column = sheet.Column(0);
+    range = sheet.Range("A1:B1");
 
     Free<PvadWorkbook>("Sheet", [typeof(int)]);
     Free<PvadWorkbook>("Sheet", [typeof(string)]);
@@ -137,7 +147,8 @@ try
     var properties = paidTypes.SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)).Select(p => p.DeclaringType!.Name + "." + p.Name).ToHashSet();
     Check(properties.SetEquals(["PvadWorkbook.Name", "PvadWorkbook.SheetCount", "PvadWorksheet.Name", "PvadCell.Sheet", "ExcelDocumentExporter.FormatKey", "ExcelDocumentExporter.MimeType", "ExcelDocumentExporter.FileExtension", "ExcelDocumentExporter.Capabilities"]), "public-property-inventory");
 
-    foreach (var (name, action) in admissions) { action(); checks.Add("valid:" + name); }
+    matrix.Run("valid");
+    foreach (var name in admissions.Keys) checks.Add("valid:" + name);
     foreach (var extension in new[] { "xlsx", "xls", "csv", "tsv" }) workbook.Save(Path.Combine(directory, "saved." + extension));
     var beforeDto = JsonSerializer.Serialize(dto);
     var beforeBuilder = JsonSerializer.Serialize(workbook.ToWorkbook());
@@ -146,7 +157,8 @@ try
     callbackCalled = false;
     PvadLicense.LoadFromFile(args[1]);
     denying = true;
-    foreach (var (name, action) in admissions) Denied(action, "PVADLIC012", "wrong:" + name);
+    matrix.Run("incorrect");
+    foreach (var name in admissions.Keys) checks.Add("wrong:" + name);
     Denied(() => PVAD.Generator.Spreadsheet.CreateWorkbook(), "PVADLIC012", "wrong:generator-facade");
     Check(!callbackCalled, "denied-style-does-not-invoke-callback");
     foreach (var extension in new[] { "csv", "tsv" })
@@ -171,13 +183,54 @@ try
     PvadLicense.LoadFromFile(args[0]);
     Check(workbook.ToXlsx().Length > 0, "renewal-restores-existing-builder");
     var continuationChecks = SpreadsheetContinuationChecks.Run(args, checks, directory);
-    Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedMethods = admissions.Count, continuationChecks, processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+    Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedMethods = admissions.Count, continuationChecks,
+        admissionMatrix = matrix.Snapshot(), processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
     return 0;
+
+    void RegisterBuilderEntries()
+    {
+        Add<PvadWorkbook>(".ctor", [typeof(string)], () => new PvadWorkbook());
+        Add<PvadWorkbook>("AddSheet", [typeof(string)], () => workbook.AddSheet("Another"));
+        Add<PvadWorkbook>("DefineName", [typeof(string), typeof(string)], () => workbook.DefineName("Amounts", "Data!$A$1"));
+        Add<PvadWorkbook>("ToXlsx", [typeof(bool)], () => workbook.ToXlsx());
+        Add<PvadWorkbook>("Save", [typeof(string)], () => workbook.Save(Path.Combine(directory, "saved.xlsx")));
+        Add<PvadWorksheet>("Cell", [typeof(int), typeof(int)], () => sheet.Cell(5, 5));
+        Add<PvadWorksheet>("Cell", [typeof(string)], () => sheet.Cell("G7"));
+        Add<PvadWorksheet>("Merge", [typeof(string)], () => sheet.Merge("A1:B1"));
+        Add<PvadWorksheet>("Column", [typeof(int)], () => sheet.Column(4));
+        Add<PvadWorksheet>("Freeze", [typeof(int), typeof(int)], () => sheet.Freeze(1, 1));
+        Add<PvadRange>("Merge", [], () => range.Merge());
+        Add<PvadColumn>("Width", [typeof(double)], () => column.Width(20));
+        Add<PvadColumn>("Hidden", [typeof(bool)], () => column.Hidden());
+        Add<PvadColumn>("OutlineLevel", [typeof(int)], () => column.OutlineLevel(1));
+        Add<PvadCell>("Value", [typeof(object)], () => cell.Value(42));
+        Add<PvadCell>("Formula", [typeof(string)], () => cell.Formula("=1+2"));
+        Add<PvadCell>("NumberFormat", [typeof(string)], () => cell.NumberFormat("0.00"));
+        Add<PvadCell>("Comment", [typeof(string)], () => cell.Comment("Synthetic comment"));
+        Add<PvadCell>("Hyperlink", [typeof(string)], () => cell.Hyperlink("https://example.com"));
+        Add<PvadCell>("Style", [typeof(Action<PvadCellStyle>)], () => cell.Style(_ => callbackCalled = true));
+        Add<PvadCellStyle>("Bold", [typeof(bool)], () => style.Bold());
+        Add<PvadCellStyle>("Italic", [typeof(bool)], () => style.Italic());
+        Add<PvadCellStyle>("Background", [typeof(string)], () => style.Background("#ffffff"));
+        Add<PvadCellStyle>("Color", [typeof(string)], () => style.Color("#000000"));
+        Add<PvadCellStyle>("Font", [typeof(string)], () => style.Font("Arial"));
+        Add<PvadCellStyle>("FontSize", [typeof(double)], () => style.FontSize(14));
+        Add<PvadCellStyle>("Align", [typeof(string)], () => style.Align("center"));
+    }
 
     void Add<T>(string name, Type[] parameters, Action action)
     {
-        MethodBase member = name == ".ctor" ? typeof(T).GetConstructor(parameters)! : typeof(T).GetMethod(name, parameters)!;
+        MethodBase? member = name == ".ctor" ? typeof(T).GetConstructor(parameters) : typeof(T).GetMethod(name, parameters);
+        if (member is null)
+            throw new MissingMethodException(typeof(T).FullName, $"{name}({string.Join(',', parameters.Select(type => type.FullName))})");
+        Register(member, action);
+    }
+    void Register(MethodBase member, Action action)
+    {
         admissions.Add(Key(member), action);
+        var builderInstance = member is not ConstructorInfo && member.DeclaringType!.Name.StartsWith("Pvad", StringComparison.Ordinal);
+        matrix.Add(member, "direct", action, Invariant, builderInstance ? workbookConstructor : null,
+            builderInstance ? () => _ = new PvadWorkbook() : null);
     }
     void Free<T>(string name, Type[] parameters) => free.Add(Key(typeof(T).GetMethod(name, parameters)!));
     void Read(byte[] bytes, Action<Stream> read)

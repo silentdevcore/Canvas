@@ -6,6 +6,13 @@ Supports explicit signed Trials, subscriptions with seven days of grace, and
 perpetual licenses with release-date-based update eligibility. Loading performs
 no network calls and never creates an implicit evaluation license.
 
+The developer lifecycle guide is available in the repository at
+`docs/guides/PVAD.Native-Library-Activation.md` and in PVADE Documentation under
+Code SDK > Code path > Related links > Native library activation guide.
+Native activation is distinct from Account login, server subscriptions and REST
+SDK authentication. Valid replacements replace the complete grant set; loading
+or downloading an artifact is not an automatic cross-process reload.
+
 ```csharp
 using PVAD.Licensing;
 

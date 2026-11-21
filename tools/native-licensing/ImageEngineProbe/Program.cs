@@ -47,7 +47,10 @@ var methods = types.SelectMany(pair =>
     Check(found.Length == pair.Value, "contract:" + pair.Key.Name);
     return found;
 }).ToArray();
-foreach (var method in methods) NativeSurfaceCoverage.Record(method);
+foreach (var method in methods)
+{
+    NativeSurfaceCoverage.Record(method);
+}
 var instances = new Dictionary<Type, object>
 {
     [typeof(ImageAnalysisFileImporter)] = analysis, [typeof(ImageToPdfConverter)] = converter,
@@ -69,6 +72,7 @@ using (var canvas = new SKCanvas(bitmap)) canvas.Clear(SKColors.White);
 using var image = SKImage.FromBitmap(bitmap);
 using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
 var png = encoded.ToArray();
+var positiveChecks = await ImagePositiveChecks.Run(bitmap, png, checks);
 using var stream = new MemoryStream(png);
 var imported = await analysis.ImportWithAnalysisAsync(stream, "Synthetic image", options: new ImageAnalysisOptions { IncludeDebugOverlay = true });
 Check(imported.Design.Pages.Count == 1 && imported.DebugOverlayPng is { Length: > 8 }, "importer-only-analysis-overlay");
@@ -181,6 +185,10 @@ try
         var nativeEngine = new ProcessIsolatedTesseractOcrEngine(args[3], tessdata, native, tempRoot: temp);
         var recognized = await nativeEngine.RecognizeAsync([new OcrImagePage(0, bitmap.Width, bitmap.Height, png)], new() { Languages = "eng" });
         Check(recognized.Count == 1 && recognized[0].WidthPx == bitmap.Width, "real-native-ocr-importer-only");
+        var directEngine = new EmbeddedTesseractOcrEngine(tessdata, native);
+        var directPages = await directEngine.RecognizeAsync([new OcrImagePage(0, bitmap.Width, bitmap.Height, png)], new() { Languages = "eng" });
+        Check(directPages.Count == 1 && directPages[0].WidthPx == bitmap.Width, "real-native-embedded-ocr-importer-only");
+        positiveChecks.Add(typeof(EmbeddedTesseractOcrEngine).GetMethod("RecognizeAsync")!, "real-native-embedded-ocr-importer-only");
         realNativeSucceeded = true;
     }
     if (Environment.GetEnvironmentVariable("PVAD_REQUIRE_NATIVE_OCR") == "1")
@@ -230,8 +238,17 @@ try
     await CheckDenied("revoked-after-cache-and-native-use", "PVADLIC012");
     PvadLicense.LoadFromFile(args[0]);
     Check(CharacterTemplates.MatchTop(new float[1024], 1).Count == 1, "renewed-template-atlas-access");
+    positiveChecks.Add(typeof(ImageToPdfConverter).GetMethod("ConvertAsync")!, "importer-only-custom-ocr-and-overlay");
+    positiveChecks.Add(typeof(ProcessIsolatedTesseractOcrEngine).GetMethod("RecognizeAsync")!, "isolated-success-and-cleanup");
+    positiveChecks.Add(typeof(DefaultOcrWorkerProcessRunner).GetMethod("RunAsync")!, "worker-snapshot-file-permissions");
+    foreach (var method in methods)
+    {
+        var suffix = method.DeclaringType!.Name + ":" + method;
+        NativeSurfaceCoverage.Bind(method, "missing:" + suffix, "wrong-product:" + suffix, positiveChecks.GetValueOrDefault(method));
+    }
     Console.WriteLine(JsonSerializer.Serialize(new { checks, protectedProcessingSignatures = methods.Length,
-        scope = "image-analysis-ocr-and-worker", completeImporterEnforcement = false, realNativeSucceeded, testedSurface = NativeSurfaceCoverage.Snapshot() }));
+        scope = "image-analysis-ocr-and-worker", completeImporterEnforcement = false, realNativeSucceeded,
+        testedSurface = NativeSurfaceCoverage.Snapshot(), phaseEvidence = NativeSurfaceCoverage.PhaseSnapshot(checks) }));
 }
 finally { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
 

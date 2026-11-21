@@ -171,3 +171,64 @@ test('the Migration job exposes reports only and checks the existing full provid
     ['artifacts/native-joint-packages/*/report.json', 'artifacts/native-joint-packages/*/cleanup.json']);
   assert.ok(!JSON.stringify(job).includes('nuget push'));
 });
+
+test('package consumers use single-product grants rather than relying on the integrated fixture', () => {
+  const helper = read('./GeneratorPackageProbe/ProductGrantChecks.cs');
+  const products = JSON.parse(read('../../product-metadata/native-library-products.v1.json')).products;
+  for (const product of products) assert.ok(helper.includes('"' + product.id + '"'), product.id);
+  for (const value of ['PvadLicense.Require(product)', 'public-pdf-denied', 'public-word-denied', 'public-spreadsheet-denied',
+    'snapshot-unchanged', 'PVADLIC012']) assert.ok(helper.includes(value));
+  const source = read('./GeneratorPackageProbe/Program.cs');
+  for (const product of ['pdf', 'word', 'spreadsheet']) assert.ok(source.includes(`ProductGrantChecks.Only("${product}"`));
+  assert.ok(source.includes('single-word-retained-pdf-denied'));
+  const importer = read('./GeneratorPackageProbe/ImporterPackageChecks.cs');
+  assert.ok(importer.includes('PVAD_PACKAGE_IMPORTER_LICENSE_PATH'));
+  assert.ok(importer.includes('ProductGrantChecks.Only("importer"'));
+  assert.ok(importer.includes('importer-denied-callback-preserves-output'));
+  assert.ok(importer.includes('importer-output-callback-cannot-inherit-pdf-rights'));
+  const execution = read('./GeneratorPackageProbe/ExecutionPackageChecks.cs');
+  assert.ok(execution.includes('ProductGrantChecks.Only("converter"'));
+  assert.ok(execution.includes('pdfOnly, args[3], "builder"'));
+  assert.ok(execution.includes('pdfOnly, args[3], "legacy"'));
+  const runner = read('./joint-package-rehearsal.mjs');
+  for (const property of ['PDF', 'WORD', 'SPREADSHEET', 'IMPORTER']) assert.ok(runner.includes(`PVAD_PACKAGE_${property}_LICENSE_PATH:`));
+  assert.ok(runner.includes('Every included product needs its own single-product license.'));
+  assert.ok(runner.includes('dependencyChecks(after), dependencyChecks(before)'));
+});
+
+test('data-contract checks run before activation and cannot silently skip protected processing or use uninitialized objects', () => {
+  const main = read('./GeneratorPackageProbe/Program.cs');
+  assert.ok(main.indexOf('FreeContractChecks.Run') < main.indexOf('PvadLicense.LoadFromFile'));
+  const free = read('./GeneratorPackageProbe/FreeContractChecks.cs');
+  for (const value of ['type.Namespace == "PVAD.Core.Contracts"', 'type.GetConstructor(Type.EmptyTypes)',
+    'Activator.CreateInstance(type)', 'JsonSerializer.Deserialize(json, type)', 'Unlicensed();',
+    'PdfSaveOptions', 'PdfDrawTextOptions', 'DesignTemplate', 'SpreadsheetDto', 'IRendererCapabilities',
+    'FileImporterRegistry.Create', 'MigrationProviderCatalog.All', 'pdf-migration-still-protected',
+    'sheet-migration-still-protected', 'report-migration-still-protected', 'PVADLIC001']) assert.ok(free.includes(value), value);
+  assert.ok(!free.includes('GetUninitializedObject'));
+  assert.ok(!free.includes('PvadLicense.Load'));
+  const surface = read('./ApiSurfaceProbe/Program.cs');
+  assert.equal(surface.match(/RequireUnlicensed\(\);/g).length, 2);
+  assert.ok(surface.indexOf('RequireUnlicensed();') < surface.indexOf('assembly.GetExportedTypes()'));
+  assert.ok(surface.lastIndexOf('RequireUnlicensed();') > surface.indexOf('assembly.GetExportedTypes()'));
+  const runner = read('./joint-package-rehearsal.mjs');
+  assert.ok(runner.includes('after.unlicensedCoreDtoTypes, before.unlicensedCoreDtoTypes'));
+  assert.ok(runner.includes('freeChecks(after), freeChecks(before)'));
+  assert.ok(runner.includes('unlicensedMetadataAssemblies: Object.keys(surfaces).length'));
+});
+
+test('shared Core and Domain contracts have no native licensing or product-project dependency', () => {
+  const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
+  const { JSDOM } = require('jsdom');
+  const products = JSON.parse(read('../../product-metadata/native-library-products.v1.json')).products;
+  const productProjects = products.flatMap(product => product.projectDirectories);
+  for (const name of ['Core', 'Domain']) {
+    const project = read(`../../src/Core/PVAD.${name}/PVAD.${name}.csproj`);
+    const document = new JSDOM(project, { contentType: 'text/xml' }).window.document;
+    for (const reference of document.querySelectorAll('ProjectReference, PackageReference')) {
+      const path = reference.getAttribute('Include').replaceAll('\\', '/');
+      assert.ok(!path.includes('PVAD.Licensing'));
+      assert.ok(!productProjects.some(directory => path.includes(directory.split('/').at(-1))), path);
+    }
+  }
+});

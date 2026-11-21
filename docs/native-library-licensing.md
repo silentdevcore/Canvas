@@ -1,5 +1,10 @@
 # Native Library Licensing And Protection
 
+For application developers, start with
+[Native Library Activation And Renewal](guides/PVAD.Native-Library-Activation.md).
+It explains the customer-facing lifecycle and provides a complete, compiled C#
+example. The sections below retain detailed integration and acceptance evidence.
+
 ## Implementation Status
 
 The standalone .NET 10 verifier, admission API, and offline manufacturer
@@ -1269,9 +1274,12 @@ structured worker diagnostics without document or PDF output. Scripts cannot
 load licenses or inspect the host's configuration. Model/Base64-only DTO
 evaluation remains separate; producing its PDF preview still requires `pdf`.
 
-Native renewal uses explicit `PvadLicense.LoadFromFile`/`LoadFromStream` calls;
-there is no new automatic file watcher or native Admin renewal API in this
-milestone. Existing server-license renewal does not activate a native license.
+Native activation of a renewed artifact uses explicit
+`PvadLicense.LoadFromFile`/`LoadFromStream` calls; there is no automatic file
+watcher or public host hot-reload endpoint. The later manufacturer Admin/Account
+workflow issues and downloads artifacts but does not replace a running host's
+active native snapshot. Existing server-license renewal does not activate a
+native license.
 
 ## Isolated Signed Test Runs
 
@@ -1546,6 +1554,36 @@ aliases and normalized output checksums are compared without changing product
 dependencies or original fixture contents. The HTTP-hosted PDF Designer
 composition, full WebApi integration and distribution/platform gates remain
 outside this native package milestone.
+
+The [platform package check](../tools/native-licensing/README.md#native-platform-package-verification)
+runs that same complete native graph and additionally requires real OCR on the
+executing host, alongside protected CodeWorker execution and provider/document
+comparisons. It cannot mark a skipped native OCR test as successful platform
+acceptance. The prepared Linux/x64, Windows/x64 and macOS/Intel CI jobs retain
+only content-free evidence; actual execution remains a separate requirement.
+Local container results record their real architecture and do not imply a
+different OS/architecture passed. This is package compatibility evidence, not
+production trust provisioning or permission to redistribute native libraries.
+
+The independent package consumer exercises separate PDF, Word, Spreadsheet,
+Importer and Converter licenses instead of using a combined grant for positive
+processing. Each profile rejects other products and unrelated public Generator
+operations. Importer-only regeneration may use its private PDF dependency;
+supplying a general-purpose generator callback still requires an explicit PDF
+grant and denial preserves the output. Public calls made by an output-stream
+callback receive no inherited PDF permission. PDF worker requests use a PDF-only
+artifact while retaining the signed revocation list. Existing provider probes
+separately verify Code, Viewer and Report Designer grant isolation. This tests
+technical rights, not commercial bundles, prices or redistribution permission.
+
+Shared Core/Domain contracts remain separate from native engine admission.
+Before activation, the package consumer checks concrete parameterless Core DTO
+construction/JSON roundtrips, populated data/configuration fixtures and native
+capability/provider catalogs. Separate surface processes inspect every protected
+module while explicitly remaining unlicensed. This is not an exemption for
+customer-document metadata parsing, Trust analysis or implementations behind
+interfaces: actual processing is still denied without rights. Source and
+protected runs must expose the same tested DTO set and license-free behavior.
 
 The [protected host rehearsal](../tools/native-licensing/README.md#joint-webapi-host-rehearsal)
 adds WebApi and persistence to the joint graph so internal native references are

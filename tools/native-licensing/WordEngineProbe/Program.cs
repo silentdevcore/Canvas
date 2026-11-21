@@ -21,6 +21,33 @@ var design = new DesignExportDto
 var before = JsonSerializer.Serialize(design);
 var exporter = new WordDocumentExporter();
 var options = new ExportOptions();
+var matrix = new NativeAdmissionMatrix();
+byte[] matrixCertificate = [];
+using var matrixInput = new MemoryStream();
+matrixInput.Write([1, 2, 3]);
+matrixInput.Position = 1;
+string Invariant() => JsonSerializer.Serialize(new { design = JsonSerializer.Serialize(design),
+    input = Convert.ToHexString(matrixInput.ToArray()), matrixInput.Position, matrixInput.CanRead,
+    certificate = Convert.ToHexString(matrixCertificate) });
+void ExportEntry(Type type, Type[] parameters, string dispatch, Func<byte[]> export) =>
+    matrix.Add(type.GetMethod("Export", parameters)!, dispatch,
+        () => Docx(export(), "matrix-valid:" + dispatch + ":" + parameters.Length), Invariant);
+ExportEntry(typeof(WordDocumentExporter), [typeof(DesignExportDto)], "direct", () => exporter.Export(design));
+ExportEntry(typeof(WordDocumentExporter), [typeof(DesignExportDto), typeof(ExportOptions)], "direct", () => exporter.Export(design, options));
+ExportEntry(typeof(IDocumentExporter), [typeof(DesignExportDto)], "interface", () => ((IDocumentExporter)exporter).Export(design));
+ExportEntry(typeof(IDocumentExporter), [typeof(DesignExportDto), typeof(ExportOptions)], "interface", () => ((IDocumentExporter)exporter).Export(design, options));
+ExportEntry(typeof(PVAD.Generator.Word), [typeof(DesignExportDto), typeof(ExportOptions)], "facade", () => PVAD.Generator.Word.Export(design, options));
+matrix.Add(typeof(DigitalSigningService).GetMethod("SignDocx")!, "direct", () =>
+{
+    var signed = DigitalSigningService.SignDocx(matrixInput, matrixCertificate);
+    Docx(signed, "matrix-valid:signing");
+    using var zip = new ZipArchive(new MemoryStream(signed), ZipArchiveMode.Read);
+    Check(zip.GetEntry("_xmlsignatures/sig1.xml") is not null, "matrix-signing-creates-opc-signature");
+}, Invariant);
+matrix.RequireSurface(typeof(WordDocumentExporter));
+matrix.RequireSurface(typeof(IDocumentExporter));
+matrix.RequireSurface(typeof(PVAD.Generator.Word));
+matrix.RequireSurface(typeof(DigitalSigningService));
 Check(PvadLicense.GetStatus().State == PvadLicenseState.Unlicensed, "initially-unlicensed");
 Check(exporter.FormatKey == "word" && exporter.FileExtension == ".docx" && exporter.Capabilities.SupportsImages,
     "exporter-metadata-remains-free");
@@ -31,6 +58,7 @@ Denied(() => PVAD.Generator.Word.Export(design), "PVADLIC001", "facade-export-un
 using var source = new MemoryStream(new byte[] { 1, 2, 3 });
 Denied(() => DigitalSigningService.SignDocx(source, [1]), "PVADLIC001", "signing-unlicensed-before-certificate-read");
 Check(source.Position == 0 && source.CanRead, "unlicensed-signing-preserves-stream");
+matrix.Run("missing");
 Denied(() => PvadLicense.LoadFromFile(args[2]), "PVADLIC009", "expired-license-rejected");
 Denied(() => exporter.Export(design), "PVADLIC001", "expired-load-does-not-activate-word");
 
@@ -41,6 +69,7 @@ Denied(() => PVAD.Generator.Word.Export(design), "PVADLIC012", "facade-rejects-w
 Denied(() => DigitalSigningService.SignDocx(source, [1]), "PVADLIC012", "signing-rejects-wrong-product");
 Check(source.Position == 0 && source.CanRead, "wrong-product-signing-preserves-stream");
 Check(JsonSerializer.Serialize(design) == before, "denied-export-preserves-design");
+matrix.Run("incorrect");
 
 PvadLicense.LoadFromFile(args[0]);
 Denied(() => PvadLicense.Require(PvadLicenseProducts.Pdf), "PVADLIC012", "word-license-has-no-pdf-grant");
@@ -57,6 +86,11 @@ using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinute
 var pfx = certificate.Export(X509ContentType.Pfx);
 try
 {
+    matrixInput.SetLength(0);
+    matrixInput.Write(bytes);
+    matrixInput.Position = 0;
+    matrixCertificate = pfx;
+    matrix.Run("valid");
     using var signInput = new MemoryStream(bytes);
     var signed = DigitalSigningService.SignDocx(signInput, pfx);
     Docx(signed, "word-only-signing-preserves-content");
@@ -85,7 +119,8 @@ Docx(exporter.Export(design), "renewal-restores-word-without-restart");
 Check(JsonSerializer.Serialize(design) == before, "licensed-export-preserves-design");
 Console.WriteLine(JsonSerializer.Serialize(new
 {
-    checks, processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),
+    checks, admissionMatrix = matrix.Snapshot(),
+    processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),
 }));
 return 0;
 

@@ -38,6 +38,7 @@ internal static class ExecutionPackageChecks
         foreach (var call in calls)
             Denied(() => call.Run(design), "PVADLIC012", "wrong-converter:" + call.Name, checks);
         PvadLicense.LoadFromFile(Environment.GetEnvironmentVariable("PVAD_PACKAGE_CONVERTER_LICENSE_PATH")!);
+        ProductGrantChecks.Only("converter", design, checks);
         Denied(() => PvadLicense.Require(PvadLicenseProducts.Pdf), "PVADLIC012", "converter-does-not-grant-pdf", checks);
         var converted = new SortedDictionary<string, object>(StringComparer.Ordinal);
         foreach (var call in calls)
@@ -74,7 +75,8 @@ internal static class ExecutionPackageChecks
             page.Add(new ElementDto { Id = "worker-text", Type = "text", Content = "Synthetic worker", X = 5, Y = 5, Width = 100, Height = 20 });
             return builder.Build();
             """;
-        var builderResult = await Run(new() { Language = PvadCodeLanguages.CSharpPdf, Source = builder }, args[0], args[3], "builder");
+        var pdfOnly = Environment.GetEnvironmentVariable("PVAD_PACKAGE_PDF_LICENSE_PATH")!;
+        var builderResult = await Run(new() { Language = PvadCodeLanguages.CSharpPdf, Source = builder }, pdfOnly, args[3], "builder");
         Success(builderResult, "builder");
         Check(JsonSerializer.Serialize(builderResult.CanonicalDesign) == modelJson && builderResult.Fidelity == PvadCodeFidelity.Exact && builderResult.SourceMap.Single().ElementId == "worker-text", "worker-builder-exact-model-and-map", checks);
         var legacy = """
@@ -86,7 +88,7 @@ internal static class ExecutionPackageChecks
             return document;
             """;
         var pdfRequest = new PvadCodeWorkerRequest { Language = PvadCodeLanguages.CSharpPdf, Source = legacy, Operation = "execute" };
-        var legacyResult = await Run(pdfRequest, args[0], args[3], "legacy");
+        var legacyResult = await Run(pdfRequest, pdfOnly, args[3], "legacy");
         Success(legacyResult, "legacy");
         Check(legacyResult.PdfBytes is { Length: > 5 } && legacyResult.PdfBytes.AsSpan().StartsWith("%PDF-"u8), "worker-actual-pdf-signature", checks);
         Check(legacyResult.Fidelity == PvadCodeFidelity.Compatible && legacyResult.CanonicalDesign!.Pages.Count == 2 &&

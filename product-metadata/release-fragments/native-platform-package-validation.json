@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-platform-package-validation",
+  "impact": "none",
+  "components": ["generator", "importer", "infrastructure", "migration"],
+  "category": "improved",
+  "summary": "Extended native package compatibility checks to require real OCR and code execution on each tested platform.",
+  "reason": "Adds isolated validation and read-only CI coverage without changing product APIs, deployed binaries or published packages.",
+  "breaking": false
+}

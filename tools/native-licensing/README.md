@@ -48,6 +48,217 @@ cross-platform run; those acceptance items remain open until executed.
 See the [guide](../../docs/native-library-licensing.md) and
 [checklist](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md).
 
+## Public Entry Admission Evidence
+
+The existing `with-test-license.mjs pdf`, `word`, `spreadsheet` and `converter`
+commands additionally emit an `admissionMatrix` and validated `admissionCoverage`.
+PDF covers eight paths:
+direct/facade construction, all four serialization/save methods, and direct and
+interface renderer dispatch. Word covers six paths: both direct and both
+interface export overloads, facade export and actual DOCX signing. Each row
+records missing-license, incorrect-product and valid-product results. Denied
+calls must preserve the measured files, stream bytes/positions and input models.
+Reflection checks reject new overloads that have not been registered.
+
+Spreadsheet covers all 40 protected public methods/constructors in its existing
+assembly inventory plus the Generator facade and both exporter interface
+overloads: 43 paths. Its per-denial invariant checks both DTOs and retained
+workbook data, binding values, input-file hashes, output-file names/bytes and
+style-callback state. The import helpers also preserve input stream ownership
+and position. Successful interface exports are opened as real workbooks and
+their table values checked. Existing XLSX/XLS/CSV/TSV no-create/no-overwrite,
+formula roundtrip and continuation checks remain active.
+
+Converter covers all 13 public export overloads and both interface calls for
+each of its nine exporters: 31 paths. Interface rows identify the actual
+implementation, so identical interface symbols for different exporters cannot
+collapse into one result. Every successful path still validates both single-
+and multi-page output, including image signatures/dimensions, ZIP page names,
+mixed page geometry and text/package content. Existing callback replacement,
+scope isolation, original-error identity and renewal checks are retained.
+
+PDF and Spreadsheet builder instance calls cannot be reached in an unlicensed
+fresh process because their document/workbook constructor requires a license.
+Those six PDF and 26 Spreadsheet missing cases
+explicitly report `constructorPrerequisite`, referencing a real constructor
+denial; they are **not** direct invocations of unlicensed instance methods.
+Incorrect-product tests do invoke the retained objects after license replacement.
+No uninitialized objects, private reset or license-unload backdoor is introduced.
+
+The matrix validator rejects incomplete phases, duplicate entries, unexpected
+counts, wrong diagnostics, changed inputs/outputs and unobserved prerequisites.
+Its synthetic JSON unit fixtures validate reporting only; real execution
+evidence comes from the compiled probes. Existing checks remain separate and
+are not inflated by counting constructor prerequisites as direct method calls.
+This matrix covers PDF, Word, Spreadsheet and Converter. The complementary
+Importer and Migration reconciliation below completes the reviewed local native
+entry inventory; protected-package, host and cross-platform acceptance remain
+separate requirements.
+
+## Importer And Migration Phase Reconciliation
+
+`importer-surface.mjs verify` retains the exact 363-type/201-member public
+inventory guard. Its `phaseEvidence` additionally ties each member to actual
+executed missing-license, incorrect-product and valid-product check IDs. A
+registered symbol without an executed assertion cannot claim phase coverage.
+Retained signing/security instances reference observed constructor/factory
+denials explicitly; those prerequisite cases are not direct instance calls.
+
+The image probe directly exercises all 39 public analysis entries using a
+synthetic bitmap, including glyph/template helpers, all shape/text/color
+operations and every import overload. These are admission fixtures, not a new
+recognition-quality or visual-baseline approval. OCR conversion and process
+dispatch retain their existing fake-engine/real-child-process cases. The
+macOS/x64 profile additionally executes both actual in-process and isolated
+native OCR. Other hosts report an explicit pending embedded-OCR positive case
+until equivalent native execution is added; no validation error is counted as
+successful OCR. `allPhasesVerified` and `pendingPositiveMembers` make this
+distinction visible without removing the original cross-platform gate.
+
+The three `with-test-license.mjs migration-code|migration-report|migration-viewer`
+commands emit `admissionEvidence` and validated `admissionCoverage`. Code covers
+96 direct/base/factory/aggregate paths across 24 providers, plus both standalone
+Trust and E-Invoice analyses for all 16 PDF providers. Report covers 37 direct,
+factory/alias and resource paths across eight providers. Viewer covers its
+three native source/JSON entries. Every row references its executed three-phase
+assertions and tested output checksum. Source text, documents, certificates and
+license payloads are not included in these evidence rows.
+
+The validators reject missing providers/paths, duplicate or reused assertions,
+unknown aliases, unexecuted phases and mismatched output hashes. Existing
+single-provider isolation, callback/continuation, renewal, source-fixture and
+output comparisons remain in place. These local source-probe reports do not
+replace protected-package, API/Designer composition, PostgreSQL, worker sandbox
+or remote all-platform acceptance.
+
+## Local Source Regression Run
+
+```bash
+node --test tools/native-licensing/regressions.test.mjs
+node tools/native-licensing/regressions.mjs
+```
+
+This fixed local POSIX profile reuses one signed, isolated build session for
+the ten complete native library test projects and an explicit API selection
+covering licensing, Trust, exports, code conversions and real worker calls.
+TRX rows/counters must agree, every result must pass, and skipped or empty runs
+are rejected. The selected Code Workspace concurrency case uses a disposable
+PostgreSQL container through the local Docker socket; existing customer or
+development databases are never used. This is not the separate unfiltered
+API/PostgreSQL validation.
+
+The host client uses the current local Docker context. Resource Reaper remains
+enabled and mounts the VM-side socket at `/var/run/docker.sock` by default,
+including Rancher Desktop; `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE` may explicitly
+select another VM-side socket. Do not mount Rancher's macOS client socket path
+inside the Linux container.
+
+Designer typecheck, the complete Jest suite and production build run next.
+Trust corpus and operation baselines are enforced without update flags, then
+the existing five-pack platform profile compares 118 cases across Canvas,
+Preview and normal/generated-C# PDFs. Mixed page layouts, image fitting, the
+shared renderer and styled tables retain their own additional reports. Existing
+P2 measurements stay visible; execution does not grant new human visual approval.
+
+Previous visual output is copied under `previous-artifacts` before the existing
+runners reuse their owned output directories. Each current report is archived
+separately inside the native session. Input hashes are checked after all stages;
+synthetic signed artifacts/builds and owned runtime key/storage directories are
+removed in `finally`. Logs and synthetic visual artifacts remain private local
+evidence, not public CI uploads. No baseline, source trust, version or product
+configuration is rewritten. A prepared command is not successful execution;
+consult `regression-report.json` and `cleanup.json` for the actual result.
+
+## Activation Guide Verification
+
+```bash
+node --test tools/native-licensing/activation-guide-check.test.mjs
+node tools/native-licensing/activation-guide-check.mjs
+```
+
+The verifier parses the public activation guide with Marked, extracts its one
+complete C# class, and compiles that exact text with the real Generator project
+graph. It checks activation, current-position/open-stream behavior, rejection
+of expired replacements, preservation of the prior snapshot, replacement rather
+than merging of grants, explicit revocations and real PDF content. No compiler
+backdoor, production key or publisher is configured. Isolated binaries, signed
+fixtures and PDF output are removed; only hashes and report/cleanup JSON remain.
+This verifies the existing developer-documentation requirement, not additional
+product scope or another platform/publication approval.
+
+## Native Platform Package Verification
+
+```bash
+node --test tools/native-licensing/platform-package-check.test.mjs
+node tools/native-licensing/platform-package-check.mjs
+```
+
+This runs the existing full 54-assembly/52-package Migration profile with
+**mandatory actual OCR** in both the original and protected worker. It also
+requires CodeWorker execution, all 62 Converter calls, the 12 CodeWorker request
+cases, provider comparisons and unchanged PDF pixels/Word/Spreadsheet semantics.
+A skipped OCR run cannot pass this platform check. The ordinary subset runners
+retain their explicitly partial platform scope.
+
+The independent application now uses one product at a time: PDF, Word,
+Spreadsheet, Importer and Converter. Every profile must admit its own product,
+deny the other nine native products and reject unrelated public Generator
+entries without changing the active license. The complete profile requires
+67 such checks in both the original and protected application, in addition to
+actual single-product processing and the existing per-provider probes.
+Positive PDF CodeWorker requests also use a PDF-only license, with the signed
+revocation list retained. Fresh PDF/Importer package fixtures are distinct from
+the old negative fixtures revoked by that list; no revocation is removed.
+
+Importer-only regeneration, import/save and real OCR execute without granting
+public PDF generation. A caller-supplied generator configuration callback still
+needs an explicit PDF grant and must not run or change a sentinel output when
+denied. An output-stream callback cannot inherit internal PDF rights. The
+report's `singleProductProducts` and `singleProductChecks` make this coverage
+explicit; old reports without those fields are not new single-product evidence.
+
+Before any activation, the same consumer constructs and JSON-roundtrips every
+exported concrete Core contract class with a public parameterless constructor.
+It also exercises populated design/workbook/Domain models, PDF configuration,
+Importer/OCR data and renderer/format/provider metadata. Selected parameterized
+records use typed fixtures, not fabricated uninitialized objects. This does not
+attempt arbitrary constructor execution across processing classes. Reading an
+interface declaration is not permission to execute its implementation: the
+existing missing-license processing checks and explicit Migration denials still
+run afterwards.
+
+Each separate API-surface process verifies an unlicensed, non-admitting state
+before and after inspection. `unlicensedCoreDtoTypes`,
+`unlicensedContractChecks` and `unlicensedMetadataAssemblies` describe the actual
+coverage; original and protected data checks must agree. Free metadata means
+types/capabilities/catalogs and detached models, not parsing customer files,
+Trust analysis, rendering, calculation or import/export. No public processing
+guard is removed to make these tests pass.
+
+Run it from a Git checkout: the existing support-archive check records a commit
+and dirty-tree state. A bare source archive is not a substitute for that Git
+metadata. Disposable source snapshots may use an explicitly synthetic test
+repository; its commit must never be described as a product or release commit.
+
+The prepared read-only CI matrix targets Ubuntu 24.04/x64, Windows 2025/x64 and
+macOS 15/Intel. Install Poppler on every host; Debian/Ubuntu Linux also needs
+`libtesseract5` and `liblept5`, while macOS uses Homebrew `tesseract` and
+`leptonica`. Windows uses the reviewed x64 native files restored by the pinned
+Tesseract package. English language data and the synthetic text's font come
+from the repository. Wrapper-compatible native aliases are created only in an
+owned temporary directory, never in installed product or system directories.
+No third-party terms are automatically accepted and no runtime is downloaded
+by the native license verifier.
+
+The wrapper restores its environment and removes temporary native links in
+`finally`. Existing joint-rehearsal cleanup still removes synthetic licenses,
+protected DLLs, packages, caches and private maps. Evidence under
+`artifacts/native-platform-packages/` contains only report/cleanup JSON and
+records the actual .NET architecture independently of Node.js. A local
+Linux/ARM64 run does not establish Linux/x64, Windows or remote-CI acceptance.
+Prepared jobs are not successful test evidence; each required host must pass
+before closing the original cross-platform requirement.
+
 ## Joint WebApi Host Rehearsal
 
 ```bash

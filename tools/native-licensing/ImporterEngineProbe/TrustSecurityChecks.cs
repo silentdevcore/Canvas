@@ -79,6 +79,7 @@ internal sealed class TrustSecurityChecks : IDisposable
         Add<PdfStandardSecurityHandler>("BuildEncryptDictionary", () => Equal(security!.BuildEncryptDictionary()["Filter"] is PdfName), retainedInstance: true);
         calls.Add("PdfPkcs12SigningKey..ctor", () => { using var created = new PdfPkcs12SigningKey(crypto.Pfx); Equal(created.Certificate.HasPrivateKey); });
         NativeSurfaceCoverage.Record(typeof(PdfPkcs12SigningKey).GetConstructors().Single());
+        NativeSurfaceCoverage.BindPhases(typeof(PdfPkcs12SigningKey).GetConstructors().Single(), "trust", "PdfPkcs12SigningKey..ctor");
         Add<PdfPkcs12SigningKey>("SignHash", () => Equal(key!.SignHash(SHA256.HashData(source), HashAlgorithmName.SHA256).Length > 0), retainedInstance: true);
         Add<PdfPadesSigningService>("Sign", () => Signed(signer.Sign(source, callbackKey)));
         Add<PdfPadesSigningService>("SignAsync", () => Signed(Await(signer.SignAsync(source, callbackKey))));
@@ -216,6 +217,15 @@ internal sealed class TrustSecurityChecks : IDisposable
     {
         if (method is null) throw new InvalidOperationException("Missing public method on " + type.Name);
         NativeSurfaceCoverage.Record(method);
+        var missingKey = Key(method);
+        MemberInfo? prerequisite = null;
+        if (retainedInstance)
+        {
+            prerequisite = type == typeof(PdfPkcs12SigningKey) ? type.GetConstructors().Single()
+                : typeof(PdfStandardSecurityHandler).GetMethod("Create")!;
+            missingKey = prerequisite is ConstructorInfo ? "PdfPkcs12SigningKey..ctor" : Key((MethodInfo)prerequisite);
+        }
+        NativeSurfaceCoverage.Bind(method, "trust:missing:" + missingKey, "trust:wrong:" + Key(method), "trust:valid:" + Key(method), prerequisite);
         var name = Key(method); calls.Add(name, call); if (retainedInstance) retained.Add(name);
     }
     private static string Key(MethodInfo method) => $"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(parameter => parameter.ParameterType.ToString()))})";

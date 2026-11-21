@@ -11,6 +11,16 @@ AssemblyLoadContext.Default.Resolving += (_, name) =>
     return File.Exists(dependency) ? AssemblyLoadContext.Default.LoadFromAssemblyPath(dependency) : null;
 };
 var assembly = Assembly.LoadFrom(path);
+var licensing = Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(path)!, "PVAD.Licensing.dll"));
+var license = licensing.GetType("PVAD.Licensing.PvadLicense", throwOnError: true)!;
+void RequireUnlicensed()
+{
+    var status = license.GetMethod("GetStatus")!.Invoke(null, null)!;
+    if (status.GetType().GetProperty("State")!.GetValue(status)?.ToString() != "Unlicensed"
+        || (bool)status.GetType().GetProperty("CanStartOperation")!.GetValue(status)!)
+        throw new InvalidOperationException("Metadata inspection must not require or activate a native license.");
+}
+RequireUnlicensed();
 var surface = assembly.GetExportedTypes().Select(type => new
 {
     type = type.FullName,
@@ -29,4 +39,5 @@ var surface = assembly.GetExportedTypes().Select(type => new
                 .Select(attribute => attribute.ToString()).Order(StringComparer.Ordinal).ToArray(),
         }).OrderBy(member => member.signature, StringComparer.Ordinal).ToArray(),
 }).OrderBy(value => value.type, StringComparer.Ordinal).ToArray();
+RequireUnlicensed();
 Console.WriteLine(JsonSerializer.Serialize(surface));

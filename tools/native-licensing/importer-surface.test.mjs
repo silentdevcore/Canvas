@@ -52,13 +52,62 @@ test('surface guard rejects new types, methods, constructors, property and inter
 test('native coverage requires the exact registered processing members from both completed probes', () => {
   const { reviewed } = fixture();
   const members = reviewed.assemblies.map(a => a.assembly + '\n' + a.types[0].type + '\nMethod:Void Run()');
-  const reports = [{ checks: ['importer'], testedSurface: members.slice(0,2) }, { checks: ['image'], testedSurface: members.slice(2) }];
+  const reports = [members.slice(0,2), members.slice(2)].map((testedSurface, index) => {
+    const checks = [];
+    const phaseEvidence = testedSurface.map((member, id) => {
+      const phase = (name, diagnostic) => {
+        const check = `${name}:${index}:${id}`; checks.push(check);
+        return { check, mode: 'invoked', diagnostic, prerequisite: null };
+      };
+      return { member, missing: phase('missing', 'PVADLIC001'), incorrect: phase('incorrect', 'PVADLIC012'),
+        valid: phase('valid', null) };
+    });
+    return { checks, testedSurface, phaseEvidence };
+  });
   assert.equal(validateCoverage(reviewed, reports).protectedMembers, 4);
+  assert.equal(validateCoverage(reviewed, reports).phaseVerifiedMembers, 4);
+  assert.equal(validateCoverage(reviewed, reports).allPhasesVerified, true);
   for (const mutate of [
     value => value[0].testedSurface.pop(),
     value => value[0].testedSurface.push('Unknown API'),
     value => value[1].testedSurface.push(members[0]),
     value => value[0].checks = [],
-    value => value[1].checks.push('image'),
+    value => value[1].checks.push(value[1].checks[0]),
+    value => delete value[0].phaseEvidence,
+    value => value[0].phaseEvidence[0].valid = null,
+    value => value[0].phaseEvidence[0].missing.check = 'not-executed',
+    value => value[1].phaseEvidence[0].incorrect.diagnostic = 'PVADLIC001',
+    value => value[0].phaseEvidence[0].missing.mode = 'assumed',
   ]) { const invalid = structuredClone(reports); mutate(invalid); assert.throws(() => validateCoverage(reviewed, invalid)); }
+});
+
+test('only the explicitly unexecuted embedded OCR success may remain pending on other hosts', () => {
+  const reports = inventory.assemblies.reduce((result, assembly, index) => {
+    const report = result[index < 2 ? 0 : 1];
+    for (const type of assembly.types) for (const member of type.protectedMembers) {
+      const symbol = `${assembly.assembly}\n${type.type}\n${member}`;
+      const phase = (name, diagnostic) => {
+        const check = `${name}:${symbol}`; report.checks.push(check);
+        return { check, mode: 'invoked', diagnostic, prerequisite: null };
+      };
+      const pending = type.type === 'PVAD.FileImporter.ImageOcr.EmbeddedTesseractOcrEngine';
+      report.testedSurface.push(symbol);
+      report.phaseEvidence.push({ member: symbol, missing: phase('missing', 'PVADLIC001'),
+        incorrect: phase('incorrect', 'PVADLIC012'), valid: pending ? null : phase('valid', null) });
+    }
+    return result;
+  }, [0, 1].map(() => ({ checks: [], testedSurface: [], phaseEvidence: [], realNativeSucceeded: false })));
+  const partial = validateCoverage(inventory, reports);
+  assert.equal(partial.phaseVerifiedMembers, 200);
+  assert.equal(partial.pendingPositiveMembers.length, 1);
+  assert.equal(partial.allPhasesVerified, false);
+  const unrelatedGap = structuredClone(reports);
+  unrelatedGap[1].phaseEvidence.find(row => row.valid !== null).valid = null;
+  assert.throws(() => validateCoverage(inventory, unrelatedGap));
+  reports[1].realNativeSucceeded = true;
+  assert.throws(() => validateCoverage(inventory, reports));
+  const row = reports[1].phaseEvidence.find(row => row.valid === null);
+  row.valid = { check: 'actual-embedded-ocr-success', mode: 'invoked', diagnostic: null, prerequisite: null };
+  reports[1].checks.push(row.valid.check);
+  assert.equal(validateCoverage(inventory, reports).phaseVerifiedMembers, 201);
 });

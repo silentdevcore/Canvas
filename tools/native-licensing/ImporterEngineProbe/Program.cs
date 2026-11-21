@@ -122,9 +122,31 @@ NativeSurfaceCoverage.RecordMethods(typeof(ImportPdf), 3);
 NativeSurfaceCoverage.RecordMethods(typeof(PdfDocumentSaver), 1);
 NativeSurfaceCoverage.RecordMethods(typeof(PdfFullRewriteWriter), 2);
 NativeSurfaceCoverage.RecordMethods(typeof(PdfIncrementalUpdateWriter), 1);
+foreach (var method in typeof(PdfFileImporter).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly).Where(method => !method.IsSpecialName))
+{
+    var key = method.IsStatic ? method.GetParameters().Length == 3 ? "static:pdf" : "static:pdf-options"
+        : method.GetParameters().Length == 2 ? "registry:pdf" : "pdf:cancellation-overload";
+    Bind(method, key);
+}
+foreach (var type in new[] { typeof(PdfImporter), typeof(ImportPdf) })
+foreach (var method in type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly).Where(method => !method.IsSpecialName))
+{
+    var parameters = method.GetParameters();
+    var key = type == typeof(PdfImporter) ? "pdf:direct" : "pdf:facade";
+    if (parameters[1].ParameterType == typeof(string)) key += "-password-overload";
+    if (parameters[1].ParameterType == typeof(X509Certificate2)) key += "-certificate-overload";
+    Bind(method, key);
+}
+Bind(typeof(PdfDocumentSaver).GetMethod("Save")!, "save:strategy-rewrite");
+Bind(typeof(PdfFullRewriteWriter).GetMethod("Rewrite")!, "save:full-rewrite");
+Bind(typeof(PdfFullRewriteWriter).GetMethod("RewriteWithUpdates")!, "save:rewrite-updates");
+Bind(typeof(PdfIncrementalUpdateWriter).GetMethod("Append")!, "save:append");
 Console.WriteLine(JsonSerializer.Serialize(new { checks, coveredEntries = calls.Count, directEngineEntries = directEntries, editingEntries, trustSecurityEntries, regenerationEntries, pdfContinuationChecks, designerPdfContinuationChecks, editingContinuationChecks, trustContinuationChecks, signingContinuationChecks, redactionContinuationChecks, eInvoiceContinuationChecks, trustPipelineContinuationChecks, regenerationContinuationChecks, scope = "file-import-pdf-load-save-direct-engines-editing-trust-and-regeneration", completeImporterEnforcement = false,
-    fileImporterContinuationChecks, testedSurface = NativeSurfaceCoverage.Snapshot(), processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+    fileImporterContinuationChecks, testedSurface = NativeSurfaceCoverage.Snapshot(), phaseEvidence = NativeSurfaceCoverage.PhaseSnapshot(checks), processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;
+
+void Bind(System.Reflection.MethodInfo method, string key) =>
+    NativeSurfaceCoverage.Bind(method, "missing:" + key, "wrong:" + key, "valid:" + key);
 
 IEnumerable<PdfIncrementalObjectUpdate> Updates()
 {

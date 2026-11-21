@@ -55,6 +55,7 @@ foreach (var profile in new[] { "pdf", "importer", "converter", "migration-code"
 }
 Load("migration-report");
 var baseline = calls.ToDictionary(call => call.Key, call => call.Run());
+foreach (var call in calls) checks.Add("valid:" + call.Key);
 foreach (var provider in inventory.Entries.Select(e => e.Provider))
 {
     Load("migration.report.designer-" + provider);
@@ -69,6 +70,12 @@ Load("migration-report");
 foreach (var call in calls) Check(call.Run() == baseline[call.Key], "renewed:" + call.Key);
 Check(checks.Count == checks.Distinct().Count(), "unique-check-identifiers");
 Console.WriteLine(JsonSerializer.Serialize(new { checks, entries = calls.Count, providers = 8,
+    admissionEvidence = calls.Select(call => new
+    {
+        product = "migration.report.designer", provider = call.Provider, path = call.Key,
+        missing = "missing:" + call.Key, incorrect = "pdf:denied:" + call.Key, valid = "valid:" + call.Key,
+        outputChecksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(baseline[call.Key]))),
+    }),
     outputChecksums = baseline.ToDictionary(pair => pair.Key, pair => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(pair.Value)))) }));
 return 0;
 

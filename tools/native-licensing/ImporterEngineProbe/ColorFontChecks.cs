@@ -69,7 +69,9 @@ internal sealed class ColorFontChecks
             types.Add(type);
             var method = type.GetMethod(name, parameters) ?? throw new InvalidOperationException("Missing color/font entry.");
             NativeSurfaceCoverage.Record(method);
-            calls.Add($"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(parameter => parameter.ParameterType.ToString()))})", action);
+            var key = $"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(parameter => parameter.ParameterType.ToString()))})";
+            calls.Add(key, action);
+            NativeSurfaceCoverage.BindPhases(method, "direct", key);
         }
     }
 

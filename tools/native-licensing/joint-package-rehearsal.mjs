@@ -129,7 +129,7 @@ export function main(args) {
   let succeeded = false;
   let report;
   try {
-    const licenses = createTestLicenses(secret, Date.now(), includeMigrations, includeMigrations, false, true);
+    const licenses = createTestLicenses(secret, Date.now(), includeMigrations, includeMigrations, false, true, true);
     const build = join(work, 'original-build'), consumerBuild = join(work, 'consumer-build');
     const protectedDirectory = join(work, 'protected-support-only');
     const protectionOptions = [`-p:CustomAfterMicrosoftCommonTargets=${join(here, 'protected-package.targets')}`, `-p:PvadProtectedPackageDirectory=${protectedDirectory}`];
@@ -157,6 +157,10 @@ export function main(args) {
     const invoke = (directory, resultDirectory, extra = [], workerDirectory = originalWorker, codeDirectory = originalCodeWorker) => jsonResult(run('dotnet', [join(directory, 'GeneratorPackageProbe.dll'),
       licenses.integrated, licenses.importer, licenses.pdf, licenses.revocations, resultDirectory, ...extra], { env: { ...process.env,
         PVAD_PACKAGE_WRONG_LICENSE_PATH: licenses.word,
+        PVAD_PACKAGE_PDF_LICENSE_PATH: licenses['package-pdf'],
+        PVAD_PACKAGE_WORD_LICENSE_PATH: licenses.word,
+        PVAD_PACKAGE_SPREADSHEET_LICENSE_PATH: licenses.spreadsheet,
+        PVAD_PACKAGE_IMPORTER_LICENSE_PATH: licenses['package-importer'],
         PVAD_PACKAGE_OCR_WORKER_PATH: join(workerDirectory, workerName + '.dll'),
         PVAD_PACKAGE_CODE_WORKER_PATH: join(codeDirectory, codeWorkerName + '.dll'),
         PVAD_PACKAGE_CONVERTER_LICENSE_PATH: licenses.converter,
@@ -246,6 +250,9 @@ export function main(args) {
     run('dotnet', ['build', probe, '-c', 'Release', '--no-restore', '--artifacts-path', consumerBuild, ...common, ...profileProperties,
       `-p:RestorePackagesPath=${packages}`], { env: consumerEnvironment });
     const after = invoke(join(consumerBuild, 'bin/GeneratorPackageProbe/release'), join(work, 'protected-result'), [feed], protectedWorker, protectedCodeWorker);
+    if (includeImporter && process.env.PVAD_PACKAGE_REQUIRE_NATIVE_OCR === '1')
+      assert.ok(before.semantics.importer.nativeOcrExecuted && after.semantics.importer.nativeOcrExecuted,
+        'Native OCR must execute in both the original and protected worker; skipping is not platform acceptance.');
     const protectedMigrations = {};
     if (includeMigrations) for (const [kind, name] of Object.entries(migrationProbes)) {
       const project = join(here, name, name + '.csproj');
@@ -266,11 +273,20 @@ export function main(args) {
     }
     for (const result of [before, after]) {
       assert.equal(new Set(result.checks).size, result.checks.length, 'Assertion names must be unique.');
+      assert.deepEqual(result.singleProductProfiles, ['pdf', 'word', 'spreadsheet', ...(includeImporter ? ['importer'] : []),
+        ...(includeExecution ? ['converter'] : [])].sort(), 'Every included product needs its own single-product license.');
       if (includeExecution) {
         assert.equal(Object.keys(result.semantics.execution.converters).length, 62, 'The Converter call matrix is incomplete.');
         assert.equal(result.checks.filter(name => name.startsWith('worker-exit-contract:')).length, 12, 'The real CodeWorker request matrix is incomplete.');
       }
     }
+    const dependencyChecks = result => result.checks.filter(name => name.startsWith('single-product:'));
+    assert.deepEqual(dependencyChecks(after), dependencyChecks(before), 'Original/protected single-product checks differ.');
+    assert.equal(dependencyChecks(before).length, 39 + (includeImporter ? 14 : 0) + (includeExecution ? 14 : 0));
+    const freeChecks = result => result.checks.filter(name => name.startsWith('unlicensed-contract:'));
+    assert.ok(before.unlicensedCoreDtoTypes.length > 0 && new Set(before.unlicensedCoreDtoTypes).size === before.unlicensedCoreDtoTypes.length);
+    assert.deepEqual(after.unlicensedCoreDtoTypes, before.unlicensedCoreDtoTypes, 'Original/protected contract coverage differs.');
+    assert.deepEqual(freeChecks(after), freeChecks(before), 'Original/protected unlicensed data/metadata behavior differs.');
     assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics), 'Protected output changes JSON, Word or Spreadsheet semantics.');
     for (const name of Object.keys(packageProjects)) assert.equal(after.assemblyHashes[name], sha(join(protectedDirectory, name + '.dll')));
     const pageHashes = (directory, file = 'document.pdf', prefix = 'page', count = 2) => {
@@ -291,6 +307,9 @@ export function main(args) {
       platform: process.platform, architecture: after.processArchitecture, modules, publicApi: surfaces,
       baselineChecks: before.checks.length, protectedChecks: after.checks.length,
       baselineCheckNames: before.checks, protectedCheckNames: after.checks,
+      singleProductProducts: before.singleProductProfiles, singleProductChecks: dependencyChecks(before).length,
+      unlicensedCoreDtoTypes: before.unlicensedCoreDtoTypes, unlicensedContractChecks: freeChecks(before).length,
+      unlicensedMetadataAssemblies: Object.keys(surfaces).length,
       protectedAssemblyHashes: after.assemblyHashes, pdfPages: pages.length, pdfPixelsEqual: true,
       jsonWordSpreadsheetEqual: true, thirdPartyAssembliesUnchanged: thirdParty.length, offlineDependencyPackages: dependencyCount,
       independentPackageReferences: Object.keys(packageProjects).length, productWideAcceptance: false,
@@ -313,6 +332,7 @@ export function main(args) {
   }
   writeFileSync(join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`Joint protected package rehearsal passed: ${output}`);
+  return { output, report };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

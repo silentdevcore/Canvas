@@ -21,37 +21,49 @@ var methods = exporters.SelectMany(exporter => exporter.GetType().GetMethods(Bin
     .Where(method => method.Name == "Export").Select(method => (exporter, method))).ToArray();
 Check(methods.Length == 13, "complete-thirteen-public-overloads");
 var calls = methods.Select(pair => (Name: pair.exporter.FormatKey + "-direct-" + pair.method.GetParameters().Length,
-    Exporter: pair.exporter, Run: (Func<DesignExportDto, byte[]>)(design => Invoke(pair.method, pair.exporter, design))))
+    Exporter: pair.exporter, Member: pair.method, Dispatch: "direct",
+    Run: (Func<DesignExportDto, byte[]>)(design => Invoke(pair.method, pair.exporter, design))))
     .Concat(exporters.SelectMany(exporter => new[]
     {
-        (Name: exporter.FormatKey + "-interface", Exporter: exporter, Run: (Func<DesignExportDto, byte[]>)(design => exporter.Export(design))),
-        (Name: exporter.FormatKey + "-interface-options", Exporter: exporter, Run: (Func<DesignExportDto, byte[]>)(design => exporter.Export(design, options))),
+        (Name: exporter.FormatKey + "-interface", Exporter: exporter,
+            Member: typeof(IDocumentExporter).GetMethod("Export", [typeof(DesignExportDto)])!, Dispatch: "interface",
+            Run: (Func<DesignExportDto, byte[]>)(design => exporter.Export(design))),
+        (Name: exporter.FormatKey + "-interface-options", Exporter: exporter,
+            Member: typeof(IDocumentExporter).GetMethod("Export", [typeof(DesignExportDto), typeof(ExportOptions)])!, Dispatch: "interface",
+            Run: (Func<DesignExportDto, byte[]>)(design => exporter.Export(design, options))),
     })).ToArray();
 var design = Design();
 var before = JsonSerializer.Serialize(design);
+var matrix = new NativeAdmissionMatrix();
+foreach (var call in calls)
+    matrix.Add(call.Member, call.Dispatch, () =>
+    {
+        Inspect(call.Run(design), call.Exporter.FormatKey, call.Name + ":single", 1, Dpi(call.Name));
+        Inspect(call.Run(Design(multiple: true)), call.Exporter.FormatKey, call.Name + ":multiple", 2, Dpi(call.Name));
+    }, () => JsonSerializer.Serialize(design), implementation: call.Exporter.GetType());
+foreach (var exporter in exporters) matrix.RequireSurface(exporter.GetType());
+matrix.RequireSurface(typeof(IDocumentExporter));
 Check(PvadLicense.GetStatus().State == PvadLicenseState.Unlicensed, "initially-unlicensed");
 foreach (var exporter in exporters)
     Check(!string.IsNullOrWhiteSpace(exporter.FormatKey) && !string.IsNullOrWhiteSpace(exporter.MimeType) &&
         exporter.FileExtension.StartsWith('.') && exporter.Capabilities is not null, exporter.FormatKey + ":metadata-free");
+matrix.Run("missing");
 foreach (var call in calls)
 {
-    Denied(() => call.Run(design), "PVADLIC001", call.Name + ":unlicensed");
+    checks.Add(call.Name + ":unlicensed");
     Denied(() => call.Run(null!), "PVADLIC001", call.Name + ":admission-before-input");
 }
 Denied(() => PvadLicense.LoadFromFile(args[2]), "PVADLIC009", "expired-load-rejected");
 foreach (var call in calls) Denied(() => call.Run(design), "PVADLIC001", call.Name + ":expired-load-not-activated");
 PvadLicense.LoadFromFile(args[1]);
-foreach (var call in calls) Denied(() => call.Run(design), "PVADLIC012", call.Name + ":wrong-product");
+matrix.Run("incorrect");
+foreach (var call in calls) checks.Add(call.Name + ":wrong-product");
 Check(JsonSerializer.Serialize(design) == before, "denial-preserves-design");
 
 PvadLicense.LoadFromFile(args[0]);
 foreach (var product in new[] { "pdf", "word", "spreadsheet", "importer" })
     Denied(() => PvadLicense.Require(product), "PVADLIC012", "no-additional-grant:" + product);
-foreach (var call in calls)
-{
-    Inspect(call.Run(design), call.Exporter.FormatKey, call.Name + ":single", 1, Dpi(call.Name));
-    Inspect(call.Run(Design(multiple: true)), call.Exporter.FormatKey, call.Name + ":multiple", 2, Dpi(call.Name));
-}
+matrix.Run("valid");
 Check(JsonSerializer.Serialize(design) == before, "licensed-export-preserves-design");
 
 // User values can replace the live license while the built-in renderer is active.
@@ -95,7 +107,8 @@ PvadLicense.LoadFromFile(args[0]);
 foreach (var call in calls) Inspect(call.Run(design), call.Exporter.FormatKey, call.Name + ":renewal", 1, Dpi(call.Name));
 Check(checks.Distinct().Count() == checks.Count, "unique-check-ids");
 Console.WriteLine(JsonSerializer.Serialize(new { checks, exporters = exporters.Length, publicExportMethods = methods.Length,
-    interfaceCalls = calls.Length - methods.Length, processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
+    interfaceCalls = calls.Length - methods.Length, admissionMatrix = matrix.Snapshot(),
+    processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;
 
 byte[] Invoke(MethodInfo method, object exporter, DesignExportDto source)

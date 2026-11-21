@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-unlicensed-contract-validation",
+  "impact": "patch",
+  "components": ["documentation", "sdk"],
+  "category": "improved",
+  "summary": "Clarified license-free data contracts and SDK metadata, with protected-package compatibility checks.",
+  "breaking": false
+}

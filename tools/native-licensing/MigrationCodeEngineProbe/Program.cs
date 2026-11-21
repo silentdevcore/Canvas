@@ -112,6 +112,15 @@ var analysisChecks = MigrationAnalysisChecks.Run(args, checks);
 Check(checks.Distinct().Count() == checks.Count, "unique-check-identifiers");
 Console.WriteLine(JsonSerializer.Serialize(new { checks, providers = entries.Length, pdfProviders = 16, spreadsheetProviders = 8,
     analysisChecks,
+    analysisEvidence = MigrationAnalysisChecks.AdmissionEvidence,
+    admissionEvidence = entries.SelectMany(entry => Calls(entry).Select(call => new
+    {
+        product = entry.Product, provider = entry.Descriptor.ProviderKey, path = call.Name,
+        missing = entry.Id + ":" + call.Name + ":unlicensed",
+        incorrect = entry.Id + ":" + call.Name + ":pdf-not-migration-right",
+        valid = entry.Id + ":" + call.Name + ":licensed",
+        outputChecksum = Hash(baselines[entry.Id]),
+    })),
     fixtureSourceChecksums, fixtureOutputChecksums,
     outputChecksums = baselines.ToDictionary(pair => pair.Key, pair => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(pair.Value)))),
     processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));

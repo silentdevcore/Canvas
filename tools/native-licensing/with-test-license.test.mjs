@@ -57,6 +57,28 @@ test('code-provider probes receive explicit single-provider grants without broad
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
+test('package-only PDF and Importer fixtures are signed single grants independent of the revoked negative fixtures', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'pvad-package-grant-contract-'));
+  try {
+    const paths = createTestLicenses(directory, Date.now(), false, false, false, true, true);
+    const trust = JSON.parse(readFileSync(paths.trustPath));
+    const payload = name => JSON.parse(Buffer.from(JSON.parse(readFileSync(paths[name])).payload, 'base64'));
+    const revoked = payload('revocations').revokedLicenseIds;
+    for (const product of ['pdf', 'importer']) {
+      const envelope = JSON.parse(readFileSync(paths['package-' + product]));
+      const bytes = Buffer.from(envelope.payload, 'base64');
+      assert.ok(verify('sha256', bytes, { key: trust.keys[0].publicKeyPem, dsaEncoding: 'ieee-p1363' }, Buffer.from(envelope.signature, 'base64')));
+      const current = JSON.parse(bytes);
+      assert.deepEqual(current.grants, [{ product, providers: [] }]);
+      assert.ok(!revoked.includes(current.licenseId));
+      assert.ok(revoked.includes(payload(product).licenseId));
+      assert.equal(current.redistributionAllowed, false);
+    }
+    assert.equal(readdirSync(directory).length, 15);
+    assert.equal(paths.issuerPrivateKey, undefined);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
 test('manufacturer signer tests alone opt into an ephemeral owner-only private key matching synthetic trust', () => {
   const directory = mkdtempSync(join(tmpdir(), 'pvad-issuer-fixture-contract-'));
   try {

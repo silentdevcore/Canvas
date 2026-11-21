@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { validateAdmissionMatrix } from './admission-matrix.mjs';
+import { validateMigrationAdmission } from './migration-admission.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -33,7 +35,7 @@ export function migrationReportTestGrant() {
 }
 
 // Synthetic keys never enter the source trust store or regular bin/obj directories.
-export function createTestLicenses(directory, now = Date.now(), includeCodeProviders = false, includeReportProviders = false, includeIssuer = false, includeRevocations = false) {
+export function createTestLicenses(directory, now = Date.now(), includeCodeProviders = false, includeReportProviders = false, includeIssuer = false, includeRevocations = false, includePackageProducts = false) {
   const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1',
     publicKeyEncoding: { type: 'spki', format: 'pem' } });
   const keyId = 'ephemeral-native-engine-test';
@@ -51,6 +53,9 @@ export function createTestLicenses(directory, now = Date.now(), includeCodeProvi
     ['converter', ['converter'], now - 60_000],
     ['integrated', ['pdf', 'word', 'spreadsheet', 'importer', 'converter'], now - 60_000], ['expired', ['pdf'], now - 31 * 86400_000],
   ].map(([name, products, start]) => [name, products.map(product => ({ product, providers: [] })), start]);
+  if (includePackageProducts)
+    for (const product of ['pdf', 'importer'])
+      profiles.push(['package-' + product, [{ product, providers: [] }], now - 60_000]);
   const migrationGrants = migrationCodeTestGrants();
   profiles.find(([name]) => name === 'integrated')[1].push(...migrationGrants);
   profiles.push(['migration-code', migrationGrants, now - 60_000]);
@@ -167,6 +172,9 @@ export function main(args) {
       const extra = args[0] === 'image'
         ? [join(build, 'bin/PVAD.FileImporter.ImageOcr.Worker/debug/PVAD.FileImporter.ImageOcr.Worker.dll')] : [];
       const result = JSON.parse(run([dll, ...licenses, paths.expired, ...extra], env, true).trim());
+      if (['pdf', 'word', 'spreadsheet', 'converter'].includes(args[0])) result.admissionCoverage = validateAdmissionMatrix(result, args[0]);
+      if (['migration-code', 'migration-report', 'migration-viewer'].includes(args[0]))
+        result.admissionCoverage = validateMigrationAdmission(result, args[0]);
       writeFileSync(join(output, `${args[0]}-admission.json`), JSON.stringify(result, null, 2) + '\n');
       console.log(`${args[0].toUpperCase()} admission: ${result.checks.length} checks passed.`);
     } else {

@@ -205,6 +205,7 @@ internal sealed class RegenerationChecks : IDisposable
     {
         var method = typeof(T).GetMethod(name, parameters)!;
         NativeSurfaceCoverage.Record(method);
+        NativeSurfaceCoverage.BindPhases(method, "regeneration", Key(method));
         var key = Key(method); calls.Add(key, call); return key;
     }
     private static string Key(MethodInfo method) => $"{method.DeclaringType!.Name}.{method.Name}({string.Join(',', method.GetParameters().Select(p => p.ParameterType.ToString()))})";

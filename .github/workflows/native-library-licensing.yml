@@ -21,6 +21,7 @@ on:
       - 'tools/PVAD.LicenseIssuer/**'
       - 'tools/native-licensing/**'
       - 'operator-docs/PVAD.Native-Library-License-Issuance.md'
+      - 'docs/guides/PVAD.Native-Library-Activation.md'
       - 'tests/PVAD.Licensing.Tests/**'
       - 'tests/Directory.Build.props'
       - 'tests/Shared/PvadNativeLicenseBootstrap.cs'
@@ -189,6 +190,8 @@ jobs:
         run: node tools/native-licensing/joint-package-rehearsal.mjs
       - name: Rehearse protected Importer packages and OCR worker boundaries
         run: node tools/native-licensing/joint-package-rehearsal.mjs --importer
+      - name: Compile and execute the public native activation example
+        run: node tools/native-licensing/activation-guide-check.mjs
       - name: Upload non-secret reports only
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -197,6 +200,17 @@ jobs:
           path: |
             artifacts/native-joint-packages/*/report.json
             artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload activation guide evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-activation-guide-evidence
+          path: |
+            artifacts/native-activation-guide/*/report.json
+            artifacts/native-activation-guide/*/cleanup.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -267,6 +281,67 @@ jobs:
         with:
           name: joint-migration-protection-evidence
           path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  platform-package-protection:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+      DOTNET_PROCESSOR_COUNT: '2'
+    steps:
+      - name: Preserve source bytes on Windows
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install contract parsers
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install Linux native runtime and PDF tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils libtesseract5 liblept5
+      - name: Install macOS native runtime and PDF tools
+        if: runner.os == 'macOS'
+        run: brew install poppler tesseract leptonica
+      - name: Install Windows PDF tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install poppler --version=26.9.0 --yes --no-progress --limit-output
+          if ($LASTEXITCODE -ne 0) { throw "Poppler installation failed: $LASTEXITCODE" }
+          $binary = Get-ChildItem "$env:ChocolateyInstall\lib\poppler" -Recurse -Filter pdftoppm.exe | Select-Object -First 1
+          if (-not $binary) { throw 'Poppler executable was not installed' }
+          $binary.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Validate platform evidence contracts
+        run: node --test tools/native-licensing/platform-package-check.test.mjs
+      - name: Verify all protected packages with real OCR and CodeWorker
+        run: node tools/native-licensing/platform-package-check.mjs
+      - name: Upload content-free platform evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-platform-package-evidence-${{ matrix.os }}
+          path: |
+            artifacts/native-platform-packages/*/report.json
+            artifacts/native-platform-packages/*/cleanup.json
             artifacts/native-joint-packages/*/report.json
             artifacts/native-joint-packages/*/cleanup.json
           if-no-files-found: warn

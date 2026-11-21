@@ -33,6 +33,7 @@ var design = new DesignExportDto
 var json = JsonSerializer.Serialize(design);
 var restored = JsonSerializer.Deserialize<DesignExportDto>(json)!;
 Check(JsonSerializer.Serialize(restored) == json, "public-dto-json-roundtrip");
+var unlicensedCoreDtoTypes = FreeContractChecks.Run(restored, checks);
 Denied(() => PVAD.Generator.Pdf.CreateDocument(), "PVADLIC001", "unlicensed-pdf-denied");
 Denied(() => PVAD.Generator.Word.Export(design), "PVADLIC001", "unlicensed-word-denied");
 Denied(() => PVAD.Generator.Spreadsheet.CreateWorkbook(), "PVADLIC001", "unlicensed-spreadsheet-denied");
@@ -46,7 +47,8 @@ PvadLicense.LoadFromFile(args[1]);
 Denied(() => PVAD.Generator.Pdf.CreateDocument(), "PVADLIC012", "wrong-product-pdf-denied");
 Denied(() => PVAD.Generator.Word.Export(design), "PVADLIC012", "wrong-product-word-denied");
 Denied(() => PVAD.Generator.Spreadsheet.CreateWorkbook(), "PVADLIC012", "wrong-product-spreadsheet-denied");
-PvadLicense.LoadFromFile(args[0]);
+PvadLicense.LoadFromFile(Environment.GetEnvironmentVariable("PVAD_PACKAGE_PDF_LICENSE_PATH")!);
+ProductGrantChecks.Only("pdf", restored, checks);
 var document = PVAD.Generator.Pdf.CreateDocument();
 document.AddPage(595, 842).DrawText("Synthetic package content", 40, 800, 18);
 document.AddPage(842, 595).DrawText("Landscape page", 40, 540, 18);
@@ -54,12 +56,17 @@ IDocumentRenderer renderer = new PdfDocumentRenderer();
 var pdf = renderer.Render(document);
 Check(pdf.AsSpan().StartsWith("%PDF-"u8), "pdf-facade-interface-renderer");
 File.WriteAllBytes(Path.Combine(output, "document.pdf"), pdf);
+PvadLicense.LoadFromFile(Environment.GetEnvironmentVariable("PVAD_PACKAGE_WORD_LICENSE_PATH")!);
+ProductGrantChecks.Only("word", restored, checks);
+Denied(() => document.ToBytes(), "PVADLIC012", "single-word-retained-pdf-denied");
 var word = PVAD.Generator.Word.Export(restored);
 using var zip = new ZipArchive(new MemoryStream(word));
 using var wordStream = zip.GetEntry("word/document.xml")!.Open();
 var wordXml = XDocument.Load(wordStream);
 XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 Check(wordXml.Descendants(w + "t").Any(item => item.Value == "Synthetic package content"), "docx-content-preserved");
+PvadLicense.LoadFromFile(Environment.GetEnvironmentVariable("PVAD_PACKAGE_SPREADSHEET_LICENSE_PATH")!);
+ProductGrantChecks.Only("spreadsheet", restored, checks);
 var workbook = PVAD.Generator.Spreadsheet.CreateWorkbook("Synthetic workbook");
 var sheet = workbook.AddSheet("Data");
 sheet.Cell("A1").Value(3).Style(style => style.Bold().Color("#007766"));
@@ -138,7 +145,8 @@ if (args.Length == 6)
 }
 Console.WriteLine(JsonSerializer.Serialize(new
 {
-    checks, assemblyHashes,
+    checks, assemblyHashes, unlicensedCoreDtoTypes,
+    singleProductProfiles = ProductGrantChecks.Profiles.Order(StringComparer.Ordinal).ToArray(),
     processArchitecture = RuntimeInformation.ProcessArchitecture.ToString(),
     semantics = new { json, wordXml = wordXml.ToString(SaveOptions.DisableFormatting), importer = importerSemantics, execution = executionSemantics,
         spreadsheet = JsonSerializer.Serialize(calculated), resources = resources.Order(StringComparer.Ordinal).ToArray() },

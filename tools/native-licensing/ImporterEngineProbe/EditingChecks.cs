@@ -101,6 +101,7 @@ internal sealed class EditingChecks : IDisposable
             var method = typeof(T).GetMethod(name, parameters)!;
             calls.Add(Key(method), action);
             NativeSurfaceCoverage.Record(method);
+            NativeSurfaceCoverage.BindPhases(method, "editing", Key(method));
         }
         IEnumerable<PdfGraphicsElement> RewriteElements() { reads++; yield return rewritePage.GraphicsObjects[0]; }
         void Facade(string name, Action<PdfEditableDocument> action, params Type[] parameters)

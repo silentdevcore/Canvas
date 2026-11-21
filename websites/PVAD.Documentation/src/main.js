@@ -3526,8 +3526,9 @@ const trackGuides = {
   },
   code: {
     readFirst: ['PVAD.Generator', 'PVAD.WebApi', 'API Reference'],
-    tasks: ['Start the backend API', 'Render or export a document model', 'Use diagnostics for failed imports or migrations'],
+    tasks: ['Activate the embedded .NET engine or authenticate to the REST API', 'Render or export a document model', 'Use diagnostics for failed imports or migrations'],
     related: [
+      { label: 'Native library activation guide', href: '../../docs/guides/PVAD.Native-Library-Activation.md' },
       { label: 'Generator product page', href: companyPage('products/generator') },
       { label: 'Booking receipt demo', href: `${siteLinks.demo}#demo/booking-receipt` },
       { label: 'OpenAPI schema', href: '../../docs/schema/openapi.json' },

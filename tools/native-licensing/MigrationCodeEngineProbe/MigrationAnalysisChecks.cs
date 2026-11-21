@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
 using PVAD.Licensing;
 using PVAD.Migration.Abstractions;
 using PVAD.Migration.Pdf;
@@ -8,6 +10,7 @@ using PVAD.Migration.Roslyn;
 internal static class MigrationAnalysisChecks
 {
     private const string Source = "document.SignPDF(); document.AddEmbeddedFile(\"invoice.xml\");";
+    internal static object[] AdmissionEvidence { get; private set; } = [];
 
     internal static void Unlicensed(List<string> checks)
     {
@@ -26,6 +29,12 @@ internal static class MigrationAnalysisChecks
         var baselines = profiles.ToDictionary(profile => profile.ProviderKey, profile => (
             Trust: JsonSerializer.Serialize(CSharpPdfTrustEvidenceScanner.Scan(Source, profile)),
             Invoice: JsonSerializer.Serialize(PdfEInvoiceMigrationCatalog.Analyze(profile.ProviderKey, Source))));
+        PvadLicense.LoadFromFile(licenses[1]);
+        foreach (var profile in profiles)
+        {
+            Denied(() => CSharpPdfTrustEvidenceScanner.Scan(Source, profile), "PVADLIC012", "wrong-product-trust:" + profile.ProviderKey, checks);
+            Denied(() => PdfEInvoiceMigrationCatalog.Analyze(profile.ProviderKey, Source), "PVADLIC012", "wrong-product-invoice:" + profile.ProviderKey, checks);
+        }
         var providers = MigrationProviderCatalog.All.Where(provider => provider.MigrationKind == "code");
         foreach (var licensed in providers)
         {
@@ -82,6 +91,14 @@ internal static class MigrationAnalysisChecks
         Denied(() => PdfEInvoiceMigrationCatalog.Analyze(original.ProviderKey, Source), "PVADLIC012", "invoice-next-public-analysis-denied", checks);
         PvadLicense.LoadFromFile(licenses[0]);
         Check(JsonSerializer.Serialize(PdfEInvoiceMigrationCatalog.Analyze(original.ProviderKey, Source)) == baselines[original.ProviderKey].Invoice, "invoice-renewal-output");
+        AdmissionEvidence = profiles.SelectMany(profile => new[] { "trust", "invoice" }.Select(operation => (object)new
+        {
+            product = "migration.pdf.code", provider = profile.ProviderKey, operation,
+            missing = "analysis:unlicensed-" + operation + ":" + profile.ProviderKey,
+            incorrect = "analysis:wrong-product-" + operation + ":" + profile.ProviderKey,
+            valid = "analysis:migration.pdf.code:" + profile.ProviderKey + ":" + profile.ProviderKey + ":" + operation + "-output",
+            outputChecksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(operation == "trust" ? baselines[profile.ProviderKey].Trust : baselines[profile.ProviderKey].Invoice))),
+        })).ToArray();
         return checks.Count - start;
 
         void Check(bool valid, string name)

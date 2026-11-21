@@ -186,6 +186,7 @@ internal static class DirectEngineChecks
             var method = type.GetMethod(name, parameters) ?? throw new InvalidOperationException("Missing processing entry.");
             calls.Add(Key(method), call);
             NativeSurfaceCoverage.Record(method);
+            NativeSurfaceCoverage.BindPhases(method, "direct", Key(method));
         }
         void Decoder(IPdfStreamDecoder decoder, byte[] bytes, PdfDictionary dictionary, byte[] expected)
         {

@@ -33,6 +33,10 @@ internal static class FileImporterContinuationChecks
             foreach (var method in methods)
             {
                 NativeSurfaceCoverage.Record(method);
+                var mainCall = method.IsStatic ? "static:" + key
+                    : key == "md" && method.GetParameters().Length == 4 ? "markdown:asset-overload"
+                    : key == "md" && method.GetParameters().Length == 3 ? "markdown:cancellation-overload" : "registry:" + key;
+                NativeSurfaceCoverage.Bind(method, "missing:" + mainCall, "wrong:" + mainCall, "valid:" + mainCall);
                 Check(method.ReturnType == typeof(DesignExportDto) || method.ReturnType == typeof(Task<DesignExportDto>),
                     key + ":return-contract:" + Signature(method));
                 calls.Add(key + ":" + Signature(method), (key, async stream =>

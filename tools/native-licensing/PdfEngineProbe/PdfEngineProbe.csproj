@@ -8,6 +8,7 @@
     <NoWarn>$(NoWarn);PVAD0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../NativeAdmissionMatrix.cs" Link="NativeAdmissionMatrix.cs" />
     <ProjectReference Include="../../../src/Generation/PVAD.Generator/PVAD.Generator.csproj" />
   </ItemGroup>
 </Project>

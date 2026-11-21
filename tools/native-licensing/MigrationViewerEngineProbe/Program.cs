@@ -31,6 +31,7 @@ foreach (var profile in new[] { "pdf", "word", "spreadsheet", "importer", "conve
 }
 PvadLicense.LoadFromFile(args[0]);
 var baselines = calls.ToDictionary(pair => pair.Key, pair => pair.Value());
+foreach (var name in calls.Keys) checks.Add("valid:" + name);
 foreach (var product in new[] { "pdf", "word", "spreadsheet", "importer", "converter", "migration.pdf.designer", "migration.pdf.code" })
     Denied(() => PvadLicense.Require(product, product.StartsWith("migration.") ? "nutrient-viewer" : null), "PVADLIC012", "viewer-does-not-grant:" + product);
 foreach (var provider in new[] { "nutrient", "Nutrient", "other-provider" })
@@ -68,7 +69,14 @@ try
 catch (IOException exception) { Check(ReferenceEquals(exception, originalError), "caller-error-identity-preserved"); }
 foreach (var (name, call) in calls) Check(call() == baselines[name], "renewed:" + name);
 Check(checks.Count == checks.Distinct().Count(), "unique-check-identifiers");
-Console.WriteLine(JsonSerializer.Serialize(new { checks, outputChecksums = baselines.ToDictionary(pair => pair.Key,
+Console.WriteLine(JsonSerializer.Serialize(new { checks,
+    admissionEvidence = calls.Keys.Select(name => new
+    {
+        product = "migration.pdf.viewer", provider = "nutrient-viewer", path = name,
+        missing = "missing:" + name, incorrect = "pdf:denied:" + name, valid = "valid:" + name,
+        outputChecksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(baselines[name]))),
+    }),
+    outputChecksums = baselines.ToDictionary(pair => pair.Key,
     pair => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(pair.Value)))),
     processArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() }));
 return 0;

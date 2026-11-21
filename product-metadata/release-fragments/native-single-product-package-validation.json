@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-single-product-package-validation",
+  "impact": "none",
+  "components": ["generator", "importer", "infrastructure", "migration"],
+  "category": "improved",
+  "summary": "Extended individual-product license checks for protected packages and document-processing dependencies.",
+  "reason": "Adds isolated signed fixtures and compatibility assertions for existing licensing behavior without changing deployed APIs or published packages.",
+  "breaking": false
+}

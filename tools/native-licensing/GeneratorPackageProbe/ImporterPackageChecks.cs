@@ -38,7 +38,8 @@ internal static class ImporterPackageChecks
             await Denied(() => FileImporterRegistry.Create(key).ImportAsync(stream, "synthetic." + key), "PVADLIC012", "wrong-import:" + key, checks);
             Check(stream.Position == 0 && stream.CanRead, "wrong-import-keeps-stream:" + key, checks);
         }
-        PvadLicense.LoadFromFile(args[0]);
+        PvadLicense.LoadFromFile(Environment.GetEnvironmentVariable("PVAD_PACKAGE_IMPORTER_LICENSE_PATH")!);
+        ProductGrantChecks.Only("importer", new DesignExportDto(), checks);
         foreach (var (key, bytes) in fixtures)
         {
             using var stream = new MemoryStream(bytes);
@@ -63,6 +64,21 @@ internal static class ImporterPackageChecks
         await new PvadPdfGeneratorBridge().RegenerateAsync(model, regenerated);
         Check(regenerated.CanRead && regenerated.Length > 5, "regeneration-private-pdf-dependency", checks);
         File.WriteAllBytes(Path.Combine(args[4], "regenerated.pdf"), regenerated.ToArray());
+        var callbackCount = 0;
+        using var callbackOutput = new MemoryStream();
+        callbackOutput.Write("sentinel"u8); callbackOutput.Position = 3;
+        await Denied(() => new PvadPdfGeneratorBridge().RegenerateAsync(model, callbackOutput, _ => callbackCount++),
+            "PVADLIC012", "importer-generator-callback-requires-explicit-pdf", checks);
+        Check(callbackCount == 0 && callbackOutput.Position == 3 && callbackOutput.ToArray().AsSpan().SequenceEqual("sentinel"u8),
+            "importer-denied-callback-preserves-output", checks);
+        using var reentrant = new ReentrantOutput(() =>
+        {
+            try { PVAD.Generator.Pdf.CreateDocument(); throw new InvalidOperationException("Callback inherited PDF rights."); }
+            catch (PvadLicenseException error) when (error.Code == "PVADLIC012") { }
+        });
+        await new PvadPdfGeneratorBridge().RegenerateAsync(model, reentrant);
+        Check(reentrant.Calls == 1 && reentrant.ToArray().AsSpan().StartsWith("%PDF-"u8),
+            "importer-output-callback-cannot-inherit-pdf-rights", checks);
 
         using var bitmap = new SKBitmap(160, 80);
         using (var canvas = new SKCanvas(bitmap)) { canvas.Clear(SKColors.White); using var paint = new SKPaint { Color = SKColors.DarkBlue }; canvas.DrawRect(20, 20, 40, 20, paint); }
@@ -76,7 +92,8 @@ internal static class ImporterPackageChecks
         var workerPath = Environment.GetEnvironmentVariable("PVAD_PACKAGE_OCR_WORKER_PATH")!;
         var workerDirectory = Path.GetDirectoryName(workerPath)!;
         var scratch = Path.Combine(args[4], "ocr-tests"); Directory.CreateDirectory(scratch);
-        var nativeExecuted = OperatingSystem.IsMacOS() && RuntimeInformation.ProcessArchitecture == Architecture.X64;
+        var nativeExecuted = Environment.GetEnvironmentVariable("PVAD_PACKAGE_REQUIRE_NATIVE_OCR") == "1"
+            || (OperatingSystem.IsMacOS() && RuntimeInformation.ProcessArchitecture == Architecture.X64);
         object? recognizedProjection = null;
         if (nativeExecuted)
         {
@@ -91,8 +108,12 @@ internal static class ImporterPackageChecks
             }
             using var textImage = SKImage.FromBitmap(textBitmap);
             using var textData = textImage.Encode(SKEncodedImageFormat.Png, 100);
+            var tessData = Environment.GetEnvironmentVariable("PVAD_PACKAGE_OCR_TESSDATA_PATH")
+                ?? Path.Combine(workerDirectory, "tessdata");
+            var nativePath = Environment.GetEnvironmentVariable("PVAD_PACKAGE_OCR_NATIVE_PATH")
+                ?? (OperatingSystem.IsWindows() ? workerDirectory : Path.Combine(workerDirectory, "native"));
             var engine = new ProcessIsolatedTesseractOcrEngine(workerPath,
-                Path.Combine(workerDirectory, "tessdata"), Path.Combine(workerDirectory, "native"), tempRoot: scratch);
+                tessData, nativePath, tempRoot: scratch);
             var recognized = await engine.RecognizeAsync([new OcrImagePage(0, 800, 140, textData.ToArray())], new() { Languages = "eng" });
             var words = recognized.SelectMany(page => page.Blocks).SelectMany(block => block.Lines).SelectMany(line => line.Words).ToArray();
             Check(recognized.Count == 1 && words.Any(word => word.Text.Contains("PACKAGE", StringComparison.OrdinalIgnoreCase)), "real-protected-worker-native-ocr-text", checks);
@@ -147,6 +168,16 @@ internal static class ImporterPackageChecks
         {
             await File.WriteAllTextAsync(responsePath, JsonSerializer.Serialize(new OcrWorkerResponse { LicenseErrorCode = code }, new JsonSerializerOptions(JsonSerializerDefaults.Web)), cancellationToken);
             return new(1, false, "", "");
+        }
+    }
+
+    private sealed class ReentrantOutput(Action callback) : MemoryStream
+    {
+        internal int Calls { get; private set; }
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            Calls++; callback();
+            return base.WriteAsync(buffer, cancellationToken);
         }
     }
 }

@@ -77,7 +77,39 @@ export function validateCoverage(inventory, reports) {
   const expected = inventory.assemblies.flatMap(assembly => assembly.types.flatMap(type =>
     type.protectedMembers.map(member => `${assembly.assembly}\n${type.type}\n${member}`)));
   assert.deepEqual([...actual].sort(), expected.sort(), 'A protected public API lacks native probe coverage or is incorrectly classified.');
-  return { protectedMembers: expected.length, importerChecks: reports[0].checks.length, imageChecks: reports[1].checks.length };
+  const phaseRows = reports.flatMap(report => {
+    assert.ok(Array.isArray(report.phaseEvidence), 'Old symbol-only evidence cannot prove license phases.');
+    const observed = new Set(report.checks);
+    const referenced = { missing: new Set(), incorrect: new Set(), valid: new Set() };
+    assert.deepEqual(report.phaseEvidence.map(row => row.member).sort(), [...report.testedSurface].sort());
+    for (const row of report.phaseEvidence) for (const [phase, diagnostic] of [['missing', 'PVADLIC001'], ['incorrect', 'PVADLIC012'], ['valid', null]]) {
+      const result = row[phase];
+      if (phase === 'valid' && result === null) continue;
+      assert.ok(result && observed.has(result.check), 'Referenced native phase did not execute.');
+      assert.equal(result.diagnostic, diagnostic);
+      if (result.mode === 'admissionPrerequisite') {
+        assert.equal(phase, 'missing');
+        const prerequisite = report.phaseEvidence.find(value => value.member === result.prerequisite);
+        assert.ok(prerequisite && prerequisite.missing?.mode === 'invoked' && prerequisite.missing.check === result.check,
+          'A prerequisite needs its own directly executed missing-license check.');
+      } else {
+        assert.equal(result.mode, 'invoked');
+        assert.equal(result.prerequisite, null);
+        assert.ok(!referenced[phase].has(result.check), 'One assertion cannot prove two directly invoked members.');
+        referenced[phase].add(result.check);
+      }
+    }
+    return report.phaseEvidence;
+  });
+  // Embedded OCR success is currently exercised on the existing macOS/x64 native profile.
+  const pendingPositiveMembers = (reports[1].realNativeSucceeded ? [] : inventory.assemblies.slice(2).flatMap(assembly => assembly.types
+    .filter(type => type.type === 'PVAD.FileImporter.ImageOcr.EmbeddedTesseractOcrEngine').flatMap(type =>
+      type.protectedMembers.map(member => `${assembly.assembly}\n${type.type}\n${member}`)))).sort();
+  const incomplete = phaseRows.filter(row => row.valid === null).map(row => row.member).sort();
+  assert.deepEqual(incomplete, pendingPositiveMembers, 'Unreviewed missing or newly claimed positive phase evidence.');
+  return { protectedMembers: expected.length, importerChecks: reports[0].checks.length, imageChecks: reports[1].checks.length,
+    phaseVerifiedMembers: phaseRows.length - incomplete.length, pendingPositiveMembers: incomplete,
+    allPhasesVerified: incomplete.length === 0 };
 }
 
 async function main(mode) {
