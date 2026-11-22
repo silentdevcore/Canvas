@@ -207,8 +207,12 @@ test('Importer public entry closure retains separate package and platform accept
     assert.ok(importer.coveredEntryPoints.some(entry => entry.includes(name)), `Missing regeneration entry inventory: ${name}`);
   for (const name of ['ImageAnalysisFileImporter', 'ImageToPdfConverter.ConvertAsync', 'DefaultOcrWorkerProcessRunner.RunAsync'])
     assert.ok(importer.coveredEntryPoints.some(entry => entry.includes(name)), `Missing image/OCR entry inventory: ${name}`);
-  for (const name of ['cross-product dependency acceptance', 'protected packages', 'worker/platform execution'])
+  assert.equal(importer.acceptanceStatus, 'partial-release-validation-and-distribution');
+  for (const name of ['complete general compatibility and fuzz validation', 'manufacturer trust and production custody', 'final contractual and third-party distribution approval', 'per-platform direct embedded-OCR phase verification'])
     assert.ok(importer.remainingAcceptance.some(entry => entry.includes(name)), `Missing remaining Importer acceptance: ${name}`);
+  assert.equal(importer.verifiedAcceptance.length, 3);
+  assert.ok(importer.verifiedAcceptance.some(entry => entry.includes('all 201')));
+  assert.ok(importer.verifiedAcceptance.some(entry => entry.includes('Windows/x64, Linux/x64 and macOS/Intel')));
   assert.ok(importer.admittedContinuations.some(entry => entry.includes('non-PDF file importers')));
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const { load } = require('js-yaml');
@@ -231,7 +235,10 @@ test('Importer public entry closure retains separate package and platform accept
 
 test('operation continuation policy stays internal and never replaces public or worker admission', () => {
   const matrix = JSON.parse(readFileSync(resolve(root, 'product-metadata/native-library-products.v1.json')));
-  assert.equal(matrix.continuationCoverage.status, 'partial-image-ocr-and-pdf-import-save-editing-trust-signing-redaction-einvoice-archive-pipeline-regeneration-sheet-converter');
+  assert.equal(matrix.continuationCoverage.status, 'reviewed-current-built-in-pipelines');
+  assert.deepEqual(matrix.continuationCoverage.remaining, []);
+  for (const name of ['word-built-in-docx-export-and-signing', 'code-provider-analysis-and-conversion', 'report-provider-resources-and-subreports', 'nutrient-viewer-and-designer-source-pdf'])
+    assert.ok(matrix.continuationCoverage.covered.includes(name));
   assert.equal(matrix.continuationCoverage.publicAdmission, 'fresh-current-license');
   assert.equal(matrix.continuationCoverage.authorityBinding, 'originating-process-verifier');
   assert.equal(matrix.continuationCoverage.workerAdmission, 'fresh-at-dispatch-and-worker-start');

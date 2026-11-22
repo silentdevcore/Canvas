@@ -53,7 +53,9 @@ export function checkRepository() {
     }
   }
   assert.equal(matrix.dependencyInventory, 'product-metadata/native-library-dependencies.v1.json');
-  validateDependencies(readJson(join(root, matrix.dependencyInventory)), matrix.products.map(product => product.id));
+  const dependencies = readJson(join(root, matrix.dependencyInventory));
+  validateDependencies(dependencies, matrix.products.map(product => product.id));
+  validateIntegrationCoverage(matrix, dependencies);
   assert.equal(matrix.codeMigrationEntries, 'product-metadata/native-code-migration-entries.v1.json');
   validateCodeMigrationEntries(readJson(join(root, matrix.codeMigrationEntries)));
   assert.equal(matrix.reportMigrationEntries, 'product-metadata/native-report-migration-entries.v1.json');
@@ -63,6 +65,21 @@ export function checkRepository() {
   assert.equal(matrix.importerPublicSurface, 'product-metadata/native-importer-public-surface.v1.json');
   validateInventory(readJson(join(root, matrix.importerPublicSurface)));
   return { version, products: matrix.products.length, enforcementStatus: matrix.enforcementStatus };
+}
+
+export function validateIntegrationCoverage(matrix, dependencies) {
+  assert.equal(matrix.enforcementStatus, 'all-native-entry-points');
+  assert.equal(matrix.products.length, 10);
+  for (const product of matrix.products) {
+    assert.equal(product.enforced, true, 'A current product integration is unfinished.');
+    if (product.remainingEntryPoints) assert.deepEqual(product.remainingEntryPoints, [], 'A public processing entry remains unreviewed.');
+  }
+  assert.equal(matrix.continuationCoverage.status, 'reviewed-current-built-in-pipelines');
+  assert.deepEqual(matrix.continuationCoverage.remaining, []);
+  assert.equal(matrix.continuationCoverage.publicAdmission, 'fresh-current-license');
+  assert.equal(matrix.continuationCoverage.authorityBinding, 'originating-process-verifier');
+  assert.equal(matrix.continuationCoverage.workerAdmission, 'fresh-at-dispatch-and-worker-start');
+  for (const rule of dependencies.rules) assert.equal(rule.status, 'implemented', 'A declared dependency integration is unfinished.');
 }
 
 export function validateFileImporterEntries(inventory) {

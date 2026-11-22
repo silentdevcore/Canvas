@@ -97,6 +97,7 @@ try
     using var zip = new ZipArchive(new MemoryStream(signed), ZipArchiveMode.Read);
     Check(zip.GetEntry("_xmlsignatures/sig1.xml") is not null, "word-only-signing-creates-opc-signature");
     Check(signInput.CanRead, "licensed-signing-leaves-source-open");
+    WordContinuationChecks.Run(args[0], args[1], design, bytes, pfx, checks, Docx);
 }
 finally { CryptographicOperations.ZeroMemory(pfx); }
 

@@ -23,6 +23,14 @@ publication, third-party redistribution terms and final EULA approval remain
 separate gates. An approved local feed or supplied package set must include the
 matching native dependencies; copying isolated DLLs between builds is unsafe.
 
+Prepared packages include an offline README with a local-only `NuGet.Config`,
+pinned package references, an isolated package cache and lock-file restore
+steps. Obtain the complete approved dependency delivery before disconnecting;
+a license file does not supply missing runtime libraries or package binaries.
+Protected package compatibility is verified on Windows 2025/x64, Ubuntu
+24.04/x64 and macOS 15/Intel. That evidence is not publication permission, complete functional
+validation of every format or a claim that all architectures are supported.
+
 ## Complete C# Example
 
 The following class is compiled directly from this guide during documentation

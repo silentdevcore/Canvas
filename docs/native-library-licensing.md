@@ -16,8 +16,8 @@ now enforce the separate `word` grant, including direct exporter/service calls.
 Native Spreadsheet authoring, calculation, data operations, and workbook IO
 also require the separate `spreadsheet` grant. The eight built-in file importers
 and high-level PDF load/save entry points now enforce `importer`. Image analysis,
-OCR engines, and isolated OCR workers also enforce Importer rights. Generic
-cross-product dependency and continuation coverage remains partial. Image
+OCR engines, and isolated OCR workers also enforce Importer rights. Public
+calls retain fresh admission; built-in continuations are explicitly scoped. Image
 analysis, in-process OCR, typed PDF loading, full/incremental PDF saves and
 PDF-to-Designer DTO/analysis mapping, bounded page editing/composition, content
 rewriting, the editable-document facade, Trust inspection, change-impact
@@ -29,20 +29,48 @@ completion. The seven non-PDF registry importers also complete their private
 parsing after a license replacement without acquiring other product rights.
 The complete current public Importer surface is now classified in a versioned
 inventory and checked against compiled assemblies and native probe registrations.
-All ten product areas have current entry-point enforcement. Cross-product,
-protected-package and worker/platform acceptance remain separate open gates.
+All ten product areas have current entry-point enforcement. Entry integration,
+protected-package compatibility and commercial release readiness are distinct
+statuses; see the current verification summary below.
 Native HTML, Markdown, CSV, XML, SVG, ODT,
 PNG, JPEG and TIFF exports now require the separate `converter` grant.
 The 16 native PDF Code and 8 Spreadsheet Code provider entry points, standalone
 PDF source analyses and built-in conversion/diagnostic pipelines now require
 their own domain/kind/provider grants. All eight Report Designer converters now
-have provider admission. Overall composite/package acceptance remains partial. Nutrient Viewer and
+have provider admission. Nutrient Viewer and
 source-PDF Designer conversion now require separate provider-scoped grants.
 Built-in Spreadsheet export, calculation and file-save composites now share
 Spreadsheet-only admission; the product dependency inventory records existing
 boundaries without granting a universal product bundle.
 Existing server subscription checks remain additional, independent checks. This
-is not yet complete commercial SDK protection.
+is not a commercial distribution approval.
+
+## Current Verification And Remaining Gates
+
+The protected package graph has passed on Windows 2025/x64, Ubuntu 24.04/x64
+and macOS 15/Intel. Each platform verifies 54 related assemblies, 52 library
+packages, all 62 Converter cases, twelve CodeWorker cases, required native OCR,
+provider comparisons and exact original/protected PDF pixels. The separate
+protected WebApi/friend-reference graph also passes its HTTP/worker checks;
+its synthetic principal and in-memory database do not establish a real-browser
+or PostgreSQL production deployment.
+
+The compiled Importer inventory has 201 protected processing entries and 363
+public types. Full missing/incorrect/valid phase coverage, including embedded
+native OCR, is verified on macOS/x64. The Linux and Windows surface probes
+explicitly leave the embedded-OCR positive phase pending; their successful
+package/worker OCR execution is a separate test, not a reason to relabel those
+individual entry checks as executed.
+
+General compatibility CI is not green: image-analysis quality/overlay/snapshot
+failures are tracked separately and are not waived by licensing checks. Complete
+CI, visual/fuzz campaigns, manufacturer trust, final EULA/notice review, native
+asset provenance and distribution approvals remain release gates. No package
+publisher, private-key custody or production configuration is approved here.
+
+The [current checklist evidence](../checklists/PVAD.Native-Library-Licensing-And-Protection.md#cross-platform-protected-package-acceptance)
+supersedes earlier pending-platform notes in the historical milestones below.
+Those earlier commands and results are not presented as newly executed tests.
 
 The shipped trust register is intentionally empty until manufacturer public keys
 are approved. There is no built-in evaluation key, runtime trust override,
@@ -168,8 +196,9 @@ Word license. Export and signing failures propagate to the existing HTTP 503
 Problem Details handler; they must not be treated as bad document content or a
 user-subscription denial. Do not edit the signed payload to add grants: obtain
 an authorized replacement and load it explicitly. Manufacturer key provisioning
-and protected-package acceptance remain open prerequisites, not an
-automatic action performed by this integration.
+remains an open release prerequisite. Protected package compatibility has the
+separate completed evidence in the current verification summary; neither is
+an automatic action performed by this integration.
 
 ## Code Migration Provider Activation
 
@@ -468,10 +497,13 @@ debug-overlay boundaries are also guarded as described below. Standard
 regeneration uses restricted internal PDF dependencies rather than requiring
 a separate PDF grant. Image analysis and OCR/worker boundaries are covered by
 the later milestone below. The current public-surface inventory closes the entry
-classification. Cross-product dependencies, protected packages and worker/platform
-execution remain open. The operation matrix records `importer.enforced: true`
-with a separate partial `acceptanceStatus` and `remainingAcceptance` list. This
-does not declare protected packages or commercial distribution ready.
+classification. The earlier entry milestone left cross-product dependencies,
+protected packages and worker/platform execution pending. Those integrations
+and the protected package graph now have their separate evidence above. The
+operation matrix retains `importer.enforced: true` and a partial release-readiness
+status for broad compatibility/fuzz validation, manufacturer trust/custody,
+distribution approval and per-platform direct embedded-OCR phase limits.
+This does not declare commercial distribution ready.
 
 The local milestone passed 111 isolated admission checks and 860 .NET tests,
 including the complete FileImporter and Importer suites. See the
@@ -1469,9 +1501,9 @@ preparation must synchronize it without substituting build time for release date
 The machine-readable inventory is
 [native-library-products.v1.json](../product-metadata/native-library-products.v1.json).
 Its `all-native-entry-points` status records the current protected entry boundaries
-for all ten products, not completed package/platform acceptance. The Importer row
-separately records pending cross-product, protected-package and worker/platform
-acceptance. The public-surface and provider inventories prevent newly added
+for all ten products, not overall commercial release acceptance. The Importer
+row separately records the remaining release-validation gates. The
+public-surface and provider inventories prevent newly added
 processing APIs from silently inheriting this status without review and tests.
 
 | Product | Required integration boundaries |
@@ -1479,7 +1511,7 @@ processing APIs from silently inheriting this status without review and tests.
 | PDF | Native generation, byte/stream/file output, mapper rendering |
 | Word | Facade, both direct Word export overloads, and DOCX signing service |
 | Spreadsheet | Builder/retained-handle mutations, calculation, XLSX/XLS/CSV/TSV IO, data operations, and design conversion |
-| Importer | All 201 classified public processing entries guarded, including built-in imports, PDF parse/save/edit/Trust, regeneration, image analysis and OCR; separate cross-product/package/platform acceptance remains open |
+| Importer | All 201 classified public processing entries guarded, including built-in imports, PDF parse/save/edit/Trust, regeneration, image analysis and OCR; individual platform phase limits and overall release gates remain explicit |
 | Converter | Each direct exporter/converter implementation |
 | PDF Code migration | Every canonical PDF code provider |
 | PDF Viewer migration | Every canonical PDF viewer provider |
@@ -1580,8 +1612,8 @@ The [platform package check](../tools/native-licensing/README.md#native-platform
 runs that same complete native graph and additionally requires real OCR on the
 executing host, alongside protected CodeWorker execution and provider/document
 comparisons. It cannot mark a skipped native OCR test as successful platform
-acceptance. The prepared Linux/x64, Windows/x64 and macOS/Intel CI jobs retain
-only content-free evidence; actual execution remains a separate requirement.
+acceptance. The Linux/x64, Windows/x64 and macOS/Intel jobs have now passed the
+complete package graph; report-only evidence is retained with explicit scope.
 Local container results record their real architecture and do not imply a
 different OS/architecture passed. This is package compatibility evidence, not
 production trust provisioning or permission to redistribute native libraries.

@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { collectNugetNotices, loadNoticeSources, preparePackageDocuments, readNugetMetadata, safeNoticePath,
   requiredPublicDocumentation, validatePublicDocumentation } from './package-documents.mjs';
 import { migrationProjects } from './joint-package-rehearsal.mjs';
@@ -258,10 +260,42 @@ test('package bundles bind immutable legal references, public XML and offline gu
   assert.equal(result.legal.sourceSha256, hash(readFileSync(new URL('../../product-metadata/legal-documents/en/license.md', import.meta.url))));
   assert.equal(result.files['lib/net10.0/PVAD.Fixture.xml'], hash(xml));
   assert.equal(result.files['docs/ACTIVATION.md'], hash(readFileSync(new URL('../../docs/guides/PVAD.Native-Library-Activation.md', import.meta.url))));
+  assert.equal(result.files['docs/README.md'], hash(read('./package-assets/README.md')));
   assert.ok(readFileSync(join(destination, 'LICENSE-REFERENCE.md'), 'utf8').includes('not a new license agreement'));
   assert.ok(!JSON.stringify(result).includes(directory));
   assert.throws(() => preparePackageDocuments({ destination, name: 'PVAD.Fixture', version: '1.1.0' }));
 }));
+
+test('offline instructions use parsed local-only configuration, pinned packages and locked restores', async () => {
+  const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
+  const { JSDOM } = require('jsdom');
+  const { marked } = await import(pathToFileURL(require.resolve('marked')).href);
+  const source = read('./package-assets/README.md');
+  const blocks = marked.lexer(source).filter(token => token.type === 'code');
+  const xml = blocks.filter(token => token.lang === 'xml');
+  assert.equal(xml.length, 2);
+  const config = new JSDOM(xml[0].text, { contentType: 'text/xml' });
+  const project = new JSDOM(xml[1].text, { contentType: 'text/xml' });
+  try {
+    assert.equal(config.window.document.doctype, null);
+    const sources = config.window.document.querySelector('configuration > packageSources');
+    assert.deepEqual([...sources.children].map(node => node.tagName), ['clear', 'add']);
+    assert.equal(sources.querySelector('add').getAttribute('value'), './offline-feed');
+    const audits = config.window.document.querySelector('configuration > auditSources');
+    assert.deepEqual([...audits.children].map(node => node.tagName), ['clear']);
+    assert.equal(project.window.document.querySelector('TargetFramework').textContent, 'net10.0');
+    assert.equal(project.window.document.querySelector('RestorePackagesWithLockFile').textContent, 'true');
+    const reference = project.window.document.querySelector('PackageReference');
+    assert.equal(reference.getAttribute('Include'), 'PVAD.Generator');
+    assert.match(reference.getAttribute('Version'), /^\d+\.\d+\.\d+$/);
+    const commands = blocks.filter(token => token.lang === 'bash').map(token => token.text).join('\n');
+    for (const flag of ['--configfile ./NuGet.Config', '--packages ./restored-packages', '--use-lock-file', '--locked-mode', '--no-restore'])
+      assert.ok(commands.includes(flag));
+    assert.ok(!commands.includes('nuget push') && !commands.includes('AcceptNPOI'));
+    assert.ok(source.includes('not yet published or approved'));
+    assert.ok(source.includes('not\na security scan'));
+  } finally { config.window.close(); project.window.close(); }
+});
 
 test('protected packaging uses the public XML and binds every included documentation file', () => {
   const targets = read('./protected-package.targets');

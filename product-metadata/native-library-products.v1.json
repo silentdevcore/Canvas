@@ -7,13 +7,18 @@
   "fileImporterEntries": "product-metadata/native-file-importer-entries.v1.json",
   "importerPublicSurface": "product-metadata/native-importer-public-surface.v1.json",
   "continuationCoverage": {
-    "status": "partial-image-ocr-and-pdf-import-save-editing-trust-signing-redaction-einvoice-archive-pipeline-regeneration-sheet-converter",
+    "status": "reviewed-current-built-in-pipelines",
     "policySource": "src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs",
     "publicAdmission": "fresh-current-license",
     "authorityBinding": "originating-process-verifier",
     "workerAdmission": "fresh-at-dispatch-and-worker-start",
-    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis", "pdf-editing-page-composition-content-rewrite-and-facade", "pdf-trust-inspection-embedded-evidence-and-change-impact", "pdf-signing-cades-long-term-and-timestamp", "pdf-redaction-preflight-apply-audit-and-image-sanitization", "bounded-color-space-and-function-resolution", "pdf-einvoice-attachment-and-associated-file-extraction", "pdf-archive-conversion-and-built-in-color-processing", "pdf-trust-postprocessing-redaction-signing-final-validation", "pdf-regeneration-mapping-xobject-and-debug-composites", "spreadsheet-built-in-export-calculation-and-file-save", "converter-built-in-export-and-multipage-raster-output"],
-    "remaining": ["other-product-composite-call-chains"]
+    "covered": ["image-analysis", "in-process-image-ocr", "built-in-api-ocr-pdf-output", "purpose-bound-private-pdf-dependencies", "typed-pdf-load-parse-decode-font-graphics", "pdf-full-and-incremental-save-validation", "designer-pdf-file-import-dto-analysis-mapping", "pdf-scene-geometry-reading-order-semantic-analysis", "pdf-editing-page-composition-content-rewrite-and-facade", "pdf-trust-inspection-embedded-evidence-and-change-impact", "pdf-signing-cades-long-term-and-timestamp", "pdf-redaction-preflight-apply-audit-and-image-sanitization", "bounded-color-space-and-function-resolution", "pdf-einvoice-attachment-and-associated-file-extraction", "pdf-archive-conversion-and-built-in-color-processing", "pdf-trust-postprocessing-redaction-signing-final-validation", "pdf-regeneration-mapping-xobject-and-debug-composites", "spreadsheet-built-in-export-calculation-and-file-save", "converter-built-in-export-and-multipage-raster-output", "word-built-in-docx-export-and-signing", "code-provider-analysis-and-conversion", "report-provider-resources-and-subreports", "nutrient-viewer-and-designer-source-pdf"],
+    "remaining": [],
+    "limitations": [
+      "Only currently inventoried built-in processing is reviewed; new entry points and composite pipelines require explicit coverage.",
+      "Public calls, user callbacks and worker dispatch/start always obtain fresh admission; no ambient cross-product grant is exposed.",
+      "This status does not grant production sandbox, commercial distribution or complete compatibility acceptance."
+    ]
   },
   "products": [
     { "id": "pdf", "projectDirectories": ["src/Generation/PVAD.Generator", "src/Generation/PVAD.Pdf", "src/Infrastructure/PVAD.Infrastructure.Pdf"], "entryPoints": ["Pdf.CreateDocument", "PdfDocument constructor", "PdfDocument.ToBytes/Save", "PdfWriter.Write"], "enforced": true },
@@ -25,8 +30,9 @@
       "entryPoints": ["PdfImporter.LoadAsync", "PdfDocumentSaver", "IFileImporter.ImportAsync", "image analysis and OCR"],
       "enforced": true,
       "coverageStatus": "public-entry-points-and-built-in-continuations",
-      "acceptanceStatus": "partial-cross-product-packaging-and-platform-validation",
-      "remainingAcceptance": ["cross-product dependency acceptance", "protected packages", "worker/platform execution"],
+      "acceptanceStatus": "partial-release-validation-and-distribution",
+      "remainingAcceptance": ["complete general compatibility and fuzz validation", "manufacturer trust and production custody", "final contractual and third-party distribution approval", "per-platform direct embedded-OCR phase verification"],
+      "verifiedAcceptance": ["compiled public API and all 201 license-phase entries on macOS/x64", "current built-in dependency and continuation integrations", "protected packages and native OCR/CodeWorker on Windows/x64, Linux/x64 and macOS/Intel"],
       "coveredEntryPoints": [
         "all eight registry importers and their static entry points",
         "PdfImporter.LoadAsync overloads and Pdf facade",

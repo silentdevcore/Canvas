@@ -49,6 +49,9 @@ public sealed class NativeLicenseContractTests
         Assert.Empty(importer.GetProperty("remainingEntryPoints").EnumerateArray());
         Assert.StartsWith("partial-", importer.GetProperty("acceptanceStatus").GetString());
         Assert.NotEmpty(importer.GetProperty("remainingAcceptance").EnumerateArray());
+        Assert.Equal("reviewed-current-built-in-pipelines", document.RootElement.GetProperty("continuationCoverage").GetProperty("status").GetString());
+        Assert.Empty(document.RootElement.GetProperty("continuationCoverage").GetProperty("remaining").EnumerateArray());
+        Assert.Equal(3, importer.GetProperty("verifiedAcceptance").GetArrayLength());
     }
 
     [Fact]

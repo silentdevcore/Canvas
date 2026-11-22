@@ -39,6 +39,13 @@ test('joint packaging is an explicit opt-in and never falls back to unprotected 
   assert.throws(() => main(['publish']), /no output, trust or publication overrides/);
 });
 
+test('offline restore replays a checksum-stable lockfile in private work rather than modifying source', () => {
+  const source = read('./joint-package-rehearsal.mjs');
+  for (const value of ["join(work, 'consumer-packages.lock.json')", '`-p:NuGetLockFilePath=${lockFile}`',
+    "'--use-lock-file'", "run('dotnet', [...restoreArguments, '--locked-mode'])",
+    'assert.equal(sha(lockFile), lockSha256', 'offlineRestoreLockVerified: true']) assert.ok(source.includes(value));
+});
+
 test('the separate Linux rehearsal job uploads reports only and cannot publish packages', () => {
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const workflow = require('js-yaml').load(read('../../.github/workflows/native-library-licensing.yml'));

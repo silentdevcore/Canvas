@@ -15,6 +15,10 @@ Acceptance criteria, external release approvals and explicitly deferred work
 remain separately visible. Later findings do not add implementation checkboxes
 or change that primary denominator without an approved scope change.
 
+Current primary status: **70/76 (92.1%)**, with six primary items still open.
+The latest cross-platform package acceptance below supersedes earlier pending
+platform notes; earlier evidence records retain their original results.
+
 ## Goal And Decisions
 
 Implement offline licensing for every native product and a free, reproducible
@@ -26,7 +30,7 @@ a claim that obfuscation prevents reverse engineering.
 - [x] Require signed files without mandatory internet access or hidden telemetry.
 - [x] Keep document contents unchanged; missing rights produce explicit errors.
 - [x] Separate developer seats, redistribution rights, and server subscriptions.
-- [ ] Complete all product integrations before declaring native enforcement ready.
+- [x] Complete all product integrations before declaring native enforcement ready; see the current technical integration audit. Production trust, broad validation and distribution approval remain separate release gates.
 
 ## Dependencies
 
@@ -104,7 +108,7 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Provide encrypted private retention and checksum-bound recovery for joint mappings and original portable symbols; production recipient/storage custody remains a separate deployment gate in the support-retention milestone below.
 - [x] Audit protected output with ILSpy; compare public API and internal-name visibility without claiming logic is unrecoverable.
 - [x] Test local-feed package consumers and complete native transitive dependency graphs; the 54-assembly/52-library milestone below closes local graph acceptance, not WebApi/friend-boundary or cross-platform acceptance.
-- [ ] Verify protected packages on Windows, Linux, and macOS, including native dependencies and code execution.
+- [x] Verify protected packages on Windows, Linux, and macOS, including native dependencies and code execution; see the cross-platform package acceptance below.
 - [ ] Supply EULA references, third-party notices, XML documentation, and offline examples; see the [package documentation checkpoint](#package-documentation-checkpoint) and [runtime attribution checkpoint](#runtime-asset-attribution-checkpoint) for completed tooling and remaining content/review gaps.
 - [x] Exclude anti-debugger crashes, process scanning, self-modifying loaders, and antivirus-hostile techniques.
 - [x] Treat strong names as identities rather than an anti-tamper security boundary.
@@ -121,6 +125,113 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Record actual commands/results and leave unavailable platform evidence open.
 
 ### Current Verification Evidence
+
+#### Current Technical Integration Audit
+
+The current ten product integrations are reconciled against the existing
+source inventories and actual signed admission reports, not inferred solely
+from a green package job. The generated audit and 27 evidence-file hashes are
+retained at `artifacts/native-integration-audit/1795373090732-0dc5e5fd/`.
+Its CI inputs come from run `45052686167` at source commit
+`0006fc79c5d5050d412ae3ca03de8ee4c4dae603`; the additional Word/Importer
+evidence is explicitly local macOS/x64, not a new remote test claim.
+
+| Area | Reconciled evidence |
+| --- | --- |
+| PDF, Word, Spreadsheet, Converter | 88 declared processing/dispatch paths; missing/incorrect/valid phases validated with the existing explicit constructor-denial prerequisites |
+| Importer | 363 public types, 5,088 members and all 201 protected entries; complete phase evidence on macOS/x64 with real embedded OCR |
+| PDF/Spreadsheet Code migration | All 24 providers, 96 dispatch paths and 32 standalone Trust/E-Invoice analyses |
+| Report Designer migration | All eight providers and 37 converter/factory/resource paths |
+| PDF Viewer migration | Three source/JSON paths for the canonical Nutrient provider |
+| PDF Designer migration | Protected HTTP host's Nutrient source-PDF/mapping composition; 61 matching baseline/protected host assertions |
+| Protected package platforms | All 54 assemblies and 52 libraries on Windows/x64, Linux/x64 and macOS/Intel, as detailed below |
+
+There are 34 concrete product/provider grants and one catalog `auto` routing
+entry; `auto` remains unlicensable. Existing validators, public-surface coverage,
+provider checksums and cleanup assertions are reused without relaxed thresholds.
+The fresh Importer run at
+`artifacts/native-test-sessions/b7ea7cdf-c58f-46be-be41-f5bb65cd399d/` passes
+3,729 Importer checks and 292 image/OCR checks, with all 201 phases reconciled
+and 1,789 source inputs unchanged. Its raw surface/phase reports and cleanup
+are retained. Direct embedded-OCR positive-phase limits on Linux/Windows remain
+explicit; their actual package/worker OCR success is not substituted for those
+individual source-probe phases.
+
+The Word probe now checks license replacement during style traversal and source
+stream reads, successful in-flight completion, fresh public reentrant denials,
+unchanged caller input, original callback failures and subsequent renewal.
+All 75 checks pass at `artifacts/native-engine-tests/1795372541412-abf11427/`;
+synthetic files/builds are removed and source trust/normal outputs are unchanged.
+No Word processing implementation or license permission is changed.
+
+The current metadata replaces generic unresolved built-in integration labels
+with the reviewed scope. Public calls, callbacks and newly dispatched workers
+still obtain fresh admission. New processing APIs/pipelines require explicit
+inventory review; the status is not a universal lifetime or sandbox guarantee.
+Repository validation now rejects unfinished product/dependency entries or
+weakened authority/public/worker boundaries under the completed scope.
+
+The package README includes local-only package/audit sources, pinned references,
+an isolated cache, first/locked restore steps, runtime requirements and clear
+security-review and publication limits. The full local rehearsal at
+`artifacts/native-joint-packages/1795372997411-6d98aa25/` passes 654 original
+and 5,850 protected assertions across all 54 assemblies and 52 libraries.
+Its independent offline restore creates a private lockfile, replays locked
+mode and verifies the unchanged lockfile hash. Converter/CodeWorker/provider
+comparisons, real OCR and both PDF pixel comparisons pass; all 52 documentation
+records have no missing main-license texts, while publication readiness stays
+false. Cleanup removes candidate packages, synthetic keys/licenses and private
+build work without changing source trust or ordinary output. The final
+audit-source documentation clarification is additionally covered by the package
+documentation fixture tests; no new remote run for these additions is claimed.
+
+All 118 native license tests, 211 native/version/release tooling tests and 73
+Documentation tests pass; Documentation builds. The active former-name guard,
+tracked-Markdown zero-hit check, version/fragment validation and whitespace
+checks pass. The older JSON audit still reports the same 475 findings outside
+the current diff, already listed under Later Findings; it is not reported green
+or repaired in this licensing work. Original legal candidates, runtime asset
+pins, approved visual references, VERSION and published releases are unchanged.
+
+Only the current technical product-integration primary item closes: **70/76
+(92.1%)**, six items open. General compatibility CI has failed the separately
+tracked ImageAnalysis step on all three platforms; complete CI/visual/fuzz
+acceptance remains open. Manufacturer trust and private-key custody, publisher
+and legal decisions, NPOI/native/font/model distribution evidence and final
+notices/EULA approval are not granted by this audit. No commit, push, merge,
+publication, deployment, service restart or live database change occurs here.
+
+#### Cross-Platform Protected Package Acceptance
+
+[Native run 45052686167](https://github.com/silentdevcore/Canvas/actions/runs/45052686167)
+for source commit `0006fc79c5d5050d412ae3ca03de8ee4c4dae603` passes all three
+protected-package jobs:
+
+| Platform | Job | Result |
+| --- | --- | --- |
+| Windows 2025 | `137301068066` | Passed |
+| Ubuntu 24.04 | `137301068254` | Passed |
+| macOS 15 Intel | `137301068161` | Passed |
+
+Each report passes the unchanged `validatePlatformResult` contract: all 54
+assemblies, 52 independent package references, 5,790 protected assertions, all
+62 Converter calls and twelve CodeWorker cases. Original-repeat verification,
+exact original/protected document semantics, normal and CodeWorker PDF pixel
+comparisons, migration-provider comparisons and required native OCR execution
+all pass. Every joint cleanup flag is true, including removal of candidate
+files and synthetic secrets and unchanged source trust/ordinary product builds.
+Downloaded report-only evidence is retained under
+`artifacts/native-ci-review/45052686167/{windows-packages,linux-packages,macos-packages}/`.
+
+This closes only the all-platform protected-package primary item and raises
+primary progress from 68/76 to **69/76 (90.8%)**. It does not approve publishing,
+manufacturer keys, legal terms, third-party redistribution or production
+custody. There is no complete CI or product-wide acceptance claim: the same
+run has already failed the deferred Linux ImageAnalysis compatibility step,
+while the Windows and macOS admission jobs are still running at this checkpoint.
+The previously recorded OCR/image-quality findings remain outside this fix;
+no snapshots, recognition algorithms or thresholds were changed to close it.
+No merge, deployment, registry publication or product-version change occurred.
 
 #### First Remote CI Startup
 
@@ -1570,10 +1681,15 @@ live databases, and services were not changed. Nothing was committed or pushed.
 
 ### Remaining Continuation Work
 
-- [ ] Finish composite PDF admission beyond typed load/save, Designer DTO/analysis mapping and editing/composition: Trust/security/signing/redaction/e-invoice pipelines. The milestones below close their respective subsets; this broader task remains open.
-- [ ] Propagate advanced regeneration and remaining decoder/color/font call chains outside the typed-load path end to end; retain explicit PDF rights before exposing a public generator callback.
-- [ ] Audit and migrate remaining Word/Spreadsheet and later Converter/Migration composite call chains. Existing single-entry processing and guard coverage do not establish a complete lifetime guarantee for every pipeline.
-- [ ] Validate protected/package/platform consumers after these remaining pipelines are migrated. New worker dispatch/start remains a fresh-admission boundary by design, not an unsigned host-side lifetime exemption.
+The current technical integration audit above reconciles these historical
+continuation tasks with their later implementation milestones and executed
+evidence. Closure applies to the current built-in scope, not arbitrary future
+pipelines, public callbacks or production deployment.
+
+- [x] Finish composite PDF admission beyond typed load/save, Designer DTO/analysis mapping and editing/composition: Trust/security/signing/redaction/e-invoice pipelines; later milestones and the current audit close the inventoried built-in scope.
+- [x] Propagate advanced regeneration and remaining decoder/color/font call chains outside the typed-load path end to end; retain explicit PDF rights before exposing a public generator callback.
+- [x] Audit current Word/Spreadsheet, Converter and Migration composite call chains; retain fresh public admission and the explicit scope limits recorded by the current audit.
+- [x] Validate protected/package/platform consumers for the reviewed pipelines. New worker dispatch/start remains a fresh-admission boundary by design, not an unsigned host-side lifetime exemption.
 
 ## Typed PDF Load And Save Continuation Milestone
 

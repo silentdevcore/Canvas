@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import { checkRepository, validateCodeMigrationEntries, validateReportMigrationEntries, validateFileImporterEntries, validateDependencies, validateRelease, validateTrust } from './pvad-native-licensing.mjs';
+import { checkRepository, validateCodeMigrationEntries, validateReportMigrationEntries, validateFileImporterEntries, validateDependencies, validateIntegrationCoverage, validateRelease, validateTrust } from './pvad-native-licensing.mjs';
 
 test('repository metadata and operation directories are consistent', () => {
   assert.equal(checkRepository().products, 10);
@@ -15,6 +15,30 @@ test('release date and version cannot drift or be replaced by build metadata', (
   assert.throws(() => validateRelease('1.2.4', releases, { version: '1.2.4', publishedAt: '2026-08-03' }));
   assert.throws(() => validateRelease('1.2.3', releases, { version: '1.2.3', publishedAt: '2026-11-15' }));
   assert.throws(() => validateRelease('1.2.3', releases, { version: '2.0.0', publishedAt: '2026-08-03' }));
+});
+
+test('integration closure rejects unfinished products, public entries, dependencies and transferable scopes', () => {
+  const read = name => JSON.parse(readFileSync(new URL('../../product-metadata/' + name, import.meta.url)));
+  const matrix = read('native-library-products.v1.json'), dependencies = read('native-library-dependencies.v1.json');
+  validateIntegrationCoverage(matrix, dependencies);
+  for (const mutate of [m => m.products.pop(), m => m.products[0].enforced = false,
+    m => m.products[0].remainingEntryPoints = ['unreviewed'], m => m.continuationCoverage.remaining.push('unfinished'),
+    m => m.continuationCoverage.status = 'assumed-complete', m => m.continuationCoverage.publicAdmission = 'ambient',
+    m => m.continuationCoverage.authorityBinding = 'any-process', m => m.continuationCoverage.workerAdmission = 'inherited']) {
+    const changed = structuredClone(matrix); mutate(changed);
+    assert.throws(() => validateIntegrationCoverage(changed, dependencies));
+  }
+  const unfinished = structuredClone(dependencies); unfinished.rules[0].status = 'planned';
+  assert.throws(() => validateIntegrationCoverage(matrix, unfinished));
+});
+
+test('Word continuation evidence covers replacement, reentrant denials, original errors and caller stream ownership', () => {
+  const probe = readFileSync(new URL('./WordEngineProbe/WordContinuationChecks.cs', import.meta.url), 'utf8');
+  for (const value of ['foreach (var fail in new[] { false, true })', 'PvadLicense.LoadFromFile(otherLicense)',
+    'callback-public-export-denied', 'callback-public-sign-denied', 'ReferenceEquals(error, failure)',
+    'source.CallbackInvoked && source.CanRead', 'source.Bytes.SequenceEqual(document)',
+    'sign-next-call-denied', 'export-next-call-denied', 'word-inflight-renewal-restores-export']) assert.ok(probe.includes(value));
+  assert.ok(readFileSync(new URL('./WordEngineProbe/Program.cs', import.meta.url), 'utf8').includes('WordContinuationChecks.Run(args[0], args[1]'));
 });
 
 test('all code providers have canonical source-level guards and unimplemented migration kinds stay explicit', () => {

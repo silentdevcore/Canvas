@@ -314,8 +314,13 @@ export function main(args) {
     writeFileSync(config, `<?xml version="1.0"?><configuration><packageSources><clear/><add key="protected" value="${xml(feed)}"/><add key="dependencies" value="${xml(dependencies)}"/></packageSources><packageSourceMapping><clear/><packageSource key="protected"><package pattern="PVAD.*"/></packageSource><packageSource key="dependencies"><package pattern="*"/></packageSource></packageSourceMapping></configuration>`);
     const packages = join(work, 'consumer-packages');
     console.error('Restoring and running the independent consumer without network package sources.');
-    run('dotnet', ['restore', probe, '--artifacts-path', consumerBuild, '--configfile', config, '--disable-parallel',
-      `-p:RestorePackagesPath=${packages}`, '-p:NuGetAudit=false', ...profileProperties]);
+    const lockFile = join(work, 'consumer-packages.lock.json');
+    const restoreArguments = ['restore', probe, '--artifacts-path', consumerBuild, '--configfile', config, '--disable-parallel',
+      '--use-lock-file', `-p:NuGetLockFilePath=${lockFile}`, `-p:RestorePackagesPath=${packages}`, '-p:NuGetAudit=false', ...profileProperties];
+    run('dotnet', restoreArguments);
+    const lockSha256 = sha(lockFile);
+    run('dotnet', [...restoreArguments, '--locked-mode']);
+    assert.equal(sha(lockFile), lockSha256, 'Locked offline restore changed its dependency lock.');
     const consumerAssets = readJson(join(consumerBuild, 'obj/GeneratorPackageProbe/project.assets.json'));
     validateConsumerAssets(consumerAssets, packageProjects);
     assert.ok(consumerAssets.libraries['Microsoft.Build.Tasks.Git/10.0.403'], 'The external consumer lost the existing build-task version constraint.');
@@ -413,6 +418,7 @@ export function main(args) {
       protectedAssemblyHashes: after.assemblyHashes, pdfPages: pages.length, pdfPixelsEqual: true,
       jsonWordSpreadsheetEqual: true, thirdPartyAssembliesUnchanged: thirdParty.length, offlineDependencyPackages: dependencyCount,
       independentPackageReferences: Object.keys(packageProjects).length, productWideAcceptance: false,
+      offlineRestoreLockVerified: true,
       packageDocumentation, documentationPublicationReady: false, runtimeAssetNotices, nativePackageInventory, nativeInspectionTests,
       importerSmokeCompared: includeImporter, workerAssemblyHashes: workerHashes,
       codeWorkerAssemblyHashes: codeWorkerHashes, codeWorkerExecuted: includeExecution,
