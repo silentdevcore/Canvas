@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-package-reproducibility-checks",
+  "impact": "none",
+  "components": ["sdk", "infrastructure"],
+  "category": "improved",
+  "summary": "Added reproducibility checks for native library package validation.",
+  "breaking": false,
+  "reason": "Only pinned test runners, test-process JIT policy and repeatability guards change; product libraries and approved rendering baselines are unchanged."
+}

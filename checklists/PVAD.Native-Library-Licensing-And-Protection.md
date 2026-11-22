@@ -201,6 +201,24 @@ still-failing native admission and Windows package gates.
 Compiler parallelism in the admission matrix is bounded to two processors and
 the complete sequential suite has a 60-minute job budget; individual process
 timeouts remain enforced. Original run failures are not hidden by retries.
+The next [native run](https://github.com/silentdevcore/Canvas/actions/runs/45030859717)
+reveals that `ubuntu-latest` has moved to Ubuntu 26.04, where `liblept5` is not
+available. The admission matrix is therefore aligned with the already declared
+protected-package targets: Ubuntu 24.04, Windows 2025 and macOS 15 Intel.
+Contract tests require the two matrices to match and pristine runtime-inventory
+validation to precede runner-local alias preparation. This establishes explicit
+test targets; it is not an Ubuntu 26.04 or universal distribution approval.
+The Windows failure report from that run shows `originalRepeatEqual: false`
+and `protectedRepeatEqual: true`. All 12 differing PNG/JPEG raster cases retain
+identical dimensions; their repeated-original decoded pixel hashes match both
+protected runs. Thus this measurement does not establish an obfuscation-caused
+regression: the unprotected reference itself is not reproducible. The next
+controlled experiment disables tiered compilation for both test consumers and
+requires two identical original semantic outputs before any protection work.
+The first result is never replaced by a later, more convenient baseline. Exact
+original/protected comparisons remain mandatory; Windows acceptance stays open
+until the actual experiment passes. A failed reference repeat also produces
+content-free failure evidence rather than silently retrying to green.
 All 195 native/version/release-author tooling tests pass. The local macOS/x64
 16-assembly execution rehearsal at
 `artifacts/native-joint-packages/1795355696004-29f842a8/` passes 511 original and

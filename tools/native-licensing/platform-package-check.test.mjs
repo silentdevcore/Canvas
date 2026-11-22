@@ -13,6 +13,7 @@ function sample() {
     singleProductProducts: ['converter', 'importer', 'pdf', 'spreadsheet', 'word'], singleProductChecks: 67,
     unlicensedMetadataAssemblies: 54, unlicensedCoreDtoTypes: ['PVAD.Core.Contracts.DesignExportDto'], unlicensedContractChecks: 2,
     syntheticOnly: true, pdfPixelsEqual: true, jsonWordSpreadsheetEqual: true, nativeOcrExecuted: true,
+    unprotectedRepeatVerified: true, testJitPolicy: 'tiered-compilation-disabled',
     codeWorkerExecuted: true, codeWorkerPdfPixelsEqual: true, migrationProviderComparisonPassed: true,
     publicationPerformed: false, productionTrustProvisioned: false, productWideAcceptance: false,
     converterCallCases: 62, codeWorkerRequestCases: 12,
@@ -23,6 +24,8 @@ test('signed admission jobs install Unix OCR dependencies before executing nativ
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const workflow = require('js-yaml').load(read('../../.github/workflows/native-library-licensing.yml'));
   const job = workflow.jobs.licensing;
+  assert.deepEqual(job.strategy.matrix.os, ['ubuntu-24.04', 'windows-2025', 'macos-15-intel']);
+  assert.deepEqual(job.strategy.matrix.os, workflow.jobs['platform-package-protection'].strategy.matrix.os);
   const firstProbe = job.steps.findIndex(step => step.run === 'node tools/native-licensing/with-test-license.mjs pdf');
   const inventory = job.steps.findIndex(step => step.run === 'node --test tools/native-licensing/*.test.mjs');
   for (const [os, library] of [['Linux', 'liblept.so.5'], ['macOS', 'libleptonica.dylib']]) {
@@ -38,7 +41,7 @@ test('signed admission jobs install Unix OCR dependencies before executing nativ
 
 test('platform acceptance requires the complete graph and actual OCR, code execution and document parity', () => {
   validatePlatformResult(sample(), 'linux');
-  for (const property of ['nativeOcrExecuted', 'codeWorkerExecuted', 'codeWorkerPdfPixelsEqual', 'pdfPixelsEqual', 'jsonWordSpreadsheetEqual', 'migrationProviderComparisonPassed']) {
+  for (const property of ['nativeOcrExecuted', 'codeWorkerExecuted', 'codeWorkerPdfPixelsEqual', 'pdfPixelsEqual', 'jsonWordSpreadsheetEqual', 'migrationProviderComparisonPassed', 'unprotectedRepeatVerified']) {
     const result = sample(); result[property] = false;
     assert.throws(() => validatePlatformResult(result, 'linux'), undefined, property);
   }
@@ -50,7 +53,7 @@ test('platform acceptance requires the complete graph and actual OCR, code execu
     r => r.unlicensedCoreDtoTypes[0] = 'Unreviewed.Engine', r => r.unlicensedContractChecks = 0,
     r => delete r.migrationConsumerResults['migration-report'], r => r.publicationPerformed = true,
     r => r.productionTrustProvisioned = true, r => r.productWideAcceptance = true,
-    r => r.platform = 'darwin', r => r.architecture = 'Unknown']) {
+    r => r.platform = 'darwin', r => r.architecture = 'Unknown', r => r.testJitPolicy = 'adaptive']) {
     const result = sample(); change(result); assert.throws(() => validatePlatformResult(result, 'linux'));
   }
   assert.throws(() => validatePlatformResult({ ...sample(), platform: 'win32' }, 'win32'));

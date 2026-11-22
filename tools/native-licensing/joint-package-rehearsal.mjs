@@ -164,6 +164,7 @@ export function main(args) {
     }
     const invoke = (directory, resultDirectory, extra = [], workerDirectory = originalWorker, codeDirectory = originalCodeWorker) => jsonResult(run('dotnet', [join(directory, 'GeneratorPackageProbe.dll'),
       licenses.integrated, licenses.importer, licenses.pdf, licenses.revocations, resultDirectory, ...extra], { env: { ...process.env,
+        DOTNET_TieredCompilation: '0',
         PVAD_PACKAGE_WRONG_LICENSE_PATH: licenses.word,
         PVAD_PACKAGE_PDF_LICENSE_PATH: licenses['package-pdf'],
         PVAD_PACKAGE_WORD_LICENSE_PATH: licenses.word,
@@ -176,6 +177,16 @@ export function main(args) {
         PVAD_PACKAGE_MIGRATION_ASSEMBLIES: JSON.stringify(Object.keys(profile).filter(name => name.startsWith('PVAD.Migration.'))),
         PVAD_PACKAGE_TEST_FONT: join(root, 'assets/fonts/liberation/LiberationSans-Regular.ttf') } }));
     const before = invoke(original, join(work, 'original-result'));
+    const baselineRepeat = invoke(original, join(work, 'original-baseline-repeat-result'));
+    if (!isDeepStrictEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics)))
+      writeFileSync(join(output, 'report.json'), JSON.stringify({ schemaVersion: 1,
+        scope: 'synthetic-reference-repeatability-failure', status: 'failed', syntheticOnly: true,
+        platform: process.platform, productWideAcceptance: false, publicationPerformed: false,
+        originalRepeatEqual: false, testJitPolicy: 'tiered-compilation-disabled',
+        converterRasterDiagnostics: { original: before.semantics.execution?.converterRasterDiagnostics,
+          originalRepeat: baselineRepeat.semantics.execution?.converterRasterDiagnostics } }, null, 2) + '\n');
+    assert.deepEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics),
+      'The unprotected reference must be reproducible under the fixed JIT policy; do not accept a later render as a replacement baseline.');
     const originalMigrations = {};
     if (includeMigrations) for (const [kind, name] of Object.entries(migrationProbes))
       originalMigrations[kind] = jsonResult(run('dotnet', [join(build, `bin/${name}/release/${name}.dll`), licenses[kind], licenses.pdf, licenses.expired]));
@@ -376,6 +387,7 @@ export function main(args) {
     report = { schemaVersion: 1, scope: includeMigrations ? 'native-products-and-migrations-fifty-four-assembly-graph' : includeExecution ? 'generator-importer-converter-workers-sixteen-assembly-graph' : includeImporter ? 'generator-importer-ocr-fourteen-assembly-graph' : 'generator-nine-assembly-graph', version, syntheticOnly: true,
       platform: process.platform, architecture: after.processArchitecture, modules, publicApi: surfaces,
       baselineChecks: before.checks.length, protectedChecks: after.checks.length,
+      unprotectedRepeatVerified: true, testJitPolicy: 'tiered-compilation-disabled',
       baselineCheckNames: before.checks, protectedCheckNames: after.checks,
       singleProductProducts: before.singleProductProfiles, singleProductChecks: dependencyChecks(before).length,
       unlicensedCoreDtoTypes: before.unlicensedCoreDtoTypes, unlicensedContractChecks: freeChecks(before).length,
