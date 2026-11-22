@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { posix } from 'node:path';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { projects, importerProjects, executionProjects, migrationProjects, validateProjectClosure, validateConsumerAssets, comparableSemantics, main } from './joint-package-rehearsal.mjs';
@@ -135,7 +135,7 @@ test('the migration profile closes all thirty-eight migration projects and fifty
   const found = [];
   function visit(directory) {
     for (const item of readdirSync(new URL('../../' + directory, import.meta.url), { withFileTypes: true })) {
-      const path = join(directory, item.name);
+      const path = posix.join(directory, item.name);
       if (item.isDirectory() && !['bin', 'obj'].includes(item.name)) visit(path + '/');
       else if (item.isFile() && item.name.endsWith('.csproj')) found.push(path);
     }

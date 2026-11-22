@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-ci-shell-launcher-contract",
+  "impact": "none",
+  "components": ["sdk", "infrastructure"],
+  "category": "fixed",
+  "summary": "Corrected signed-session setup and cross-platform source handling in CI validation.",
+  "breaking": false,
+  "reason": "Only test setup, checkout byte preservation and validation path handling change; application APIs and native license enforcement are unchanged."
+}

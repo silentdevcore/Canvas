@@ -122,6 +122,37 @@ is the starting inventory, not completed enforcement coverage.
 
 ### Current Verification Evidence
 
+#### First Remote CI Startup
+
+[Draft PR 217](https://github.com/silentdevcore/Canvas/pull/217) targets develop
+at the explicitly authorized feature branch. Auto-merge is disabled; no merge,
+version preparation, deployment or package publication is authorized. User-owned
+uncommitted solution/IDE changes are excluded. Native licensing and protected
+package jobs start on Linux, Windows and macOS; general CI and visual parity
+start separately. The redundant manually dispatched parity run is cancelled
+in favor of the PR run on the same commit.
+
+The first [general CI run](https://github.com/silentdevcore/Canvas/actions/runs/45024291888)
+fails in a shell-launcher contract fixture that predates mandatory signed test
+sessions. The fixture now creates and cleans a real isolated synthetic session
+and still demands exit code 37 from the first fake `dotnet test`; no actual suite
+is run and no product license check is bypassed. All 185 local configuration
+contracts and 34 focused launcher/session contracts pass.
+
+The first [native run](https://github.com/silentdevcore/Canvas/actions/runs/45024291918)
+exposes Windows preparation failures: automatic CRLF checkout changes a pinned
+Legal-reference hash and newline-sensitive source contracts; repository-relative
+and simulated Linux paths also use host-native separators. The licensing matrix
+now preserves source bytes before checkout, as the platform job already does.
+Repository paths and target-POSIX runtime declarations use POSIX joining; local
+host output paths still use the host path API. Existing hashes, source bytes,
+denial assertions, native grants and platform thresholds are not loosened.
+
+The [PR checks](https://github.com/silentdevcore/Canvas/pull/217/checks) must pass
+on the corrected head before any remote acceptance item is closed. These first
+failures remain recorded, not hidden by retries or relabeled as product success.
+Primary progress remains 68/76 (89.5%) while broad remote validation is pending.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory

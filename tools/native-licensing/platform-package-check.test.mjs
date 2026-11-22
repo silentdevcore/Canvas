@@ -43,12 +43,18 @@ test('runtime aliases retain the reviewed Linux architecture mapping and Windows
   assert.ok(runtimeLibraries('linux', 'arm64').every(([, path]) => path.startsWith('/usr/lib/aarch64-linux-gnu/')));
   assert.ok(runtimeLibraries('linux', 'x64').every(([, path]) => path.startsWith('/usr/lib/x86_64-linux-gnu/')));
   assert.equal(runtimeLibraries('linux', 'x64').length, 3);
+  assert.deepEqual(runtimeLibraries('linux', 'arm64'), [
+    ['x64/libleptonica-1.82.0.so', '/usr/lib/aarch64-linux-gnu/liblept.so.5'],
+    ['x64/libtesseract50.so', '/usr/lib/aarch64-linux-gnu/libtesseract.so.5'],
+    ['libdl.so', '/usr/lib/aarch64-linux-gnu/libdl.so.2'],
+  ]);
   assert.deepEqual(runtimeLibraries('win32', 'x64'), []);
   assert.throws(() => runtimeLibraries('win32', 'arm64'));
   assert.throws(() => runtimeLibraries('linux', 'ia32'));
   assert.throws(() => runtimeLibraries('other', 'x64'));
   const mac = runtimeLibraries('darwin', 'x64', name => '/opt/' + name);
   assert.equal(mac.length, 2); assert.ok(mac.every(([path]) => path.startsWith('x64/')));
+  assert.deepEqual(mac.map(([, path]) => path), ['/opt/leptonica/lib/libleptonica.dylib', '/opt/tesseract/lib/libtesseract.dylib']);
 });
 
 test('the platform wrapper owns only temporary native aliases and never edits source trust or production paths', () => {
@@ -66,6 +72,10 @@ test('the platform wrapper owns only temporary native aliases and never edits so
 test('each reviewed OS runs the full protected graph and uploads no binaries, keys or maps', () => {
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const workflow = require('js-yaml').load(read('../../.github/workflows/native-library-licensing.yml'));
+  const licensingSteps = workflow.jobs.licensing.steps;
+  const preserve = licensingSteps.findIndex(step => step.run === 'git config --global core.autocrlf false');
+  const checkout = licensingSteps.findIndex(step => step.uses?.startsWith('actions/checkout@'));
+  assert.ok(preserve >= 0 && preserve < checkout, 'Byte preservation must precede checkout in the licensing matrix too.');
   const job = workflow.jobs['platform-package-protection'];
   assert.deepEqual(job.strategy.matrix.os, ['ubuntu-24.04', 'windows-2025', 'macos-15-intel']);
   assert.equal(job['runs-on'], '${{ matrix.os }}');

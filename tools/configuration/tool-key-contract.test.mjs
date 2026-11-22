@@ -6,6 +6,7 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { closeNativeTestSession, createNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -51,9 +52,11 @@ test('remaining test and PDF validation callers use canonical keys accepted by t
 
 test('shell test launchers pass canonical flags to a fake dotnet without running real suites', async () => {
   const directory = await mkdtemp(resolve(tmpdir(), 'pvad-test-launcher-'));
+  let session;
   try {
+    session = createNativeTestSession();
     // Exit at the first test command, before downstream services or recovery tools.
-    await writeFile(resolve(directory, 'dotnet'), `#!${process.execPath}\nprocess.stdout.write(JSON.stringify({postgres:process.env.PVAD_RUN_POSTGRES_TESTS,recovery:process.env.PVAD_RUN_PDF_RECOVERY_TESTS}));process.exit(37);\n`, { mode: 0o700 });
+    await writeFile(resolve(directory, 'dotnet'), `#!${process.execPath}\nprocess.stdout.write(JSON.stringify({command:process.argv[2],postgres:process.env.PVAD_RUN_POSTGRES_TESTS,recovery:process.env.PVAD_RUN_PDF_RECOVERY_TESTS}));process.exit(37);\n`, { mode: 0o700 });
     for (const command of ['pdftotext', 'pdfimages', 'strings'])
       await writeFile(resolve(directory, command), '#!/bin/sh\nexit 99\n', { mode: 0o700 });
     for (const [script, expected] of [
@@ -61,13 +64,14 @@ test('shell test launchers pass canonical flags to a fake dotnet without running
       ['tools/pdf-redaction-recovery/run.sh', { recovery: '1' }],
     ]) {
       const result = spawnSync('bash', [resolve(root, script)], {
-        env: { PATH: `${directory}:${process.env.PATH}` }, encoding: 'utf8', timeout: 5000,
+        env: { ...session.environment, PATH: `${directory}:${process.env.PATH}` }, encoding: 'utf8', timeout: 5000,
       });
       assert.equal(result.status, 37, result.stderr);
-      assert.deepEqual(JSON.parse(result.stdout), expected);
+      assert.deepEqual(JSON.parse(result.stdout), { command: 'test', ...expected });
     }
   } finally {
-    await rm(directory, { recursive: true, force: true });
+    try { if (session) closeNativeTestSession(session.descriptor); }
+    finally { await rm(directory, { recursive: true, force: true }); }
   }
 });
 

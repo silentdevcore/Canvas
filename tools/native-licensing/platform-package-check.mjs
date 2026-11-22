@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, posix, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { main as rehearse, migrationProjects } from './joint-package-rehearsal.mjs';
@@ -18,12 +18,12 @@ export function runtimeLibraries(platform, architecture, brewPrefix) {
   }
   if (platform === 'linux') {
     const directory = architecture === 'arm64' ? '/usr/lib/aarch64-linux-gnu' : '/usr/lib/x86_64-linux-gnu';
-    return [['x64/libleptonica-1.82.0.so', join(directory, 'liblept.so.5')],
-      ['x64/libtesseract50.so', join(directory, 'libtesseract.so.5')], ['libdl.so', join(directory, 'libdl.so.2')]];
+    return [['x64/libleptonica-1.82.0.so', posix.join(directory, 'liblept.so.5')],
+      ['x64/libtesseract50.so', posix.join(directory, 'libtesseract.so.5')], ['libdl.so', posix.join(directory, 'libdl.so.2')]];
   }
   assert.equal(platform, 'darwin', 'Unreviewed operating system.');
-  return [['x64/libleptonica-1.82.0.dylib', join(brewPrefix('leptonica'), 'lib/libleptonica.dylib')],
-    ['x64/libtesseract50.dylib', join(brewPrefix('tesseract'), 'lib/libtesseract.dylib')]];
+  return [['x64/libleptonica-1.82.0.dylib', posix.join(brewPrefix('leptonica'), 'lib/libleptonica.dylib')],
+    ['x64/libtesseract50.dylib', posix.join(brewPrefix('tesseract'), 'lib/libtesseract.dylib')]];
 }
 
 export function validatePlatformResult(report, platform) {
