@@ -351,6 +351,17 @@ assets, transitive native components, container OS notices and final legal
 review remain within the original packaging task. This is not a new task or
 permission to distribute the local binary bundle.
 
+Supplemental [runtime source evidence](../../assets/licenses/runtime-assets/README.md#supplemental-source-evidence)
+records the Ukrainian model's exact truncated upstream prefix, fifteen local
+Homebrew build correlations, pinned Liberation Sans source archives and one
+local ARM64 container package/notice snapshot. Run
+`node tools/native-licensing/runtime-source-evidence.mjs` to check local asset
+bindings and pinned observations offline. The existing native test glob includes
+its negative parsing, provenance, sandbox-argument and approval-boundary tests.
+Explicit `verify-downloads`, `observe-macos` and immutable-image
+`observe-container` modes do not update approved evidence or imply distribution
+permission. They do not replace any runtime asset or resolve legal obligations.
+
 The complete 54-assembly/52-package processing run is recorded at
 `artifacts/native-joint-packages/1795338994300-052ae063/`. Its successful archive
 checks did not establish the later runtime-copy contract. The final focused

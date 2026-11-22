@@ -627,6 +627,74 @@ These are not additional primary tasks. Progress remains **68/76 (89.5%)**;
 the eight original open items, platform/CI acceptance and external approvals
 are not closed by attribution tooling. No commit, push or publication occurs.
 
+#### Supplemental Runtime Source Evidence
+
+This advances the existing notice/distribution item only. The fixed primary
+status remains **70/76 (92.1%)** with the same six primary items open. Source
+discovery is not legal approval, production trust or complete CI acceptance.
+Earlier runtime attribution results above retain their original meaning.
+
+The [supplemental evidence index](../assets/licenses/runtime-assets/source-evidence.v1.json)
+binds the original registry SHA256 without altering that registry, font/model
+bytes, optional local libraries or generated notice bundles. Its
+[verification guide](../assets/licenses/runtime-assets/README.md#supplemental-source-evidence)
+explains offline checks versus explicit source revalidation and observation.
+
+- The Ukrainian model is a byte-exact truncated prefix of the official
+  `tessdata_fast` file at the pinned commit. Local/reference lengths are
+  2,891,776/3,825,102 bytes: **933,326 bytes are missing**. Four component offsets
+  exceed the local file. Reference SHA256, length and Git blob ID were
+  independently recomputed. This explains the earlier local tool failures but
+  does not certify all-platform behavior or permit silent replacement.
+- All fifteen existing local macOS/x64 dylibs match installed Homebrew build
+  UUIDs and named section contents/zero-fill metadata. Whole-file hashes differ
+  in all fifteen cases. Candidate versions, selected receipt metadata and
+  receipt hashes are retained, not private receipt paths. This is local build
+  correlation, not authenticated publisher provenance, exact transformation
+  reproduction or complete statically linked component attribution.
+- The Debian source descriptor and original/Debian source archives for
+  Liberation Sans `1:1.07.4-11` were downloaded and size/SHA256-pinned. Their
+  archive hashes agree with the descriptor. No trusted-key descriptor signature
+  check, reproducible font build or corresponding-source/legal approval is
+  claimed. Existing font terms remain unchanged.
+- One existing local API image, immutable ID ending `59cfc63`, was observed as
+  Linux/ARM64: **162 installed packages, 176 original notice entries**. Five
+  direct mappings remain unresolved: four missing copyright mappings and one
+  OpenSSL link/empty entry. Original metadata/notice bytes are retained locally;
+  committed evidence pins their hashes. No current-Dockerfile binding,
+  release/amd64 coverage, source acquisition or complete native attribution is
+  asserted. Read-only non-root commands ran without network, mounts, app startup
+  or ports; all owned temporary containers were removed.
+
+Actual local evidence is retained under:
+
+- `artifacts/native-runtime-provenance/source-downloads/`: pinned model/font
+  references, explicitly verified without changing shipped assets.
+- `artifacts/native-runtime-provenance/1795375191680-b32498a1/macos.json`:
+  repeat native observation, fifteen of fifteen correlated.
+- `artifacts/native-runtime-provenance/1795374811152-19192c2c/`: container
+  report, package TSV, OS identity and original notice archive.
+
+Default verification remains offline and does not misrepresent a stored
+observation as a fresh download or runtime check. Synthetic negative tests
+reject altered model/source pins, invalid directories/Mach-O sections, changed
+observation hashes, ambiguous package rows and invented approval claims. The
+existing CI native tooling glob includes them without requiring local images,
+downloaded sources or optional dylibs. No runtime behavior, key trust,
+published release, product version or user-owned Solution/IDE file is changed.
+
+Local validation passes all **223** native/version/release-author tooling tests
+(including twelve new source-evidence cases), **73** Documentation tests and
+the Documentation production build. The original runtime bundle guard, current
+former-name guard, tracked Markdown zero-hit check, version/fragment validation
+and `git diff --check` pass. The pre-existing Vite config-loader warning remains
+visible. The older JSON audit still reports the same **475** pre-existing
+findings; no original naming pin is rewritten. This milestone does not repeat
+or claim complete .NET, Designer, platform, visual or fuzz execution. Its
+release fragment has internal-only `none` impact. The preceding integration
+audit was committed separately as `5a40600f`; this supplemental evidence is not
+committed or pushed in this checkpoint.
+
 #### Public API Documentation Checkpoint
 
 The formerly empty XML documentation sets in 19 native PDF/migration assemblies
@@ -3828,7 +3896,7 @@ changes remain outside that commit and this milestone.
 
 | Finding | Impact And Priority | Handling |
 | --- | --- | --- |
-| Local `combine_tessdata -d` and `-l` reject the unchanged Ukrainian model while both commands read the English model successfully | P2 OCR model usability/integrity investigation, separate from its already unresolved source/license provenance. This local tool result does not establish all-platform OCR behavior. | Preserve original bytes and existing provenance blocker. Investigate after native licensing; do not silently replace a model, attribute another dataset's license or expand primary scope. |
+| Local `combine_tessdata -d` and `-l` reject the unchanged Ukrainian model; supplemental byte comparison confirms it is an official model prefix missing 933,326 bytes, with four component offsets beyond EOF | P2 OCR model usability/integrity remediation, separate from source/distribution review. The prefix comparison does not certify all-platform behavior or an intact-file source/license match. | Preserve original bytes and existing provenance blocker. Investigate after native licensing; do not silently replace a model, attribute another dataset's license or expand primary scope. See the supplemental runtime source evidence above. |
 | Canonical Code Workspace execution with a downgraded role is rejected by its endpoint authorization policy with the stable general permission diagnostic; the Designer path resolver does not select the operation-specific code permission, so the middleware-specific permission-denial audit is not produced | P2 consistency/observability follow-up. Execution is correctly denied before any job is created; this is not evidence of an authorization bypass. | Preserve the current diagnostic and policy. Review resolver/endpoint audit alignment after native licensing, without expanding this plan's primary task count. |
 | Older JSON naming audit reports 475 pre-existing baseline mismatches | Separate naming/evidence reconciliation; assess before general repository naming acceptance | Preserve original pins/evidence. Review after the native licensing plan; no rename, pin regeneration or new licensing task is authorized here. |
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |

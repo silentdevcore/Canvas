@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "runtimeRegistrySha256": "d3d4968991a1c45ea89741f79299e32bb8ac1df29f5ea8c3e57187e4e37e4377",
+  "publicationReady": false,
+  "legalApprovalGranted": false,
+  "model": {
+    "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ukr.traineddata",
+    "localBytes": 2891776,
+    "localSha256": "b2bfcb9c27abff334015dcf3b2fd114dce569a7fa27c3e9ca55e286da1b3b3ee",
+    "relation": "truncated-reference-prefix",
+    "missingBytes": 933326,
+    "modelUsabilityCertified": false,
+    "reference": {
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/ukr.traineddata",
+      "bytes": 3825102,
+      "sha256": "d59e53e2bded32f4445f124b4b00240fcac7e8044c003ab822ccb94f0b3db59b",
+      "gitBlob": "d02cf90b2911a3da66dac6ae380bcefb18dd7663"
+    }
+  },
+  "fonts": {
+    "version": "1:1.07.4-11",
+    "binaryPackageSha256": "efd381517f958b01969343634ffcbdd60056be7779af84c6f53a005090430204",
+    "sourceFiles": [
+      {
+        "name": "fonts-liberation_1.07.4-11.dsc",
+        "bytes": 2176,
+        "sha256": "c9cb6abc8b8ab1887d78f5fc1aef1fc06a220efbfa3424ca7e8bc379242654ba",
+        "url": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4-11.dsc"
+      },
+      {
+        "name": "fonts-liberation_1.07.4.orig.tar.gz",
+        "bytes": 2937949,
+        "sha256": "ad98b7498dc2992f7f0868f79b65ce4a720a3acdb63ab3f1f1cb6881117a5406",
+        "url": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4.orig.tar.gz"
+      },
+      {
+        "name": "fonts-liberation_1.07.4-11.debian.tar.xz",
+        "bytes": 17248,
+        "sha256": "45ea32aab7eed82061493edbf5ef621d6fd7f074cb79ae45206014913ca5f313",
+        "url": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4-11.debian.tar.xz"
+      }
+    ],
+    "debianSignatureVerified": false,
+    "sourceRebuildVerified": false
+  },
+  "observations": [
+    {
+      "file": "evidence/macos-local-builds.v1.json",
+      "sha256": "42cef02520ca83b39f7a22f51c59e4bb82debc85fc3f91471a3a9a90ca92eeb5"
+    },
+    {
+      "file": "evidence/container-local-os.v1.json",
+      "sha256": "63596ce44c1eef7a19ae51bf3dcf33edd0b73e5ab5ffd1309364d95fe85c6694"
+    }
+  ],
+  "limitations": [
+    "Supplemental technical evidence only; the original runtime registry and distribution blockers remain unchanged.",
+    "A truncated upstream prefix is not an intact usable model or a complete license/source match.",
+    "Native UUID/section correlation does not authenticate a publisher, reproduce the source build or identify every statically linked component.",
+    "The container snapshot covers one existing local ARM64 image, not the current Dockerfile, a release image or another architecture.",
+    "Font source archives were hashed; a trusted-key Debian signature check, reproducible build and legal corresponding-source review remain open."
+  ]
+}
