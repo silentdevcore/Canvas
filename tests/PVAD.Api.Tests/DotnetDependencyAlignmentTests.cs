@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -85,8 +87,43 @@ public sealed class DotnetDependencyAlignmentTests
             element => (string?)element.Attribute("Include") == package);
         Assert.Equal("10.0.403", (string?)reference.Attribute("Version"));
         Assert.Equal("all", (string?)reference.Attribute("PrivateAssets"));
-        using var assets = JsonDocument.Parse(File.ReadAllText(
-            Path.Combine(FindRepositoryRoot(), project, "obj/project.assets.json")));
+        var projectFile = Path.Combine(FindRepositoryRoot(), project, "PVAD.Infrastructure.Spreadsheet.csproj");
+        using var query = new Process { StartInfo = new("dotnet")
+        {
+            WorkingDirectory = FindRepositoryRoot(), UseShellExecute = false,
+            RedirectStandardOutput = true, RedirectStandardError = true,
+        } };
+        foreach (var argument in new[] { "msbuild", projectFile, "-nologo", "-getProperty:ProjectAssetsFile" })
+            query.StartInfo.ArgumentList.Add(argument);
+        var artifactsPath = typeof(DotnetDependencyAlignmentTests).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .SingleOrDefault(attribute => attribute.Key == "PvadTestArtifactsPath")?.Value;
+        if (!string.IsNullOrWhiteSpace(artifactsPath))
+        {
+            query.StartInfo.ArgumentList.Add("-p:UseArtifactsOutput=true");
+            query.StartInfo.ArgumentList.Add("-p:ArtifactsPath=" + artifactsPath);
+        }
+        query.Start();
+        var output = query.StandardOutput.ReadToEndAsync();
+        var error = query.StandardError.ReadToEndAsync();
+        if (!query.WaitForExit(60_000))
+        {
+            query.Kill(entireProcessTree: true);
+            query.WaitForExit();
+            Assert.Fail("MSBuild did not resolve the restored dependency path within one minute.");
+        }
+        Assert.True(query.ExitCode == 0, error.GetAwaiter().GetResult());
+        var assetsPath = output.GetAwaiter().GetResult().Trim();
+        Assert.True(Path.IsPathFullyQualified(assetsPath) && File.Exists(assetsPath),
+            "MSBuild must resolve the actual restored project.assets.json, including isolated artifacts output.");
+        if (!string.IsNullOrWhiteSpace(artifactsPath))
+        {
+            var relative = Path.GetRelativePath(artifactsPath, assetsPath);
+            Assert.False(Path.IsPathRooted(relative) || relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar),
+                "The dependency contract must not fall back to a stale source-local restore.");
+        }
+        using var assets = JsonDocument.Parse(File.ReadAllText(assetsPath));
+        Assert.Equal(Path.GetFullPath(projectFile), Path.GetFullPath(assets.RootElement.GetProperty("project")
+            .GetProperty("restore").GetProperty("projectPath").GetString()!));
         Assert.True(assets.RootElement.GetProperty("libraries").TryGetProperty($"{package}/10.0.403", out _));
         var dependency = assets.RootElement.GetProperty("project").GetProperty("frameworks")
             .GetProperty("net10.0").GetProperty("dependencies").GetProperty(package);

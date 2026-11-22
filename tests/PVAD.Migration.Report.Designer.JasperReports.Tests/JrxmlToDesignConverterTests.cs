@@ -524,6 +524,28 @@ public sealed class JrxmlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML020" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
+    [Theory]
+    [InlineData("\"C:\\\\pvad-missing-assets\\\\logo.png\"", @"C:\pvad-missing-assets\logo.png")]
+    [InlineData("\"missing/quoted\\\"logo.png\"", "missing/quoted\"logo.png")]
+    [InlineData("\"missing/\\u006cogo.png\"", "missing/logo.png")]
+    [InlineData("$P{LogoPath}", "$P{LogoPath}")]
+    public void Convert_ImageExpression_DecodesLiteralSourceButPreservesOriginalExpression(string expression, string source)
+    {
+        var result = Convert($$"""
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Escaped image">
+              <detail><band height="20"><image>
+                <reportElement key="image" x="0" y="0" width="20" height="20"/>
+                <imageExpression><![CDATA[{{expression}}]]></imageExpression>
+              </image></band></detail>
+            </jasperReport>
+            """);
+        var element = El(result.Design, "image");
+        var metadata = Assert.IsType<Dictionary<string, object>>(element.Style!["jrxmlImageSource"]);
+        Assert.Equal(expression, metadata["Expression"]);
+        Assert.Equal(source, metadata["Source"]);
+        Assert.Null(element.Content);
+    }
+
     [Fact]
     public void Convert_ImageExpressions_EmbedResolvableSourcesAndPreserveUnresolvedMetadata()
     {

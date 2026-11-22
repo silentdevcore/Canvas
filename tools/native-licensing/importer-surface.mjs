@@ -129,7 +129,7 @@ async function main(mode) {
       try { result = spawnSync('dotnet', args, { cwd: root, env: process.env, timeout: 600_000, maxBuffer: 16*1024*1024,
         stdio: json ? ['ignore', 'pipe', fd] : ['ignore', fd, fd], encoding: 'utf8' }); }
       finally { closeSync(fd); }
-      assert.equal(result.status, 0, name + ': inspect the isolated run log');
+      assert.equal(result.status, 0, `${name}: exit ${result.status}, signal ${result.signal ?? 'none'}; inspect the isolated run log`);
       assert.ok(!result.signal && !result.error);
       if (json) return JSON.parse(result.stdout);
     }

@@ -60,6 +60,18 @@ test('semantic comparison normalizes only the two generated XLSX workspace IDs',
   assert.equal(JSON.parse(first.spreadsheet).Id, 'a'.repeat(32));
 });
 
+test('raster investigation preserves exact comparison and reports only synthetic hashes on failure', () => {
+  const source = read('./joint-package-rehearsal.mjs');
+  for (const value of ['originalRepeatEqual:', 'protectedRepeatEqual:', 'synthetic-converter-comparison-failure',
+    "status: 'failed'", 'converterRasterDiagnostics:',
+    'assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics)'])
+    assert.ok(source.includes(value), value);
+  const probe = read('./GeneratorPackageProbe/ExecutionPackageChecks.cs');
+  assert.ok(probe.includes('pixelSha256 = Convert.ToHexStringLower(SHA256.HashData(bitmap.Bytes))'));
+  assert.ok(probe.includes('SHA256.HashData(bytes)'));
+  assert.ok(probe.includes('SHA256.HashData(content)'));
+});
+
 test('the consumer defaults to packages and verifies exact hashes, JSON and native licensing', () => {
   const project = read('./GeneratorPackageProbe/GeneratorPackageProbe.csproj');
   assert.ok(project.includes('PackageReference Include="PVAD.Generator"'));

@@ -66,7 +66,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+      DOTNET_PROCESSOR_COUNT: '2'
     steps:
       - name: Preserve source bytes on Windows
         shell: bash
@@ -88,6 +93,27 @@ jobs:
         run: dotnet test tests/PVAD.Licensing.Tests/PVAD.Licensing.Tests.csproj -c Release --logger "trx;LogFileName=native-licensing.trx" --results-directory artifacts/native-licensing-tests
       - name: Rehearse a protected synthetic package without publishing
         run: node tools/native-licensing/pvad-native-licensing.mjs rehearse
+      - name: Prepare Linux OCR runtime for signed admission tests
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libtesseract5 liblept5
+          native="$PWD/src/Importing/PVAD.FileImporter.ImageOcr/native"
+          mkdir -p "$native/x64"
+          ln -s /usr/lib/x86_64-linux-gnu/liblept.so.5 "$native/x64/libleptonica-1.82.0.so"
+          ln -s /usr/lib/x86_64-linux-gnu/libtesseract.so.5 "$native/x64/libtesseract50.so"
+          ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 "$native/libdl.so"
+          echo "LD_LIBRARY_PATH=$native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+      - name: Prepare macOS OCR runtime for signed admission tests
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install tesseract leptonica
+          native="$PWD/src/Importing/PVAD.FileImporter.ImageOcr/native"
+          mkdir -p "$native/x64"
+          ln -s "$(brew --prefix leptonica)/lib/libleptonica.dylib" "$native/x64/libleptonica-1.82.0.dylib"
+          ln -s "$(brew --prefix tesseract)/lib/libtesseract.dylib" "$native/x64/libtesseract50.dylib"
       - name: Verify direct PDF admission and non-destructive export failures
         run: node tools/native-licensing/with-test-license.mjs pdf
       - name: Verify offline revocations and Code/OCR worker propagation

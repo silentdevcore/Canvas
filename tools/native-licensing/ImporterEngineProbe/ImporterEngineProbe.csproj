@@ -12,5 +12,6 @@
     <Compile Include="../NativeSurfaceCoverage.cs" Link="NativeSurfaceCoverage.cs" />
     <Content Include="../../../assets/fonts/liberation/*" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../../src/Importing/PVAD.FileImporter/PVAD.FileImporter.csproj" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
   </ItemGroup>
 </Project>

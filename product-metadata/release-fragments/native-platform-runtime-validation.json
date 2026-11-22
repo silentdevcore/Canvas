@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-platform-runtime-validation",
+  "impact": "none",
+  "components": ["sdk", "infrastructure"],
+  "category": "fixed",
+  "summary": "Improved native licensing test runtime setup and isolated dependency-path validation.",
+  "breaking": false,
+  "reason": "Only test dependencies, CI setup and failure diagnostics change; native license enforcement and exact output comparisons remain unchanged."
+}

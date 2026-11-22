@@ -1634,8 +1634,19 @@ public sealed class JrxmlToDesignConverter
             yield return Path.Combine(Environment.CurrentDirectory, source);
     }
 
-    private static string StripJasperStringLiteral(string value) =>
-        value.Length >= 2 && value[0] == '"' && value[^1] == '"' ? value[1..^1] : value;
+    private static string StripJasperStringLiteral(string value)
+    {
+        if (value.Length < 2 || value[0] != '"' || value[^1] != '"') return value;
+        try
+        {
+            // JSON and Java share the common quoted path/string escapes.
+            return JsonSerializer.Deserialize<string>(value) ?? value[1..^1];
+        }
+        catch (JsonException)
+        {
+            return value[1..^1];
+        }
+    }
 
     private static bool IsLikelyBase64(string value) =>
         value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");

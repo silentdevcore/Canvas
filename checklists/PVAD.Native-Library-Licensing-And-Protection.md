@@ -179,6 +179,40 @@ The recorded review by the owner's second account is not independent review.
 The PR remains a draft without auto-merge; these corrections still require
 successful checks and review on their actual commit.
 
+#### Cross-Platform CI Failure Review
+
+The [corrected-head native run](https://github.com/silentdevcore/Canvas/actions/runs/45025856180)
+passes protected packages on Linux and macOS, and the dedicated Generator,
+execution, migration, WebApi and issuer jobs. The
+[general run](https://github.com/silentdevcore/Canvas/actions/runs/45025856088)
+passes frontend, MCP, dependency security and visual parity; its PostgreSQL API
+suite executes 1,522 tests with 1,521 passing and one failing. Separate Linux
+and Windows visual platform jobs also pass. These results do not close the
+still-failing native admission and Windows package gates.
+
+| Failure | Scoped Correction And Evidence |
+| --- | --- |
+| General API dependency contract assumes source-local `obj/project.assets.json`, but signed sessions intentionally isolate restore output | Query `ProjectAssetsFile` through MSBuild, require the real file and matching project identity, and retain all private/build-only dependency assertions. Record the actual build artifacts path in the test assembly and require the resolved restore file to stay within it, including CLI-only profiles without inherited build environment. All 30 dependency-alignment cases pass in the isolated local macOS/x64 profile at `artifacts/native-engine-tests/1795355965154-22fca41b/`; this is not a new complete PostgreSQL run. |
+| Windows Jasper image metadata retains doubled Java-string backslashes | Decode common JSON-compatible Java string escapes, retain the original expression, and preserve the previous fallback for unsupported literal syntax. All 32 Jasper cases pass locally at `artifacts/native-engine-tests/1795355402001-32db0799/`, including explicit Windows path, quote and Unicode cases. Real Windows rerun remains required. |
+| Linux Importer probe aborts inside Skia | Reproduced from archived HEAD in a disposable Linux/ARM64 container: the probe lacks the native Skia library. Add the matching Linux-only native package to the probe, not a licensing bypass. The corrected probe passes 3,729 assertions at `artifacts/native-ci-review/45025856180/linux-importer-fixed-evidence/`; the failing reproduction is retained separately. Container test keys and isolated binaries are removed. |
+| Generic macOS licensing job cannot load Leptonica during OCR regressions | Prepare runner-local Tesseract/Leptonica aliases after pristine runtime-inventory validation and before native probes; also prepare the Linux OCR dependencies. These are test setup, not approved redistributable vendor assets. Do not overwrite existing libraries or alter runtime provenance pins. Remote OCR suite validation remains required. |
+| Windows protected package probe reports different image hashes for 72-DPI Converter calls | Keep exact byte/document comparisons unchanged. Record synthetic decoded pixel hashes, dimensions and original/protected repeatability on a mismatch, retaining a failed report even if repetition fails. No new baseline or tolerance is approved; cause and Windows acceptance remain open until the actual rerun. |
+
+Compiler parallelism in the admission matrix is bounded to two processors and
+the complete sequential suite has a 60-minute job budget; individual process
+timeouts remain enforced. Original run failures are not hidden by retries.
+All 195 native/version/release-author tooling tests pass. The local macOS/x64
+16-assembly execution rehearsal at
+`artifacts/native-joint-packages/1795355696004-29f842a8/` passes 511 original and
+2,637 protected assertions, all 62 Converter cases and 12 CodeWorker cases.
+Document semantics and both PDF pixel comparisons remain exact. Its cleanup
+confirms removal of candidate files and synthetic secrets, unchanged source
+trust and unchanged ordinary product outputs. This does not replace the
+still-open Windows 54-assembly comparison.
+User-owned solution/IDE changes, source trust, product version, published release
+history, production keys and publication approvals remain unchanged. Primary
+progress remains 68/76 (89.5%) until the composite acceptance gates pass.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory

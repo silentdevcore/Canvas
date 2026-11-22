@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createHash, randomUUID } from 'node:crypto';
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -339,7 +340,24 @@ export function main(args) {
     assert.ok(before.unlicensedCoreDtoTypes.length > 0 && new Set(before.unlicensedCoreDtoTypes).size === before.unlicensedCoreDtoTypes.length);
     assert.deepEqual(after.unlicensedCoreDtoTypes, before.unlicensedCoreDtoTypes, 'Original/protected contract coverage differs.');
     assert.deepEqual(freeChecks(after), freeChecks(before), 'Original/protected unlicensed data/metadata behavior differs.');
-    assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics), 'Protected output changes JSON, Word or Spreadsheet semantics.');
+    if (!isDeepStrictEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics))) {
+      const failure = { schemaVersion: 1, scope: 'synthetic-converter-comparison-failure', status: 'failed', syntheticOnly: true,
+        platform: process.platform, productWideAcceptance: false, publicationPerformed: false,
+        originalRepeatEqual: null, protectedRepeatEqual: null,
+        converterRasterDiagnostics: { original: before.semantics.execution?.converterRasterDiagnostics,
+          protected: after.semantics.execution?.converterRasterDiagnostics } };
+      const writeFailure = () => writeFileSync(join(output, 'report.json'), JSON.stringify(failure, null, 2) + '\n');
+      writeFailure();
+      const originalRepeat = invoke(original, join(work, 'original-repeat-result'));
+      const protectedRepeat = invoke(join(consumerBuild, 'bin/GeneratorPackageProbe/release'),
+        join(work, 'protected-repeat-result'), [feed], protectedWorker, protectedCodeWorker);
+      failure.originalRepeatEqual = isDeepStrictEqual(comparableSemantics(before.semantics), comparableSemantics(originalRepeat.semantics));
+      failure.protectedRepeatEqual = isDeepStrictEqual(comparableSemantics(after.semantics), comparableSemantics(protectedRepeat.semantics));
+      failure.converterRasterDiagnostics.originalRepeat = originalRepeat.semantics.execution?.converterRasterDiagnostics;
+      failure.converterRasterDiagnostics.protectedRepeat = protectedRepeat.semantics.execution?.converterRasterDiagnostics;
+      writeFailure();
+    }
+    assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics), 'Protected output changes document semantics; inspect the synthetic failure report for raster hashes and repeatability.');
     for (const name of Object.keys(packageProjects)) assert.equal(after.assemblyHashes[name], sha(join(protectedDirectory, name + '.dll')));
     const pageHashes = (directory, file = 'document.pdf', prefix = 'page', count = 2) => {
       run('pdftoppm', ['-r', '72', '-png', join(directory, file), join(directory, prefix)]);

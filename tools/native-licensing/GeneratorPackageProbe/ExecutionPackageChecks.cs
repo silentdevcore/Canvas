@@ -41,11 +41,12 @@ internal static class ExecutionPackageChecks
         ProductGrantChecks.Only("converter", design, checks);
         Denied(() => PvadLicense.Require(PvadLicenseProducts.Pdf), "PVADLIC012", "converter-does-not-grant-pdf", checks);
         var converted = new SortedDictionary<string, object>(StringComparer.Ordinal);
+        var rasterDiagnostics = new SortedDictionary<string, object>(StringComparer.Ordinal);
         foreach (var call in calls)
         foreach (var multiple in new[] { false, true })
         {
             var name = call.Name + (multiple ? ":multiple" : ":single");
-            converted[name] = Inspect(call.Run(multiple ? design : Design(false)), call.Format, multiple ? 2 : 1, name, checks);
+            converted[name] = Inspect(call.Run(multiple ? design : Design(false)), call.Format, multiple ? 2 : 1, name, checks, rasterDiagnostics);
         }
         Check(JsonSerializer.Serialize(design) == input, "converter-input-unchanged", checks);
         PvadLicense.LoadFromFile(args[0]);
@@ -108,7 +109,8 @@ internal static class ExecutionPackageChecks
         Failure(await Run(new() { Language = PvadCodeLanguages.CSharpBase64, Source = "Convert.FromBase64String(\"%%%\"); return new DesignExportDto();" }, null, null, "invalid-base64"), "PVADCODE130", "invalid-base64");
         Failure(await Run(new() { Language = PvadCodeLanguages.CSharpModel, Source = "return new DesignExportDto { Pages = new List<PageDto> { new PageDto { Id = \"same\" }, new PageDto { Id = \"same\" } } };" }, null, null, "duplicate"), "PVADCODE104", "duplicate");
         Check(!Directory.EnumerateFileSystemEntries(scratch).Any(), "worker-request-response-cleanup", checks);
-        return new { converters = converted, model = Projection(modelResult), base64 = Projection(base64Result), builder = Projection(builderResult), legacy = Projection(legacyResult) };
+        return new { converters = converted, converterRasterDiagnostics = rasterDiagnostics,
+            model = Projection(modelResult), base64 = Projection(base64Result), builder = Projection(builderResult), legacy = Projection(legacyResult) };
 
         void Success(PvadCodeWorkerResponse result, string name) => Check(result.Success && result.CanonicalDesign is not null && !result.Diagnostics.Any(d => d.Severity == "error"), "worker-success:" + name, checks);
         void Failure(PvadCodeWorkerResponse result, string code, string name) => Check(!result.Success && result.CanonicalDesign is null && result.PdfBytes is null && result.Diagnostics.Any(d => d.Code == code), "worker-denied:" + name + ":" + code, checks);
@@ -159,7 +161,8 @@ internal static class ExecutionPackageChecks
         return result.ToArray();
     }
 
-    private static object Inspect(byte[] bytes, string format, int pages, string name, List<string> checks)
+    private static object Inspect(byte[] bytes, string format, int pages, string name, List<string> checks,
+        IDictionary<string, object> rasterDiagnostics)
     {
         if (format == "odt" || (pages > 1 && format is "png" or "jpeg" or "tiff" or "svg"))
         {
@@ -180,22 +183,25 @@ internal static class ExecutionPackageChecks
                     content = Encoding.UTF8.GetBytes(xml.ToString(SaveOptions.DisableFormatting));
                 }
                 parts.Add(entry.FullName, Convert.ToHexStringLower(SHA256.HashData(content)));
-                if (format != "odt") Signature(content, format, name + ":" + entry.Name, checks);
+                if (format != "odt") Signature(content, format, name + ":" + entry.Name, checks, rasterDiagnostics);
             }
             if (format == "odt") Check(parts.Keys.SequenceEqual(new[] { "META-INF/manifest.xml", "content.xml", "meta.xml", "mimetype", "styles.xml" }), "converter-odt-parts:" + name, checks);
             return parts;
         }
-        Signature(bytes, format, name, checks);
+        Signature(bytes, format, name, checks, rasterDiagnostics);
         return Convert.ToHexStringLower(SHA256.HashData(bytes));
     }
 
-    private static void Signature(byte[] bytes, string format, string name, List<string> checks)
+    private static void Signature(byte[] bytes, string format, string name, List<string> checks,
+        IDictionary<string, object> rasterDiagnostics)
     {
         if (format is "png" or "jpeg")
         {
             Check(format == "png" ? bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71 }) : bytes.AsSpan().StartsWith(new byte[] { 255, 216, 255 }), "converter-image-signature:" + name, checks);
             using var bitmap = SKBitmap.Decode(bytes);
             Check(bitmap is not null && bitmap.Width > 0 && bitmap.Height > 0, "converter-image-decodes:" + name, checks);
+            rasterDiagnostics.Add(name, new { bitmap!.Width, bitmap.Height,
+                colorType = bitmap.ColorType.ToString(), pixelSha256 = Convert.ToHexStringLower(SHA256.HashData(bitmap.Bytes)) });
         }
         else if (format == "tiff") Check(bytes.AsSpan().StartsWith(new byte[] { 73, 73, 42, 0 }), "converter-tiff-signature:" + name, checks);
         else

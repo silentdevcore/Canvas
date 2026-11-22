@@ -19,6 +19,23 @@ function sample() {
     migrationConsumerResults: { 'migration-code': {}, 'migration-report': {}, 'migration-viewer': {} } };
 }
 
+test('signed admission jobs install Unix OCR dependencies before executing native probes', () => {
+  const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
+  const workflow = require('js-yaml').load(read('../../.github/workflows/native-library-licensing.yml'));
+  const job = workflow.jobs.licensing;
+  const firstProbe = job.steps.findIndex(step => step.run === 'node tools/native-licensing/with-test-license.mjs pdf');
+  const inventory = job.steps.findIndex(step => step.run === 'node --test tools/native-licensing/*.test.mjs');
+  for (const [os, library] of [['Linux', 'liblept.so.5'], ['macOS', 'libleptonica.dylib']]) {
+    const index = job.steps.findIndex(step => step.if === `runner.os == '${os}'` && step.run?.includes(library));
+    assert.ok(index > inventory && inventory >= 0 && index < firstProbe, os);
+    assert.ok(job.steps[index].run.includes('ln -s'));
+    assert.ok(!job.steps[index].run.includes('ln -sf'), 'Existing runtime files must not be overwritten.');
+  }
+  const probe = read('./ImporterEngineProbe/ImporterEngineProbe.csproj');
+  assert.ok(probe.includes('SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2"'));
+  assert.ok(probe.includes("IsOSPlatform('Linux')"));
+});
+
 test('platform acceptance requires the complete graph and actual OCR, code execution and document parity', () => {
   validatePlatformResult(sample(), 'linux');
   for (const property of ['nativeOcrExecuted', 'codeWorkerExecuted', 'codeWorkerPdfPixelsEqual', 'pdfPixelsEqual', 'jsonWordSpreadsheetEqual', 'migrationProviderComparisonPassed']) {
