@@ -336,6 +336,52 @@ not a demonstrated native-license defect; it does not count as acceptance.
 Primary progress remains **68/76 (89.5%)**. No OCR-quality work, thresholds,
 approved baselines, manufacturer keys or public releases are changed.
 
+The dedicated Windows diagnostic in
+[run 45051820251](https://github.com/silentdevcore/Canvas/actions/runs/45051820251),
+job `137298387655`, completed all 1,536 renders. Eight of the 24 cases are
+unstable across processes: default, explicit grayscale, linear-metric and
+bitmap-disabled text at 72 DPI in both page sizes. Each is stable within a
+process, and the default PNG hashes exactly reproduce the two variants from
+the real package consumer. Line widths and outline hashes are invariant.
+Unhinted and outline rendering are stable at both resolutions. This isolates
+the observed difference to hinted glyph rasterization, rather than
+obfuscation, wrapping, input data or an OCR-only initialization effect.
+The original report and cleanup are retained at
+`artifacts/native-ci-review/45051820251/windows-font-probe/1795369946516-5c960f51/`.
+
+The targeted correction routes all five image-export font creation paths
+through one private factory and disables hinting on Windows only. Font family,
+size, metrics, antialiasing and platform settings on other systems are retained.
+This covers PNG, JPEG and TIFF text, rich text, signature labels and table
+headers/cells, without changing PDF/vector rendering or license enforcement.
+No pixel tolerance, old baseline or input fixture is changed. A separate Patch
+fragment describes this intentional Windows rasterization correction; the
+diagnostic-only fragment remains `none`.
+
+The local signed Converter suite at
+`artifacts/native-engine-tests/1795370089963-083157ef/` passes 20 tests with no
+skips, including four font-policy/geometry cases and six repeated image-export
+cases. Its cleanup report verifies removed synthetic files, unchanged source
+trust and unchanged ordinary licensing outputs. All 207 native/version/release
+tooling contracts pass. The corrected renderer still requires its real Windows
+package rerun; the diagnostic success is not that acceptance.
+
+The corrected local macOS/x64 joint protected execution rehearsal also passes
+at `artifacts/native-joint-packages/1795370126975-634e5613/`: all sixteen
+assemblies, exact original-repeat and original/protected semantics, 62
+Converter cases, twelve CodeWorker cases and both PDF pixel comparisons.
+Its cleanup confirms removal of candidates and synthetic secrets, unchanged
+source trust and unchanged ordinary product builds. This is not a Windows
+execution result or closure of the all-platform gate.
+
+Separately, Linux/x64 job `137294983200` in run `45050709801` passes the complete
+54-assembly protected package graph, 5,790 protected assertions, reference
+repeat, 62 Converter cases, native OCR, CodeWorker and exact normal/CodeWorker
+PDF pixel comparisons. The reports remain under
+`artifacts/native-ci-review/45050709801/linux-packages/`.
+This closes no all-platform composite checkbox while Windows and macOS remain
+unverified for the correction.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory

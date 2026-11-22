@@ -191,7 +191,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
                     s.GetStr("fontFamily", "Arial"),
                     bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
                     SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-                using var font  = new SKFont(tf, fs);
+                using var font  = CreateRasterFont(tf, fs);
                 using var paint = new SKPaint { Color = color, IsAntialias = true };
                 DrawTextBlock(canvas, text, s, x, y, w, font, paint, scale);
                 break;
@@ -206,7 +206,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
                     s.GetStr("fontFamily", "Arial"),
                     bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
                     SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-                using var font  = new SKFont(tf, fs);
+                using var font  = CreateRasterFont(tf, fs);
                 using var paint = new SKPaint { Color = color, IsAntialias = true };
                 DrawTextBlock(canvas, HtmlToText(el.HtmlContent ?? el.Content ?? ""), s, x, y, w, font, paint, scale);
                 break;
@@ -246,7 +246,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
             {
                 var label = el.SignatureLabel ?? "Signature";
                 var fs    = 10f * scale;
-                using var font  = new SKFont(SKTypeface.Default, fs);
+                using var font  = CreateRasterFont(SKTypeface.Default, fs);
                 using var paint = new SKPaint { Color = SKColors.Gray, IsAntialias = true };
                 canvas.DrawLine(x + 4, y + h - 14 * scale, x + w - 4, y + h - 14 * scale, paint);
                 canvas.DrawText(label, x + 4, y + h - 4 * scale, font, paint);
@@ -280,7 +280,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
 
         using (var headerTf = SKTypeface.FromFamilyName(
             "Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright))
-        using (var headerFont = new SKFont(headerTf, 10f * scale))
+        using (var headerFont = CreateRasterFont(headerTf, 10f * scale))
         using (var headerPaint = new SKPaint { Color = matrixHeaderText, IsAntialias = true })
         {
             for (var hIndex = 0; hIndex < matrixHeaders.Count; hIndex++)
@@ -342,7 +342,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
                         bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
                         SKFontStyleWidth.Normal,
                         cstyle?.Italic == true ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright) ?? SKTypeface.Default;
-                    using var font  = new SKFont(tf, fs);
+                    using var font  = CreateRasterFont(tf, fs);
                     using var paint = new SKPaint { Color = ParseColor(cstyle?.Color ?? "#000000"), IsAntialias = true };
 
                     var pad     = (cstyle?.Padding is { } cpad ? (float)cpad : 4f) * scale;
@@ -364,6 +364,14 @@ public sealed class ImageDocumentExporter : DocumentExporter
                 }
             }
         }
+    }
+
+    private static SKFont CreateRasterFont(SKTypeface? typeface, float size)
+    {
+        var font = new SKFont(typeface, size);
+        // Windows hinted glyph masks can vary between processes even with identical outlines and metrics.
+        if (OperatingSystem.IsWindows()) font.Hinting = SKFontHinting.None;
+        return font;
     }
 
     private static bool HasCellBorder(CellStyleDto cs) =>

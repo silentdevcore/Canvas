@@ -1949,3 +1949,10 @@ and uploaded by the separate Windows job. It creates no license, uses no PVAD
 processing entry point, and changes no renderer, source trust or baseline.
 Its native-only results cannot establish protected-package equivalence or
 prove behavior after OCR and other product initialization in a full consumer.
+
+The Windows investigation reproduced the actual consumer hashes and isolated
+the process-dependent pixel to hinted glyph masks. Image exports now disable
+font hinting on Windows, preserving other platforms and all remaining font
+settings. The native-only diagnostic intentionally retains its default mode
+as a control; its reported instability is not an application regression or
+permission to weaken the exact original/protected package comparison.

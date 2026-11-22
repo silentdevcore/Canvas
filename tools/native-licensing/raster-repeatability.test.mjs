@@ -86,3 +86,13 @@ test('Windows font diagnostics are isolated from required package checks and upl
     'artifacts/native-font-repeatability/*/report.json', 'artifacts/native-font-repeatability/*/cleanup.json']);
   assert.ok(workflow.jobs['platform-package-protection'].steps.some(step => step.run === 'node tools/native-licensing/platform-package-check.mjs'));
 });
+
+test('all image-export fonts use the shared Windows-only raster policy without relaxing package comparisons', () => {
+  const source = readFileSync(new URL('../../src/Infrastructure/PVAD.Infrastructure.Converters/ImageDocumentExporter.cs', import.meta.url), 'utf8');
+  assert.equal((source.match(/new SKFont\(/g) ?? []).length, 1);
+  assert.equal((source.match(/CreateRasterFont\(/g) ?? []).length, 6);
+  assert.ok(source.includes('if (OperatingSystem.IsWindows()) font.Hinting = SKFontHinting.None;'));
+  const runner = readFileSync(new URL('./joint-package-rehearsal.mjs', import.meta.url), 'utf8');
+  assert.ok(runner.includes('assert.deepEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics)'));
+  assert.ok(runner.includes('assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics)'));
+});
