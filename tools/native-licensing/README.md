@@ -1927,3 +1927,25 @@ boundaries. The second requires ImageMagick and creates controlled samples,
 verifying exactly one changed pixel in each case. It tests the review tool,
 not native rendering or Windows compatibility. Its generated HTML remains in
 `artifacts/native-raster-tool-smoke/`; no server or license is required.
+
+### Isolated Native Font Repeatability
+
+```bash
+node tools/native-licensing/raster-repeatability.mjs
+```
+
+This separate, non-packable Skia-only executable accepts no documents or paths.
+It renders the fixed Converter text in 16 independent processes, with four
+repetitions of six font variants at two resolutions and two page sizes: 1,536
+renders. Default, explicit grayscale, unhinted, linear-metric, bitmap-disabled
+and outline variants are diagnostic experiments, not product configuration.
+Reports retain font settings, line widths, outline and pixel hashes, separating
+within-process from cross-process instability. A completed diagnostic may
+report unstable cases; this never passes or replaces the strict package gate.
+
+The build is isolated and removed on success or failure. Only `report.json`
+and `cleanup.json` under `artifacts/native-font-repeatability/` are retained
+and uploaded by the separate Windows job. It creates no license, uses no PVAD
+processing entry point, and changes no renderer, source trust or baseline.
+Its native-only results cannot establish protected-package equivalence or
+prove behavior after OCR and other product initialization in a full consumer.

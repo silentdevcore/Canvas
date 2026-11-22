@@ -302,6 +302,40 @@ overlay-digest failures and 179 passes. These are distinct observed results,
 not new license tasks or permission to regenerate snapshots. Algorithm, fixture,
 quality-threshold and baseline changes remain deferred as requested.
 
+#### Windows Image Evidence And Isolated Font Investigation
+
+The actual fixed-fixture review from
+[native run 45050709801](https://github.com/silentdevcore/Canvas/actions/runs/45050709801),
+Windows job `137294983206`, contains twelve comparisons: six are identical,
+and each of the other six differs by exactly one pixel. All six differences
+are in the 72-DPI calls; the 150-DPI calls are identical. The portrait sample
+differs at `(15, 12)`, from RGB `(87, 92, 103)` to `(17, 24, 39)`.
+The downloaded originals, differences and unmodified report remain at
+`artifacts/native-ci-review/45050709801/windows-raster-review/1795369255280-93b51d9e/raster-review/`.
+Visual inspection confirms matching page geometry, content and wrapping;
+this is investigation evidence, not human baseline approval, a renderer fix
+or a waiver of the exact original-repeat guard.
+
+An independent Skia-only probe now compares six font modes over sixteen
+processes, four repetitions, two resolutions and two page sizes. It retains
+line widths, font flags, outline hashes and pixel hashes, without changing
+the product renderer or accepting caller documents. A dedicated read-only
+Windows diagnostic job uploads only report and cleanup JSON. Instability is
+reported rather than retried away; completing this diagnostic cannot close
+the required package comparison. It does not exercise OCR initialization or
+claim the same runtime state as the full consumer.
+
+Local macOS/x64 evidence at
+`artifacts/native-font-repeatability/1795369821294-b5a884d9/` contains 1,536
+stable renders with zero unstable cases; isolated build cleanup passed. All
+206 native/version/release-author tooling tests pass, including five focused
+font-diagnostic validation contracts. The Windows diagnostic remains pending.
+The macOS package job in the same remote run failed during `npm ci` with
+`ETIMEDOUT`, before any package test. This is a preparation/network failure,
+not a demonstrated native-license defect; it does not count as acceptance.
+Primary progress remains **68/76 (89.5%)**. No OCR-quality work, thresholds,
+approved baselines, manufacturer keys or public releases are changed.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory

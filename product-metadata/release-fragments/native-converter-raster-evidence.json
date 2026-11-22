@@ -4,7 +4,7 @@
   "impact": "none",
   "components": ["sdk", "infrastructure"],
   "category": "improved",
-  "summary": "Added image-level diagnostics for native Converter package validation.",
+  "summary": "Added image-level and native font diagnostics for Converter package validation.",
   "breaking": false,
-  "reason": "Only fixed synthetic test PNGs, diagnostic tooling and CI evidence handling change; product renderers, licensing enforcement and approved baselines remain unchanged."
+  "reason": "Only fixed synthetic test images, an isolated font probe, diagnostic tooling and CI evidence handling change; product renderers, licensing enforcement and approved baselines remain unchanged."
 }
