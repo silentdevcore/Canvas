@@ -5,6 +5,18 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+if (args.Length == 1 && args[0] == "--native-package-self-test")
+{
+    Console.WriteLine(JsonSerializer.Serialize(NativePackageInspectionTests.Run()));
+    return;
+}
+
+if (args.Length == 4 && args[0] == "--native-package")
+{
+    Console.WriteLine(JsonSerializer.Serialize(NativePackageInspection.Inspect(args[1], args[2], args[3])));
+    return;
+}
+
 if (args.Length != 3) throw new ArgumentException("Expected assembly, compiler XML and destination XML.");
 var assemblyPath = Path.GetFullPath(args[0]);
 var sourcePath = Path.GetFullPath(args[1]);

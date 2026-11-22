@@ -121,6 +121,7 @@ foreach (var name in assemblies)
     file.Position = 0;
     assemblyHashes.Add(name, Convert.ToHexStringLower(SHA256.HashData(file)));
 }
+var inspectedNativePackages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 if (args.Length == 6)
 {
     foreach (var name in assemblies)
@@ -154,11 +155,71 @@ if (args.Length == 6)
             using var bytes = entry!.Open();
             Check(Convert.ToHexStringLower(SHA256.HashData(bytes)) == expected.Value.GetString(), "package-documentation-checksum:" + name + ":" + expected.Name);
         }
+        foreach (var native in bundle.GetProperty("nativePackages").EnumerateArray())
+        {
+            var identity = native.GetProperty("id").GetString()! + "/" + native.GetProperty("version").GetString()!;
+            var evidenceHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(native.GetRawText())));
+            if (inspectedNativePackages.TryGetValue(identity, out var previous))
+            {
+                Check(previous == evidenceHash, "native-evidence-consistent:" + name + ":" + identity);
+                continue;
+            }
+            inspectedNativePackages.Add(identity, evidenceHash);
+            var inspection = native.GetProperty("inspection");
+            Check(!native.GetProperty("legalApprovalGranted").GetBoolean() && !native.GetProperty("publicationReady").GetBoolean() &&
+                inspection.GetProperty("status").GetString() == "archive-and-cache-verified" &&
+                !inspection.GetProperty("nativeComponentsReviewed").GetBoolean() &&
+                inspection.GetProperty("archiveAuthenticity").GetString() == "not-verified", "native-evidence-no-approval:" + identity);
+            var dependencyArchive = Path.Combine(Path.GetDirectoryName(args[5])!, "third-party-feed", identity.Replace('/', '.').ToLowerInvariant() + ".nupkg");
+            using (var dependencyBytes = File.OpenRead(dependencyArchive))
+                Check(Convert.ToHexStringLower(SHA256.HashData(dependencyBytes)) == inspection.GetProperty("archiveSha256").GetString(), "native-dependency-archive:" + identity);
+            using var dependency = ZipFile.OpenRead(dependencyArchive);
+            foreach (var asset in inspection.GetProperty("assets").EnumerateArray())
+            {
+                var fileName = asset.GetProperty("file").GetString()!;
+                Check(!asset.GetProperty("architectureVerified").GetBoolean() &&
+                    asset.GetProperty("deploymentSelection").GetString() == "not-evaluated" &&
+                    asset.GetProperty("componentAttribution").GetString() == "review-required", "native-declaration-not-platform-approval:" + identity + ":" + fileName);
+                var entry = dependency.GetEntry(fileName);
+                Check(entry is not null && entry.Length == asset.GetProperty("bytes").GetInt64() && entry.Length <= 128L * 1024 * 1024,
+                    "native-dependency-entry:" + identity + ":" + fileName);
+                using var bytes = entry!.Open();
+                Check(Convert.ToHexStringLower(SHA256.HashData(bytes)) == asset.GetProperty("sha256").GetString(), "native-dependency-payload:" + identity + ":" + fileName);
+            }
+            foreach (var notice in native.GetProperty("noticeFiles").EnumerateArray())
+            {
+                var noticePath = "docs/third-party/" + notice.GetProperty("file").GetString();
+                var entry = package.GetEntry(noticePath);
+                Check(entry is not null, "native-associated-notice:" + identity + ":" + noticePath);
+                using var bytes = entry!.Open();
+                Check(Convert.ToHexStringLower(SHA256.HashData(bytes)) == notice.GetProperty("sha256").GetString(), "native-associated-notice-bytes:" + identity + ":" + noticePath);
+            }
+        }
+        if (name == "PVAD.FileImporter.ImageOcr")
+        {
+            using var specification = package.GetEntry(name + ".nuspec")!.Open();
+            var declarations = XDocument.Load(specification).Descendants().Where(element => element.Name.LocalName == "files").ToArray();
+            foreach (var expected in bundle.GetProperty("files").EnumerateObject().Where(item => item.Name.StartsWith("docs/runtime-assets/", StringComparison.Ordinal)))
+            {
+                var relative = expected.Name["docs/runtime-assets/".Length..];
+                var contentPath = "any/net10.0/third-party/runtime-assets/ocr/" + relative;
+                var entry = package.GetEntry("contentFiles/" + contentPath);
+                Check(entry is not null, "package-runtime-notice-path:" + relative);
+                using var bytes = entry!.Open();
+                Check(Convert.ToHexStringLower(SHA256.HashData(bytes)) == expected.Value.GetString(), "package-runtime-notice-bytes:" + relative);
+                var declaration = declarations.SingleOrDefault(element => ((string?)element.Attribute("include"))?.Replace('\\', '/') == contentPath);
+                Check((string?)declaration?.Attribute("copyToOutput") == "true" && (string?)declaration?.Attribute("flatten") == "false", "package-runtime-notice-copy-contract:" + relative);
+                var copied = Path.Combine(AppContext.BaseDirectory, "third-party", "runtime-assets", "ocr", relative.Replace('/', Path.DirectorySeparatorChar));
+                Check(File.Exists(copied), "consumer-runtime-notice-exists:" + relative);
+                using var copiedBytes = File.OpenRead(copied);
+                Check(Convert.ToHexStringLower(SHA256.HashData(copiedBytes)) == expected.Value.GetString(), "consumer-runtime-notice-bytes:" + relative);
+            }
+        }
     }
 }
 Console.WriteLine(JsonSerializer.Serialize(new
 {
-    checks, assemblyHashes, unlicensedCoreDtoTypes,
+    checks, assemblyHashes, unlicensedCoreDtoTypes, nativePackagesInspected = inspectedNativePackages.Count,
     singleProductProfiles = ProductGrantChecks.Profiles.Order(StringComparer.Ordinal).ToArray(),
     processArchitecture = RuntimeInformation.ProcessArchitecture.ToString(),
     semantics = new { json, wordXml = wordXml.ToString(SaveOptions.DisableFormatting), importer = importerSemantics, execution = executionSemantics,

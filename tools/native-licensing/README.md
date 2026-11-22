@@ -279,6 +279,96 @@ file/hash pairs pass the independent consumer. That run closed the original
 text acquisition gap, not its then-empty public XML comment sets, native/font
 review or legal/publication approvals. PDFs and third-party DLLs were unchanged.
 
+## NuGet Native Dependency Evidence
+
+The existing `PackageDocumentationProbe` also inspects native payloads through
+`System.IO.Compression.ZipArchive`; no new ZIP parser or product dependency is
+introduced. Its isolated synthetic checks run with
+`--native-package-self-test`. Protected package rehearsals execute these checks
+before collecting native dependency evidence, then require the independent
+consumer to recheck the original dependency archives and associated notices.
+
+For packages declaring native files, the collector compares archive/cache bytes,
+the local NuGet SHA512 digest, declared file coverage, sizes and SHA256 hashes.
+Path traversal, symbolic entries/files, case-colliding duplicates, omitted
+native entries, changed bytes and bounded-input violations fail. Inspection
+results may be reused for identical archives/paths, but cache hashes are checked
+again. Packages without declared native payloads are explicitly reported as
+uninspected in that scope, not certified free of native code.
+
+`nativePackages` in each documentation manifest ties payload evidence to original
+license/notice files without translating or rewriting those texts. The full
+rehearsal report deduplicates consistent evidence by exact package/version.
+Declared RID placement, legacy architecture folders and unassigned payloads are
+distinct. This broad inventory also retains incidental vendor symbols and
+platform metadata found under native directories; it does not label all such
+files executable libraries or remove third-party originals.
+
+Archive authenticity, binary architecture, deployment selection and complete
+statically linked component attribution are **not** certified. The wrapper's
+declared MIT/Apache license is never treated as approval for every embedded
+component. Application-owned assets, container OS packages, unresolved sources
+and legal/distribution decisions retain their separate existing gates.
+
+The local macOS/x64 verification is
+`artifacts/native-joint-packages/1795340908674-5f1166a3/`: 54 protected modules,
+52 packages, 909 unchanged public types, 654 original and 5,850 protected
+consumer assertions. Its native inventory contains eight dependency archives
+and 45 payloads, with 220 native-evidence assertions and 22 isolated .NET
+archive/cache checks. All 193 tooling tests and 73 Documentation tests pass;
+Documentation builds. OCR, converter/provider comparisons, normal/worker PDF
+pixels and unchanged vendor DLL checks pass. Candidate binaries and synthetic
+key/license/support work are removed, leaving the report/cleanup records.
+
+These results strengthen the original notice item, not all-platform or legal
+acceptance. The [main checklist](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#native-nuget-dependency-evidence-checkpoint)
+keeps component/source review, container OS attribution, unknown application
+asset provenance and final distribution approvals explicitly open.
+
+## Application-Owned Runtime Notices
+
+The [runtime asset registry](../../assets/licenses/runtime-assets/README.md)
+binds thirteen font faces, twenty OCR models and fifteen optional local macOS
+native libraries. `node tools/native-licensing/runtime-assets.mjs` validates
+source bytes, original notices, classification coverage and generated bundles.
+Its tests are included in the existing native tooling CI glob.
+
+Fonts and OCR have separate bundles. API and Designer receive font notices;
+the OCR library/worker and OCR-dependent package documentation receive OCR
+notices. No new fonts are added to standalone PDF package dependencies.
+All product font/model bytes and approved rendering references stay unchanged.
+
+Four Sans faces match the Debian Liberation 1.07.4 binary archive, not the OFL
+2.1.5 Serif/Mono release. Nineteen OCR models match the fixed official fast-data
+tree. The Ukrainian model and fifteen ignored local dylibs have explicit
+unresolved provenance; missing local dylibs on clean clones are allowed, but
+changed or newly introduced files fail classification. A generic adjacent
+license is never substituted for an unknown source.
+
+The source registry and shipped profiles always declare publication readiness
+and legal approval false. Sans source/distribution obligations, unresolved
+assets, transitive native components, container OS notices and final legal
+review remain within the original packaging task. This is not a new task or
+permission to distribute the local binary bundle.
+
+The complete 54-assembly/52-package processing run is recorded at
+`artifacts/native-joint-packages/1795338994300-052ae063/`. Its successful archive
+checks did not establish the later runtime-copy contract. The final focused
+Importer run at `artifacts/native-joint-packages/1795339943105-d338562b/` checks
+14 protected assemblies, 13 libraries, both worker notice bundles and the
+actual offline consumer. Ten additional checks enforce archive paths, metadata
+and copied bytes. This caught and corrected framework fallback shadowing and
+double-appended recursive directories; the packer now uses a directory-only,
+framework-matched content path with explicit non-flattening.
+
+`artifacts/native-runtime-notice-output/1795339402221-c2140e46/` records the
+separate API/worker publish and production Designer asset/notice comparisons.
+All 33 tracked font/model binaries match HEAD; both signed package runs clean
+their private candidates, and the publish probe removes its owned build/output
+directories. These are local attribution/packaging results, not production,
+Windows/Linux or complete native-redistribution approval. The original
+documentation/notices task remains open for the explicitly listed reviews.
+
 ## Public API Documentation Coverage
 
 The nineteen previously empty native PDF and migration modules now document

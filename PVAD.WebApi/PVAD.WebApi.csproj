@@ -18,6 +18,7 @@
     <Content Include="../assets/fonts/liberation/*" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../assets/fonts/noto-arabic/*.ttf" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../assets/fonts/noto-arabic/LICENSE" Link="fonts/NotoSansArabic.LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../assets/licenses/runtime-assets/bundles/fonts/**/*" Link="third-party/runtime-assets/fonts/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../product-metadata/designer-features.json" LogicalName="PVAD.ProductMetadata.designer-features.json" />
     <EmbeddedResource Include="../product-metadata/pvad-releases.json" LogicalName="PVAD.ProductMetadata.pvad-releases.json" />
     <EmbeddedResource Include="../product-metadata/data-processing-inventory.json" LogicalName="PVAD.ProductMetadata.data-processing-inventory.json" />

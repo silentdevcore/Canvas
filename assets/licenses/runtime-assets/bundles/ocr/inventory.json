@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "profile": "ocr",
+  "scope": "catalog-of-application-owned-assets-not-proof-of-selected-deployment-or-native-transitive-licenses",
+  "sourceRegistrySha256": "d3d4968991a1c45ea89741f79299e32bb8ac1df29f5ea8c3e57187e4e37e4377",
+  "publicationReady": false,
+  "legalApprovalGranted": false,
+  "groups": [
+    {
+      "id": "tessdata-fast",
+      "profile": "ocr",
+      "provenance": "source-matched",
+      "declaredLicense": "Apache License 2.0",
+      "source": {
+        "url": "https://github.com/tesseract-ocr/tessdata_fast/tree/87416418657359cb625c412a48b6e1d6d41c29bd",
+        "commit": "87416418657359cb625c412a48b6e1d6d41c29bd",
+        "evidence": "Nineteen files match Git blob IDs in the fixed upstream tree; both SHA256 and Git object SHA1 are checked locally."
+      },
+      "reviewNote": "Applies only to the nineteen listed models. The Ukrainian model does not match this tree and is deliberately excluded from this license attribution.",
+      "notices": [
+        {
+          "file": "notices/Tessdata-Fast-LICENSE.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "sourceUrl": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/LICENSE"
+        }
+      ],
+      "assets": [
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ara.traineddata",
+          "sha256": "e3206d3dc87fd50c24a0fb9f01838615911d25168f4e64415244b67d2bb3e729",
+          "optionalLocalFile": false,
+          "gitBlob": "c8d129c67821c1592cac46836686b057ecc203dc"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ces.traineddata",
+          "sha256": "934bcaf97ef3348413263331131c9fa7f55f30db333c711929c124fb635f7e1b",
+          "optionalLocalFile": false,
+          "gitBlob": "dd6fc79a62f9fcd1c7c6da06b31bb4fdb10dc173"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/chi_sim.traineddata",
+          "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+          "optionalLocalFile": false,
+          "gitBlob": "388bac276d033d06e5ed5ba7a7ad14ae58f97dab"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/dan.traineddata",
+          "sha256": "acb1fd074487a31d1294fcdfd7d7c673467ffd8aeacb2ccd61ebcbf04eb4e2fa",
+          "optionalLocalFile": false,
+          "gitBlob": "85501b582937493f9ae6a64ccd0a6bb0a2ea33d5"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/deu.traineddata",
+          "sha256": "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d",
+          "optionalLocalFile": false,
+          "gitBlob": "97ed7b2b60f2771c07040660ef0f6daf596dc7bf"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ell.traineddata",
+          "sha256": "4fba8a0b461038d51f1c20d043d4f2ac38c4e778f1b90830847f7bd8fa3ba726",
+          "optionalLocalFile": false,
+          "gitBlob": "ed98ae1a88d84414da316e6eeab3232f2c68639b"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/eng.traineddata",
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "optionalLocalFile": false,
+          "gitBlob": "bbef4675053b5b468cdb477053e28b1c698ba08e"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/fin.traineddata",
+          "sha256": "61a04cd62b507c3d9ae0e1cda399e6715ebf49dea9df47897c8acdcd3bd3e13c",
+          "optionalLocalFile": false,
+          "gitBlob": "73f92402f1891b9066e0e145f245145a2402105c"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/fra.traineddata",
+          "sha256": "ced037562e8c80c13122dece28dd477d399af80911a28791a66a63ac1e3445ca",
+          "optionalLocalFile": false,
+          "gitBlob": "d9e2b2160be0d1ca3b8f1bf2730fae476ef3b4a6"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ita.traineddata",
+          "sha256": "b8f89e1e785118dac4d51ae042c029a64edb5c3ee42ef73027a6d412748d8827",
+          "optionalLocalFile": false,
+          "gitBlob": "edbffbe0e51892b240630b5eeabededa7e7c9c4f"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/jpn.traineddata",
+          "sha256": "1f5de9236d2e85f5fdf4b3c500f2d4926f8d9449f28f5394472d9e8d83b91b4d",
+          "optionalLocalFile": false,
+          "gitBlob": "c4178f89991bde90b7fdc647e3e1901868423bd0"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/kor.traineddata",
+          "sha256": "6b85e11d9bbf07863b97b3523b1b112844c43e713df8b66418a081fd1060b3b2",
+          "optionalLocalFile": false,
+          "gitBlob": "60986d44497689f3abace0b148199476d93292e1"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/nld.traineddata",
+          "sha256": "ced0e5e046a84c908a6aa7accbef9a232c4a5d9a8276691b81c6ee64d02963f6",
+          "optionalLocalFile": false,
+          "gitBlob": "53ce95a9c2488a9a0228939944a184157373d0ae"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/nor.traineddata",
+          "sha256": "0451eb4f8049ae78196806bf878a389a2f40f1386fe038568cf4441226ba6ef2",
+          "optionalLocalFile": false,
+          "gitBlob": "9209df2c9904c127437c07e16c287cdefd024e7c"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/pol.traineddata",
+          "sha256": "c4476cdbc0e33d898d32345122b7be1cbf85ace15f920f06c7714756e1ef79b2",
+          "optionalLocalFile": false,
+          "gitBlob": "2382f568f0ce0c4c0a7f4380a291255514e5e97f"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/por.traineddata",
+          "sha256": "c4932b937207a9514b7514d518b931a99938c02a28a5a5a553f8599ed58b7deb",
+          "optionalLocalFile": false,
+          "gitBlob": "e9f373e95c66b4bf557c263721ef31f78e5bc301"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/rus.traineddata",
+          "sha256": "e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225",
+          "optionalLocalFile": false,
+          "gitBlob": "b146cb2263acbc6383f8e92ea0ce759537687bb8"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/spa.traineddata",
+          "sha256": "6f2e04d02774a18f01bed44b1111f2cd7f3ba7ac9dc4373cd3f898a40ea6b464",
+          "optionalLocalFile": false,
+          "gitBlob": "72e901f13ca52cfe34cf239a368b9ed3c0ddaf26"
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/swe.traineddata",
+          "sha256": "f7304988d41f833efebcc2d529df54b1903ecebbc3da1faabd19a0fddd4fe586",
+          "optionalLocalFile": false,
+          "gitBlob": "684e1fa66e4a55b983febf5f9ed04f26ad946e59"
+        }
+      ]
+    },
+    {
+      "id": "ukrainian-ocr-model-unresolved",
+      "profile": "ocr",
+      "provenance": "unresolved",
+      "declaredLicense": null,
+      "source": null,
+      "reviewNote": "Local bytes do not match the checked tessdata_fast, tessdata or tessdata_best trees. Obtain an exact origin and applicable license before redistribution; do not substitute model bytes silently.",
+      "notices": [],
+      "assets": [
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/tessdata/ukr.traineddata",
+          "sha256": "b2bfcb9c27abff334015dcf3b2fd114dce569a7fa27c3e9ca55e286da1b3b3ee",
+          "optionalLocalFile": false
+        }
+      ]
+    },
+    {
+      "id": "local-macos-native-binaries-unresolved",
+      "profile": "ocr",
+      "provenance": "unresolved",
+      "declaredLicense": null,
+      "source": null,
+      "reviewNote": "Ignored local dylibs have no verified build receipts or complete component notices. Filenames and ABI versions do not establish upstream versions. Absence is allowed on clean clones; present bytes must match this inventory. They are not approved for redistribution.",
+      "notices": [],
+      "assets": [
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libarchive.13.dylib",
+          "sha256": "2cf8392b9550ab8f0a229d9f53f6ca67229120a390e1414169de2dc2c0e46223",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libb2.1.dylib",
+          "sha256": "c92fc85a733dadac6ff1ed1392f194c9a8043c48f222de22f545bb9856a63994",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libgif.dylib",
+          "sha256": "61e56fe15bae113b84aa8df5becec41a4af64aadc77c51e4debcb7613176088f",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libjpeg.8.dylib",
+          "sha256": "e5b3ad1a3703c561ce644b4a431662efa8115bdfbefa69dd325e18d2a950b4f9",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libleptonica-1.82.0.dylib",
+          "sha256": "f090d7c57d0e51015fa37755377f4517c4796437e6619adb1ca121e0f557cedd",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/liblz4.1.dylib",
+          "sha256": "f354f6c4811048b222cf706cd7fc7fd80599c2f81b28ff8bd3511af1b736516f",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/liblzma.5.dylib",
+          "sha256": "c0862367f12ec2cd86644ee7155fe69be3058de558b7ed6b7fb3bb73e3728d58",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libopenjp2.7.dylib",
+          "sha256": "5e7440e953f8361abfd609853f5c3b46d40316e54ba54434eebae482ae7074c4",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libpng16.16.dylib",
+          "sha256": "53b9a3e56446546d534ee4802187d38e0d24fba2f1f6999ab5199648dc4e2180",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libsharpyuv.0.dylib",
+          "sha256": "d643b38c0c1c7dfb6aee2f1d7f6105a9a90d2fe6b7d2718d4770434f8134237b",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libtesseract50.dylib",
+          "sha256": "0bd2c925993bfb1d203821481bb21d91ea823a4cc6c02708abec4074718b3d4d",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libtiff.6.dylib",
+          "sha256": "6e36cabd0db76d401b79edaab914fb37614cc2324f5a8ff4d032bcaffa2dd588",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libwebp.7.dylib",
+          "sha256": "8195350ebb4a8245dac12e58093080a09bd668d3c0d32681b0cac24ebb3d2891",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libwebpmux.3.dylib",
+          "sha256": "ae25e674c3ae04223a6db0b1647c7ea4675b2c24cf7e12c9153cad5452f81d9d",
+          "optionalLocalFile": true
+        },
+        {
+          "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libzstd.1.dylib",
+          "sha256": "4c9e61d94ed4838bb16a09a7f9ba97ea868e73dfb32d036098e5e11d420fdfba",
+          "optionalLocalFile": true
+        }
+      ]
+    }
+  ],
+  "unresolvedGroups": [
+    "ukrainian-ocr-model-unresolved",
+    "local-macos-native-binaries-unresolved"
+  ],
+  "limitations": [
+    "This inventory and its notice bundles are technical attribution, not legal approval or proof of all distribution obligations.",
+    "Native assets in NuGet dependencies and container operating-system packages require their own component and source review; a managed package license alone does not cover them.",
+    "Bundled catalog entries do not certify which RID assets or distro language data are selected in a deployed image.",
+    "Unresolved Ukrainian model and local macOS binaries remain explicit release blockers; adding an adjacent generic license would not resolve provenance.",
+    "Liberation Sans corresponding-source and redistribution obligations require review. Serif and Mono remain the separately pinned OFL 1.1 version."
+  ]
+}

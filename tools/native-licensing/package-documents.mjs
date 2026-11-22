@@ -4,6 +4,8 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadRuntimeAssets, materializeRuntimeBundle } from './runtime-assets.mjs';
+import { nativePayload } from './native-package-assets.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(join(root, 'pvad-designer/package.json'));
@@ -115,7 +117,7 @@ export function loadNoticeSources(directory = noticeRegistryDirectory) {
   return registry;
 }
 
-export function collectNugetNotices(assets, destination, registryDirectory = noticeRegistryDirectory) {
+export function collectNugetNotices(assets, destination, registryDirectory = noticeRegistryDirectory, nativeAssetInspector = null) {
   mkdirSync(destination, { recursive: false });
   const registry = loadNoticeSources(registryDirectory);
   const records = [];
@@ -166,7 +168,12 @@ export function collectNugetNotices(assets, destination, registryDirectory = not
           role: file.role, source: 'pinned-upstream-source', sourceUrl: file.sourceUrl });
       }
     }
-    records.push({ ...metadata, nuspecSha256: hash(readFileSync(source)), notices: copied,
+    const nativeFiles = library.files.filter(file => nativePayload(file));
+    assert.ok(!nativeFiles.length || typeof nativeAssetInspector === 'function', 'A native package inspector is required: ' + key);
+    const nativeAssets = nativeFiles.length ? nativeAssetInspector({ packageDirectory,
+      archiveFile: `${id.toLowerCase()}.${version.toLowerCase()}.nupkg`, files: library.files })
+      : { status: 'not-inspected-no-native-payload-in-restore-manifest', assets: [] };
+    records.push({ ...metadata, nuspecSha256: hash(readFileSync(source)), notices: copied, nativeAssets,
       textStatus: copied.some(item => item.role === 'license') ? 'included-unreviewed' : 'license-text-required',
       sourcePin: upstream ? { packageSha256: upstream.packageSha256, repositoryUrl: upstream.repositoryUrl,
         sourceCommit: upstream.sourceCommit, sourceBinding: upstream.sourceBinding, releaseTag: upstream.releaseTag ?? null } : null,
@@ -176,7 +183,7 @@ export function collectNugetNotices(assets, destination, registryDirectory = not
   return records;
 }
 
-export function preparePackageDocuments({ name, version, assets, destination, documentation }) {
+export function preparePackageDocuments({ name, version, assets, destination, documentation, nativeAssetInspector }) {
   assert.match(name, /^PVAD\.[A-Za-z0-9.]+$/);
   assert.match(version, /^\d+\.\d+\.\d+$/);
   assert.ok(!existsSync(destination), 'Never replace an existing documentation bundle.');
@@ -196,9 +203,18 @@ export function preparePackageDocuments({ name, version, assets, destination, do
   copyFileSync(join(root, 'tools/native-licensing/package-assets/README.md'), join(destination, 'README.md'));
   copyFileSync(documentation.file, join(destination, name + '.xml'));
   assert.equal(hash(readFileSync(documentation.file)), documentation.xmlSha256);
-  const notices = collectNugetNotices(assets, join(destination, 'third-party'));
+  const notices = collectNugetNotices(assets, join(destination, 'third-party'), noticeRegistryDirectory, nativeAssetInspector);
   writeFileSync(join(destination, 'third-party/inventory.json'), JSON.stringify({ schemaVersion: 1,
-    scope: 'resolved-nuget-closure-including-build-dependencies-not-native-os-audit', packages: notices }, null, 2) + '\n');
+    scope: 'resolved-nuget-closure-with-declared-native-payloads-not-os-or-deployment-attribution', packages: notices }, null, 2) + '\n');
+  const includesOcr = name === 'PVAD.FileImporter.ImageOcr' ||
+    Object.keys(assets.libraries).some(key => key.startsWith('PVAD.FileImporter.ImageOcr/'));
+  let runtimeAssets = null;
+  if (includesOcr) {
+    const evidence = loadRuntimeAssets();
+    runtimeAssets = { ...materializeRuntimeBundle(evidence, 'ocr', join(destination, 'runtime-assets')),
+      registrySha256: evidence.registrySha256, publicationReady: false,
+      unresolvedGroups: evidence.registry.groups.filter(group => group.profile === 'ocr' && group.provenance === 'unresolved').map(group => group.id) };
+  }
   const files = {};
   function visit(directory) {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -224,6 +240,11 @@ export function preparePackageDocuments({ name, version, assets, destination, do
       xmlSha256: documentation.xmlSha256, sourceSha256: documentation.sourceSha256,
       assemblySha256: documentation.assemblySha256, completeApiCommentCoverageClaimed: false },
     thirdPartyPackages: notices.length,
+    nativePackages: notices.filter(record => record.nativeAssets.assets.length).map(record => ({ id: record.id,
+      version: record.version, declaredPackageLicense: record.license, sourcePin: record.sourcePin,
+      noticeFiles: record.notices.map(notice => ({ file: notice.file, sha256: notice.sha256 })),
+      inspection: record.nativeAssets, legalApprovalGranted: false, publicationReady: false })),
+    runtimeAssets,
     missingLicenseTexts: notices.filter(item => item.textStatus === 'license-text-required').map(item => item.id + '/' + item.version),
     nativeAssetAndFontNoticeReviewRequired: true, legalApprovalGranted: false, files };
   assert.equal(result.xml.assembly, name);

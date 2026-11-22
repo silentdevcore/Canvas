@@ -54,6 +54,27 @@ Converter formats, or run licensed imports/image analysis/OCR until
 manufacturer trust is provisioned and the respective native product grant is loaded. Development tests
 use isolated synthetic builds, not a runtime exemption or an embedded trial key.
 
+## Native Dependency Evidence
+
+Prepared native package documentation includes original NuGet notice files and
+an inventory of declared native payloads. The standard .NET ZIP reader compares
+the restored file list with original archive entries and verifies cached bytes,
+SHA256 hashes and the local NuGet archive SHA512 digest. It does not load or
+execute those libraries, authenticate the publisher or approve redistribution.
+
+`documentation-manifest.json` records native packages, original notice
+references, archive hashes and per-file evidence. RID values come from package
+paths; legacy `x86`/`x64` folders are recorded separately without inventing a RID.
+Native directories may also contain vendor symbols or platform metadata. A
+payload count is not a count of executable libraries. Neither placement nor
+archive equality proves binary architecture, actual deployment selection,
+supported platforms or complete statically linked component attribution.
+
+Application-owned fonts/OCR models, container OS libraries, manufacturer keys,
+commercial/legal decisions and cross-platform acceptance retain their separate
+release gates. The [licensing checklist](../checklists/PVAD.Native-Library-Licensing-And-Protection.md)
+records actual validation results and the fixed remaining original scope.
+
 ## Activation API
 
 ```csharp

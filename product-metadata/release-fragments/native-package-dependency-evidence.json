@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-package-dependency-evidence",
+  "impact": "patch",
+  "components": ["sdk", "importer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Native SDK packages now include archive-verified dependency payload inventories linked to their original license notices.",
+  "breaking": false
+}

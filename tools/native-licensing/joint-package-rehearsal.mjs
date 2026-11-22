@@ -10,6 +10,8 @@ import { protect, checkRepository } from './pvad-native-licensing.mjs';
 import { createTestLicenses } from './with-test-license.mjs';
 import { rehearseSupportRetention } from './support-retention-rehearsal.mjs';
 import { preparePackageDocuments, validatePublicDocumentation } from './package-documents.mjs';
+import { loadRuntimeAssets, materializeRuntimeBundle } from './runtime-assets.mjs';
+import { createNativePackageInspector } from './native-package-assets.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = join(root, 'tools/native-licensing');
@@ -130,6 +132,8 @@ export function main(args) {
   let succeeded = false;
   let report;
   try {
+    const runtimeEvidence = includeImporter ? loadRuntimeAssets() : null;
+    const runtimeAssetNotices = {};
     const licenses = createTestLicenses(secret, Date.now(), includeMigrations, includeMigrations, false, true, true);
     const build = join(work, 'original-build'), consumerBuild = join(work, 'consumer-build');
     const protectedDirectory = join(work, 'protected-support-only');
@@ -143,6 +147,8 @@ export function main(args) {
     const original = join(build, 'bin/GeneratorPackageProbe/release');
     const originalWorker = join(build, `bin/${workerName}/release`);
     const originalCodeWorker = join(build, `bin/${codeWorkerName}/release`);
+    if (includeImporter) runtimeAssetNotices.originalWorker = materializeRuntimeBundle(runtimeEvidence, 'ocr',
+      join(originalWorker, 'third-party/runtime-assets/ocr'), true);
     if (includeImporter) copyFileSync(join(originalWorker, workerName + '.dll'), join(original, workerName + '.dll'));
     const workerVendorDifferences = {};
     if (includeExecution) {
@@ -181,6 +187,8 @@ export function main(args) {
     const codeWorkerHashes = {};
     if (includeImporter) {
       cpSync(originalWorker, protectedWorker, { recursive: true, filter: path => !/\.(pdb|map|cs)$/i.test(path) });
+      runtimeAssetNotices.protectedWorker = materializeRuntimeBundle(runtimeEvidence, 'ocr',
+        join(protectedWorker, 'third-party/runtime-assets/ocr'), true);
       for (const name of readdirSync(protectedWorker).filter(name => name.startsWith('PVAD.') && name.endsWith('.dll'))) {
         assert.ok(modules.includes(name));
         copyFileSync(join(protectedDirectory, name), join(protectedWorker, name));
@@ -220,8 +228,17 @@ export function main(args) {
     run('dotnet', ['build', join(here, 'PackageDocumentationProbe/PackageDocumentationProbe.csproj'), '-c', 'Release',
       '--artifacts-path', documentationBuild, ...common]);
     const documentationProbe = join(documentationBuild, 'bin/PackageDocumentationProbe/release/PackageDocumentationProbe.dll');
+    const nativeInspectionTests = jsonResult(run('dotnet', [documentationProbe, '--native-package-self-test']));
+    assert.equal(nativeInspectionTests.checks.length, 22);
+    assert.equal(new Set(nativeInspectionTests.checks).size, 22);
+    assert.equal(nativeInspectionTests.temporaryFixturesRemoved, true);
+    assert.equal(nativeInspectionTests.legalApprovalGranted, false);
+    assert.equal(nativeInspectionTests.publicationReady, false);
+    const nativeAssetInspector = createNativePackageInspector(({ archive, packageDirectory, files }) =>
+      jsonResult(run('dotnet', [documentationProbe, '--native-package', archive, packageDirectory, JSON.stringify(files)])));
     const documentationDirectory = join(work, 'package-documents'); mkdirSync(documentationDirectory);
     const packageDocumentation = {};
+    const nativePackageInventory = {};
     for (const name of Object.keys(packageProjects)) {
       const originalXml = join(build, `bin/${name}/release/${name}.xml`);
       const publicXml = join(work, name + '.public.xml'), protectedXml = join(work, name + '.protected.xml');
@@ -232,13 +249,20 @@ export function main(args) {
       assert.equal(before.xmlSha256, after.xmlSha256, 'Public documentation changed after protection: ' + name);
       assert.equal(after.removedMembers, 0, 'Public documentation no longer resolves: ' + name);
       const projectAssets = readJson(join(build, `obj/${name}/project.assets.json`));
-      const bundle = preparePackageDocuments({ name, version, assets: projectAssets,
+      const bundle = preparePackageDocuments({ name, version, assets: projectAssets, nativeAssetInspector,
         destination: join(documentationDirectory, name), documentation: { ...before, file: protectedXml, assemblySha256: after.assemblySha256 } });
       packageDocumentation[name] = { publicMembers: bundle.xml.publicMembers, removedMembers: bundle.xml.removedMembers,
         publicTypes: before.publicTypes, documentedPublicTypes: before.documentedPublicTypes,
         undocumentedPublicTypes: before.undocumentedPublicTypes,
         xmlSha256: bundle.xml.xmlSha256, missingLicenseTexts: bundle.missingLicenseTexts, thirdPartyPackages: bundle.thirdPartyPackages,
+        nativePackages: bundle.nativePackages.length,
+        nativePayloads: bundle.nativePackages.reduce((sum, record) => sum + record.inspection.assets.length, 0),
         legalApprovalGranted: false, publicationReady: false };
+      for (const record of bundle.nativePackages) {
+        const key = `${record.id}/${record.version}`;
+        if (nativePackageInventory[key]) assert.deepEqual(nativePackageInventory[key], record, 'Native dependency evidence changed between package closures.');
+        else nativePackageInventory[key] = record;
+      }
     }
     console.error('Packing exact protected assemblies into an isolated local feed.');
     for (const [name, project] of Object.entries(packageProjects)) run('dotnet', ['pack', project, '-c', 'Release', '--no-build', '--no-restore',
@@ -274,7 +298,10 @@ export function main(args) {
     delete consumerEnvironment.MSBUILDNOINPROCNODE;
     run('dotnet', ['build', probe, '-c', 'Release', '--no-restore', '--artifacts-path', consumerBuild, ...common, ...profileProperties,
       `-p:RestorePackagesPath=${packages}`], { env: consumerEnvironment });
+    if (includeImporter) runtimeAssetNotices.independentConsumer = materializeRuntimeBundle(runtimeEvidence, 'ocr',
+      join(consumerBuild, 'bin/GeneratorPackageProbe/release/third-party/runtime-assets/ocr'), true);
     const after = invoke(join(consumerBuild, 'bin/GeneratorPackageProbe/release'), join(work, 'protected-result'), [feed], protectedWorker, protectedCodeWorker);
+    assert.equal(after.nativePackagesInspected, Object.keys(nativePackageInventory).length, 'The independent consumer omitted native dependency evidence.');
     if (includeImporter && process.env.PVAD_PACKAGE_REQUIRE_NATIVE_OCR === '1')
       assert.ok(before.semantics.importer.nativeOcrExecuted && after.semantics.importer.nativeOcrExecuted,
         'Native OCR must execute in both the original and protected worker; skipping is not platform acceptance.');
@@ -338,7 +365,7 @@ export function main(args) {
       protectedAssemblyHashes: after.assemblyHashes, pdfPages: pages.length, pdfPixelsEqual: true,
       jsonWordSpreadsheetEqual: true, thirdPartyAssembliesUnchanged: thirdParty.length, offlineDependencyPackages: dependencyCount,
       independentPackageReferences: Object.keys(packageProjects).length, productWideAcceptance: false,
-      packageDocumentation, documentationPublicationReady: false,
+      packageDocumentation, documentationPublicationReady: false, runtimeAssetNotices, nativePackageInventory, nativeInspectionTests,
       importerSmokeCompared: includeImporter, workerAssemblyHashes: workerHashes,
       codeWorkerAssemblyHashes: codeWorkerHashes, codeWorkerExecuted: includeExecution,
       converterSmokeCompared: includeExecution, codeWorkerPdfPixelsEqual: includeExecution,

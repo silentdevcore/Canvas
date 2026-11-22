@@ -105,7 +105,7 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Audit protected output with ILSpy; compare public API and internal-name visibility without claiming logic is unrecoverable.
 - [x] Test local-feed package consumers and complete native transitive dependency graphs; the 54-assembly/52-library milestone below closes local graph acceptance, not WebApi/friend-boundary or cross-platform acceptance.
 - [ ] Verify protected packages on Windows, Linux, and macOS, including native dependencies and code execution.
-- [ ] Supply EULA references, third-party notices, XML documentation, and offline examples; see the [package documentation checkpoint](#package-documentation-checkpoint) for completed tooling and remaining content/review gaps.
+- [ ] Supply EULA references, third-party notices, XML documentation, and offline examples; see the [package documentation checkpoint](#package-documentation-checkpoint) and [runtime attribution checkpoint](#runtime-asset-attribution-checkpoint) for completed tooling and remaining content/review gaps.
 - [x] Exclude anti-debugger crashes, process scanning, self-modifying loaders, and antivirus-hostile techniques.
 - [x] Treat strong names as identities rather than an anti-tamper security boundary.
 
@@ -121,6 +121,140 @@ is the starting inventory, not completed enforcement coverage.
 - [x] Record actual commands/results and leave unavailable platform evidence open.
 
 ### Current Verification Evidence
+
+#### Native NuGet Dependency Evidence Checkpoint
+
+The original notice/distribution task now includes a native dependency inventory
+for prepared SDK packages. The existing metadata probe uses the standard .NET
+ZIP reader to compare recognized native payload paths in fresh restore data,
+original archives and the extracted NuGet cache. It checks local archive SHA512
+digests, archive/payload SHA256 hashes, sizes, coverage and safe paths without
+extracting archive entries or loading/executing vendor libraries. Case-colliding
+duplicates, symbolic entries/files, archive/cache drift, omitted native entries
+and bounded-input violations fail. Reused archive evidence still requires
+current cache bytes to match.
+
+Each package documentation manifest links native payload evidence to its
+original license/notice files. It keeps declared RIDs, legacy architecture
+folders and unassigned native-directory content distinct. Payloads include
+vendor symbols and WinRT metadata, not just library candidates. Architecture,
+actual deployment selection, publisher authenticity and complete statically
+linked component attribution are explicitly **not** certified. A wrapper's
+declared MIT/Apache license is not substituted for component rights. Existing
+upstream source pins and all original notice bytes remain unchanged.
+
+The final local macOS/x64 run at
+`artifacts/native-joint-packages/1795340908674-5f1166a3/` passes all 54 protected
+assemblies, 52 libraries and 909 public types. Public API hashes match the
+preceding checkpoint. The original consumer passes 654 assertions and the
+protected offline consumer 5,850 unique assertions, including 964 documentation
+file/hash pairs and 220 native-evidence assertions. The latter cover eight
+original dependency archives, 45 payload hashes, fourteen associated original
+notice files and 41 cross-package consistency checks, plus scope/size/coverage
+assertions. All eight native package records remain unapproved for publication.
+
+The inventory covers HarfBuzzSharp NativeAssets Linux/macOS/Win32 14.4.0.100,
+SkiaSharp NativeAssets Linux.NoDependencies/macOS/Win32 3.119.2, Tesseract 5.2.0
+and ZXing.Net 0.16.9 native-directory metadata. This is catalog evidence, not
+eight tested operating-system deployments or 45 executable libraries. The
+independent consumer verifies original archive and entry bytes again from the
+offline dependency feed, and checks the retained notice texts in the actual
+first-party packages. Both worker bundles and the consumer retain their two
+exact OCR notice files.
+
+All 22 isolated .NET archive/cache checks pass and remove their owned fixtures.
+All 193 native/version/release-author Node tests pass. All 73 Documentation
+tests and the Documentation build pass; existing warnings remain visible.
+Actual native OCR, 62 converter cases, 12 CodeWorker requests and the provider
+comparisons pass. Normal and worker PDF pixels match, and all 39 third-party
+DLLs remain unchanged. No font/model, public API, product operation, permission,
+license grant or production configuration is changed in this checkpoint.
+
+The complete rehearsal removes synthetic keys/licenses, candidates, maps and
+private build work, preserving source trust and normal product outputs. The
+supplemental local-restore snapshot and model-read observation are retained at
+`artifacts/native-dependency-inspection/` with their narrower scope labels; the
+latter is a deferred OCR finding, not additional licensing implementation.
+The package README, technical guides and a customer-facing Patch fragment are
+updated. VERSION, published releases, live databases, registries and user-owned
+solution/IDE changes remain untouched. No commit, push, publication or service
+restart is performed.
+
+The original notice item remains open for actual component/source/distribution
+review, container OS attribution and final legal/EULA approval. Unknown local
+dylib/model provenance is not resolved by NuGet archive matching. The fixed
+primary scope remains **68/76 (89.5%)**; no new primary tasks or unsupported
+platform/release approvals are added.
+
+#### Runtime Asset Attribution Checkpoint
+
+The [application-owned runtime registry](../assets/licenses/runtime-assets/README.md)
+records thirteen fonts, twenty OCR models and fifteen optional ignored local
+macOS native libraries. All 33 tracked font/model binaries remain byte-identical
+to HEAD. No approved visual reference, model, runtime library, signing key,
+license candidate, published release or product version is replaced.
+
+Eight Serif/Mono faces retain their existing Liberation 2.1.5 provenance. Four
+Sans faces identify as 1.07.4 and match every corresponding member of the pinned
+Debian binary archive exactly; their original GPL v2/exception declaration is
+not replaced by the adjacent newer OFL. The Noto font matches a fixed upstream
+commit, retaining both original notices. Nineteen OCR models match the pinned
+official fast-data tree, independently checked by Git blob ID and SHA256.
+The Ukrainian model does not match the checked datasets and receives no
+fabricated license. Local dylib filenames/ABI numbers are not treated as
+upstream-version evidence; their exact source and component notices remain
+unresolved. Optional absence on clean clones is allowed, not unclassified or
+changed local binaries.
+
+Separate font and OCR notice profiles retain exact original bytes. API and
+Designer builds receive font notices; OCR output and its package documentation
+receive OCR notices without introducing a font dependency into PDF-only SDKs.
+The guard rejects changed assets/notices, unsafe paths, symlinks, duplicate or
+unclassified runtime files, stale generated copies and invented approval flags.
+All inventories explicitly deny publication readiness and legal approval.
+
+The initial full macOS/x64 run at
+`artifacts/native-joint-packages/1795338994300-052ae063/` passes 54 protected
+assemblies, 52 libraries and 909 public types: 654 original and 5,620 protected
+assertions, including 964 documentation-file/hash pairs. All 39 vendor DLLs,
+ordinary/CodeWorker PDF pixels, converter/provider behavior and actual OCR pass.
+This report predates the stricter runtime copy checks: the supplemental consumer
+observer did not confirm its expected path before cleanup. Diagnosis found an
+`any`-framework notice group shadowed by framework-specific OCR content, plus
+a duplicated recursive subdirectory. These original results are not rewritten
+or presented as proof that the then-existing copy paths were correct.
+
+The corrected package uses the same framework group as its other content,
+a directory-only package path and explicit non-flattening. The final focused
+run at `artifacts/native-joint-packages/1795339943105-d338562b/` passes 14
+protected assemblies, 13 libraries and 776 public types: 229 original and
+2,047 protected assertions, including 350 documentation-file/hash pairs and
+ten new archive/copy/consumer checks. The runner verifies both notice files in
+the original worker, protected worker and independent offline consumer. Actual
+native OCR is mandatory and passes, PDF pixels match, and all 34 vendor DLLs
+remain unchanged. No package-protection guard is disabled. A diagnostic attempt
+to pack the licensing core normally was correctly rejected; owned diagnostic
+packages/builds were removed after inspecting OCR metadata. Both signed
+rehearsals remove candidate binaries, licenses, keys, maps and private work,
+retaining report/cleanup evidence only.
+
+The isolated API/OCR publish and production Designer check at
+`artifacts/native-runtime-notice-output/1795339402221-c2140e46/` also passes:
+API receives thirteen unchanged fonts/six notice files and 35 present OCR/native
+assets/two notice files; the separately published OCR worker receives the same
+35 assets/two notices. Designer ships thirteen byte-identical fonts/six notices.
+These asset counts reflect this local installation, not all-platform coverage.
+The owned API/worker build and publish directories are removed. No service or
+database is started or changed. Designer typecheck/build and all 182
+native/version/release-author tooling tests pass. Existing analyzer, NPOI and
+Vite warnings remain visible; no terms are accepted or thresholds relaxed.
+
+Remaining work within the original notice/distribution item is exact provenance
+for the Ukrainian model/local dylibs, Sans corresponding-source/distribution
+review, transitive native/container OS attribution and final legal/EULA review.
+These are not additional primary tasks. Progress remains **68/76 (89.5%)**;
+the eight original open items, platform/CI acceptance and external approvals
+are not closed by attribution tooling. No commit, push or publication occurs.
 
 #### Public API Documentation Checkpoint
 
@@ -3318,6 +3452,7 @@ changes remain outside that commit and this milestone.
 
 | Finding | Impact And Priority | Handling |
 | --- | --- | --- |
+| Local `combine_tessdata -d` and `-l` reject the unchanged Ukrainian model while both commands read the English model successfully | P2 OCR model usability/integrity investigation, separate from its already unresolved source/license provenance. This local tool result does not establish all-platform OCR behavior. | Preserve original bytes and existing provenance blocker. Investigate after native licensing; do not silently replace a model, attribute another dataset's license or expand primary scope. |
 | Canonical Code Workspace execution with a downgraded role is rejected by its endpoint authorization policy with the stable general permission diagnostic; the Designer path resolver does not select the operation-specific code permission, so the middleware-specific permission-denial audit is not produced | P2 consistency/observability follow-up. Execution is correctly denied before any job is created; this is not evidence of an authorization bypass. | Preserve the current diagnostic and policy. Review resolver/endpoint audit alignment after native licensing, without expanding this plan's primary task count. |
 | Older JSON naming audit reports 475 pre-existing baseline mismatches | Separate naming/evidence reconciliation; assess before general repository naming acceptance | Preserve original pins/evidence. Review after the native licensing plan; no rename, pin regeneration or new licensing task is authorized here. |
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |
