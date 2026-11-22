@@ -1900,3 +1900,30 @@ Reports remain under `artifacts/coverage-native-licensing-20261115/`; the
 [coverage checkpoint](../../checklists/PVAD.Native-Library-Licensing-And-Protection.md#local-coverage-instrumentation-acceptance)
 records the scope and cleanup evidence. Linux/Windows and full CI acceptance are
 still separate gates.
+
+## Synthetic Converter Raster Investigation
+
+The package consumer captures the twelve PNG outputs of its fixed synthetic
+Converter fixture in private candidate work. On a reference-repeat or protected
+output mismatch, `raster-review.mjs` checks fixture identity, the complete case
+set, geometry and encoded output hashes before generating a 200-percent HTML
+review, exact zero-fuzz ImageMagick pixel counts and highlighted differences.
+This is diagnostic evidence, never an approved replacement baseline. Missing
+tools or invalid evidence cannot bypass the existing exact comparison.
+
+The platform job exposes a separate `native-converter-raster-review-<os>`
+artifact containing only the generated HTML, report and fixed synthetic PNGs.
+All keys, license files, source, support maps and package candidates remain
+excluded. Successful rehearsals remove the private PNGs with their candidate
+directories and retain only their normal reports.
+
+```bash
+node --test tools/native-licensing/raster-review.test.mjs
+node tools/native-licensing/raster-review-smoke.mjs
+```
+
+The first command uses a mocked comparator to test filesystem and validation
+boundaries. The second requires ImageMagick and creates controlled samples,
+verifying exactly one changed pixel in each case. It tests the review tool,
+not native rendering or Windows compatibility. Its generated HTML remains in
+`artifacts/native-raster-tool-smoke/`; no server or license is required.

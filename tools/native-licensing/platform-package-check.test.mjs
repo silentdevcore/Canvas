@@ -89,7 +89,7 @@ test('the platform wrapper owns only temporary native aliases and never edits so
   assert.ok(read('./joint-package-rehearsal.mjs').includes('skipping is not platform acceptance'));
 });
 
-test('each reviewed OS runs the full protected graph and uploads no binaries, keys or maps', () => {
+test('each reviewed OS keeps package candidates, keys and maps out of report and synthetic-image artifacts', () => {
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const workflow = require('js-yaml').load(read('../../.github/workflows/native-library-licensing.yml'));
   const licensingSteps = workflow.jobs.licensing.steps;
@@ -109,5 +109,13 @@ test('each reviewed OS runs the full protected graph and uploads no binaries, ke
   assert.deepEqual(upload.with.path.trim().split('\n').map(path => path.trim()), [
     'artifacts/native-platform-packages/*/report.json', 'artifacts/native-platform-packages/*/cleanup.json',
     'artifacts/native-joint-packages/*/report.json', 'artifacts/native-joint-packages/*/cleanup.json']);
+  const rasterUpload = job.steps.find(step => step.name === 'Upload fixed synthetic Converter raster review');
+  assert.equal(rasterUpload.if, 'always()');
+  assert.equal(rasterUpload.with['if-no-files-found'], 'ignore');
+  assert.deepEqual(rasterUpload.with.path.trim().split('\n').map(path => path.trim()), [
+    'artifacts/native-joint-packages/*/raster-review/index.html',
+    'artifacts/native-joint-packages/*/raster-review/report.json',
+    'artifacts/native-joint-packages/*/raster-review/*.png']);
+  assert.ok(job.steps.some(step => step.if === "runner.os == 'Windows'" && step.run?.includes('magick -version')));
   assert.ok(!JSON.stringify(job).includes('nuget push'));
 });

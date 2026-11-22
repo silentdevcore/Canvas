@@ -13,6 +13,7 @@ import { rehearseSupportRetention } from './support-retention-rehearsal.mjs';
 import { preparePackageDocuments, validatePublicDocumentation } from './package-documents.mjs';
 import { loadRuntimeAssets, materializeRuntimeBundle } from './runtime-assets.mjs';
 import { createNativePackageInspector } from './native-package-assets.mjs';
+import { createRasterReview } from './raster-review.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = join(root, 'tools/native-licensing');
@@ -177,13 +178,28 @@ export function main(args) {
         PVAD_PACKAGE_TEST_FONT: join(root, 'assets/fonts/liberation/LiberationSans-Regular.ttf') } }));
     const before = invoke(original, join(work, 'original-result'));
     const baselineRepeat = invoke(original, join(work, 'original-baseline-repeat-result'));
-    if (!isDeepStrictEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics)))
-      writeFileSync(join(output, 'report.json'), JSON.stringify({ schemaVersion: 1,
+    const attachRasterReview = (failure, first, second, firstDirectory, secondDirectory, labels) => {
+      if (!includeExecution) return;
+      try {
+        failure.rasterReview = createRasterReview({ left: first.semantics.execution, right: second.semantics.execution,
+          leftDirectory: join(firstDirectory, 'converter-rasters'), rightDirectory: join(secondDirectory, 'converter-rasters'),
+          outputDirectory: join(output, 'raster-review'), labels });
+      } catch {
+        failure.rasterReview = { status: 'unavailable', diagnosticOnly: true, baselineApproved: false };
+      }
+    };
+    if (!isDeepStrictEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics))) {
+      const failure = { schemaVersion: 1,
         scope: 'synthetic-reference-repeatability-failure', status: 'failed', syntheticOnly: true,
         platform: process.platform, productWideAcceptance: false, publicationPerformed: false,
         originalRepeatEqual: false, testJitPolicy: 'inherited-runtime-settings',
         converterRasterDiagnostics: { original: before.semantics.execution?.converterRasterDiagnostics,
-          originalRepeat: baselineRepeat.semantics.execution?.converterRasterDiagnostics } }, null, 2) + '\n');
+          originalRepeat: baselineRepeat.semantics.execution?.converterRasterDiagnostics } };
+      writeFileSync(join(output, 'report.json'), JSON.stringify(failure, null, 2) + '\n');
+      attachRasterReview(failure, before, baselineRepeat, join(work, 'original-result'),
+        join(work, 'original-baseline-repeat-result'), ['Original first run', 'Original repeat run']);
+      writeFileSync(join(output, 'report.json'), JSON.stringify(failure, null, 2) + '\n');
+    }
     assert.deepEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics),
       'The unprotected reference must be reproducible; do not accept a later render as a replacement baseline.');
     const originalMigrations = {};
@@ -357,6 +373,9 @@ export function main(args) {
         converterRasterDiagnostics: { original: before.semantics.execution?.converterRasterDiagnostics,
           protected: after.semantics.execution?.converterRasterDiagnostics } };
       const writeFailure = () => writeFileSync(join(output, 'report.json'), JSON.stringify(failure, null, 2) + '\n');
+      writeFailure();
+      attachRasterReview(failure, before, after, join(work, 'original-result'),
+        join(work, 'protected-result'), ['Original first run', 'Protected run']);
       writeFailure();
       const originalRepeat = invoke(original, join(work, 'original-repeat-result'));
       const protectedRepeat = invoke(join(consumerBuild, 'bin/GeneratorPackageProbe/release'),

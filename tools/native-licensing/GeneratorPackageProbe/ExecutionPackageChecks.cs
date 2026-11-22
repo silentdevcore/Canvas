@@ -42,11 +42,13 @@ internal static class ExecutionPackageChecks
         Denied(() => PvadLicense.Require(PvadLicenseProducts.Pdf), "PVADLIC012", "converter-does-not-grant-pdf", checks);
         var converted = new SortedDictionary<string, object>(StringComparer.Ordinal);
         var rasterDiagnostics = new SortedDictionary<string, object>(StringComparer.Ordinal);
+        var rasterDirectory = Path.Combine(args[4], "converter-rasters");
+        Directory.CreateDirectory(rasterDirectory);
         foreach (var call in calls)
         foreach (var multiple in new[] { false, true })
         {
             var name = call.Name + (multiple ? ":multiple" : ":single");
-            converted[name] = Inspect(call.Run(multiple ? design : Design(false)), call.Format, multiple ? 2 : 1, name, checks, rasterDiagnostics);
+            converted[name] = Inspect(call.Run(multiple ? design : Design(false)), call.Format, multiple ? 2 : 1, name, checks, rasterDiagnostics, rasterDirectory);
         }
         Check(JsonSerializer.Serialize(design) == input, "converter-input-unchanged", checks);
         PvadLicense.LoadFromFile(args[0]);
@@ -109,7 +111,7 @@ internal static class ExecutionPackageChecks
         Failure(await Run(new() { Language = PvadCodeLanguages.CSharpBase64, Source = "Convert.FromBase64String(\"%%%\"); return new DesignExportDto();" }, null, null, "invalid-base64"), "PVADCODE130", "invalid-base64");
         Failure(await Run(new() { Language = PvadCodeLanguages.CSharpModel, Source = "return new DesignExportDto { Pages = new List<PageDto> { new PageDto { Id = \"same\" }, new PageDto { Id = \"same\" } } };" }, null, null, "duplicate"), "PVADCODE104", "duplicate");
         Check(!Directory.EnumerateFileSystemEntries(scratch).Any(), "worker-request-response-cleanup", checks);
-        return new { converters = converted, converterRasterDiagnostics = rasterDiagnostics,
+        return new { converterFixtureId = "native-converter-fixed-120x160-v1", converters = converted, converterRasterDiagnostics = rasterDiagnostics,
             model = Projection(modelResult), base64 = Projection(base64Result), builder = Projection(builderResult), legacy = Projection(legacyResult) };
 
         void Success(PvadCodeWorkerResponse result, string name) => Check(result.Success && result.CanonicalDesign is not null && !result.Diagnostics.Any(d => d.Severity == "error"), "worker-success:" + name, checks);
@@ -162,7 +164,7 @@ internal static class ExecutionPackageChecks
     }
 
     private static object Inspect(byte[] bytes, string format, int pages, string name, List<string> checks,
-        IDictionary<string, object> rasterDiagnostics)
+        IDictionary<string, object> rasterDiagnostics, string rasterDirectory)
     {
         if (format == "odt" || (pages > 1 && format is "png" or "jpeg" or "tiff" or "svg"))
         {
@@ -183,17 +185,17 @@ internal static class ExecutionPackageChecks
                     content = Encoding.UTF8.GetBytes(xml.ToString(SaveOptions.DisableFormatting));
                 }
                 parts.Add(entry.FullName, Convert.ToHexStringLower(SHA256.HashData(content)));
-                if (format != "odt") Signature(content, format, name + ":" + entry.Name, checks, rasterDiagnostics);
+                if (format != "odt") Signature(content, format, name + ":" + entry.Name, checks, rasterDiagnostics, rasterDirectory);
             }
             if (format == "odt") Check(parts.Keys.SequenceEqual(new[] { "META-INF/manifest.xml", "content.xml", "meta.xml", "mimetype", "styles.xml" }), "converter-odt-parts:" + name, checks);
             return parts;
         }
-        Signature(bytes, format, name, checks, rasterDiagnostics);
+        Signature(bytes, format, name, checks, rasterDiagnostics, rasterDirectory);
         return Convert.ToHexStringLower(SHA256.HashData(bytes));
     }
 
     private static void Signature(byte[] bytes, string format, string name, List<string> checks,
-        IDictionary<string, object> rasterDiagnostics)
+        IDictionary<string, object> rasterDiagnostics, string rasterDirectory)
     {
         if (format is "png" or "jpeg")
         {
@@ -202,6 +204,9 @@ internal static class ExecutionPackageChecks
             Check(bitmap is not null && bitmap.Width > 0 && bitmap.Height > 0, "converter-image-decodes:" + name, checks);
             rasterDiagnostics.Add(name, new { bitmap!.Width, bitmap.Height,
                 colorType = bitmap.ColorType.ToString(), pixelSha256 = Convert.ToHexStringLower(SHA256.HashData(bitmap.Bytes)) });
+            if (format == "png")
+                File.WriteAllBytes(Path.Combine(rasterDirectory,
+                    Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(name))) + ".png"), bytes);
         }
         else if (format == "tiff") Check(bytes.AsSpan().StartsWith(new byte[] { 73, 73, 42, 0 }), "converter-tiff-signature:" + name, checks);
         else

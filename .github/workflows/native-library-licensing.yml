@@ -359,6 +359,8 @@ jobs:
           $binary = Get-ChildItem "$env:ChocolateyInstall\lib\poppler" -Recurse -Filter pdftoppm.exe | Select-Object -First 1
           if (-not $binary) { throw 'Poppler executable was not installed' }
           $binary.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          magick -version
+          if ($LASTEXITCODE -ne 0) { throw 'ImageMagick is unavailable' }
       - name: Validate platform evidence contracts
         run: node --test tools/native-licensing/platform-package-check.test.mjs
       - name: Verify all protected packages with real OCR and CodeWorker
@@ -374,6 +376,18 @@ jobs:
             artifacts/native-joint-packages/*/report.json
             artifacts/native-joint-packages/*/cleanup.json
           if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload fixed synthetic Converter raster review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-converter-raster-review-${{ matrix.os }}
+          path: |
+            artifacts/native-joint-packages/*/raster-review/index.html
+            artifacts/native-joint-packages/*/raster-review/report.json
+            artifacts/native-joint-packages/*/raster-review/*.png
+          if-no-files-found: ignore
           retention-days: 14
 
   webapi-protection:

@@ -250,6 +250,58 @@ User-owned solution/IDE changes, source trust, product version, published releas
 history, production keys and publication approvals remain unchanged. Primary
 progress remains 68/76 (89.5%) until the composite acceptance gates pass.
 
+#### Synthetic Converter Raster Evidence
+
+The Windows reference-repeat guard remains failing; hashes alone do not
+establish the visual extent or cause. The independent consumer now retains
+the twelve PNG results from its fixed `native-converter-fixed-120x160-v1`
+fixture only inside the owned candidate work directory. No customer document,
+license, source code, key or support map is used as image evidence.
+
+On a failed original-repeat or original/protected comparison, the reviewer
+verifies the exact case set, fixture identity, page geometry and encoded output
+hashes before copying regular, bounded PNG files into `raster-review/`.
+ImageMagick validates the decoded dimensions and produces zero-fuzz absolute
+pixel counts and difference images. The self-contained `index.html` displays
+both inputs and the difference at 200 percent. Publication is atomic; invalid
+inputs, symlinks, changed bytes, missing tools and failed comparisons cannot
+publish a partial review or approve a baseline. A missing review does not
+bypass the original exact assertion.
+
+The platform workflow has a separate artifact named
+`native-converter-raster-review-<os>`. Its only allowed paths are the generated
+review HTML, report JSON and PNGs. Existing report-only artifacts keep their
+original restrictions; package candidates, assemblies, license envelopes,
+private keys and support maps remain excluded. Ordinary successful runs retain
+no image evidence; temporary result images are removed with candidate work.
+
+All 201 native/version/release-author tooling tests pass, including six new
+mocked-comparator filesystem and validation contracts. A separate actual
+ImageMagick smoke run at
+`artifacts/native-raster-tool-smoke/1795358431761-fa71f8b4/` generates controlled
+images and correctly detects exactly one changed pixel in all twelve cases.
+This proves the review tool, not the native renderer or Windows behavior.
+The reproducible `node tools/native-licensing/raster-review-smoke.mjs` run at
+`artifacts/native-raster-tool-smoke/1795368929663-6b6a1ec5/` also passes. Local
+Chromium desktop (1440 by 1000) and mobile (375 by 812) checks load all 36 images
+and twelve sections without page-level horizontal overflow; screenshots remain
+next to that smoke report. These are generated-report layout checks, not native
+Windows comparisons or an application-wide visual approval.
+The local macOS/x64 protected execution rehearsal at
+`artifacts/native-joint-packages/1795358399175-7f0748c1/` passes 511 original and
+2,637 protected assertions, reference repeat, all 62 Converter and twelve
+CodeWorker cases, exact semantics and both PDF pixel comparisons under inherited
+runtime settings. Cleanup confirms unchanged source trust/regular outputs and
+removal of all private candidates and synthetic secrets. Real Windows image
+evidence remains required; no platform or primary acceptance checkbox is closed.
+
+The [subsequent native matrix](https://github.com/silentdevcore/Canvas/actions/runs/45032999990)
+also reaches the deferred ImageAnalysis failures on all three pinned systems:
+Linux has 40 failures and 141 passes; Windows remains failing; macOS has two
+overlay-digest failures and 179 passes. These are distinct observed results,
+not new license tasks or permission to regenerate snapshots. Algorithm, fixture,
+quality-threshold and baseline changes remain deferred as requested.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory

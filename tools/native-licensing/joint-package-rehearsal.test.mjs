@@ -73,6 +73,11 @@ test('raster investigation preserves exact comparison and reports only synthetic
   assert.ok(probe.includes('pixelSha256 = Convert.ToHexStringLower(SHA256.HashData(bitmap.Bytes))'));
   assert.ok(probe.includes('SHA256.HashData(bytes)'));
   assert.ok(probe.includes('SHA256.HashData(content)'));
+  assert.ok(probe.includes('converterFixtureId = "native-converter-fixed-120x160-v1"'));
+  assert.ok(probe.includes('Path.Combine(args[4], "converter-rasters")'));
+  assert.ok(probe.includes('Content = "Synthetic converter content"'));
+  assert.ok(source.includes('failure.rasterReview = createRasterReview('));
+  assert.ok(source.includes("rasterReview = { status: 'unavailable', diagnosticOnly: true, baselineApproved: false }"));
 });
 
 test('the consumer defaults to packages and verifies exact hashes, JSON and native licensing', () => {

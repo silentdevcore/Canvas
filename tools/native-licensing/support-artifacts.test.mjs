@@ -143,16 +143,32 @@ test('restoration requires an independent archive checksum, not only public-key 
   assert.ok(!existsSync(target));
 }));
 
-test('CI runs synthetic retention and uploads only its reports, never support data or recipient keys', () => {
+test('CI never uploads support data or recipient keys and isolates fixed synthetic image evidence', () => {
   const require = createRequire(new URL('../../pvad-designer/package.json', import.meta.url));
   const workflow = require('js-yaml').load(readFileSync(new URL('../../.github/workflows/native-library-licensing.yml', import.meta.url), 'utf8'));
   const steps = workflow.jobs.licensing.steps;
   assert.ok(steps.some(step => step.run === 'node tools/native-licensing/support-retention-rehearsal.mjs'));
-  const uploads = Object.values(workflow.jobs).flatMap(job => job.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@')));
+  const uploads = Object.entries(workflow.jobs).flatMap(([jobName, job]) => job.steps
+    .filter(step => step.uses?.startsWith('actions/upload-artifact@')).map(step => ({ ...step, jobName })));
   const paths = uploads.flatMap(step => step.with.path.trim().split('\n').map(value => value.trim()));
   assert.ok(paths.includes('artifacts/native-support-retention/*/report.json'));
   assert.ok(paths.includes('artifacts/native-support-retention/*/cleanup.json'));
-  for (const path of paths) assert.match(path, /\/(?:[^/]+\.trx|report[^/]*\.json|cleanup\.json|run\.json|[^/]+-admission\.json|surface-validation\.json)$/);
+  let syntheticReviews = 0;
+  for (const upload of uploads) {
+    const entries = upload.with.path.trim().split('\n').map(value => value.trim());
+    if (upload.jobName === 'platform-package-protection' && upload.name === 'Upload fixed synthetic Converter raster review') {
+      syntheticReviews++;
+      assert.deepEqual(entries, [
+        'artifacts/native-joint-packages/*/raster-review/index.html',
+        'artifacts/native-joint-packages/*/raster-review/report.json',
+        'artifacts/native-joint-packages/*/raster-review/*.png']);
+      assert.equal(upload.if, 'always()');
+      assert.equal(upload.with['if-no-files-found'], 'ignore');
+      continue;
+    }
+    for (const path of entries) assert.match(path, /\/(?:[^/]+\.trx|report[^/]*\.json|cleanup\.json|run\.json|[^/]+-admission\.json|surface-validation\.json)$/);
+  }
+  assert.equal(syntheticReviews, 1);
   const runner = readFileSync(new URL('./joint-package-rehearsal.mjs', import.meta.url), 'utf8');
   assert.ok(runner.includes('rehearseSupportRetention({ original, protectedDirectory, modules, work, version })'));
 });
