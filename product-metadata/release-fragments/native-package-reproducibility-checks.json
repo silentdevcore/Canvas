@@ -6,5 +6,5 @@
   "category": "improved",
   "summary": "Added reproducibility checks for native library package validation.",
   "breaking": false,
-  "reason": "Only pinned test runners, test-process JIT policy and repeatability guards change; product libraries and approved rendering baselines are unchanged."
+  "reason": "Only pinned test runners and repeatability guards change; consumers retain normal runtime settings, and product libraries and approved rendering baselines are unchanged."
 }

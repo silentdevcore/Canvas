@@ -64,10 +64,11 @@ test('raster investigation preserves exact comparison and reports only synthetic
   const source = read('./joint-package-rehearsal.mjs');
   for (const value of ['originalRepeatEqual:', 'protectedRepeatEqual:', 'synthetic-converter-comparison-failure',
     "status: 'failed'", 'converterRasterDiagnostics:',
-    "DOTNET_TieredCompilation: '0'", 'unprotectedRepeatVerified: true',
+    "testJitPolicy: 'inherited-runtime-settings'", 'unprotectedRepeatVerified: true',
     'assert.deepEqual(comparableSemantics(before.semantics), comparableSemantics(baselineRepeat.semantics)',
     'assert.deepEqual(comparableSemantics(after.semantics), comparableSemantics(before.semantics)'])
     assert.ok(source.includes(value), value);
+  assert.ok(!source.includes('DOTNET_TieredCompilation:'));
   const probe = read('./GeneratorPackageProbe/ExecutionPackageChecks.cs');
   assert.ok(probe.includes('pixelSha256 = Convert.ToHexStringLower(SHA256.HashData(bitmap.Bytes))'));
   assert.ok(probe.includes('SHA256.HashData(bytes)'));

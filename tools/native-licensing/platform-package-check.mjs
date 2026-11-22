@@ -42,7 +42,7 @@ export function validatePlatformResult(report, platform) {
   assert.ok(report.unlicensedContractChecks > report.unlicensedCoreDtoTypes.length);
   for (const name of ['syntheticOnly', 'pdfPixelsEqual', 'jsonWordSpreadsheetEqual', 'nativeOcrExecuted',
     'codeWorkerExecuted', 'codeWorkerPdfPixelsEqual', 'migrationProviderComparisonPassed', 'unprotectedRepeatVerified']) assert.equal(report[name], true, name);
-  assert.equal(report.testJitPolicy, 'tiered-compilation-disabled');
+  assert.equal(report.testJitPolicy, 'inherited-runtime-settings');
   for (const name of ['publicationPerformed', 'productionTrustProvisioned', 'productWideAcceptance']) assert.equal(report[name], false, name);
   assert.equal(report.converterCallCases, 62);
   assert.equal(report.codeWorkerRequestCases, 12);

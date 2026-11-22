@@ -13,7 +13,7 @@ function sample() {
     singleProductProducts: ['converter', 'importer', 'pdf', 'spreadsheet', 'word'], singleProductChecks: 67,
     unlicensedMetadataAssemblies: 54, unlicensedCoreDtoTypes: ['PVAD.Core.Contracts.DesignExportDto'], unlicensedContractChecks: 2,
     syntheticOnly: true, pdfPixelsEqual: true, jsonWordSpreadsheetEqual: true, nativeOcrExecuted: true,
-    unprotectedRepeatVerified: true, testJitPolicy: 'tiered-compilation-disabled',
+    unprotectedRepeatVerified: true, testJitPolicy: 'inherited-runtime-settings',
     codeWorkerExecuted: true, codeWorkerPdfPixelsEqual: true, migrationProviderComparisonPassed: true,
     publicationPerformed: false, productionTrustProvisioned: false, productWideAcceptance: false,
     converterCallCases: 62, codeWorkerRequestCases: 12,

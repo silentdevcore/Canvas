@@ -219,6 +219,25 @@ The first result is never replaced by a later, more convenient baseline. Exact
 original/protected comparisons remain mandatory; Windows acceptance stays open
 until the actual experiment passes. A failed reference repeat also produces
 content-free failure evidence rather than silently retrying to green.
+The [fixed-JIT experiment](https://github.com/silentdevcore/Canvas/actions/runs/45032079759)
+fails the new Windows reference-repeat guard before obfuscation begins. Disabling
+tiered compilation therefore does not resolve this instability. That ineffective
+override is removed; both consumers inherit the same normal runtime settings,
+and strict reference-repeat verification remains mandatory. No attempt is
+approved as a new rendering baseline. The local macOS/x64 fixed-JIT rehearsal
+at `artifacts/native-joint-packages/1795357095926-99baa388/` passes, including
+the reference repeat and cleanup, but it cannot establish Windows acceptance
+or replace a subsequent run with the final inherited-runtime configuration.
+
+The previous corrected-head run verifies the full PostgreSQL API step,
+Windows Report Designer regressions and macOS signed OCR compatibility as
+successful steps. It then reaches Windows ImageAnalysis regressions that had
+not run past the earlier failure: 154 pass and 27 fail out of 181. Observed
+failures include JSON line endings, glyph/text recognition and benchmark
+thresholds. These are not demonstrated native-license failures. Following the
+owner's scope instruction, record them below without changing algorithms,
+snapshots, expected text or quality limits. The broad CI and platform tasks
+remain open rather than excluding these tests or claiming complete acceptance.
 All 195 native/version/release-author tooling tests pass. The local macOS/x64
 16-assembly execution rehearsal at
 `artifacts/native-joint-packages/1795355696004-29f842a8/` passes 511 original and
@@ -3565,6 +3584,8 @@ changes remain outside that commit and this milestone.
 | Canonical Code Workspace execution with a downgraded role is rejected by its endpoint authorization policy with the stable general permission diagnostic; the Designer path resolver does not select the operation-specific code permission, so the middleware-specific permission-denial audit is not produced | P2 consistency/observability follow-up. Execution is correctly denied before any job is created; this is not evidence of an authorization bypass. | Preserve the current diagnostic and policy. Review resolver/endpoint audit alignment after native licensing, without expanding this plan's primary task count. |
 | Older JSON naming audit reports 475 pre-existing baseline mismatches | Separate naming/evidence reconciliation; assess before general repository naming acceptance | Preserve original pins/evidence. Review after the native licensing plan; no rename, pin regeneration or new licensing task is authorized here. |
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |
+| Unprotected Windows 72-DPI image exports are not reproducible between process runs; repeated originals match protected output, and disabling tiered compilation does not resolve the inconsistency | Blocks Windows package acceptance. The pixel hashes differ while dimensions agree; visual severity and the native-font/runtime cause remain unproven. | Retain exact comparisons and mandatory original-repeat verification. Preserve synthetic reports from runs `45030859717` and `45032079759`; investigate rendering with actual image-level evidence, without approving replacement baselines or portraying this as a proven obfuscation defect. No production renderer or font selection is changed here. |
+| Newly reached Windows ImageAnalysis suite reports 27 failures and 154 passes, including JSON LF/CRLF snapshots, glyph recognition and quality metrics | Cross-platform analysis/test-portability follow-up, not demonstrated license-enforcement defects. It keeps complete CI acceptance open. | Preserve source fixtures, expected text, snapshots and quality thresholds. Review after licensing as requested; no skip, weakened assertion, snapshot regeneration or algorithm rewrite is authorized in this milestone. Evidence: native run `45030859717`, Windows admission job `137233922178`. |
 
 ## Deferred Work
 
