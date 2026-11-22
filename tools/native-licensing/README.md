@@ -275,9 +275,49 @@ checklist. Existing historical report/cleanup files are never rewritten.
 The notice-complete local macOS/x64 run is
 `artifacts/native-joint-packages/1795281447251-3e0fed10/report.json`.
 All 52 package reports have an empty `missingLicenseTexts` list; 962 bundled
-file/hash pairs pass the independent consumer. This closes the original text
-acquisition gap, not the remaining 19 empty public XML comment sets, native/font
-review or legal/publication approvals. PDFs and third-party DLLs are unchanged.
+file/hash pairs pass the independent consumer. That run closed the original
+text acquisition gap, not its then-empty public XML comment sets, native/font
+review or legal/publication approvals. PDFs and third-party DLLs were unchanged.
+
+## Public API Documentation Coverage
+
+The nineteen previously empty native PDF and migration modules now document
+their public adapters, provider entry points, result types and metadata. The
+comments distinguish license-free discovery/inspection from protected
+processing; provider/domain grants from application roles; source conversion
+from execution; and migration evidence from actual PDF Trust validation.
+Viewer DTOs describe page indices, coordinate units and payload/checksum
+semantics. Externally transpiled TypeScript does not imply a compiler source map.
+
+These projects enable XML documentation and no longer suppress `CS1591`.
+Missing public comments, malformed XML, invalid parameter tags and unresolved
+references are compilation errors (`CS1591`, `CS1570`, `CS1572`, `CS1573`,
+`CS1574`, `CS1584`). Other existing analyzer warnings are not globally promoted
+or suppressed. The shared source-migration interface supplies inherited method
+documentation without exposing internal admission APIs.
+
+`PackageDocumentationProbe` additionally reports public type counts and missing
+type documentation from metadata, without executing product code. The joint
+runner enforces full type coverage in the nineteen modules both before and
+after protection and retains coverage metrics in package manifests/reports.
+Exact packaged XML checksums still match the inspected output. New public types
+or omitted comments in that scope cannot silently pass this package check.
+Other modules retain explicit coverage metrics rather than an unsupported
+product-wide completeness claim. Synthesized record members are not presented
+as individually authored API documentation.
+
+The remaining native/font attribution and contractual/publication reviews are
+separate parts of the original packaging task. Public API comments do not close
+those requirements or grant license rights.
+
+The verified local run is
+`artifacts/native-joint-packages/1795283736629-801103ca/report.json`.
+All 72 public types in the 19-module scope pass coverage both before and after
+protection. The 52 packages retain 883 public XML entries, no empty public XML
+sets and no missing main NuGet license texts. All 909 public API type contracts
+match the previous checkpoint. Native/font and legal/distribution approvals
+remain separate; no product-wide commentary or cross-platform approval is
+implied.
 
 ## Activation Guide Verification
 

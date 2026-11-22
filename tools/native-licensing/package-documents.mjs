@@ -13,6 +13,20 @@ const text = path => readFileSync(path, 'utf8');
 const json = path => JSON.parse(text(path));
 const noticeRegistryDirectory = join(root, 'assets/licenses/native-packages');
 
+export const requiredPublicDocumentation = Object.freeze([
+  'PVAD.Infrastructure.Pdf', 'PVAD.Migration.Pdf.Viewer.Nutrient',
+  'PVAD.Migration.Report', 'PVAD.Migration.Spreadsheet',
+  ...['ActivePdf', 'Apryse', 'Aspose', 'DevExpress', 'DsPdf', 'Foxit', 'GemBox', 'IronPdf', 'IText7',
+    'Leadtools', 'PdfKitNet', 'PdfTools', 'PdfToolsToolbox', 'Spire', 'Syncfusion'].map(provider => 'PVAD.Migration.Pdf.Code.' + provider),
+]);
+
+export function validatePublicDocumentation(name, evidence) {
+  if (!requiredPublicDocumentation.includes(name)) return;
+  assert.ok(evidence.publicTypes > 0 && Number.isInteger(evidence.publicTypes), 'Public documentation surface is empty: ' + name);
+  assert.equal(evidence.documentedPublicTypes, evidence.publicTypes, 'Public type documentation is incomplete: ' + name);
+  assert.deepEqual(evidence.undocumentedPublicTypes, [], 'Public type documentation is missing: ' + name);
+}
+
 export function safeNoticePath(directory, path) {
   assert.equal(typeof path, 'string');
   const normalized = path.replaceAll('\\', '/');
@@ -205,6 +219,8 @@ export function preparePackageDocuments({ name, version, assets, destination, do
       compatibilityReference: legal.compatibilityReference },
     xml: { assembly: documentation.assembly, sourceMembers: documentation.sourceMembers,
       publicMembers: documentation.publicMembers, removedMembers: documentation.removedMembers,
+      publicTypes: documentation.publicTypes, documentedPublicTypes: documentation.documentedPublicTypes,
+      undocumentedPublicTypes: documentation.undocumentedPublicTypes,
       xmlSha256: documentation.xmlSha256, sourceSha256: documentation.sourceSha256,
       assemblySha256: documentation.assemblySha256, completeApiCommentCoverageClaimed: false },
     thirdPartyPackages: notices.length,

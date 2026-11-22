@@ -8,10 +8,16 @@ using PVAD.Licensing;
 
 namespace PVAD.Migration.Pdf.Viewer.Nutrient;
 
+/// <summary>Converts supported Instant JSON annotations and form values to PVAD Viewer payloads.</summary>
+/// <remarks>Requires native PDF Viewer Migration rights for <c>nutrient-viewer</c>. The converter
+/// does not apply edits to a PDF, execute scripts or validate signatures/redaction compliance.</remarks>
 public sealed class NutrientInstantJsonConverter
 {
+    /// <summary>Gets the stable migration provider identifier.</summary>
     public const string ProviderKey = "nutrient-viewer";
+    /// <summary>The supported source-format discriminator, retained as a compatibility contract.</summary>
     public const string InstantJsonV1 = "https://pspdfkit.com/instant-json/v1";
+    /// <summary>The maximum accepted UTF-8 JSON size, ten MiB.</summary>
     public const int MaximumPayloadBytes = 10 * 1024 * 1024;
 
     private static readonly IReadOnlyDictionary<string, string> AnnotationTypes =
@@ -31,6 +37,13 @@ public sealed class NutrientInstantJsonConverter
             ["pspdfkit/markup/strikeout"] = "strikeout",
         };
 
+    /// <summary>Normalizes annotation geometry and field values using caller-supplied page geometry.</summary>
+    /// <param name="instantJson">Instant JSON text with the supported format discriminator.</param>
+    /// <param name="pages">Source page geometries in document order, indexed by zero-based source page index.</param>
+    /// <param name="sourceName">Optional source label retained in payload metadata.</param>
+    /// <returns>Annotation and form-value JSON, diagnostics, ID remapping and checksums.</returns>
+    /// <exception cref="PvadLicenseException">Native PDF Viewer Migration rights for Nutrient are unavailable.</exception>
+    /// <exception cref="NutrientInstantJsonException">JSON, geometry, rotation or input limits are invalid.</exception>
     public NutrientInstantJsonResult Convert(
         string instantJson,
         IReadOnlyList<NutrientPageGeometry> pages,
@@ -642,6 +655,13 @@ public sealed class NutrientInstantJsonConverter
     }
 }
 
+/// <summary>Describes the source page needed to normalize annotation coordinates.</summary>
+/// <param name="Width">Positive source-page width in PDF points.</param>
+/// <param name="Height">Positive source-page height in PDF points.</param>
+/// <param name="Rotation">Clockwise page rotation: 0, 90, 180 or 270 degrees.</param>
+/// <param name="CropLeft">Source crop offset from the left, in PDF points.</param>
+/// <param name="CropTop">Source crop offset from the top, in PDF points.</param>
+/// <remarks>This DTO does not read a PDF or grant processing rights.</remarks>
 public sealed record NutrientPageGeometry(
     double Width,
     double Height,
@@ -649,6 +669,20 @@ public sealed record NutrientPageGeometry(
     double CropLeft = 0,
     double CropTop = 0);
 
+/// <summary>Holds converted Viewer payloads and review evidence, not a modified PDF file.</summary>
+/// <param name="Provider">Display name of the source provider.</param>
+/// <param name="ProviderKey">Stable migration provider identifier.</param>
+/// <param name="DetectedProduct">Detected source product/format.</param>
+/// <param name="DocumentFidelity">Reported conversion fidelity, not a conformance certificate.</param>
+/// <param name="SourcePreservation">Reported source-preservation outcome.</param>
+/// <param name="AnnotationSidecarJson">Normalized Viewer annotations as JSON.</param>
+/// <param name="FormValuePayloadJson">Normalized form values as JSON.</param>
+/// <param name="Diagnostics">Unsupported, approximated and review findings.</param>
+/// <param name="IdRemap">Source annotation IDs mapped to generated unique target IDs.</param>
+/// <param name="SourceChecksum">SHA-256 of the UTF-8 source JSON.</param>
+/// <param name="NormalizedChecksum">SHA-256 of the normalized annotation sidecar.</param>
+/// <param name="GeneratedChecksum">SHA-256 of the combined generated annotation and form-value JSON.</param>
+/// <param name="CapabilityReport">Diagnostic-derived conversion counts.</param>
 public sealed record NutrientInstantJsonResult(
     string Provider,
     string ProviderKey,
@@ -664,11 +698,22 @@ public sealed record NutrientInstantJsonResult(
     string GeneratedChecksum,
     NutrientMigrationCapabilityReport CapabilityReport)
 {
+    /// <summary>Gets source-claim/review evidence, not independent verification of PDF Trust properties.</summary>
     public PdfTrustMigrationReport? PdfTrust { get; init; }
 }
 
+/// <summary>Describes an individual Viewer migration finding.</summary>
+/// <param name="Code">Stable diagnostic identifier.</param>
+/// <param name="Severity">Diagnostic severity supplied by the converter.</param>
+/// <param name="Message">Human-readable finding.</param>
 public sealed record NutrientViewerDiagnostic(string Code, string Severity, string Message);
 
+/// <summary>Summarizes migrated items and diagnostic-derived review categories.</summary>
+/// <param name="Migrated">Count of migrated items.</param>
+/// <param name="Approximated">Count of approximation findings.</param>
+/// <param name="Omitted">Count of omission findings.</param>
+/// <param name="ReviewRequired">Other warning findings requiring review.</param>
+/// <param name="Unsupported">Count of unsupported-feature findings.</param>
 public sealed record NutrientMigrationCapabilityReport(
     int Migrated,
     int Approximated,
@@ -676,6 +721,10 @@ public sealed record NutrientMigrationCapabilityReport(
     int ReviewRequired,
     int Unsupported)
 {
+    /// <summary>Groups stable diagnostic IDs into categories without converting content.</summary>
+    /// <param name="migrated">Migrated item count, clamped to zero when negative.</param>
+    /// <param name="diagnostics">Findings to group.</param>
+    /// <returns>Diagnostic-category counts, not proof of equivalence or licensing.</returns>
     public static NutrientMigrationCapabilityReport FromDiagnostics(
         int migrated,
         IEnumerable<NutrientViewerDiagnostic> diagnostics)
@@ -691,12 +740,40 @@ public sealed record NutrientMigrationCapabilityReport(
     }
 }
 
+/// <summary>Contains normalized annotations for the Viewer, separately from the PDF file.</summary>
+/// <param name="Version">Payload schema version.</param>
+/// <param name="SourceName">Optional source label.</param>
+/// <param name="ExportedAt">Payload creation timestamp.</param>
+/// <param name="Annotations">Converted annotation records.</param>
 public sealed record PvadViewerAnnotationSidecar(
     int Version,
     string? SourceName,
     DateTimeOffset ExportedAt,
     IReadOnlyList<PvadViewerAnnotation> Annotations);
 
+/// <summary>Describes a Viewer annotation in normalized, top-left-origin percentage coordinates.</summary>
+/// <param name="Id">Unique target annotation ID.</param>
+/// <param name="Type">Target Viewer annotation kind.</param>
+/// <param name="PageNumber">One-based target page number.</param>
+/// <param name="XPct">Horizontal position as a percentage of displayed page width.</param>
+/// <param name="YPct">Vertical position as a percentage of displayed page height.</param>
+/// <param name="WidthPct">Bounding width as a percentage of displayed page width.</param>
+/// <param name="HeightPct">Bounding height as a percentage of displayed page height.</param>
+/// <param name="Text">Annotation text.</param>
+/// <param name="Author">Source creator label, if available.</param>
+/// <param name="CreatedAt">Source creation time or the converter's fallback.</param>
+/// <param name="UpdatedAt">Optional source modification time.</param>
+/// <param name="Color">Normalized stroke/text color.</param>
+/// <param name="Locked">Optional source lock state.</param>
+/// <param name="Opacity">Optional opacity.</param>
+/// <param name="StrokeWidth">Optional source stroke width.</param>
+/// <param name="FillColor">Optional fill color.</param>
+/// <param name="LineEndingStart">Optional start decoration.</param>
+/// <param name="LineEndingEnd">Optional end decoration.</param>
+/// <param name="Points">First ink stroke, retained for compatibility.</param>
+/// <param name="PointLines">All converted ink strokes.</param>
+/// <param name="QuadPoints">Converted markup quadrilaterals.</param>
+/// <param name="Metadata">Preserved supported metadata fields.</param>
 public sealed record PvadViewerAnnotation(
     string Id,
     string Type,
@@ -721,18 +798,48 @@ public sealed record PvadViewerAnnotation(
     IReadOnlyList<PvadViewerMarkupQuad>? QuadPoints,
     PvadViewerAnnotationMetadata? Metadata);
 
+/// <summary>Describes an ink point in normalized displayed-page percentages.</summary>
+/// <param name="XPct">Horizontal coordinate from the left.</param>
+/// <param name="YPct">Vertical coordinate from the top.</param>
 public sealed record PvadViewerInkPoint(double XPct, double YPct);
 
+/// <summary>Describes four markup corners in normalized displayed-page percentages.</summary>
+/// <param name="X1Pct">First corner's horizontal coordinate.</param>
+/// <param name="Y1Pct">First corner's vertical coordinate.</param>
+/// <param name="X2Pct">Second corner's horizontal coordinate.</param>
+/// <param name="Y2Pct">Second corner's vertical coordinate.</param>
+/// <param name="X3Pct">Third corner's horizontal coordinate.</param>
+/// <param name="Y3Pct">Third corner's vertical coordinate.</param>
+/// <param name="X4Pct">Fourth corner's horizontal coordinate.</param>
+/// <param name="Y4Pct">Fourth corner's vertical coordinate.</param>
 public sealed record PvadViewerMarkupQuad(
     double X1Pct, double Y1Pct,
     double X2Pct, double Y2Pct,
     double X3Pct, double Y3Pct,
     double X4Pct, double Y4Pct);
 
+/// <summary>Preserves supported descriptive annotation metadata.</summary>
+/// <param name="Subject">Optional annotation subject.</param>
+/// <param name="Note">Optional note text.</param>
+/// <param name="SourceName">Optional original annotation/source name.</param>
 public sealed record PvadViewerAnnotationMetadata(string? Subject, string? Note, string? SourceName);
 
+/// <summary>Contains migrated field values; it does not apply them to a PDF.</summary>
+/// <param name="Version">Payload schema version.</param>
+/// <param name="SourceName">Optional source label.</param>
+/// <param name="Fields">Converted field values and supported metadata.</param>
 public sealed record PvadViewerFormValuePayload(int Version, string? SourceName, IReadOnlyList<PvadViewerFormValue> Fields);
 
+/// <summary>Describes a migrated form value and supported source field metadata.</summary>
+/// <param name="Name">Source field name.</param>
+/// <param name="Kind">Normalized field kind.</param>
+/// <param name="Value">Normalized target value.</param>
+/// <param name="OriginalValue">Preserved original source value.</param>
+/// <param name="Options">Available source choices.</param>
+/// <param name="Multiline">Optional multiline flag.</param>
+/// <param name="Required">Optional required flag.</param>
+/// <param name="ReadOnly">Optional read-only flag.</param>
+/// <param name="DefaultValue">Optional source default value.</param>
 public sealed record PvadViewerFormValue(
     string Name,
     string Kind,
@@ -744,10 +851,16 @@ public sealed record PvadViewerFormValue(
     bool? ReadOnly,
     object? DefaultValue);
 
+/// <summary>Reports an Instant JSON conversion failure with a stable migration diagnostic code.</summary>
 public sealed class NutrientInstantJsonException : Exception
 {
+    /// <summary>Creates a conversion failure without changing native license state.</summary>
+    /// <param name="code">Stable diagnostic identifier.</param>
+    /// <param name="message">Human-readable explanation.</param>
+    /// <param name="innerException">Optional underlying parsing exception.</param>
     public NutrientInstantJsonException(string code, string message, Exception? innerException = null)
         : base(message, innerException) => Code = code;
 
+    /// <summary>Gets the stable diagnostic identifier.</summary>
     public string Code { get; }
 }

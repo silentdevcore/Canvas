@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.PdfKitNet;
 
+/// <summary>Rewrites supported PDFKit.NET C# source to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>pdfkitnet</c>. Source conversion is
+/// separate from PDF generation and exposes unsupported calls through diagnostics.</remarks>
 public sealed class PdfKitNetMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "pdfkitnet");

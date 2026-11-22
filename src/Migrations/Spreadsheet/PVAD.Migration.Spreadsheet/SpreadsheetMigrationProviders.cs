@@ -4,6 +4,9 @@ using PVAD.Licensing;
 
 namespace PVAD.Migration.Spreadsheet;
 
+/// <summary>Lists, constructs and invokes the built-in Spreadsheet Code Migration providers.</summary>
+/// <remarks>Provider discovery is license-free metadata. Migration requires native Spreadsheet
+/// Code Migration rights for the chosen provider, not PDF Code Migration rights.</remarks>
 public static class SpreadsheetMigrationProviders
 {
     private static readonly IReadOnlyDictionary<string, Func<ISourceMigration>> Factories =
@@ -19,8 +22,14 @@ public static class SpreadsheetMigrationProviders
             [SpreadsheetMigrationProviderKeys.SyncfusionXlsIo] = static () => new SyncfusionXlsIoMigration(),
         };
 
+    /// <summary>Gets the supported provider keys in ordinal sort order.</summary>
     public static IReadOnlyList<string> Keys { get; } = Factories.Keys.OrderBy(static key => key, StringComparer.Ordinal).ToArray();
 
+    /// <summary>Constructs an adapter without migrating source or loading a native license.</summary>
+    /// <param name="key">A nonblank provider key, matched without case sensitivity.</param>
+    /// <returns>The built-in source converter.</returns>
+    /// <exception cref="ArgumentException">The key is blank.</exception>
+    /// <exception cref="KeyNotFoundException">The provider is not registered.</exception>
     public static ISourceMigration Create(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -31,6 +40,11 @@ public static class SpreadsheetMigrationProviders
         throw new KeyNotFoundException($"Unknown PVAD spreadsheet migration provider key '{key}'.");
     }
 
+    /// <summary>Attempts provider lookup without starting a licensed migration.</summary>
+    /// <param name="key">A nonblank provider key, matched without case sensitivity.</param>
+    /// <param name="migration">The adapter on success; null for an unknown key.</param>
+    /// <returns>True when a provider was found.</returns>
+    /// <exception cref="ArgumentException">The key is blank.</exception>
     public static bool TryCreate(string key, out ISourceMigration migration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -45,6 +59,11 @@ public static class SpreadsheetMigrationProviders
         return false;
     }
 
+    /// <summary>Admits the selected native provider and converts source without executing it.</summary>
+    /// <param name="key">A registered Spreadsheet provider key.</param>
+    /// <param name="sourceCode">Source text accepted by that provider.</param>
+    /// <returns>Generated Spreadsheet code and diagnostics requiring review.</returns>
+    /// <exception cref="PvadLicenseException">Native Spreadsheet Code Migration rights for this provider are unavailable.</exception>
     public static MigrationResult Migrate(string key, string sourceCode)
     {
         var migration = Create(key);

@@ -1,5 +1,8 @@
 namespace PVAD.Migration.Report;
 
+/// <summary>Lists and constructs built-in report Designer migration adapters.</summary>
+/// <remarks>Lookup and construction are metadata operations. The selected adapter checks its
+/// provider-specific native Report Designer Migration rights when conversion begins.</remarks>
 public static class ReportMigrationProviders
 {
     private static readonly IReadOnlyDictionary<string, Func<IReportMigration>> Factories =
@@ -15,8 +18,14 @@ public static class ReportMigrationProviders
             [ReportMigrationProviderKeys.Telerik] = static () => new TelerikReportMigration(),
         };
 
+    /// <summary>Gets the supported provider keys in ordinal sort order.</summary>
     public static IReadOnlyList<string> Keys { get; } = Factories.Keys.OrderBy(static key => key, StringComparer.Ordinal).ToArray();
 
+    /// <summary>Constructs the selected adapter without converting a report.</summary>
+    /// <param name="key">A nonblank provider key, matched without case sensitivity.</param>
+    /// <returns>The built-in adapter.</returns>
+    /// <exception cref="ArgumentException">The key is blank.</exception>
+    /// <exception cref="KeyNotFoundException">The provider is not registered.</exception>
     public static IReportMigration Create(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -27,6 +36,11 @@ public static class ReportMigrationProviders
         throw new KeyNotFoundException($"Unknown PVAD report migration provider key '{key}'.");
     }
 
+    /// <summary>Attempts to construct an adapter without starting a licensed conversion.</summary>
+    /// <param name="key">A nonblank provider key, matched without case sensitivity.</param>
+    /// <param name="migration">The adapter on success; null when the key is unknown.</param>
+    /// <returns>True when a registered provider was found.</returns>
+    /// <exception cref="ArgumentException">The key is blank.</exception>
     public static bool TryCreate(string key, out IReportMigration migration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);

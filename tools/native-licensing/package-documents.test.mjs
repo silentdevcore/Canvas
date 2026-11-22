@@ -4,7 +4,9 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { collectNugetNotices, loadNoticeSources, preparePackageDocuments, readNugetMetadata, safeNoticePath } from './package-documents.mjs';
+import { collectNugetNotices, loadNoticeSources, preparePackageDocuments, readNugetMetadata, safeNoticePath,
+  requiredPublicDocumentation, validatePublicDocumentation } from './package-documents.mjs';
+import { migrationProjects } from './joint-package-rehearsal.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const read = file => readFileSync(new URL(file, import.meta.url), 'utf8');
@@ -275,4 +277,23 @@ test('protected packaging uses the public XML and binds every included documenta
   const probe = read('./PackageDocumentationProbe/Program.cs');
   for (const value of ['DocumentationCommentId.GetSymbolsForDeclarationId', 'MetadataImportOptions.All', 'DtdProcessing.Prohibit', 'sourceMembers', 'ExternallyVisible']) assert.ok(probe.includes(value));
   assert.ok(!probe.includes('Assembly.Load') && !probe.includes('LoadFromAssemblyPath'));
+});
+
+test('all nineteen formerly empty modules enforce compiler documentation and metadata coverage', () => {
+  assert.equal(requiredPublicDocumentation.length, 19);
+  assert.equal(new Set(requiredPublicDocumentation).size, 19);
+  for (const name of requiredPublicDocumentation) {
+    const project = readFileSync(new URL('../../' + migrationProjects[name], import.meta.url), 'utf8');
+    assert.ok(project.includes('<GenerateDocumentationFile>true</GenerateDocumentationFile>'));
+    assert.ok(!project.includes('<NoWarn>$(NoWarn);CS1591</NoWarn>'));
+    for (const code of ['CS1591', 'CS1570', 'CS1572', 'CS1573', 'CS1574', 'CS1584']) assert.ok(project.includes(code), name + ':' + code);
+    validatePublicDocumentation(name, { publicTypes: 2, documentedPublicTypes: 2, undocumentedPublicTypes: [] });
+    for (const evidence of [{ publicTypes: 0, documentedPublicTypes: 0, undocumentedPublicTypes: [] },
+      { publicTypes: 2, documentedPublicTypes: 1, undocumentedPublicTypes: ['T:Missing'] },
+      { publicTypes: 2, documentedPublicTypes: 2, undocumentedPublicTypes: ['T:Missing'] }])
+      assert.throws(() => validatePublicDocumentation(name, evidence));
+  }
+  const runner = read('./joint-package-rehearsal.mjs');
+  assert.ok(runner.includes('validatePublicDocumentation(name, before)'));
+  assert.ok(runner.includes('validatePublicDocumentation(name, after)'));
 });

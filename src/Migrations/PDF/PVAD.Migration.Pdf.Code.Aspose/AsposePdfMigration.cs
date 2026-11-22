@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Aspose;
 
+/// <summary>Rewrites supported Aspose.PDF C# source to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>aspose-pdf</c>. Conversion returns source
+/// and diagnostics, not a rendered PDF or permission to execute generated PDF operations.</remarks>
 public sealed class AsposePdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "aspose-pdf");

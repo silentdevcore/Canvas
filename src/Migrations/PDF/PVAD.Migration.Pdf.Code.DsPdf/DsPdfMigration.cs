@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.DsPdf;
 
+/// <summary>Rewrites supported DsPdf C# operations to native PVAD PDF source.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>dspdf</c>. No customer source is executed;
+/// inspect the returned migration diagnostics for unsupported operations.</remarks>
 public sealed class DsPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "dspdf");

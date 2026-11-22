@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Syncfusion;
 
+/// <summary>Rewrites Syncfusion PDF C# source; report Designer inputs use a separate migration.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>syncfusion-pdf</c>. The returned code
+/// and diagnostics require review; migration does not render the resulting PDF.</remarks>
 public sealed class SyncfusionPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "syncfusion-pdf");

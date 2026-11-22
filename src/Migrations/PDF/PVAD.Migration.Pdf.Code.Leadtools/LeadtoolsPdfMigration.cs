@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Leadtools;
 
+/// <summary>Rewrites supported LEADTOOLS PDF C# operations to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>leadtools-pdf</c>. Review migration
+/// diagnostics before executing the generated source; conversion does not render a PDF.</remarks>
 public sealed class LeadtoolsPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "leadtools-pdf");

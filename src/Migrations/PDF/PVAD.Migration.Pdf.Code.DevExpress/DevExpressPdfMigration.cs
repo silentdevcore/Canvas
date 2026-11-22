@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.DevExpress;
 
+/// <summary>Rewrites DevExpress PDF C# source; this is not the XtraReport Designer converter.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>devexpress-pdf</c>. Review unsupported-call
+/// diagnostics before compiling or running the generated PVAD source.</remarks>
 public sealed class DevExpressPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "devexpress-pdf");

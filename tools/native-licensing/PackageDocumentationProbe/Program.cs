@@ -53,9 +53,20 @@ foreach (var member in members.Elements("member").ToArray())
 }
 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
 document.Save(destination);
+IEnumerable<INamedTypeSymbol> NamespaceTypes(INamespaceSymbol ns) =>
+    ns.GetTypeMembers().SelectMany(TypeAndNested).Concat(ns.GetNamespaceMembers().SelectMany(NamespaceTypes));
+IEnumerable<INamedTypeSymbol> TypeAndNested(INamedTypeSymbol type) =>
+    new[] { type }.Concat(type.GetTypeMembers().SelectMany(TypeAndNested));
+var targetAssembly = compilation.SourceModule.ReferencedAssemblySymbols.Single(assembly => assembly.Name == name);
+var publicTypes = NamespaceTypes(targetAssembly.GlobalNamespace).Where(Visible).ToArray();
+var documentedIds = members.Elements("member").Select(member => (string)member.Attribute("name")!).ToHashSet(StringComparer.Ordinal);
+var undocumentedPublicTypes = publicTypes.Select(type => type.GetDocumentationCommentId()!)
+    .Where(id => !documentedIds.Contains(id)).Order(StringComparer.Ordinal).ToArray();
 Console.WriteLine(JsonSerializer.Serialize(new
 {
     assembly = name, sourceMembers = ids.Count, publicMembers = ids.Count - removed, removedMembers = removed,
+    publicTypes = publicTypes.Length, documentedPublicTypes = publicTypes.Length - undocumentedPublicTypes.Length,
+    undocumentedPublicTypes,
     sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(sourcePath))),
     xmlSha256 = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(destination))),
     assemblySha256 = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(assemblyPath))),

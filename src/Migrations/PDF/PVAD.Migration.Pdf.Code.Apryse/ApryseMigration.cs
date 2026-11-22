@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Apryse;
 
+/// <summary>Rewrites supported Apryse/PDFTron C# operations to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>apryse</c>. Returned diagnostics identify
+/// unsupported or approximated calls; generated source still requires review and testing.</remarks>
 public sealed class ApryseMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "apryse");

@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Spire;
 
+/// <summary>Rewrites supported Spire.PDF C# source to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>spire-pdf</c>. Conversion does not
+/// execute customer code; review the generated source and unsupported-operation diagnostics.</remarks>
 public sealed class SpirePdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "spire-pdf");

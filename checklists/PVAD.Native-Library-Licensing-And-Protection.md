@@ -122,6 +122,62 @@ is the starting inventory, not completed enforcement coverage.
 
 ### Current Verification Evidence
 
+#### Public API Documentation Checkpoint
+
+The formerly empty XML documentation sets in 19 native PDF/migration assemblies
+are filled. All 72 public types in that scope are documented, together with
+their declared public members, record inputs, units and result semantics.
+Comments distinguish license-free discovery/inspection from protected
+processing, PDF/Spreadsheet/Report provider grants from application roles,
+source conversion from execution, and Trust-related migration claims from
+actual PDF validation. TypeScript source-map positions are explicitly tied to
+the supplied transpiled JavaScript, not falsely described as compiler maps.
+
+The 19 project files no longer suppress missing-public-documentation warnings.
+`CS1591`, malformed XML, invalid parameter comments and unresolved references
+(`CS1570`, `CS1572`, `CS1573`, `CS1574`, `CS1584`) are errors for those projects.
+The metadata-only package inspector independently requires all public types
+to retain their documentation before and after protection. Negative contract
+fixtures reject missing, empty and inconsistent coverage. This is scoped
+coverage, not a claim of individually authored documentation for every
+synthesized member or complete commentary across every native module.
+
+The local macOS/x64 run at
+`artifacts/native-joint-packages/1795283736629-801103ca/` passes. It jointly
+protects 54 assemblies, packs 52 libraries and compares all 909 public types.
+Their API hashes are unchanged from the prior notice-complete report. The
+original consumer passes 654 assertions and the protected offline-feed consumer
+5,608 unique assertions, including 962 bundled-file/hash pairs. Public XML
+entries rise from 569 to 883; 367 private/internal entries remain excluded.
+No package has empty public XML, and no main NuGet license text is missing.
+All required type-coverage counts are 72/72, without lowering any thresholds.
+
+Provider comparison, 62 converter cases, 12 actual CodeWorker requests and
+native OCR pass. Normal and CodeWorker PDF pixels match their unprotected
+counterparts, and all 39 third-party DLLs remain unchanged. A separate diff
+inspection confirms that the 48 changed product C# files contain only 559 added
+XML-comment lines, with no executable source additions or removals. Changes to
+the inspector/runner and compiler settings enforce documentation completeness;
+native rights, authorization and processing behavior are unchanged.
+
+All 165 native/version/release-author tooling tests and 73 Documentation tests
+pass; Documentation builds. Version/fragment, naming, tracked-Markdown and
+whitespace checks pass. The customer-facing `native-api-licensing-documentation`
+fragment has patch impact. Existing NPOI, analyzer and Vite warnings remain
+visible, not silently accepted or suppressed.
+
+The final cleanup removes candidate packages/binaries, synthetic keys/licenses
+and private support work, leaving source trust and normal outputs unchanged.
+Only report/cleanup JSON remains for that rehearsal. No commit, push,
+publication, version bump, live database or service change occurred. This is
+not Windows/Linux, general CI or production-sandbox acceptance.
+
+The original P1 documentation/notices item remains open for native/font
+attribution and final contractual/distribution review. Primary scope is still
+68/76 (89.5%); the closed XML gap is part of that existing item, not an added
+task or an artificial percentage increase. The completed notice acquisition
+and earlier evidence below retain their original results.
+
 #### Pinned Dependency Notice Sources
 
 Original license/notice acquisition for the previous 30 missing NuGet package

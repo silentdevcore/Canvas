@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.ActivePdf;
 
+/// <summary>Rewrites supported ActivePDF C# calls to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>active-pdf</c>. Review diagnostics for
+/// COM/server and unsupported product workflows; migration does not execute the source.</remarks>
 public sealed class ActivePdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "active-pdf");

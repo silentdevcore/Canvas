@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { protect, checkRepository } from './pvad-native-licensing.mjs';
 import { createTestLicenses } from './with-test-license.mjs';
 import { rehearseSupportRetention } from './support-retention-rehearsal.mjs';
-import { preparePackageDocuments } from './package-documents.mjs';
+import { preparePackageDocuments, validatePublicDocumentation } from './package-documents.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = join(root, 'tools/native-licensing');
@@ -227,12 +227,16 @@ export function main(args) {
       const publicXml = join(work, name + '.public.xml'), protectedXml = join(work, name + '.protected.xml');
       const before = jsonResult(run('dotnet', [documentationProbe, join(original, name + '.dll'), originalXml, publicXml]));
       const after = jsonResult(run('dotnet', [documentationProbe, join(protectedDirectory, name + '.dll'), publicXml, protectedXml]));
+      validatePublicDocumentation(name, before);
+      validatePublicDocumentation(name, after);
       assert.equal(before.xmlSha256, after.xmlSha256, 'Public documentation changed after protection: ' + name);
       assert.equal(after.removedMembers, 0, 'Public documentation no longer resolves: ' + name);
       const projectAssets = readJson(join(build, `obj/${name}/project.assets.json`));
       const bundle = preparePackageDocuments({ name, version, assets: projectAssets,
         destination: join(documentationDirectory, name), documentation: { ...before, file: protectedXml, assemblySha256: after.assemblySha256 } });
       packageDocumentation[name] = { publicMembers: bundle.xml.publicMembers, removedMembers: bundle.xml.removedMembers,
+        publicTypes: before.publicTypes, documentedPublicTypes: before.documentedPublicTypes,
+        undocumentedPublicTypes: before.undocumentedPublicTypes,
         xmlSha256: bundle.xml.xmlSha256, missingLicenseTexts: bundle.missingLicenseTexts, thirdPartyPackages: bundle.thirdPartyPackages,
         legalApprovalGranted: false, publicationReady: false };
     }

@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Foxit;
 
+/// <summary>Rewrites supported Foxit PDF SDK C# calls to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>foxit-pdf</c>. This source transformation
+/// does not execute Foxit or render a PDF; review all returned diagnostics.</remarks>
 public sealed class FoxitPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "foxit-pdf");

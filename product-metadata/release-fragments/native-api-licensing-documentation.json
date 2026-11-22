@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-api-licensing-documentation",
+  "impact": "patch",
+  "components": ["sdk", "migration", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Expanded native PDF and migration API documentation with licensing requirements, input formats and conversion limits.",
+  "breaking": false
+}

@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.IronPdf;
 
+/// <summary>Rewrites supported IronPDF C# calls to native PVAD PDF source.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>iron-pdf</c>. HTML/browser workflows
+/// and other unsupported operations require review of the returned diagnostics.</remarks>
 public sealed class IronPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     private static readonly string[] RenderMethods =
@@ -15,6 +18,8 @@ public sealed class IronPdfMigration : CSharpSourceMigration, IAdmittedCodeMigra
         "RenderRazorToPdf", "RenderRazorViewToPdf"
     ];
 
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "iron-pdf");

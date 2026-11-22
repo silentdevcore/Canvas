@@ -7,8 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.PdfTools;
 
+/// <summary>Rewrites supported Pdftools SDK C# calls to native PVAD PDF source.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>pdftools</c>. Review the returned
+/// diagnostics for product-specific workflows that cannot be translated automatically.</remarks>
 public sealed class PdfToolsMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
         using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "pdftools");
