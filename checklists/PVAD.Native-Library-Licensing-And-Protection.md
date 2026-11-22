@@ -153,6 +153,32 @@ on the corrected head before any remote acceptance item is closed. These first
 failures remain recorded, not hidden by retries or relabeled as product success.
 Primary progress remains 68/76 (89.5%) while broad remote validation is pending.
 
+The [second general run](https://github.com/silentdevcore/Canvas/actions/runs/45025064934)
+passes version policy, dependency security, artifact contracts, MCP and visual
+parity. Its frontend validation identifies the new `NativeLibraryLicense` DbSet
+missing from the existing processing inventory. The licensing activity now
+covers its signed artifacts/hashes, customer and issuer references, idempotency
+and renewal evidence, with concrete entity, issuance and download sources.
+Production approval remains false and retention remains pending legal review.
+The regression first reproduces the missing entity, then passes with the
+corrected inventory. All 34 Legal, 57 Account, 80 Company, 73 Documentation,
+seven commerce and 29 version/release-author tests pass locally; Account type
+checking and the development launch validators also pass. Company includes the
+Legal tests, so these counts must not be added as distinct unique cases.
+The subsequent missing screenshot artifact is a consequence of the stopped
+frontend workflow, not a successful screenshot run.
+
+The [second native run](https://github.com/silentdevcore/Canvas/actions/runs/45025064933)
+passes the dedicated Generator, execution, WebApi protection and issuer jobs.
+Its macOS admission probe fails restoring packages with `NU1301` and
+`No route to host (api.nuget.org:443)`; no product compiler defect has been
+established by that failure. Network failure is not a passed admission test and
+must be retried on a reachable runner without weakening package validation.
+Other still-running jobs are not counted as completed platform acceptance.
+The recorded review by the owner's second account is not independent review.
+The PR remains a draft without auto-merge; these corrections still require
+successful checks and review on their actual commit.
+
 #### Native NuGet Dependency Evidence Checkpoint
 
 The original notice/distribution task now includes a native dependency inventory
