@@ -9,7 +9,7 @@ import { loadRuntimeAssets } from './runtime-assets.mjs';
 import { checkEvidence, compareModel, componentMarkersIn, containerArguments, correlateNative, coverageFor, deriveNoticeLinks, machoSections,
   checkSourceDescriptor, explainNativeDifference, noticeComponents, signatureIssuer, validateDifferences, validateNativeComponents,
   parseDpkgPackages, parseNoticeArchive, resolveNoticeMember, trainedDataOffsets, validateEvidence, validateNoticeLinks,
-  validateComponentSources, validateFontBuild, validateObservation, verifyComponentPayloadBytes, verifyDownloads } from './runtime-source-evidence.mjs';
+  validateBuildInstructions, validateComponentSources, validateFontBuild, validateObservation, verifyComponentPayloadBytes, verifyDownloads } from './runtime-source-evidence.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -26,6 +26,8 @@ const components = JSON.parse(readObservation('evidence/native-components.v1.jso
 const differences = JSON.parse(readObservation('evidence/macos-build-differences.v1.json'));
 const componentSources = JSON.parse(readObservation('component-sources/tesseract-5.2.0/component-sources.v1.json'));
 const fontBuild = JSON.parse(readObservation('evidence/liberation-sans-candidate-build.v1.json'));
+const buildInstructions = JSON.parse(readObservation('component-sources/tesseract-5.2.0/build-instructions.v1.json'));
+const payloadReference = JSON.parse(readAsset('assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/payload-reference.v1.json'));
 
 function model() {
   const bytes = Buffer.alloc(80, 3);
@@ -581,4 +583,49 @@ test('font glyph counts are read from a bounded TrueType maxp table', () => {
     const changed = Buffer.from(font); mutate(changed); assert.throws(() => check(changed));
   }
   assert.throws(() => check(font.subarray(0, 6)));
+});
+
+test('pinned upstream build instructions correct the absence claim without inventing liblzma attribution', () => {
+  assert.deepEqual(validateBuildInstructions(buildInstructions, payloadReference, readAsset), {
+    buildInstructionsPresent: true, staticDependencyRequests: 12, liblzmaVersion: null,
+    exactPayloadBuildVerified: false, publicationReady: false,
+  });
+  assert.equal(componentSources.artifactAssociation.buildRecipeInRepository, false,
+    'The historical observation is retained; the supplemental reference corrects it.');
+});
+
+test('build instruction validation rejects invented versions, substituted origins and approval flags', () => {
+  const mutations = [
+    record => { record.commit = '0'.repeat(40); },
+    record => { record.package.key = 'Tesseract/other'; },
+    record => { record.repository = 'https://github.com/other/tesseract'; },
+    record => { record.url += '?other'; },
+    record => { record.upstreamPath = '../private'; },
+    record => { record.file = '../private'; },
+    record => { record.bytes++; },
+    record => { record.sha256 = '0'.repeat(64); },
+    record => { record.gitBlob = '0'.repeat(40); },
+    record => { record.staticDependencyRequests.pop(); },
+    record => { record.staticDependencyRequests.push(record.staticDependencyRequests[0]); },
+    record => { record.sourceTags[0].tag = 'other'; },
+    record => { record.liblzmaVersion = '5.2.0'; },
+    record => { record.buildInstructionsPresent = false; },
+    ...['dependencyVersionsPinned', 'exactPayloadBuildVerified', 'publisherAuthenticated',
+      'legalApprovalGranted', 'publicationReady'].map(key => record => { record[key] = true; }),
+  ];
+  for (const mutate of mutations) {
+    const record = structuredClone(buildInstructions); mutate(record);
+    assert.throws(() => validateBuildInstructions(record, payloadReference, readAsset));
+  }
+  assert.throws(() => validateBuildInstructions(buildInstructions, payloadReference,
+    file => file === buildInstructions.file ? Buffer.concat([readAsset(file), Buffer.from(' ')]) : readAsset));
+});
+
+test('the build-instruction supplement is required and hash-bound without rewriting original observations', () => {
+  for (const mutate of [record => { delete record.buildInstructions; },
+    record => { record.buildInstructions.file = '../private'; },
+    record => { record.buildInstructions.sha256 = '0'.repeat(64); }]) {
+    const changed = structuredClone(evidence); mutate(changed);
+    assert.throws(() => validateEvidence(changed, assets, readAsset, readObservation));
+  }
 });

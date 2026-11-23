@@ -1,5 +1,11 @@
 # PVAD Native Licensing Remaining Work Handoff
 
+The current execution assignment is the
+[complete-to-100 handoff](PVAD.Native-Licensing-Completion-Handoff.md).
+It includes the latest uncommitted corrections, two new fuzz crashes/one timeout,
+ImageAnalysis reference decision and all six final closure gates. Read it before
+using this earlier assignment; historical evidence below remains unchanged.
+
 ## Round Two: Reviewed Baseline
 
 Continue the remaining work in the original native licensing/protection plan.
@@ -14,6 +20,30 @@ defects after your work is finished.
 - Previous execution and review: [Round One Report](PVAD.Native-Licensing-Remaining-Work-Report.md).
 - Progress: **70/76 primary items complete (92.1%); six remain open**.
 - Product version: **1.1.0**. No version bump or published-release rewrite.
+
+### Current Checkpoint After Review
+
+The later [final report](PVAD.Native-Licensing-Final-Work-Report.md) and its
+numbered supplements supersede the initial assignment's pending observations.
+The complete current working-tree Solution now builds in the existing
+`PvadOriginalBaseline=true` source mode, including all three owner-added probes;
+default package mode still requires the protected local feed. Do not repeat
+that build or present it as package/test acceptance without a relevant change.
+
+The upstream repository does contain build instructions at the retained wrapper
+commit. A new hash-bound supplement corrects the earlier absence claim. The
+instructions do not pin the vcpkg dependency versions, so liblzma attribution
+and exact DLL-build provenance remain unresolved. Historical observations stay
+unchanged. The six primary tasks are still open, **70/76 (92.1%)**.
+
+The owner then authorized the deferred parser/validation follow-up. The
+Importer correction passed the complete 696-case suite and all 37 saved-input
+replays. ImageAnalysis still fails four of 181 tests; the owner chose a
+deterministic reference environment and explicit review before promoting new
+baseline candidates. See final report section 12 for actual scope and evidence.
+The old deferred-work instructions below remain historical context, not a
+prohibition of this specifically authorized follow-up. No remote execution,
+baseline approval or publication authority is implied.
 
 This revision replaces the earlier assignment at baseline `f783ae9a`. Read the
 current checkout and the previous report, especially section 8, before working.
@@ -108,10 +138,11 @@ remains possible; the remainder is not exclusively dependent on outsiders.
 
 ## Priority 1: Missing Local Application Validation
 
-- [ ] Run the full Solution build through the existing isolated signed-session
+- [x] Run the full Solution build through the existing isolated signed-session
   tooling, without changing the user-owned Solution file or skipping projects.
   If that file's unrelated changes block the build, report the exact cause and
   request an owner decision; do not remove or silently exclude their projects.
+  Completed in source mode; see final report section 10, not default package mode.
 - [ ] Run Designer Jest, typecheck and production build. Record actual test
   counts, failures, warnings, process exit status and cleanup. Do not rename
   existing failures into passes because source changes were internal-only.
@@ -125,7 +156,7 @@ remains possible; the remainder is not exclusively dependent on outsiders.
 Read the current runner prerequisites before execution. Representative commands:
 
 ```bash
-node tools/native-licensing/test-session.mjs exec -- dotnet build PVAD.sln --disable-build-servers -m:1
+node tools/native-licensing/test-session.mjs exec -- dotnet build PVAD.sln --disable-build-servers -m:1 -nr:false -p:PvadOriginalBaseline=true
 npm test --prefix pvad-designer -- --runInBand
 npm run type-check --prefix pvad-designer
 npm run build --prefix pvad-designer

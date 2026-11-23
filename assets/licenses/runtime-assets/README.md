@@ -182,6 +182,22 @@ count. A notice is never attached to an unknown version.
 These are candidate source associations. No component source revision, build
 configuration, distribution obligation or approval is verified.
 
+**Build-instruction correction (2026-11-23).** A fresh inspection found
+[upstream instructions at the exact wrapper commit](https://github.com/charlesw/tesseract/blob/2c993543f7fa66576a8890a6c4ab053c4598aaed/docs/Compling_tesseract_and_leptonica.md).
+Thus the earlier repository-wide statement that no build recipe exists was too
+broad. The [supplemental record](component-sources/tesseract-5.2.0/build-instructions.v1.json)
+and [byte-exact original](component-sources/tesseract-5.2.0/build-instructions.txt)
+retain its size, SHA256 and Git blob ID. The default offline guard checks them
+against the retained payload-reference repository/commit and rederives its
+dependency requests and source tags. It does not download the reference again.
+
+The instructions request static liblzma for x86 and x64, but contain no vcpkg
+baseline, liblzma version, exact dependency sources or build-to-DLL proof. Their
+introductory versions differ from their checkout commands. Consequently they
+cannot identify the embedded XZ version or close any distribution gate.
+Historical component observations and their hash pins remain unchanged; this
+supplement corrects the absence claim without retroactively editing them.
+
 **Review corrections (2026-11-23).** Unknown observed versions must stay
 unresolved with no candidate notice. A known bare version string retains its
 ambiguous status; inferred observations remain bounded to the reviewed candidate

@@ -6,4 +6,6 @@ assets/licenses/native-packages/*/*/** whitespace=-trailing-space,-space-before-
 assets/licenses/runtime-assets/** -text
 pvad-designer/public/licenses/runtime-assets/** -text
 assets/licenses/runtime-assets/**/notices/** -text whitespace=-trailing-space,-space-before-tab,cr-at-eol
+# Retain the hash-pinned upstream build instructions byte for byte.
+assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/build-instructions.txt -text whitespace=-trailing-space,-space-before-tab,cr-at-eol
 pvad-designer/public/licenses/runtime-assets/notices/** -text whitespace=-trailing-space,-space-before-tab,cr-at-eol

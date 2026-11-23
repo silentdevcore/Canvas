@@ -44,6 +44,7 @@ public sealed class PdfGraphicsInterpreter
 
         foreach (var command in commands)
         {
+            ValidateTextOperands(command);
             switch (command.Operator.Name)
             {
                 case "q":
@@ -309,6 +310,22 @@ public sealed class PdfGraphicsInterpreter
         }
 
         return elements;
+    }
+
+    private static void ValidateTextOperands(PdfContentCommand command)
+    {
+        var operands = command.Operands;
+        var valid = command.Operator.Name switch
+        {
+            "Tj" or "'" => operands.Count == 1 && operands[0] is PdfString,
+            "\"" => operands.Count == 3 && operands[0] is PdfInteger or PdfNumber
+                && operands[1] is PdfInteger or PdfNumber && operands[2] is PdfString,
+            "TJ" => operands.Count == 1 && operands[0] is PdfArray array
+                && array.Items.All(item => item is PdfString or PdfInteger or PdfNumber),
+            _ => true
+        };
+        if (!valid)
+            throw new FormatException($"Invalid operands for PDF text operator '{command.Operator.Name}'.");
     }
 
     private static PdfMatrix ReadMatrix(IReadOnlyList<PdfObject> operands)

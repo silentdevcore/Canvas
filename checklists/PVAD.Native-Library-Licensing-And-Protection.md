@@ -28,9 +28,31 @@ Release, platform or fuzz acceptance. See the
 [scoped build evidence](PVAD.Native-Licensing-Final-Work-Report.md#10-current-working-tree-solution-source-build).
 The six primary items remain open; no progress percentage changes.
 
-The [remaining-work handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md)
-assigns the six open items, separates engineering from owner/legal inputs and
-defines the evidence required for subsequent independent agent review.
+The subsequent Tesseract source review found upstream build instructions at the
+retained wrapper commit, correcting the earlier repository-wide absence claim.
+The byte-exact instructions and their separately pinned metadata are validated
+offline. They name static liblzma but not its version or vcpkg baseline, so exact
+attribution and distribution approval remain open. Historical observations and
+primary checkbox states are unchanged. See the
+[source review](PVAD.Native-Licensing-Final-Work-Report.md#11-tesseract-build-instruction-correction).
+
+The owner subsequently authorized the deferred parser/validation follow-up.
+The corrected Importer passed all 696 tests and replayed all 37 saved crash
+inputs without unexpected exceptions. The unchanged ImageAnalysis suite still
+has four snapshot failures (177/181 passed). The owner selected a deterministic
+reference environment with explicit review before new baselines; no baseline
+was replaced or approved. The complete general-validation item remains open.
+See the [scoped hardening evidence](PVAD.Native-Licensing-Final-Work-Report.md#12-authorized-parser-hardening-and-imageanalysis-investigation).
+The subsequent unchanged 300-second Linux/arm64 campaign still failed with
+two new crash inputs and one timeout. One new crash reproduces as
+`OverflowException`; the remaining findings need classification. Passing the
+original 37 saved cases does not close this fresh failure or general validation.
+
+The current [complete-to-100 handoff](PVAD.Native-Licensing-Completion-Handoff.md)
+assigns all six open items, the current uncommitted parser/evidence work,
+remaining validation failures, required human inputs and exact closure criteria.
+The [earlier handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md) remains
+historical context. Progress changes only after actual closure evidence.
 
 ## Goal And Decisions
 

@@ -417,6 +417,37 @@ export function validateComponentSources(record, components, readAsset, referenc
     unresolved: record.components.filter(value => value.status === 'unresolved-version-not-observed').length };
 }
 
+export function validateBuildInstructions(record, reference, readAsset) {
+  assert.equal(record.schemaVersion, 1);
+  assert.equal(record.scope, 'upstream-build-instructions-not-exact-payload-build-proof');
+  assert.deepEqual(record.package, reference.package);
+  assert.equal(record.repository, reference.repository);
+  assert.equal(record.commit, reference.commit);
+  assert.equal(record.upstreamPath, 'docs/Compling_tesseract_and_leptonica.md');
+  assert.equal(record.url, sourceNoticeUrl(reference, record.upstreamPath));
+  assert.equal(record.file, 'assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/build-instructions.txt');
+  const bytes = readAsset(record.file);
+  assert.ok(Buffer.isBuffer(bytes) && bytes.length > 0 && bytes.length <= 64 * 1024);
+  assert.equal(bytes.length, record.bytes, 'Build instructions size changed.');
+  assert.equal(sha(bytes), record.sha256, 'Build instructions hash changed.');
+  assert.equal(gitBlob(bytes), record.gitBlob, 'Build instructions Git blob changed.');
+  const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  const requests = [...text.matchAll(/^\s*vcpkg install ([^\r\n]+)$/gm)]
+    .flatMap(match => match[1].trim().split(/\s+/)).sort();
+  assert.ok(requests.length > 0, 'No dependency requests in build instructions.');
+  assert.deepEqual(record.staticDependencyRequests, requests);
+  assert.ok(requests.includes('liblzma:x86-windows-static') && requests.includes('liblzma:x64-windows-static'));
+  assert.deepEqual(record.sourceTags, [...text.matchAll(/^\s*git checkout -b (\S+) (\S+)\s*$/gm)]
+    .map(match => ({ branch: match[1], tag: match[2] })));
+  assert.equal(record.buildInstructionsPresent, true);
+  for (const key of ['dependencyVersionsPinned', 'exactPayloadBuildVerified', 'publisherAuthenticated',
+    'legalApprovalGranted', 'publicationReady']) assert.equal(record[key], false);
+  assert.equal(record.liblzmaVersion, null);
+  assert.ok(typeof record.limitation === 'string' && record.limitation.length > 40);
+  return { buildInstructionsPresent: true, staticDependencyRequests: requests.length,
+    liblzmaVersion: null, exactPayloadBuildVerified: false, publicationReady: false };
+}
+
 const fontBuildScope = 'liberation-sans-candidate-rebuild-from-pinned-debian-source-not-reproduction-or-approval';
 
 // A rebuild may only differ in FontForge's timestamp table, the cmap encoding with identical mappings and the
@@ -518,6 +549,10 @@ export function validateEvidence(evidence, assets, readAsset, readObservation) {
     assert.equal(sha(referenceBytes), evidence.componentPayloadReference.sha256, 'Retained payload reference changed.');
     validateComponentSources(JSON.parse(bytes), records.get('evidence/native-components.v1.json').record, readAsset, JSON.parse(referenceBytes));
   }
+  assert.equal(evidence.buildInstructions.file, 'component-sources/tesseract-5.2.0/build-instructions.v1.json');
+  const instructionsBytes = readObservation(evidence.buildInstructions.file);
+  assert.equal(sha(instructionsBytes), evidence.buildInstructions.sha256, 'Recorded build instructions changed.');
+  validateBuildInstructions(JSON.parse(instructionsBytes), JSON.parse(readAsset(payloadReferencePath)), readAsset);
   const historical = records.get('evidence/container-local-os.v1.json');
   for (const [file, { record }] of records) {
     if (file === 'evidence/container-notice-links.v1.json') validateNoticeLinks(record, historical.record, historical.sha256);

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-licensing-completion-handoff",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Consolidated the remaining native licensing validation and approval requirements.",
+  "breaking": false,
+  "reason": "Internal execution handoff and checklist references only; no licensing behavior or release approval changes."
+}

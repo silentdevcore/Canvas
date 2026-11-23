@@ -100,7 +100,8 @@
     "Native component markers are fixed identification strings in cached payloads; a named notice section is not a verified component license, and a missing marker does not prove absence.",
     "Locating every differing byte in the Mach-O header and load commands explains the local install-name rewrite; it does not authenticate the Homebrew bottle, its publisher or its source.",
     "Tesseract component notices are candidate associations by matching tags; the prebuilt DLLs carry no build recipe, so no source revision or build configuration is verified.",
-    "The Liberation Sans candidate rebuild reproduces every glyph outline and character mapping but not the shipped bytes; it does not authenticate the unverified source signature."
+    "The Liberation Sans candidate rebuild reproduces every glyph outline and character mapping but not the shipped bytes; it does not authenticate the unverified source signature.",
+    "The supplemental pinned build instructions correct the earlier repository-wide absence claim. They request static dependencies without recording a vcpkg baseline, exact dependency versions or a reproduced payload build; liblzma attribution remains unresolved."
   ],
   "componentPayloadReference": {
     "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/payload-reference.v1.json",
@@ -111,5 +112,9 @@
       "file": "component-sources/tesseract-5.2.0/component-sources.v1.json",
       "sha256": "745a8c93ba820b9ddad4e3bbcd516cfb6925fcd5417d3410f60987e6fe4d39ae"
     }
-  ]
+  ],
+  "buildInstructions": {
+    "file": "component-sources/tesseract-5.2.0/build-instructions.v1.json",
+    "sha256": "3d2435de0f9796e1c172f868fe4a373111fd17248e778280e09662d73413c5c0"
+  }
 }

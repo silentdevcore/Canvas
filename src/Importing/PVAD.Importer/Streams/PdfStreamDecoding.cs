@@ -222,6 +222,10 @@ public sealed class FlateDecodeStreamDecoder : IPdfStreamDecoder
     internal ReadOnlyMemory<byte> DecodeAdmitted(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary)
     {
         PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        // PDF Flate streams cannot use an external preset dictionary (zlib FDICT).
+        if (encodedBytes.Length >= 2 && (encodedBytes.Span[1] & 0x20) != 0)
+            throw new InvalidDataException("A PDF Flate stream cannot require a preset dictionary.");
+
         using var input = new MemoryStream(encodedBytes.ToArray());
         using var zlib = new ZLibStream(input, CompressionMode.Decompress);
         var decoded = PdfStreamBudget.ReadBounded(zlib, _limits, encodedBytes.Length);

@@ -293,3 +293,205 @@ hash mismatches. Its raw report remains at
 `artifacts/rename/json-name-audit-current.json`. None of those original records
 or allowlists was changed to turn that independent audit green; it is not a
 Solution compiler failure or a new licensing completion claim.
+
+## 11. Tesseract Build-Instruction Correction
+
+A fresh source review after commit `73a522e0` found
+[the upstream build instructions](https://github.com/charlesw/tesseract/blob/2c993543f7fa66576a8890a6c4ab053c4598aaed/docs/Compling_tesseract_and_leptonica.md)
+at the same wrapper commit already associated with the four NuGet DLLs.
+The earlier statement that the repository contains no build recipe was too
+broad. This supplement corrects it; original observations, payload references,
+candidate component notices and their pins are not rewritten.
+
+The original was retrieved through GitHub's contents API at that exact commit,
+and its returned Git blob ID was independently recomputed. Retained bytes:
+3,331; SHA256 `1af6caa90b3e23fa984429911030611d90ce78540790d8ed8f657ef8eb9e1470`;
+Git blob `bcd3b7f397a359d5ab9b83ad05a9d58e16441a3b`. The byte-exact original and
+metadata are under
+`assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/` as
+`build-instructions.txt` and `build-instructions.v1.json`.
+The acquisition receipt remains locally at
+`artifacts/native-runtime-provenance/tesseract-build-recipe-review/source.json`.
+The first sandboxed request failed DNS resolution; the authorized network retry
+succeeded. No issue, PR, maintainer message or remote workflow was created.
+
+The source requests six static dependencies for each of x86/x64, including
+liblzma, and checks out Leptonica 1.82.0 and Tesseract 5.2.0. It does not pin the
+vcpkg baseline or dependency versions; its introductory versions also differ
+from the checkout commands. The local DLL string inspection found liblzma
+codec/error messages, not an attributable version. These facts support a build
+instruction reference, **not** an exact liblzma source or license match.
+
+The default evidence guard checks the supplement hash, original bytes, Git blob,
+repository/commit/path association, source tags and all twelve dependency
+requests. Negative tests reject changed files, substituted origins, invented
+versions and approval flags. They require no network or local DLL cache.
+No source build, DLL replacement, license acceptance, publication, key
+provisioning or product behavior change is claimed. Primary status remains
+**70/76 (92.1%)**. General validation, third-party approval and owner inputs
+remain open. The handoff now points to the actual current source-build result.
+
+Validation: **250/250** native/version/release tooling tests passed, including
+**39** runtime-source tests. The full TAP log is retained locally at
+`artifacts/native-runtime-provenance/tesseract-build-recipe-review/tooling-tests.tap`.
+Documentation passed **73/73** tests and its production build; the existing
+Vite native config-loader warning was not suppressed. Runtime source/bundle
+checks, native product metadata, version/fragment validation, current naming,
+tracked-Markdown guard and `git diff --check` passed. The raw upstream text has
+a single-file whitespace-preservation attribute, not a repository-wide waiver.
+
+The scoped diff confirms unchanged product source, original observations,
+component/payload references, VERSION and published releases. The owner-owned
+Solution still has its original SHA256 and 51 added lines. Neither full product
+tests nor protected-package or remote workflows were rerun for this internal
+evidence-only change; their earlier results remain historical, separately
+scoped evidence. No commit or push was performed.
+
+To close the exact-build gap, obtain the following from the upstream binary
+producer or an authentic retained build record; no request has been sent:
+
+1. The vcpkg commit/baseline and triplets used for the four hash-pinned DLLs.
+2. Exact liblzma/XZ version, source archive/revision, patches and build options.
+3. Build logs, lockfiles or SBOM binding those inputs to the x86/x64 DLL hashes.
+4. Original license/notice texts and any corresponding-source requirements for
+   that exact revision, for separate distribution review.
+
+An approximate release date, today's vcpkg port or a matching generic error
+string cannot substitute for those inputs. Manufacturer trust, key custody and
+NPOI decisions remain independent gates, not assumptions to fill in here.
+
+## 12. Authorized Parser Hardening And ImageAnalysis Investigation
+
+The owner authorized the previously deferred robustness/validation follow-up
+after commit `73a522e0`. This is a separate scoped correction, not new licensing
+features or permission to change baselines. The earlier failed campaign and its
+37 original inputs remain unchanged. No primary checkbox is closed by these
+partial validation results: **70/76 (92.1%)**.
+
+### Parser Correction And Red/Green Evidence
+
+`PdfMalformedContentTests` adds 19 cases for malformed text operators, valid
+empty strings and text arrays, preset-dictionary zlib headers and ordinary
+compressed data. Before the correction, the signed isolated run failed 13
+cases and passed six. Raw TRX and cleanup:
+`artifacts/native-engine-tests/1795460681558-88705f5c/`.
+The initial sandboxed attempt at `1795460637459-b2ecda89` failed MSBuild IPC
+before test execution and is not test evidence; the owned blocked child was
+terminated and the wrapper removed its temporary license/build files.
+
+The interpreter now checks operand count and types for all four text-showing
+operators before reading or changing text state. Malformed operands produce
+`FormatException` rather than an indexing crash or fabricated empty text.
+Valid empty strings and numeric adjustments in text arrays remain supported.
+Flate decoding rejects the zlib FDICT flag before decompression, since PDF
+Flate streams cannot request an external dictionary. It does not catch all
+compression/IO exceptions or hide runtime/native-library failures. The native
+license checks still run before these input checks. The fuzz harness and its
+expected-exception list are unchanged.
+
+After correction the **complete Importer suite passed 696/696**, including all
+19 new cases, with zero failures/skips/aborts/timeouts. The TRX result rows were
+checked against every counter. Raw evidence and successful isolated cleanup:
+`artifacts/native-engine-tests/1795460785422-d5ca1e6a/`.
+
+All **37 saved crash inputs** also passed an independent two-second-per-process
+replay: 32 controlled `FormatException` results and five completed imports, no
+unexpected exception types or input-byte changes. A valid PDF seed imported
+successfully first, so accepting only license failures cannot pass this replay.
+Replay report and build log:
+`artifacts/native-validation-hardening/replay-1795460869695/`.
+This is saved-input regression evidence, not a new coverage-guided campaign.
+
+### ImageAnalysis: Real Remaining Failures
+
+The unmodified full ImageAnalysis suite was rerun on macOS/x64 with SDK
+10.0.113: **177 passed, four failed, zero skipped, 181 total**. Raw TRX and
+cleanup: `artifacts/native-engine-tests/1795460697854-ae4de7c5/`.
+All five benchmark cases, controlled ambiguous-glyph cases and the real-sample
+validation passed their unchanged quality requirements. This does not turn the
+full suite green.
+
+A temporary, isolated diagnostics executable invoked the actual unchanged
+synthetic fixture factories and snapshot builder; it did not copy/reimplement
+their rendering logic. Current inputs, overlays, expected/actual JSON, resolved
+font-family names, run log and a field-comparison HTML report are retained at
+`artifacts/native-validation-hardening/imageanalysis-review-1795461100127/`.
+Its `review.html` does not claim an old-image pixel comparison: the old PNG
+files are not retained, only their digest assertions.
+
+| Case | Observed differences |
+| --- | --- |
+| Clean screenshot | Overlay 6,539 expected vs 6,612 actual bytes; diagnostic ShapeCount 14 vs 13; text confidences 0.639 vs 0.644 and 0.717 vs 0.716 |
+| Invoice table | Overlay 11,171 expected vs 11,172 actual bytes; text confidences 0.688 vs 0.687, 0.535 vs 0.532, 0.617 vs 0.618 and 0.620 vs 0.619 |
+
+All other JSON snapshot fields, including text content, text geometry and
+returned element-type counts, match in this local diagnostic. That is not
+proof of cross-platform visual equality or the cause of each difference.
+The code resolves system font families both in synthetic fixture rendering and
+in the lazy character atlas; the original reference environment is not pinned.
+The observed current aliases include Monospace to Helvetica, sans-serif to
+Helvetica and serif to Times. Missing historical font/renderer inputs prevent
+a defensible attempt to force the old hashes by tuning recognition code.
+
+### Owner-Approved Reference Direction
+
+The owner chose a deterministic reference environment and review before new
+baseline approval. This direction is recorded for the next ImageAnalysis step;
+no replacement baseline has been approved or installed:
+
+1. Pin the reference OS/container architecture and image digest, SDK/runtime,
+   managed/native Skia binaries, explicit font files and their original notices.
+   A family name or current system fallback is not an adequate font identity.
+2. Use controlled synthetic rendering inputs and record locale, font resolution,
+   raster settings and relevant runtime/CPU context. Do not alter shipped
+   renderer behavior merely to reproduce a test hash.
+3. Verify repeatability in independent fresh processes; retain current input,
+   overlay, pixel and JSON results with source and context hashes.
+4. Keep generated references in candidate state with exact hashes and a review
+   report. Only an explicit human review may approve their promotion.
+5. Preserve benchmark/recognition thresholds and keep old failing native runs
+   visible until the replacement contract is explicitly reviewed. Linux/x64,
+   Windows and macOS claims each require actual evidence, not a local inference.
+
+No existing ImageAnalysis test, fixture, snapshot, font, quality threshold or
+algorithm was changed during this investigation. The new Patch fragment
+`pdf-malformed-content-reliability` covers the actual importer correction;
+VERSION and published releases remain unchanged. Remote CI and publication
+were not authorized or executed.
+
+### Fresh Coverage Campaign: Acceptance Still Failed
+
+The existing unmodified AFL++/SharpFuzz harness was run again for **300 seconds**
+with a **2,000 ms** case limit and **512 MiB** managed-heap cap on local
+Linux/arm64, using the same immutable Debian base and SDK 10.0.113. Tool and
+source-archive metadata, complete build/campaign logs and findings are retained
+at `artifacts/native-validation-hardening/linux-fuzz-1795461140739-75fd9e83/`.
+The working-tree archive's hashes bind the tested parser changes; no source or
+exception-list substitution was made inside the container.
+
+The campaign **failed**: **two saved crash inputs and one saved timeout input**,
+1,436 new corpus items and 5.57% reported coverage. A saved timeout means the
+case exceeded the configured limit, not proof of an infinite hang. Calibration
+instability warnings remain in the raw log. One new crash was independently
+replayed on macOS/x64 as an unexpected `OverflowException`:
+`artifacts/native-validation-hardening/replay-1795461426003/`.
+The other crash and timeout still require independent replay/classification.
+These new findings are not covered by the passing replay of the original 37
+inputs. Do not classify the fresh campaign as passed or close general validation.
+
+The first launch failed before starting Docker because the credential-stripped
+PATH lacked the Rancher CLI. The second attempt failed before fuzzing because
+macOS archive metadata created extra binary resource-fork entries during Linux
+extraction. Neither is a product-test pass. A fresh source archive generated
+with `--no-xattrs` and `COPYFILE_DISABLE=1` removed only those transport metadata
+entries; it did not exclude source projects or weaken compilation. The failed
+launch/build evidence remains in the two preceding local directories. The
+completed campaign's own container was removed and the Docker post-check found
+no container with its unique ownership label. The temporary source archive was
+removed; original crash inputs and approved baselines were preserved.
+
+Remaining immediate technical work: classify and fix the new parser findings,
+rerun their regression tests and the same bounded campaign, then establish the
+owner-approved ImageAnalysis reference context and submit baseline candidates
+for actual review. Overall primary status is still **70/76 (92.1%)**. No remote
+CI, current protected-package rerun, publication, commit or push is claimed.
