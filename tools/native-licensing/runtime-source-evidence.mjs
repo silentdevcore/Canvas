@@ -123,6 +123,111 @@ export function observeMacos() {
     runtimeRegistrySha256: assets.registrySha256, rows, legalApprovalGranted: false, publicationReady: false };
 }
 
+const differenceScope = 'local-macos-x64-build-difference-explanation-not-source-or-distribution-approval';
+
+function nativeMetadata(bytes) {
+  assert.ok(bytes.length >= 32, 'Truncated Mach-O header.');
+  const count = bytes.readUInt32LE(16), size = bytes.readUInt32LE(20), end = 32 + size;
+  assert.ok(count > 0 && count <= 4096 && count <= size / 8 && size % 8 === 0 && end <= bytes.length,
+    'Invalid Mach-O load-command bounds.');
+  let offset = 32, signature = null, firstSection = Infinity;
+  for (let index = 0; index < count; index++) {
+    assert.ok(offset + 8 <= end, 'Truncated Mach-O load command.');
+    const command = bytes.readUInt32LE(offset), length = bytes.readUInt32LE(offset + 4);
+    assert.ok(length >= 8 && length % 8 === 0 && offset + length <= end, 'Invalid Mach-O command size.');
+    if (command === 0x19) {
+      assert.ok(length >= 72, 'Truncated Mach-O segment.');
+      const sections = bytes.readUInt32LE(offset + 64);
+      assert.equal(length, 72 + sections * 80, 'Invalid Mach-O section table size.');
+      for (let item = 0; item < sections; item++) {
+        const section = offset + 72 + item * 80, kind = bytes.readUInt32LE(section + 64) & 0xff;
+        const sectionSize = bytes.readBigUInt64LE(section + 40), start = bytes.readUInt32LE(section + 48);
+        if (sectionSize === 0n || [1, 12, 18].includes(kind)) continue;
+        assert.ok(start >= end && BigInt(start) + sectionSize <= BigInt(bytes.length), 'Mach-O metadata overlaps file-backed sections.');
+        firstSection = Math.min(firstSection, start);
+      }
+    } else if (command === 0x1d) {
+      assert.equal(length, 16, 'Invalid Mach-O signature command.');
+      assert.equal(signature, null, 'Duplicate Mach-O signature command.');
+      const start = bytes.readUInt32LE(offset + 8), signatureSize = bytes.readUInt32LE(offset + 12);
+      assert.ok(start >= end && signatureSize > 0 && start + signatureSize <= bytes.length, 'Invalid code signature bounds.');
+      signature = [start, start + signatureSize];
+    }
+    offset += length;
+  }
+  assert.equal(offset, end, 'Mach-O command count and size disagree.');
+  assert.ok(Number.isFinite(firstSection), 'No bounded file-backed Mach-O section.');
+  return { end, signature, firstSection };
+}
+
+function dylibNames(commands) {
+  return [...commands.matchAll(/^\s*cmd (LC_ID_DYLIB|LC_LOAD_DYLIB|LC_LOAD_WEAK_DYLIB|LC_REEXPORT_DYLIB)\s*$[\s\S]*?^\s*name (\S+) \(offset \d+\)\s*$/gm)]
+    .map(match => ({ command: match[1], name: match[2] }));
+}
+
+// Explains a whole-file hash difference between UUID/section-equal builds by locating every differing byte.
+export function explainNativeDifference(local, localCommands, candidate, candidateCommands) {
+  const correlation = correlateNative(local, localCommands, candidate, candidateCommands);
+  assert.ok(correlation.uuidMatches && correlation.allSectionBytesMatch, 'Only correlated builds are explained.');
+  const left = nativeMetadata(local), right = nativeMetadata(candidate);
+  const base = { localSha256: correlation.localSha256, candidateSha256: correlation.candidateSha256, uuid: correlation.uuid,
+    localBytes: local.length, candidateBytes: candidate.length };
+  if (local.length !== candidate.length) return { ...base, classification: 'different-length-not-explained', differingBytes: null, regions: null };
+  const headerEnd = Math.max(left.end, right.end);
+  assert.ok(headerEnd <= Math.min(left.firstSection, right.firstSection), 'Mach-O metadata regions overlap compared section data.');
+  const signatures = [left.signature, right.signature].filter(Boolean);
+  const regions = { headerAndLoadCommands: 0, codeSignature: 0, other: 0 };
+  for (let index = 0; index < local.length; index++) {
+    if (local[index] === candidate[index]) continue;
+    if (index < headerEnd) regions.headerAndLoadCommands++;
+    else if (signatures.some(([start, end]) => index >= start && index < end)) regions.codeSignature++;
+    else regions.other++;
+  }
+  const before = dylibNames(candidateCommands), after = dylibNames(localCommands);
+  return { ...base, classification: regions.other ? 'differences-outside-metadata' : 'differences-confined-to-load-commands-and-signature',
+    differingBytes: regions.headerAndLoadCommands + regions.codeSignature + regions.other, regions,
+    localSigned: !!left.signature, candidateSigned: !!right.signature,
+    dylibNameChanges: after.flatMap((value, index) => before[index]?.command === value.command && before[index].name !== value.name
+      ? [{ command: value.command, installed: before[index].name, local: value.name }] : []),
+    dylibCommandCountsMatch: before.length === after.length,
+    publisherAuthenticated: false, reproducibleSourceBuildVerified: false, publicationReady: false };
+}
+
+export function explainMacos() {
+  const correlation = observeMacos(), assets = loadRuntimeAssets(root);
+  const rows = correlation.rows.map(row => {
+    if (row.status !== 'local-build-correlation') return { file: row.file, status: row.status };
+    const candidate = row.candidates.find(value => value.uuidMatches && value.allSectionBytesMatch);
+    const file = join(root, row.file);
+    return { file: row.file, status: 'explained', formula: candidate.formula, installedVersion: candidate.installedVersion,
+      receiptSha256: candidate.receiptSha256, ...explainNativeDifference(regularBytes(file), invoke('otool', ['-l', file]),
+        regularBytes(candidate.candidateFile), invoke('otool', ['-l', candidate.candidateFile])) };
+  });
+  return { schemaVersion: 1, scope: differenceScope, runtimeRegistrySha256: assets.registrySha256, rows,
+    legalApprovalGranted: false, publicationReady: false };
+}
+
+export function validateDifferences(record, assets) {
+  assert.equal(record.schemaVersion, 1); assert.equal(record.scope, differenceScope);
+  assert.equal(record.legalApprovalGranted, false); assert.equal(record.publicationReady, false);
+  assert.equal(record.runtimeRegistrySha256, assets.registrySha256);
+  const group = assets.registry.groups.find(value => value.id === 'local-macos-native-binaries-unresolved');
+  assert.deepEqual(record.rows.map(row => row.file).sort(), group.assets.map(asset => asset.file).sort());
+  const classes = ['different-length-not-explained', 'differences-outside-metadata', 'differences-confined-to-load-commands-and-signature'];
+  for (const row of record.rows) {
+    if (row.status !== 'explained') { assert.ok(['optional-local-file-absent', 'no-matching-installed-build'].includes(row.status)); continue; }
+    assert.equal(row.localSha256, group.assets.find(asset => asset.file === row.file).sha256);
+    assert.ok(classes.includes(row.classification)); assert.notEqual(row.localSha256, row.candidateSha256);
+    for (const key of ['publisherAuthenticated', 'reproducibleSourceBuildVerified', 'publicationReady']) assert.equal(row[key], false);
+    if (row.regions) {
+      assert.equal(row.differingBytes, row.regions.headerAndLoadCommands + row.regions.codeSignature + row.regions.other);
+      assert.equal(row.classification === 'differences-outside-metadata', row.regions.other > 0);
+    }
+  }
+  return { explained: record.rows.filter(row => row.classification === 'differences-confined-to-load-commands-and-signature').length,
+    total: record.rows.length };
+}
+
 export function validateObservation(record, assets) {
   assert.equal(record.schemaVersion, 1);
   assert.equal(record.publicationReady, false); assert.equal(record.legalApprovalGranted, false);
@@ -191,13 +296,29 @@ export function validateEvidence(evidence, assets, readAsset, readObservation) {
     assert.equal(file.url, 'https://deb.debian.org/debian/pool/main/f/fonts-liberation/' + file.name);
   }
   assert.equal(evidence.fonts.sourceRebuildVerified, false); assert.equal(evidence.fonts.debianSignatureVerified, false);
-  assert.deepEqual(evidence.observations.map(record => record.file).sort(), ['evidence/container-local-os.v1.json', 'evidence/macos-local-builds.v1.json']);
+  const descriptor = evidence.fonts.descriptor;
+  assert.deepEqual(descriptor.archives, ['fonts-liberation_1.07.4-11.debian.tar.xz', 'fonts-liberation_1.07.4.orig.tar.gz']);
+  assert.deepEqual(descriptor.algorithms, ['sha256', 'sha1', 'md5']); assert.equal(descriptor.checksumsVerified, true);
+  assert.equal(descriptor.signatureVerified, false); assert.equal(descriptor.signatureStatus, 'blocked-no-authenticated-keyring');
+  assert.equal(descriptor.signer.trusted, false); assert.match(descriptor.signer.issuerFingerprint, /^[A-F0-9]{40}$/);
+  assert.equal(descriptor.signer.issuerKeyId, descriptor.signer.issuerFingerprint.slice(24));
+  assert.deepEqual(evidence.observations.map(record => record.file).sort(), ['evidence/container-local-os.v1.json',
+    'evidence/container-notice-links.v1.json', 'evidence/macos-build-differences.v1.json', 'evidence/macos-local-builds.v1.json',
+    'evidence/native-components.v1.json']);
+  const records = new Map();
   for (const observation of evidence.observations) {
     assert.match(observation.file, /^evidence\/[a-z0-9.-]+\.json$/);
     assert.match(observation.sha256, /^[a-f0-9]{64}$/);
     const bytes = readObservation(observation.file);
     assert.equal(sha(bytes), observation.sha256, 'Recorded observation changed.');
-    validateObservation(JSON.parse(bytes), assets);
+    records.set(observation.file, { record: JSON.parse(bytes), sha256: observation.sha256 });
+  }
+  const historical = records.get('evidence/container-local-os.v1.json');
+  for (const [file, { record }] of records) {
+    if (file === 'evidence/container-notice-links.v1.json') validateNoticeLinks(record, historical.record, historical.sha256);
+    else if (file === 'evidence/native-components.v1.json') validateNativeComponents(record);
+    else if (file === 'evidence/macos-build-differences.v1.json') validateDifferences(record, assets);
+    else validateObservation(record, assets);
   }
   assert.ok(evidence.limitations.length >= 4 && evidence.limitations.every(value => typeof value === 'string' && value.length > 20));
   return { evidence, localAssetBindingsChecked: true, downloadedReferencesRecomputed: false, publicationReady: false };
@@ -296,16 +417,434 @@ export function observeContainer(image) {
     unresolvedCopyrightEntries: report.packages.filter(record => !record.copyright?.bytes).length };
 }
 
+const noticeRoots = ['usr/share/doc/', 'usr/share/common-licenses/'];
+const linkScope = 'supplemental-notice-link-resolution-of-historical-archive-not-release-approval';
+const insideNoticeRoots = path => noticeRoots.some(prefix => (path + '/').startsWith(prefix));
+const tarText = (header, start, length) => {
+  const raw = header.subarray(start, start + length), end = raw.indexOf(0);
+  return raw.subarray(0, end === -1 ? length : end).toString('latin1');
+};
+const tarNumber = (header, start, length) => {
+  assert.equal(header[start] & 0x80, 0, 'Unsupported binary tar number.');
+  const text = tarText(header, start, length).trim();
+  assert.match(text, /^[0-7]{0,12}$/, 'Invalid tar number.');
+  return text ? Number.parseInt(text, 8) : 0;
+};
+
+// Reads only ustar/GNU header metadata from retained bytes; nothing is extracted to host paths.
+export function parseNoticeArchive(bytes, { memberLimit = 4 * 1024 * 1024, entryLimit = 20_000 } = {}) {
+  assert.ok(Buffer.isBuffer(bytes) && bytes.length >= 1024 && bytes.length % 512 === 0 && bytes.length <= 64 * 1024 * 1024,
+    'Bounded tar archive required.');
+  const entries = new Map();
+  let offset = 0, ended = false;
+  while (offset + 512 <= bytes.length) {
+    const header = bytes.subarray(offset, offset + 512);
+    if (header.every(value => value === 0)) {
+      assert.ok(offset + 1024 <= bytes.length && bytes.subarray(offset, offset + 1024).every(value => value === 0),
+        'Incomplete tar end marker.');
+      assert.ok(bytes.subarray(offset + 1024).every(value => value === 0), 'Unexpected trailing tar data.');
+      ended = true; break;
+    }
+    let sum = 0;
+    for (let index = 0; index < 512; index++) sum += index >= 148 && index < 156 ? 32 : header[index];
+    assert.equal(sum, tarNumber(header, 148, 8), 'Tar header checksum mismatch.');
+    const magic = header.subarray(257, 265).toString('latin1');
+    assert.ok(magic === 'ustar  \0' || magic === 'ustar\u000000', 'Unsupported tar format.');
+    const prefix = magic === 'ustar\u000000' ? tarText(header, 345, 155) : '';
+    const name = ((prefix ? prefix + '/' : '') + tarText(header, 0, 100)).replace(/\/$/, '');
+    const flag = header[156] === 0 ? '0' : String.fromCharCode(header[156]);
+    const type = { 0: 'file', 2: 'symlink', 5: 'directory' }[flag];
+    assert.ok(type, 'Unsupported tar entry type.');
+    assert.ok(name && !name.startsWith('/') && !/[\\\u0000-\u001f]/.test(name), 'Unsafe archive path.');
+    assert.ok(name.split('/').every(part => part && part !== '.' && part !== '..'), 'Unsafe archive path.');
+    assert.ok(insideNoticeRoots(name) || 'usr/share/'.startsWith(name + '/'), 'Unexpected notice archive path.');
+    assert.ok(!entries.has(name), 'Duplicate archive member.');
+    const size = tarNumber(header, 124, 12), target = tarText(header, 157, 100);
+    if (type === 'file') {
+      assert.ok(size <= memberLimit, 'Oversized archive member.');
+      assert.ok(offset + 512 + size <= bytes.length, 'Truncated archive member.');
+    } else assert.equal(size, 0, 'Links and directories cannot carry data.');
+    if (type === 'symlink') assert.ok(target.length > 0 && !/[\u0000-\u001f]/.test(target), 'Invalid link target.');
+    entries.set(name, { name, type, size, target: type === 'symlink' ? target : null,
+      data: type === 'file' ? bytes.subarray(offset + 512, offset + 512 + size) : null });
+    assert.ok(entries.size <= entryLimit, 'Too many archive members.');
+    offset += 512 + Math.ceil(size / 512) * 512;
+  }
+  assert.ok(ended, 'Missing tar end marker.');
+  return entries;
+}
+
+// Resolves archive-internal links only. Absolute, escaping and cyclic links are rejected, never followed.
+function safeNoticePath(path) {
+  assert.ok(typeof path === 'string' && insideNoticeRoots(path) && !/[\\\u0000-\u001f]/.test(path)
+    && path.split('/').every(part => part && part !== '.' && part !== '..'), 'Unsafe notice path.');
+}
+
+function walkNoticeMember(entries, requested, hopLimit = 8) {
+  safeNoticePath(requested);
+  // Ancestors of the two three-level notice roots are implicit: the archive was created below them.
+  const rootDepth = 2;
+  let parts = requested.split('/'), index = rootDepth;
+  const chain = [], seen = new Set();
+  const result = (status, entry = null) => ({ status, entry, chain });
+  while (index < parts.length) {
+    const current = parts.slice(0, index + 1).join('/'), entry = entries.get(current);
+    if (!entry) return result('missing-notice');
+    if (entry.type === 'symlink') {
+      assert.ok(typeof entry.target === 'string' && entry.target.length > 0 && !/[\\\u0000-\u001f]/.test(entry.target), 'Invalid notice link target.');
+      assert.ok(!entry.target.startsWith('/'), 'Absolute notice link rejected.');
+      assert.ok(!seen.has(current), 'Notice link cycle rejected.');
+      assert.ok(chain.length < hopLimit, 'Notice link chain too long.');
+      seen.add(current);
+      const resolved = [];
+      for (const part of [...parts.slice(0, index), ...entry.target.split('/')]) {
+        if (part === '' || part === '.') continue;
+        if (part === '..') { assert.ok(resolved.length > 0, 'Escaping notice link rejected.'); resolved.pop(); }
+        else resolved.push(part);
+      }
+      assert.ok(insideNoticeRoots(resolved.join('/')), 'Notice link leaves the notice roots.');
+      chain.push({ link: current, target: entry.target, kind: index === parts.length - 1 ? 'file-link' : 'directory-link' });
+      parts = [...resolved, ...parts.slice(index + 1)];
+      index = rootDepth;
+      continue;
+    }
+    if (index < parts.length - 1) {
+      if (entry.type !== 'directory') return result('missing-notice');
+      index++;
+      continue;
+    }
+    if (entry.type === 'directory') return result('directory-not-notice', entry);
+    return result(entry.size === 0 ? 'empty-member' : chain.length ? 'original-text-through-link' : 'original-text', entry);
+  }
+  return result('missing-notice');
+}
+
+export function resolveNoticeMember(entries, requested, hopLimit = 8) {
+  const { status, entry, chain } = walkNoticeMember(entries, requested, hopLimit);
+  return { status, member: entry?.name ?? null, chain, bytes: entry?.type === 'file' ? entry.size : null,
+    sha256: entry?.type === 'file' && entry.size ? sha(entry.data) : null };
+}
+
+function packageOfMember(member, packages) {
+  const owner = member?.startsWith('usr/share/doc/') ? packages.get(member.split('/')[3]) : null;
+  return owner ? { name: owner.name, version: owner.version, source: owner.source, sourceVersion: owner.sourceVersion } : null;
+}
+
+export function deriveNoticeLinks(archive, observation, observationSha256) {
+  assert.equal(sha(archive), observation.noticeArchiveSha256, 'Notice archive does not match the historical observation.');
+  const entries = parseNoticeArchive(archive);
+  const recorded = new Map(observation.notices.map(notice => [notice.file, notice]));
+  const packages = new Map(observation.packages.map(row => [row.name.split(':')[0], row]));
+  const resolveRecorded = requested => {
+    const result = resolveNoticeMember(entries, requested);
+    if (result.sha256) {
+      const original = recorded.get(result.member);
+      assert.ok(original && original.sha256 === result.sha256 && original.bytes === result.bytes,
+        'Resolved member differs from the historical notice record.');
+    }
+    return result;
+  };
+  const packageMappings = observation.packages.filter(row => !row.copyright?.bytes).map(row => {
+    const requested = 'usr/share/doc/' + row.name.split(':')[0] + '/copyright', result = resolveRecorded(requested);
+    const memberPackage = packageOfMember(result.member, packages);
+    return { package: row.name, version: row.version, source: row.source, sourceVersion: row.sourceVersion, requested, ...result,
+      memberPackage, sameSourceAndVersion: !!memberPackage && memberPackage.source === row.source && memberPackage.sourceVersion === row.sourceVersion,
+      agreementInferred: false };
+  });
+  const licenseLinks = observation.notices.filter(notice => !notice.bytes && notice.file.startsWith('usr/share/common-licenses/'))
+    .map(notice => ({ requested: notice.file, ...resolveRecorded(notice.file) }));
+  const resolved = value => value.status === 'original-text-through-link' || value.status === 'original-text';
+  return { schemaVersion: 1, scope: linkScope, historicalObservation: 'evidence/container-local-os.v1.json',
+    historicalObservationSha256: observationSha256, image: observation.image, noticeArchiveSha256: observation.noticeArchiveSha256,
+    archiveMembers: entries.size, packageMappings, licenseLinks,
+    counts: { packages: observation.packages.length, unresolvedBefore: packageMappings.length,
+      resolvedByLink: packageMappings.filter(resolved).length, unresolvedAfter: packageMappings.filter(value => !resolved(value)).length,
+      licenseLinksResolved: licenseLinks.filter(resolved).length, licenseLinksUnresolved: licenseLinks.filter(value => !resolved(value)).length },
+    archiveExtracted: false, hostLinksFollowed: false, historicalObservationChanged: false,
+    legalApprovalGranted: false, publicationReady: false };
+}
+
+export function validateNoticeLinks(record, historical, historicalSha256) {
+  assert.equal(record.schemaVersion, 1); assert.equal(record.scope, linkScope);
+  for (const key of ['archiveExtracted', 'hostLinksFollowed', 'historicalObservationChanged', 'legalApprovalGranted', 'publicationReady'])
+    assert.equal(record[key], false);
+  assert.equal(record.historicalObservation, 'evidence/container-local-os.v1.json');
+  assert.equal(record.historicalObservationSha256, historicalSha256, 'Notice links are bound to another historical observation.');
+  assert.deepEqual(record.image, historical.image); assert.equal(record.noticeArchiveSha256, historical.noticeArchiveSha256);
+  const notices = new Map(historical.notices.map(notice => [notice.file, notice]));
+  const packages = new Map(historical.packages.map(row => [row.name.split(':')[0], row]));
+  const statuses = ['original-text', 'original-text-through-link', 'empty-member', 'missing-notice', 'directory-not-notice'];
+  const checkResult = value => {
+    assert.ok(statuses.includes(value.status));
+    assert.ok(Array.isArray(value.chain) && value.chain.length <= 8);
+    // Replay the recorded chain with the same resolver used for original archives.
+    // This checks consistency; only verifyContainerLinks rechecks actual archive bytes.
+    const entries = new Map();
+    const parents = path => {
+      safeNoticePath(path);
+      const parts = path.split('/');
+      for (let depth = 3; depth < parts.length; depth++) {
+        const name = parts.slice(0, depth).join('/');
+        if (!entries.has(name)) entries.set(name, { name, type: 'directory', size: 0 });
+      }
+    };
+    parents(value.requested);
+    if (value.member) parents(value.member);
+    for (const hop of value.chain) {
+      parents(hop.link);
+      assert.ok(['file-link', 'directory-link'].includes(hop.kind));
+      assert.ok(entries.get(hop.link)?.type !== 'symlink', 'Duplicate recorded link.');
+      entries.set(hop.link, { name: hop.link, type: 'symlink', target: hop.target });
+    }
+    if (value.status.startsWith('original-text')) {
+      const original = notices.get(value.member);
+      assert.ok(original && original.bytes === value.bytes && original.sha256 === value.sha256, 'Mapping is not a retained original notice.');
+      assert.equal(value.status === 'original-text-through-link', value.chain.length > 0);
+    } else assert.equal(value.sha256, null);
+    if (value.member) {
+      assert.ok(!entries.has(value.member), 'Recorded terminal member conflicts with its link path.');
+      entries.set(value.member, { name: value.member, type: value.status === 'directory-not-notice' ? 'directory' : 'file', size: value.bytes });
+    }
+    const replayed = walkNoticeMember(entries, value.requested);
+    assert.deepEqual({ status: replayed.status, member: replayed.entry?.name ?? null, chain: replayed.chain },
+      { status: value.status, member: value.member, chain: value.chain }, 'Recorded notice chain does not reach its declared member.');
+  };
+  const unresolved = historical.packages.filter(row => !row.copyright?.bytes).map(row => row.name).sort();
+  assert.deepEqual(record.packageMappings.map(value => value.package).sort(), unresolved);
+  for (const value of record.packageMappings) {
+    const row = historical.packages.find(item => item.name === value.package);
+    assert.deepEqual([value.version, value.source, value.sourceVersion], [row.version, row.source, row.sourceVersion]);
+    assert.equal(value.requested, 'usr/share/doc/' + row.name.split(':')[0] + '/copyright');
+    assert.equal(value.agreementInferred, false);
+    checkResult(value);
+    assert.deepEqual(value.memberPackage, packageOfMember(value.member, packages));
+    assert.equal(value.sameSourceAndVersion, !!value.memberPackage && value.memberPackage.source === row.source && value.memberPackage.sourceVersion === row.sourceVersion);
+  }
+  const links = historical.notices.filter(notice => !notice.bytes && notice.file.startsWith('usr/share/common-licenses/')).map(notice => notice.file).sort();
+  assert.deepEqual(record.licenseLinks.map(value => value.requested).sort(), links);
+  record.licenseLinks.forEach(checkResult);
+  const resolved = value => value.status.startsWith('original-text');
+  assert.deepEqual(record.counts, { packages: historical.packages.length, unresolvedBefore: record.packageMappings.length,
+    resolvedByLink: record.packageMappings.filter(resolved).length, unresolvedAfter: record.packageMappings.filter(value => !resolved(value)).length,
+    licenseLinksResolved: record.licenseLinks.filter(resolved).length, licenseLinksUnresolved: record.licenseLinks.filter(value => !resolved(value)).length });
+  return record.counts;
+}
+
+export function verifyContainerLinks(archivePath, rootDirectory = root) {
+  const directory = join(rootDirectory, 'assets/licenses/runtime-assets');
+  const historicalBytes = regularBytes(join(directory, 'evidence/container-local-os.v1.json'), 4 * 1024 * 1024);
+  const derived = deriveNoticeLinks(regularBytes(archivePath), JSON.parse(historicalBytes), sha(historicalBytes));
+  const recorded = JSON.parse(regularBytes(join(directory, 'evidence/container-notice-links.v1.json'), 4 * 1024 * 1024));
+  assert.deepEqual(derived, recorded, 'Recorded notice links differ from the retained archive.');
+  return { counts: derived.counts, archiveRecomputed: true, publicationReady: false };
+}
+
+// Fixed identification strings of commonly embedded libraries. A marker is a hint that a component's
+// code or text is present; its absence does not prove the component is absent.
+const componentMarkers = [
+  ['zlib', /(?:in|de)flate ([0-9]+(?:\.[0-9]+)+) Copyright/g],
+  ['libpng', /libpng version ([0-9]+(?:\.[0-9]+)+)/g],
+  ['libjpeg-turbo', /libjpeg-turbo version ([0-9]+(?:\.[0-9]+)+)/g],
+  ['expat', /expat_([0-9]+(?:\.[0-9]+)+)/g],
+  ['libtiff', /LIBTIFF, Version ([0-9]+(?:\.[0-9]+)+)/g],
+  ['leptonica', /leptonica-([0-9]+(?:\.[0-9]+)+)/g],
+  ['tesseract', /tesseract ([0-9]+\.[0-9]+(?:\.[0-9]+)?)/g],
+  ['liblzma', /\b[Ll]iblzma\b()/g],
+];
+const componentScope = 'local-nuget-cache-native-component-identification-not-attribution-approval';
+const coverageStates = ['named-in-retained-notice', 'not-named-in-retained-notice', 'no-retained-notice-file'];
+
+export function componentMarkersIn(bytes) {
+  assert.ok(Buffer.isBuffer(bytes) && bytes.length > 0 && bytes.length <= 128 * 1024 * 1024);
+  const text = bytes.toString('latin1');
+  return componentMarkers.flatMap(([component, pattern]) => {
+    const versions = [...new Set([...text.matchAll(pattern)].map(match => match[1] || null))];
+    return versions.length ? [{ component, versions: versions.filter(Boolean).sort() }] : [];
+  });
+}
+
+export function noticeComponents(text) {
+  assert.ok(typeof text === 'string' && text.length <= 8 * 1024 * 1024);
+  return [...new Set([...text.matchAll(/^# END: (.+?)\s*$/gm)].map(match => match[1]))].sort((a, b) => a.localeCompare(b, 'en'));
+}
+
+// Retained notices are the package-supplied files plus the repository's pinned upstream copies.
+export function coverageFor(component, notices) {
+  if (!notices.length) return 'no-retained-notice-file';
+  return notices.some(notice => notice.components.some(name => name.toLowerCase() === component)) ? 'named-in-retained-notice' : 'not-named-in-retained-notice';
+}
+
+function noticeRecords(directory, origin) {
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory).filter(name => /^(?:THIRD-PARTY-NOTICES|LICENSE|NOTICE|COPYING)[A-Za-z0-9.-]*$/i.test(name)).sort()
+    .map(name => {
+      const bytes = regularBytes(join(directory, name), 8 * 1024 * 1024);
+      return { origin, file: name, bytes: bytes.length, sha256: sha(bytes), components: noticeComponents(bytes.toString('utf8')) };
+    });
+}
+
+export function observeNativeComponents(restoreReviewPath, nugetRoot, rootDirectory = root) {
+  const reviewBytes = regularBytes(restoreReviewPath, 8 * 1024 * 1024), review = JSON.parse(reviewBytes);
+  assert.equal(review.scope, 'existing-local-api-restore-snapshot-not-fresh-release-graph');
+  const packages = review.packages.map(entry => {
+    const [id, version] = entry.key.split('/');
+    assert.match(id, /^[A-Za-z0-9.]+$/); assert.match(version, /^[0-9][0-9.]*$/);
+    const directory = join(nugetRoot, id.toLowerCase(), version);
+    const notices = [...noticeRecords(directory, 'package'),
+      ...noticeRecords(join(rootDirectory, 'assets/licenses/native-packages', id, version), 'repository-upstream-copy')];
+    const assets = entry.assets.map(asset => {
+      assert.ok(!asset.file.split('/').includes('..') && !asset.file.startsWith('/'));
+      const bytes = regularBytes(join(directory, asset.file), 128 * 1024 * 1024);
+      assert.equal(sha(bytes), asset.sha256, 'Cached native payload differs from the restore review.');
+      return { file: asset.file, sha256: asset.sha256, markers: componentMarkersIn(bytes) };
+    });
+    const found = new Map();
+    for (const asset of assets) for (const marker of asset.markers) {
+      const value = found.get(marker.component) ?? { component: marker.component, versions: new Set(), assets: 0 };
+      marker.versions.forEach(item => value.versions.add(item)); value.assets++; found.set(marker.component, value);
+    }
+    const components = [...found.values()].sort((a, b) => a.component.localeCompare(b.component, 'en'))
+      .map(value => ({ component: value.component, versions: [...value.versions].sort(), assets: value.assets,
+        noticeCoverage: coverageFor(value.component, notices) }));
+    return { key: entry.key, archiveSha256: entry.archiveSha256, notices, assets, components };
+  });
+  const all = packages.flatMap(entry => entry.components);
+  return { schemaVersion: 1, scope: componentScope, restoreReviewSha256: sha(reviewBytes), packages,
+    counts: { packages: packages.length, assets: packages.reduce((sum, entry) => sum + entry.assets.length, 0),
+      componentObservations: all.length, ...Object.fromEntries(coverageStates.map(state => [state, all.filter(value => value.noticeCoverage === state).length])) },
+    markerAbsenceProvesAbsence: false, componentRightsVerified: false, publisherAuthenticated: false,
+    legalApprovalGranted: false, publicationReady: false };
+}
+
+export function validateNativeComponents(record) {
+  assert.equal(record.schemaVersion, 1); assert.equal(record.scope, componentScope);
+  for (const key of ['markerAbsenceProvesAbsence', 'componentRightsVerified', 'publisherAuthenticated', 'legalApprovalGranted', 'publicationReady'])
+    assert.equal(record[key], false);
+  assert.match(record.restoreReviewSha256, /^[a-f0-9]{64}$/);
+  const known = new Set(componentMarkers.map(([component]) => component));
+  const packages = new Set();
+  for (const entry of record.packages) {
+    assert.match(entry.key, /^[A-Za-z0-9.]+\/[0-9][0-9.]*$/); assert.match(entry.archiveSha256, /^[a-f0-9]{64}$/);
+    assert.ok(!packages.has(entry.key), 'Duplicate native component package.'); packages.add(entry.key);
+    for (const notice of entry.notices) {
+      assert.ok(['package', 'repository-upstream-copy'].includes(notice.origin));
+      assert.match(notice.file, /^(?:THIRD-PARTY-NOTICES|LICENSE|NOTICE|COPYING)[A-Za-z0-9.-]*$/i); assert.match(notice.sha256, /^[a-f0-9]{64}$/);
+      assert.ok(Array.isArray(notice.components));
+    }
+    const found = new Map(), paths = new Set();
+    for (const asset of entry.assets) {
+      assert.ok(typeof asset.file === 'string' && !asset.file.startsWith('/') && !/[\\:\u0000-\u001f]/.test(asset.file)
+        && asset.file.split('/').every(part => part && part !== '.' && part !== '..'), 'Unsafe native component asset path.');
+      assert.ok(!paths.has(asset.file), 'Duplicate native component asset.'); paths.add(asset.file);
+      assert.match(asset.sha256, /^[a-f0-9]{64}$/);
+      const markers = new Set();
+      for (const marker of asset.markers) {
+        assert.ok(known.has(marker.component) && !markers.has(marker.component), 'Unknown or duplicate component marker.');
+        markers.add(marker.component);
+        assert.ok(Array.isArray(marker.versions) && marker.versions.every(version => typeof version === 'string' && /^\d+(?:\.\d+)+$/.test(version)));
+        assert.deepEqual(marker.versions, [...new Set(marker.versions)].sort(), 'Noncanonical marker versions.');
+        const value = found.get(marker.component) ?? { component: marker.component, versions: new Set(), assets: 0 };
+        marker.versions.forEach(version => value.versions.add(version)); value.assets++; found.set(marker.component, value);
+      }
+    }
+    const expected = [...found.values()].sort((a, b) => a.component.localeCompare(b.component, 'en'))
+      .map(value => ({ component: value.component, versions: [...value.versions].sort(), assets: value.assets,
+        noticeCoverage: coverageFor(value.component, entry.notices) }));
+    assert.deepEqual(entry.components, expected, 'Component summaries differ from their payload markers.');
+  }
+  const all = record.packages.flatMap(entry => entry.components);
+  assert.deepEqual(record.counts, { packages: record.packages.length, assets: record.packages.reduce((sum, entry) => sum + entry.assets.length, 0),
+    componentObservations: all.length, ...Object.fromEntries(coverageStates.map(state => [state, all.filter(value => value.noticeCoverage === state).length])) });
+  return record.counts;
+}
+
+// Reads an OpenPGP signature packet only to report who claims to have signed; it is never trusted.
+export function signatureIssuer(armored) {
+  const body = armored.match(/-----BEGIN PGP SIGNATURE-----\r?\n(?:[A-Za-z-]+: .*\r?\n)*\r?\n([A-Za-z0-9+/=\r\n]+?)\r?\n=[A-Za-z0-9+/]{4}\r?\n-----END PGP SIGNATURE-----/)?.[1];
+  assert.ok(body, 'Missing armored signature.');
+  const packet = Buffer.from(body.replace(/\s+/g, ''), 'base64');
+  assert.ok(packet.length >= 8 && packet.length <= 4096);
+  let offset = 1, length;
+  if (packet[0] & 0x40) {
+    assert.equal(packet[0] & 0x3f, 2, 'Not a signature packet.');
+    const first = packet[1];
+    if (first < 192) { length = first; offset = 2; }
+    else if (first < 224) { length = ((first - 192) << 8) + packet[2] + 192; offset = 3; }
+    else { assert.equal(first, 255, 'Partial packet lengths are unsupported.'); length = packet.readUInt32BE(2); offset = 6; }
+  } else {
+    assert.equal((packet[0] >> 2) & 0x0f, 2, 'Not a signature packet.');
+    const bytes = [1, 2, 4][packet[0] & 3]; assert.ok(bytes, 'Indeterminate packet length.');
+    length = packet.readUIntBE(1, bytes); offset = 1 + bytes;
+  }
+  assert.ok(offset + length <= packet.length, 'Truncated signature packet.');
+  const signature = packet.subarray(offset, offset + length);
+  assert.equal(signature[0], 4, 'Only version 4 signatures are inspected.');
+  const hashedLength = signature.readUInt16BE(4), hashed = signature.subarray(6, 6 + hashedLength);
+  const unhashedLength = signature.readUInt16BE(6 + hashedLength), unhashed = signature.subarray(8 + hashedLength, 8 + hashedLength + unhashedLength);
+  const subpackets = area => {
+    const values = [];
+    for (let index = 0; index < area.length;) {
+      let size = area[index], header = 1;
+      if (size >= 192 && size < 255) { size = ((size - 192) << 8) + area[index + 1] + 192; header = 2; }
+      else if (size === 255) { size = area.readUInt32BE(index + 1); header = 5; }
+      assert.ok(size >= 1 && index + header + size <= area.length, 'Invalid signature subpacket.');
+      values.push({ type: area[index + header] & 0x7f, data: area.subarray(index + header + 1, index + header + size) });
+      index += header + size;
+    }
+    return values;
+  };
+  const all = [...subpackets(hashed), ...subpackets(unhashed)];
+  const fingerprint = all.find(value => value.type === 33)?.data;
+  const keyId = all.find(value => value.type === 16)?.data;
+  return { publicKeyAlgorithm: signature[2], hashAlgorithm: signature[3],
+    issuerFingerprint: fingerprint?.length === 21 ? fingerprint.subarray(1).toString('hex').toUpperCase() : null,
+    issuerKeyId: keyId?.length === 8 ? keyId.toString('hex').toUpperCase() : fingerprint?.length === 21 ? fingerprint.subarray(13).toString('hex').toUpperCase() : null,
+    trusted: false };
+}
+
+// Recomputes every checksum the descriptor declares; the clearsigned signature itself stays unverified.
+export function checkSourceDescriptor(descriptor, archives) {
+  const text = descriptor.toString('utf8');
+  assert.ok(text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----\n'), 'Descriptor is not clearsigned.');
+  const body = text.slice(text.indexOf('\n\n') + 2, text.indexOf('\n-----BEGIN PGP SIGNATURE-----'));
+  const block = name => {
+    const matches = [...body.matchAll(new RegExp(`^${name}:\\n((?: \\S+ \\d+ \\S+\\n?)+)`, 'gm'))];
+    assert.ok(matches.length > 0, `Missing ${name} block.`);
+    assert.equal(matches.length, 1, `Duplicate ${name} block.`);
+    return matches[0][1].trim().split('\n').map(line => { const [digest, size, file] = line.trim().split(' '); return { digest, size: Number(size), file }; });
+  };
+  const algorithms = [['Checksums-Sha256', 'sha256'], ['Checksums-Sha1', 'sha1'], ['Files', 'md5']];
+  assert.ok(archives instanceof Map && archives.size > 0, 'Source archives are required.');
+  for (const [name, algorithm] of algorithms) {
+    const entries = block(name), listed = new Set(entries.map(entry => entry.file));
+    assert.equal(listed.size, entries.length, `Duplicate archive in ${name}.`);
+    assert.deepEqual([...listed].sort(), [...archives.keys()].sort(), `Supplied archives differ from the descriptor ${name} list.`);
+    for (const entry of entries) {
+      const bytes = archives.get(entry.file);
+      assert.ok(Buffer.isBuffer(bytes), `Descriptor lists an archive that was not supplied: ${entry.file}.`);
+      assert.ok(Number.isSafeInteger(entry.size) && entry.size >= 0, 'Invalid descriptor archive size.');
+      assert.equal(bytes.length, entry.size, `Descriptor size differs for ${entry.file}.`);
+      assert.equal(createHash(algorithm).update(bytes).digest('hex'), entry.digest, `Descriptor ${algorithm} differs for ${entry.file}.`);
+    }
+  }
+  return { archives: [...archives.keys()].sort(), algorithms: algorithms.map(([, algorithm]) => algorithm), checksumsVerified: true,
+    signer: signatureIssuer(text), signatureVerified: false, signatureStatus: 'blocked-no-authenticated-keyring' };
+}
+
 export function verifyDownloads(directory) {
   const { evidence } = checkEvidence();
   for (const file of evidence.fonts.sourceFiles) {
     const bytes = regularBytes(join(directory, file.name));
     assert.equal(bytes.length, file.bytes); assert.equal(sha(bytes), file.sha256, 'Downloaded source archive changed.');
   }
+  const archives = new Map(evidence.fonts.sourceFiles.filter(file => !file.name.endsWith('.dsc'))
+    .map(file => [file.name, regularBytes(join(directory, file.name))]));
+  const descriptor = checkSourceDescriptor(regularBytes(join(directory, 'fonts-liberation_1.07.4-11.dsc')), archives);
+  assert.deepEqual(descriptor, evidence.fonts.descriptor, 'Recorded descriptor check differs from the downloaded sources.');
   const comparison = compareModel(regularBytes(join(root, evidence.model.file)),
     regularBytes(join(directory, 'ukr-upstream.traineddata')), evidence.model.reference);
   assert.equal(comparison.relation, evidence.model.relation);
-  return { comparison, downloadedReferencesRecomputed: true, publicationReady: false };
+  return { comparison, descriptor, downloadedReferencesRecomputed: true, publicationReady: false };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
@@ -316,5 +855,21 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     console.log(JSON.stringify({ output, correlated: report.rows.filter(row => row.status === 'local-build-correlation').length, total: report.rows.length }));
   } else if (args.length === 2 && args[0] === 'verify-downloads') console.log(JSON.stringify(verifyDownloads(resolve(args[1])), null, 2));
   else if (args.length === 2 && args[0] === 'observe-container') console.log(JSON.stringify(observeContainer(args[1])));
-  else { assert.equal(args.length, 0, 'Use observe-macos, observe-container <image-digest> or verify-downloads <download-directory>.'); console.log(JSON.stringify(checkEvidence(), null, 2)); }
+  else if (args.length === 2 && args[0] === 'resolve-container-links') {
+    const directory = join(root, 'assets/licenses/runtime-assets'), historicalBytes = regularBytes(join(directory, 'evidence/container-local-os.v1.json'), 4 * 1024 * 1024);
+    const record = deriveNoticeLinks(regularBytes(resolve(args[1])), JSON.parse(historicalBytes), sha(historicalBytes));
+    const output = join(root, 'artifacts/native-runtime-provenance', `${Date.now()}-${randomUUID().slice(0, 8)}`);
+    mkdirSync(output, { recursive: true }); writeFileSync(join(output, 'container-notice-links.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
+    console.log(JSON.stringify({ output, counts: record.counts }));
+  } else if (args.length === 1 && args[0] === 'explain-macos') {
+    const report = explainMacos(), output = join(root, 'artifacts/native-runtime-provenance', `${Date.now()}-${randomUUID().slice(0, 8)}`);
+    mkdirSync(output, { recursive: true }); writeFileSync(join(output, 'macos-differences.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+    console.log(JSON.stringify({ output, ...validateDifferences(report, loadRuntimeAssets(root)) }));
+  } else if (args.length === 3 && args[0] === 'observe-native-components') {
+    const record = observeNativeComponents(resolve(args[1]), resolve(args[2]));
+    const output = join(root, 'artifacts/native-runtime-provenance', `${Date.now()}-${randomUUID().slice(0, 8)}`);
+    mkdirSync(output, { recursive: true }); writeFileSync(join(output, 'native-components.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
+    console.log(JSON.stringify({ output, counts: record.counts }));
+  } else if (args.length === 2 && args[0] === 'verify-container-links') console.log(JSON.stringify(verifyContainerLinks(resolve(args[1])), null, 2));
+  else { assert.equal(args.length, 0, 'Use observe-macos, explain-macos, observe-container <image-digest>, resolve-container-links <archive>, verify-container-links <archive>, observe-native-components <restore-review> <nuget-root> or verify-downloads <download-directory>.'); console.log(JSON.stringify(checkEvidence(), null, 2)); }
 }

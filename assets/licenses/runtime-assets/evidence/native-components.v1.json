@@ -1,0 +1,932 @@
+{
+  "schemaVersion": 1,
+  "scope": "local-nuget-cache-native-component-identification-not-attribution-approval",
+  "restoreReviewSha256": "07f0476e12a9e98928212e1587d8eaacee3bed35871e9a8d6d509fb22a3eaf3e",
+  "packages": [
+    {
+      "key": "HarfBuzzSharp.NativeAssets.Linux/14.4.0.100",
+      "archiveSha256": "be49fd6b84aa1ffc7f5c652a0ac2b93e4733e06374c3c3c995fad287c07ed419",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 112187,
+          "sha256": "243f2276bde636931b1cf8517fb11c0451be857996fbe1a2c690a3c7d39502ac",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/linux-arm/native/libHarfBuzzSharp.so",
+          "sha256": "d25768184c10bd962a58fed808c1005142f47f98c2ac379514f3705985672344",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-arm64/native/libHarfBuzzSharp.so",
+          "sha256": "acd27e2ba03cc47d6288e7264f2a7ba77e1d927cb793d1acdc13703f6580756a",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-bionic-arm64/native/libHarfBuzzSharp.so",
+          "sha256": "153e5d08c7e4052ceb7847284777005fe2d925bd1fcde70a494d6381d7b9c3d6",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-bionic-x64/native/libHarfBuzzSharp.so",
+          "sha256": "30e91e30682ed64c97c86bf0014373429f6f8424b83315b8b261a672389cbd9c",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-loongarch64/native/libHarfBuzzSharp.so",
+          "sha256": "89894137ca280cc850c7cfdbce22ad25f9cfa5d347de190860434eeff42bb75e",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-musl-arm/native/libHarfBuzzSharp.so",
+          "sha256": "b50a5390dd67ab5001de1fabc291f2ba9c37e7857e8461d441ab80e90caa25be",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-musl-arm64/native/libHarfBuzzSharp.so",
+          "sha256": "c3867b43e873e8310635ddc3fae81f0bf71c4a8b18019cf87d15041b509a604e",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-musl-loongarch64/native/libHarfBuzzSharp.so",
+          "sha256": "b6797845855bf1685939d3569d96180acfe3e0d303f4998a18e582c7fae70a82",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-musl-riscv64/native/libHarfBuzzSharp.so",
+          "sha256": "e5796020a2709b483fe76cd8f9d09735162c012a73012fb685720823e9ddd745",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-musl-x64/native/libHarfBuzzSharp.so",
+          "sha256": "82ae0fdfc688cdb52680eda537f8c6259a4f567e8006a4e753374c8fcdb2d18d",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-riscv64/native/libHarfBuzzSharp.so",
+          "sha256": "5496d0dda9d5b6727fb519290e3ebc1ff1b626727ad14a0cd886839b93949f85",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-x64/native/libHarfBuzzSharp.so",
+          "sha256": "cf67521e2a26fb8fcca249298457323d03e8c8ca10171d37cdae2815c6bf0512",
+          "markers": []
+        },
+        {
+          "file": "runtimes/linux-x86/native/libHarfBuzzSharp.so",
+          "sha256": "35f2e9de5184029af7be9865171ca69bfe95f2c42ba506c0d589a28ab62a8f9e",
+          "markers": []
+        }
+      ],
+      "components": []
+    },
+    {
+      "key": "HarfBuzzSharp.NativeAssets.macOS/14.4.0.100",
+      "archiveSha256": "7875a31c8db94189f318a92738b9e4d5d134152ef241476382bd0fbda71dfda4",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 112187,
+          "sha256": "243f2276bde636931b1cf8517fb11c0451be857996fbe1a2c690a3c7d39502ac",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/osx/native/libHarfBuzzSharp.dylib",
+          "sha256": "94a83aca175c5cc364e2347b93db26f8509c378bd011e86ed5c7785128367658",
+          "markers": []
+        }
+      ],
+      "components": []
+    },
+    {
+      "key": "HarfBuzzSharp.NativeAssets.Win32/14.4.0.100",
+      "archiveSha256": "7791a30ba2337d7001f10d99625f0daab7dc27495be3b59aa29dc3b7fc9a2108",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 112187,
+          "sha256": "243f2276bde636931b1cf8517fb11c0451be857996fbe1a2c690a3c7d39502ac",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/win-arm64/native/libHarfBuzzSharp.dll",
+          "sha256": "5b957dfc7f3d8427403aeb3ab3fbec6db655ff140e7f2fa9687c14e47ac81c3d",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-arm64/native/libHarfBuzzSharp.pdb",
+          "sha256": "55e96fcef4ecf09d5ee37249cadbc71b28c451983dfe1ab7910fca74f159a2c8",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x64/native/libHarfBuzzSharp.dll",
+          "sha256": "3fd42a92848b4588778f8b778982bdc8c64800c50c04cf3a004fd0c8b958206d",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x64/native/libHarfBuzzSharp.pdb",
+          "sha256": "0da5b51a2889d38078de70868aab65089521e43038cc6d41f32a35d953c77293",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x86/native/libHarfBuzzSharp.dll",
+          "sha256": "3ae8d523301732903a755a53846a405bd8f178ede5c4dd4f2082e47b4c09ffb4",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x86/native/libHarfBuzzSharp.pdb",
+          "sha256": "fbdb068109a15653ba27c499c339bef1923fe6678c9110d463bcf4e5afe4c5e0",
+          "markers": []
+        }
+      ],
+      "components": []
+    },
+    {
+      "key": "SkiaSharp.NativeAssets.Linux.NoDependencies/3.119.2",
+      "archiveSha256": "efd0422d90188df1cfd4364a801fa1b32c819619f26503e2f92c2fb344589e78",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 139775,
+          "sha256": "21504c46c4c58aa64c1055bd2dcbc5f9a136b4b8c412ed3cc6740e22c5b127f5",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libmicrohttpd",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/linux-arm/native/libSkiaSharp.so",
+          "sha256": "3ecd360dec459483b1a9a7b43ba722e6b1d5409186900524d982d20ab354f344",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-arm64/native/libSkiaSharp.so",
+          "sha256": "e98535d86c3a92c18f7f541c32ebf21c5be7a0559603216b48bc128fbaf4af8c",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-loongarch64/native/libSkiaSharp.so",
+          "sha256": "d905b9ab0596c52b9504e12913665c8f37cf15e6b81c7d6704dfa9594f8d3c6b",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-musl-arm/native/libSkiaSharp.so",
+          "sha256": "746193636c4bdf73b527f630139e8f42a265cc821829b0d33dce68edc9874e95",
+          "markers": [
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-musl-arm64/native/libSkiaSharp.so",
+          "sha256": "0c3b1b19d1719b04481f6e3a6da6e0d69fd8732dbfb3b0d8057113d23fa24335",
+          "markers": [
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-musl-loongarch64/native/libSkiaSharp.so",
+          "sha256": "2facc67d1d0a0f815d6cdf21afa58a66e7b569b59a167977eae14b57ba768852",
+          "markers": [
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-musl-riscv64/native/libSkiaSharp.so",
+          "sha256": "a8f024c13feb42baf126cedfddbdb1db829c3651744f00e29d0b6373319ed9b6",
+          "markers": [
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-musl-x64/native/libSkiaSharp.so",
+          "sha256": "11651b8f20ac40acb3e9cef8ab5e5215bd61473a19c4556d64e4fdb603cf7a6d",
+          "markers": [
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-riscv64/native/libSkiaSharp.so",
+          "sha256": "1e455916604d5ccf19d09d3190ff666499cf5d635f5db4a96057095e24f918fb",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-x64/native/libSkiaSharp.so",
+          "sha256": "1b8c6c179ba8b747dd76f7c22689057cc76a8e7d2505f9fe2bf8ee32af518dd0",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/linux-x86/native/libSkiaSharp.so",
+          "sha256": "65bec9fe2baf41f96198afdd3102ce82338bd74eb3e0e78efcdb7b1cf753105b",
+          "markers": [
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "component": "libjpeg-turbo",
+          "versions": [
+            "2.1.5.1"
+          ],
+          "assets": 11,
+          "noticeCoverage": "named-in-retained-notice"
+        },
+        {
+          "component": "libpng",
+          "versions": [
+            "1.6.44"
+          ],
+          "assets": 6,
+          "noticeCoverage": "named-in-retained-notice"
+        }
+      ]
+    },
+    {
+      "key": "SkiaSharp.NativeAssets.macOS/3.119.2",
+      "archiveSha256": "284786a928b202231bccb807ff4264c14cffa5670be3d8180754f560b90c3da2",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 139775,
+          "sha256": "21504c46c4c58aa64c1055bd2dcbc5f9a136b4b8c412ed3cc6740e22c5b127f5",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libmicrohttpd",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/osx/native/libSkiaSharp.dylib",
+          "sha256": "f0db1a978ba6568b6a99c79afacc74dfd988b81d3e06ae703832f3dd1eee5d0b",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.3.0.1"
+              ]
+            },
+            {
+              "component": "libpng",
+              "versions": [
+                "1.6.44"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            },
+            {
+              "component": "expat",
+              "versions": [
+                "2.6.4"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "component": "expat",
+          "versions": [
+            "2.6.4"
+          ],
+          "assets": 1,
+          "noticeCoverage": "named-in-retained-notice"
+        },
+        {
+          "component": "libjpeg-turbo",
+          "versions": [
+            "2.1.5.1"
+          ],
+          "assets": 1,
+          "noticeCoverage": "named-in-retained-notice"
+        },
+        {
+          "component": "libpng",
+          "versions": [
+            "1.6.44"
+          ],
+          "assets": 1,
+          "noticeCoverage": "named-in-retained-notice"
+        },
+        {
+          "component": "zlib",
+          "versions": [
+            "1.3.0.1"
+          ],
+          "assets": 1,
+          "noticeCoverage": "named-in-retained-notice"
+        }
+      ]
+    },
+    {
+      "key": "SkiaSharp.NativeAssets.Win32/3.119.2",
+      "archiveSha256": "088e9d83e325c57f2dfaf6e7931b5de50137c5a94c2a403c2d44ae77183b4cd5",
+      "notices": [
+        {
+          "origin": "package",
+          "file": "LICENSE.txt",
+          "bytes": 1129,
+          "sha256": "89101e35a8c66fd4d6dffc1763259161d35cb564c169714ec227a768c89f2938",
+          "components": []
+        },
+        {
+          "origin": "package",
+          "file": "THIRD-PARTY-NOTICES.txt",
+          "bytes": 139775,
+          "sha256": "21504c46c4c58aa64c1055bd2dcbc5f9a136b4b8c412ed3cc6740e22c5b127f5",
+          "components": [
+            "ANGLE",
+            "DNG SDK",
+            "etc1",
+            "expat",
+            "freetype",
+            "gif",
+            "HarfBuzz",
+            "ICU",
+            "imgui",
+            "jsoncpp",
+            "libjpeg-turbo",
+            "libmicrohttpd",
+            "libpng",
+            "libwebp",
+            "piex",
+            "sdl",
+            "sfntly",
+            "skia",
+            "SPIR-V Headers",
+            "SPIR-V Tools",
+            "zlib"
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "file": "runtimes/win-arm64/native/libSkiaSharp.dll",
+          "sha256": "a6a09d02db0fe21148369b8bf0a9b44aa165c7ec4ea97c2de8ac706ac113f389",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.3.0.1"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/win-arm64/native/libSkiaSharp.pdb",
+          "sha256": "a439e0afbcb08786b16fdf3c3049866191a705fb7d1d4b95cb01e7cccbc9e2d1",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x64/native/libSkiaSharp.dll",
+          "sha256": "8b097d433db94fe61aba85213184938fb36118afd542d33252dd83794fdd9afc",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.3.0.1"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/win-x64/native/libSkiaSharp.pdb",
+          "sha256": "f1c1354dd1cccc001247d6fa5515600b09e4cb70ff6d01d60e593ee67f337b89",
+          "markers": []
+        },
+        {
+          "file": "runtimes/win-x86/native/libSkiaSharp.dll",
+          "sha256": "0a8a5ce7f24837d78b622b123eff0956bdd81437d7aa8554cb1282d4eae186b0",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.3.0.1"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.5.1"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "runtimes/win-x86/native/libSkiaSharp.pdb",
+          "sha256": "950e882d4277de2cacae5a6ab6b185306290e4a1e16d276c108c71c8e1bba891",
+          "markers": []
+        }
+      ],
+      "components": [
+        {
+          "component": "libjpeg-turbo",
+          "versions": [
+            "2.1.5.1"
+          ],
+          "assets": 3,
+          "noticeCoverage": "named-in-retained-notice"
+        },
+        {
+          "component": "zlib",
+          "versions": [
+            "1.3.0.1"
+          ],
+          "assets": 3,
+          "noticeCoverage": "named-in-retained-notice"
+        }
+      ]
+    },
+    {
+      "key": "Tesseract/5.2.0",
+      "archiveSha256": "202d82fc7c7d8384df7da57206d5e1f456ccdabd648c46e67cdfaa3a911d4795",
+      "notices": [
+        {
+          "origin": "repository-upstream-copy",
+          "file": "LICENSE.txt",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "components": []
+        }
+      ],
+      "assets": [
+        {
+          "file": "x64/leptonica-1.82.0.dll",
+          "sha256": "dfcb3e6ed0b16bc55bfdbcf53543cfe42a354b87c3e35bd3a95eebf005d73e76",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.2.13"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.4"
+              ]
+            },
+            {
+              "component": "libtiff",
+              "versions": [
+                "4.4.0"
+              ]
+            },
+            {
+              "component": "leptonica",
+              "versions": [
+                "1.82.0"
+              ]
+            },
+            {
+              "component": "tesseract",
+              "versions": [
+                "3.04"
+              ]
+            },
+            {
+              "component": "liblzma",
+              "versions": []
+            }
+          ]
+        },
+        {
+          "file": "x64/tesseract50.dll",
+          "sha256": "de4d04ec75095374d98f5dd7a60d14d7e2e0f76589db693eccf7ae658be8cb2b",
+          "markers": [
+            {
+              "component": "leptonica",
+              "versions": [
+                "1.82.0"
+              ]
+            },
+            {
+              "component": "tesseract",
+              "versions": [
+                "5.0.0"
+              ]
+            }
+          ]
+        },
+        {
+          "file": "x86/leptonica-1.82.0.dll",
+          "sha256": "1700330110ada8e4f07fb063915e60e2b585ad87d9b1948093945e4645b66d08",
+          "markers": [
+            {
+              "component": "zlib",
+              "versions": [
+                "1.2.13"
+              ]
+            },
+            {
+              "component": "libjpeg-turbo",
+              "versions": [
+                "2.1.4"
+              ]
+            },
+            {
+              "component": "libtiff",
+              "versions": [
+                "4.4.0"
+              ]
+            },
+            {
+              "component": "leptonica",
+              "versions": [
+                "1.82.0"
+              ]
+            },
+            {
+              "component": "tesseract",
+              "versions": [
+                "3.04"
+              ]
+            },
+            {
+              "component": "liblzma",
+              "versions": []
+            }
+          ]
+        },
+        {
+          "file": "x86/tesseract50.dll",
+          "sha256": "7f4873cdb78b9cd18c069eae434d38dd14e987531866463357cf51c016241820",
+          "markers": [
+            {
+              "component": "leptonica",
+              "versions": [
+                "1.82.0"
+              ]
+            },
+            {
+              "component": "tesseract",
+              "versions": [
+                "5.0.0"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "component": "leptonica",
+          "versions": [
+            "1.82.0"
+          ],
+          "assets": 4,
+          "noticeCoverage": "not-named-in-retained-notice"
+        },
+        {
+          "component": "libjpeg-turbo",
+          "versions": [
+            "2.1.4"
+          ],
+          "assets": 2,
+          "noticeCoverage": "not-named-in-retained-notice"
+        },
+        {
+          "component": "liblzma",
+          "versions": [],
+          "assets": 2,
+          "noticeCoverage": "not-named-in-retained-notice"
+        },
+        {
+          "component": "libtiff",
+          "versions": [
+            "4.4.0"
+          ],
+          "assets": 2,
+          "noticeCoverage": "not-named-in-retained-notice"
+        },
+        {
+          "component": "tesseract",
+          "versions": [
+            "3.04",
+            "5.0.0"
+          ],
+          "assets": 4,
+          "noticeCoverage": "not-named-in-retained-notice"
+        },
+        {
+          "component": "zlib",
+          "versions": [
+            "1.2.13"
+          ],
+          "assets": 2,
+          "noticeCoverage": "not-named-in-retained-notice"
+        }
+      ]
+    },
+    {
+      "key": "ZXing.Net/0.16.9",
+      "archiveSha256": "00254acaaea069262e6b103d23f1a934e953d503ea43afe2965272718388f32e",
+      "notices": [
+        {
+          "origin": "repository-upstream-copy",
+          "file": "COPYING",
+          "bytes": 11357,
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "components": []
+        }
+      ],
+      "assets": [
+        {
+          "file": "lib/native/zxing.XML",
+          "sha256": "6d77719b181501b338914dcc267114b498b38c21cb144bb80aa9f7ce826d5998",
+          "markers": []
+        },
+        {
+          "file": "lib/native/zxing.pri",
+          "sha256": "dad9d0a9e4d9409161c4080f5abc32635c735d49c011726b45194cc658d6fc8a",
+          "markers": []
+        },
+        {
+          "file": "lib/native/zxing.winmd",
+          "sha256": "db859cab9b27c5553de5b1e76e86c9fa31b7fd33af96410771787d26af77b161",
+          "markers": []
+        }
+      ],
+      "components": []
+    }
+  ],
+  "counts": {
+    "packages": 8,
+    "assets": 45,
+    "componentObservations": 14,
+    "named-in-retained-notice": 8,
+    "not-named-in-retained-notice": 6,
+    "no-retained-notice-file": 0
+  },
+  "markerAbsenceProvesAbsence": false,
+  "componentRightsVerified": false,
+  "publisherAuthenticated": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false
+}

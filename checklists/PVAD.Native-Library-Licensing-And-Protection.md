@@ -19,6 +19,10 @@ Current primary status: **70/76 (92.1%)**, with six primary items still open.
 The latest cross-platform package acceptance below supersedes earlier pending
 platform notes; earlier evidence records retain their original results.
 
+The [remaining-work handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md)
+assigns the six open items, separates engineering from owner/legal inputs and
+defines the evidence required for subsequent independent agent review.
+
 ## Goal And Decisions
 
 Implement offline licensing for every native product and a free, reproducible
@@ -694,6 +698,57 @@ or claim complete .NET, Designer, platform, visual or fuzz execution. Its
 release fragment has internal-only `none` impact. The preceding integration
 audit was committed separately as `5a40600f`; this supplemental evidence is not
 committed or pushed in this checkpoint.
+
+#### Remaining-Work Execution (2026-11-22)
+
+This executes the engineering portion of the
+[remaining-work handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md). The
+[completion report](PVAD.Native-Licensing-Remaining-Work-Report.md) holds commands,
+raw report paths, counters and owner questions. All six primary items stay open:
+technical validation/distribution gaps remain alongside owner/legal inputs.
+Status remains **70/76 (92.1%)**.
+
+- Container notices: all **five** unresolved ARM64 mappings now resolve, through
+  archive-internal links, to the original text of a same-source, same-version
+  installed package. The three linked `common-licenses` entries resolve too.
+  Each resolved hash equals the historical notice record. The historical
+  observation and archive are unchanged.
+- Native components: SkiaSharp's notice names every identified component.
+  **Tesseract 5.2.0** embeds markers for six components (Leptonica, Tesseract,
+  LibTIFF, libjpeg-turbo, zlib, liblzma) that no retained notice names. This is a
+  new, explicit distribution gap.
+- Local dylibs: for all fifteen, every byte difference lies in the Mach-O header
+  and load commands, which is the `@loader_path` install-name rewrite.
+  Publisher authentication is still missing.
+- Liberation Sans: all descriptor checksums are recomputed. The signature is
+  **blocked**: no authenticated Debian keyring is available. The signer
+  fingerprint is recorded but not trusted. A reproducible build is unavailable,
+  because FontForge is not installed.
+- Local validation on macOS (Apple M4 Max) with .NET 10.0.113 osx-x64 (Rosetta):
+  - Licensing 118/118; activation guide, WebApi protection and platform-package
+    checks pass; joint rehearsal with 54 assemblies, 654 original and 5,850
+    protected checks; full API validation 1,527 passed; native issuer with real
+    PostgreSQL 54/54; revocation 13 checks.
+  - The regression runner stops at the deferred ImageAnalysis snapshot failures
+    (4 of 181). Its remaining steps were run separately with the same filters and
+    pass, including all 449 filtered API tests.
+  - The first Visual Parity attempt timed out on a screenshot; one rerun passed
+    in report-only mode with one P2 finding.
+  - Not run: fuzz campaign (no AFL++/SharpFuzz toolchain) and all remote
+    workflows (not authorized).
+- Side findings, documented only:
+  - `PVAD.LicenseIssuer` does not check that the private key matches the embedded
+    trust for its key ID.
+  - The committed historical macOS observation contains local Homebrew
+    candidate paths.
+
+The subsequent [review corrections](PVAD.Native-Licensing-Remaining-Work-Report.md#8-reviewing-agent-corrections-2026-11-23)
+add negative tests and tighten notice-chain replay, Mach-O binary bounds,
+component versions, complete descriptor checksum lists and strict TAR endings.
+All original observations and runtime assets remain unchanged. The report now
+states explicitly that full Solution/Designer validation is unexecuted and that
+the isolated PostgreSQL tests created disposable containers; original raw test
+results are not relabeled or expanded.
 
 #### Public API Documentation Checkpoint
 

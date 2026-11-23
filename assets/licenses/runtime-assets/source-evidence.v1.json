@@ -40,6 +40,27 @@
         "url": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4-11.debian.tar.xz"
       }
     ],
+    "descriptor": {
+      "archives": [
+        "fonts-liberation_1.07.4-11.debian.tar.xz",
+        "fonts-liberation_1.07.4.orig.tar.gz"
+      ],
+      "algorithms": [
+        "sha256",
+        "sha1",
+        "md5"
+      ],
+      "checksumsVerified": true,
+      "signer": {
+        "publicKeyAlgorithm": 1,
+        "hashAlgorithm": 10,
+        "issuerFingerprint": "B8BF54137B09D35CF026FE9D091AB856069AAA1C",
+        "issuerKeyId": "091AB856069AAA1C",
+        "trusted": false
+      },
+      "signatureVerified": false,
+      "signatureStatus": "blocked-no-authenticated-keyring"
+    },
     "debianSignatureVerified": false,
     "sourceRebuildVerified": false
   },
@@ -51,6 +72,18 @@
     {
       "file": "evidence/container-local-os.v1.json",
       "sha256": "63596ce44c1eef7a19ae51bf3dcf33edd0b73e5ab5ffd1309364d95fe85c6694"
+    },
+    {
+      "file": "evidence/container-notice-links.v1.json",
+      "sha256": "f177b741292d5e6ae7e84c44eded42535cf4e8aebd671c3d2efbeebba6e7a36e"
+    },
+    {
+      "file": "evidence/native-components.v1.json",
+      "sha256": "216ea39ba7cd058154bc47809c9c74e549f0ce622220f97757cc33e41b750af3"
+    },
+    {
+      "file": "evidence/macos-build-differences.v1.json",
+      "sha256": "1b95de163bb5963d64581fc2e2a28718ee9aea30c11975ea76d2dbc1862bb4a8"
     }
   ],
   "limitations": [
@@ -58,6 +91,9 @@
     "A truncated upstream prefix is not an intact usable model or a complete license/source match.",
     "Native UUID/section correlation does not authenticate a publisher, reproduce the source build or identify every statically linked component.",
     "The container snapshot covers one existing local ARM64 image, not the current Dockerfile, a release image or another architecture.",
-    "Font source archives were hashed; a trusted-key Debian signature check, reproducible build and legal corresponding-source review remain open."
+    "Font source archives were hashed; a trusted-key Debian signature check, reproducible build and legal corresponding-source review remain open.",
+    "Notice links were resolved from the retained historical archive only; a link to a same-source package's original text is not an attribution review, agreement or legal approval.",
+    "Native component markers are fixed identification strings in cached payloads; a named notice section is not a verified component license, and a missing marker does not prove absence.",
+    "Locating every differing byte in the Mach-O header and load commands explains the local install-name rewrite; it does not authenticate the Homebrew bottle, its publisher or its source."
   ]
 }

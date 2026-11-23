@@ -31,7 +31,9 @@ bytes or an unclassified native file fail the inventory guard.
 ## Supplemental Source Evidence
 
 The [evidence index](source-evidence.v1.json) pins the unchanged original
-registry and the two observations in `evidence/`. These records supplement,
+registry and the observations in `evidence/`: the two original observations and,
+since 2026-11-22, three supplemental records derived from them or from the local
+NuGet cache. These records supplement,
 but do not rewrite, the original unresolved classifications or shipped notice
 bundles. All legal and publication approval flags remain false.
 
@@ -55,6 +57,13 @@ records do not establish exactly which load-command, signature or other edits
 produced the local binaries. Only Apple metadata inspection and byte comparison
 are used; none of the libraries is executed.
 
+**Supplement (2026-11-22):** `evidence/macos-build-differences.v1.json` locates
+every differing byte. For all fifteen libraries, the files have equal lengths
+and every difference lies in the Mach-O header and load commands. That is the
+local install-name rewrite to `@loader_path`, recorded per library. No code
+signature exists on either side, and no byte outside that metadata differs.
+This explains the hash difference; it does not authenticate the bottle.
+
 Installed candidate versions include Tesseract 5.5.2 and Leptonica 1.87.0,
 despite the local filenames `libtesseract50` and `libleptonica-1.82.0`.
 Receipt hashes are retained without private receipt paths. A local Homebrew
@@ -74,6 +83,17 @@ has been performed. The existing GPL v2, exceptions and additional terms remain
 unchanged; corresponding-source fulfillment and redistribution are not approved
 by these technical records.
 
+**Supplement (2026-11-22):** `verify-downloads` now recomputes every SHA-256,
+SHA-1 and MD5 checksum and size that the descriptor declares, and requires the
+supplied archives to equal its list. The clearsigned descriptor names signer
+fingerprint `B8BF54137B09D35CF026FE9D091AB856069AAA1C`. That value is read from
+the signature packet only. The signature remains **unverified**, with status
+`blocked-no-authenticated-keyring`: no authenticated Debian keyring is available,
+and a downloaded key is not trusted. A reproducible build is also unavailable
+locally, because the sources are FontForge SFD files and FontForge is not
+installed. The older Sans files keep their own terms; they are not reclassified
+under the newer Serif/Mono agreement.
+
 ### Existing Local Container
 
 The retained observation covers one **local Linux/ARM64** image by immutable
@@ -84,6 +104,43 @@ unresolved link/empty archive entry. These **five** mappings remain open, as do
 all component/source obligations and managed/static native runtime attribution.
 The original notice tar is retained only in the local artifact directory, not
 presented as a distributable notice bundle.
+
+**Supplement (2026-11-22):** `evidence/container-notice-links.v1.json` resolves
+all **five** mappings from the retained archive's own tar metadata. The archive
+hash equals the historical record.
+- `libgcc-s1`, `libgomp1` and `libstdc++6` are directory links to `gcc-14-base`.
+- `libncursesw6` is a directory link to `libtinfo6`.
+- OpenSSL's `copyright` is a file link to `../libssl3t64/copyright`.
+- Each target is the original text of an installed package with the same source
+  and source version, and its hash equals the historical notice record.
+- The three linked `common-licenses` entries resolve to `GPL-3`, `LGPL-3` and
+  `GFDL-1.3`.
+
+The resolver never extracts entries or follows host links. It rejects traversal,
+absolute or escaping links, cycles, duplicates, oversized members and unsupported
+entry types. The historical observation is unchanged. A resolved link is an
+attribution source, not an agreement or approval.
+
+Recorded chains are also replayed to check that every hop reaches the declared
+member with the declared link kind/status. This offline consistency check does
+not reobserve original archive metadata; `verify-container-links` independently
+recomputes the result from the hash-pinned archive. The archive reader requires
+two zero end blocks and rejects nonzero trailing or concatenated content.
+
+### Native NuGet Components
+
+`evidence/native-components.v1.json` scans the 45 verified native payloads of the
+existing restore review for fixed identification strings. It compares them with
+the component sections of the retained package and repository notices:
+- SkiaSharp names every observed component (libpng, libjpeg-turbo, zlib, expat).
+- **Tesseract 5.2.0** carries markers for Leptonica 1.82.0, Tesseract, LibTIFF
+  4.4.0, libjpeg-turbo 2.1.4, zlib 1.2.13 and liblzma. The package ships no
+  notice file, and the repository copy holds only the wrapper license, so these
+  six components remain **unresolved**.
+
+A marker is a hint, not proof, and a missing marker does not prove absence.
+Summary versions and asset counts must agree with the exact union of retained
+payload markers. This does not replace source authentication or attribution.
 
 The snapshot records the then-current Dockerfile hash but explicitly denies a
 verified image-to-Dockerfile binding. No application or port is started. Three
@@ -99,6 +156,10 @@ node --test tools/native-licensing/runtime-source-evidence.test.mjs
 node tools/native-licensing/runtime-source-evidence.mjs verify-downloads artifacts/native-runtime-provenance/source-downloads
 node tools/native-licensing/runtime-source-evidence.mjs observe-macos
 node tools/native-licensing/runtime-source-evidence.mjs observe-container sha256:fcc0bd274ce6849fa0c6dd65962b7f1524576b783c02fdc07b6ed548859cfc63
+node tools/native-licensing/runtime-source-evidence.mjs explain-macos
+node tools/native-licensing/runtime-source-evidence.mjs resolve-container-links artifacts/native-runtime-provenance/1795374811152-19192c2c/os-notices.tar
+node tools/native-licensing/runtime-source-evidence.mjs verify-container-links artifacts/native-runtime-provenance/1795374811152-19192c2c/os-notices.tar
+node tools/native-licensing/runtime-source-evidence.mjs observe-native-components artifacts/native-dependency-inspection/local-restore-review.json ~/.nuget/packages
 ```
 
 The default check is offline and checks local bindings and pinned historical
