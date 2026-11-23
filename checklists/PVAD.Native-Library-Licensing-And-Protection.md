@@ -750,6 +750,45 @@ states explicitly that full Solution/Designer validation is unexecuted and that
 the isolated PostgreSQL tests created disposable containers; original raw test
 results are not relabeled or expanded.
 
+#### Remaining-Work Round Two (2026-11-23)
+
+The round-two handoff, executed against reviewed baseline `b0faa29a`, is reported in
+the [final work report](PVAD.Native-Licensing-Final-Work-Report.md). All six
+primary items stay open. Status remains **70/76 (92.1%)**.
+
+- **Solution build:** blocked in the working tree. The user-owned `PVAD.sln`
+  addition includes `GeneratorPackageProbe`, which needs the protected
+  `PVAD.Generator` package from the rehearsal feed (`NU1101`); it was not excluded.
+  The committed solution, built from a `git archive` copy, succeeds with 0 errors
+  and 177 warnings. That copy is not the working tree.
+- **Designer:** Jest 1,052/1,052 in 93 suites, type check and production build
+  pass, and the existing Vite warnings stay visible.
+- **Tesseract 5.2.0:** the four payloads are byte-identical to the upstream
+  repository's prebuilt DLLs. Byte-exact upstream notices are stored as candidate
+  associations: Leptonica, LibTIFF, libjpeg-turbo, zlib and the inferred libpng.
+  The Tesseract source version is ambiguous (5.0.0 against 5.2), and **liblzma is
+  unresolved**.
+- **Liberation Sans:** a candidate rebuild from the pinned source in a disposable
+  Debian bookworm container reproduces every glyph outline and character mapping,
+  but not the bytes. The differences are `FFTM`, the `cmap` encoding and the
+  `head` checksum. The signature remains blocked.
+- **Fuzzing:** the bounded AFL++/SharpFuzz campaign ran unmodified (300 s) in a
+  disposable Linux/arm64 container. It found **37 crashes**, all reproduced on
+  macOS: 32 `IndexOutOfRangeException` in `PdfGraphicsInterpreter` and 5
+  `ZLibException` in Flate decoding, both during import. The campaign **failed**.
+  These are importer robustness defects, recorded and deferred, not licensing
+  defects. There were no hangs and no process-fatal exceptions.
+- **Remote workflows:** prepared, not dispatched.
+
+The [round-two review corrections](PVAD.Native-Licensing-Final-Work-Report.md#9-reviewing-agent-corrections)
+close three evidence-validation defects without closing a primary item. Unknown
+versions retain unresolved status, notice origins are repository/commit/member
+bound, payload IDs are checked against a separately hash-pinned reference with
+an explicit real-byte verification mode, and font flags/counts are strictly
+validated against the shipped font metadata. The four real Tesseract payloads
+were rehashed; original candidate observations and all runtime assets are intact.
+The existing Solution-build and fuzz blockers remain unchanged.
+
 #### Public API Documentation Checkpoint
 
 The formerly empty XML documentation sets in 19 native PDF/migration assemblies
@@ -3957,6 +3996,7 @@ changes remain outside that commit and this milestone.
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |
 | Unprotected Windows 72-DPI image exports are not reproducible between process runs; repeated originals match protected output, and disabling tiered compilation does not resolve the inconsistency | Blocks Windows package acceptance. The pixel hashes differ while dimensions agree; visual severity and the native-font/runtime cause remain unproven. | Retain exact comparisons and mandatory original-repeat verification. Preserve synthetic reports from runs `45030859717` and `45032079759`; investigate rendering with actual image-level evidence, without approving replacement baselines or portraying this as a proven obfuscation defect. No production renderer or font selection is changed here. |
 | Newly reached Windows ImageAnalysis suite reports 27 failures and 154 passes, including JSON LF/CRLF snapshots, glyph recognition and quality metrics | Cross-platform analysis/test-portability follow-up, not demonstrated license-enforcement defects. It keeps complete CI acceptance open. | Preserve source fixtures, expected text, snapshots and quality thresholds. Review after licensing as requested; no skip, weakened assertion, snapshot regeneration or algorithm rewrite is authorized in this milestone. Evidence: native run `45030859717`, Windows admission job `137233922178`. |
+| The bounded coverage-guided PDF fuzz campaign (300 s, unmodified harness, disposable Linux/arm64 container, 2026-11-23) saved 37 crashing inputs. All reproduce on macOS/x64: 32 `IndexOutOfRangeException` in `PdfGraphicsInterpreter.InterpretAdmitted` and 5 `ZLibException` in Flate stream reading, during `PdfImporter.LoadAsync`. | P1 importer robustness for untrusted PDFs: unexpected exception types instead of controlled malformed-input rejection. These are managed exceptions, with no hang, process-fatal or memory-safety evidence. Not a native-licensing defect, but the fuzz acceptance item stays failed. | Retain the synthetic crash inputs only in ignored `artifacts/pdf-fuzz-local/1795456750-686a6243/` and never upload them. Do not widen the harness's expected-exception list or skip inputs. Fix the operand bounds and Flate error mapping in a separate reviewed change after licensing, then rerun the same bounded campaign. |
 
 ## Deferred Work
 

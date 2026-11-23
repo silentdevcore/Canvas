@@ -94,6 +94,20 @@ locally, because the sources are FontForge SFD files and FontForge is not
 installed. The older Sans files keep their own terms; they are not reclassified
 under the newer Serif/Mono agreement.
 
+**Supplement (2026-11-23): candidate rebuild.**
+`evidence/liberation-sans-candidate-build.v1.json` records a rebuild of the pinned
+source package with `dpkg-buildpackage`. It ran in a disposable digest-pinned
+`debian:bookworm` (arm64) container with fontforge-nox `1:20230101~dfsg-1.1~deb12u1`
+and fonttools `4.38.0-1+deb12u1`.
+- For all four Sans faces, all 681 glyph outlines and every character mapping are
+  identical to the shipped files.
+- Bytes differ only in FontForge's `FFTM` timestamp table, the binary encoding of
+  `cmap` (same subtables and mappings) and the resulting `head`
+  checksum adjustment.
+- The rebuild is therefore a content-equivalent candidate, **not** a byte
+  reproduction. It does not authenticate the unverified source signature or
+  approve corresponding-source obligations. The shipped fonts are unchanged.
+
 ### Existing Local Container
 
 The retained observation covers one **local Linux/ARM64** image by immutable
@@ -142,6 +156,53 @@ A marker is a hint, not proof, and a missing marker does not prove absence.
 Summary versions and asset counts must agree with the exact union of retained
 payload markers. This does not replace source authentication or attribution.
 
+**Supplement (2026-11-23): Tesseract component sources.**
+[`component-sources/tesseract-5.2.0/component-sources.v1.json`](component-sources/tesseract-5.2.0/component-sources.v1.json)
+records the following. Every stored notice is reread and rehashed by the default
+check. A candidate tag must equal the observed version; a nearby release does not
+count. A notice is never attached to an unknown version.
+- **Payload identity.** All four NuGet payloads are byte-identical (same Git blob
+  ID) to the prebuilt DLLs committed in `charlesw/tesseract` at the release tag's
+  commit. That repository contains no build recipe for them.
+- **Byte-exact upstream notices.** These were retrieved at tag-resolved commits
+  and checked against each host's blob ID. They are stored under
+  `component-sources/tesseract-5.2.0/notices/` for Leptonica 1.82.0, LibTIFF
+  4.4.0, libjpeg-turbo 2.1.4 (`LICENSE.md` and `README.ijg`), zlib 1.2.13 and
+  libpng 1.6.37.
+- **Tesseract.** The DLL reports `5.0.0`, while the wrapper changelog says 5.2.
+  The license text is byte-identical at both tags and equal to the stored wrapper
+  license, so the source version stays ambiguous. The "tesseract 3.04" marker in
+  the Leptonica DLL is only a Leptonica message.
+- **libpng.** It was missed by the fixed marker table. Its version is inferred
+  from bare `1.6.37` strings beside libpng messages, and the record marks it as
+  inferred.
+- **liblzma.** It exposes no version, so it stays **unresolved**, with no notice
+  attached.
+
+These are candidate source associations. No component source revision, build
+configuration, distribution obligation or approval is verified.
+
+**Review corrections (2026-11-23).** Unknown observed versions must stay
+unresolved with no candidate notice. A known bare version string retains its
+ambiguous status; inferred observations remain bounded to the reviewed candidate
+reference. Candidate repositories must belong to the named component, and notice
+URLs must exactly match the canonical HTTPS host, repository, commit and member
+path. Query strings, fragments and unrelated origins are rejected.
+
+The separate [payload reference](component-sources/tesseract-5.2.0/payload-reference.v1.json)
+binds retained repository identifiers to independently computed local package
+sizes, SHA256 hashes and Git blob IDs. Its hash is pinned by the evidence index.
+The default offline guard compares records against this reference; it does not
+claim to read a local NuGet cache or fetch upstream binaries. The explicit
+command below rereads all four local DLLs and recomputes those hashes. A matching
+reference still does not authenticate the publisher or prove component builds.
+
+The candidate font check now requires actual Boolean equality flags and reads
+the glyph count from each hash-verified shipped TrueType font's bounded `maxp`
+table. It checks the candidate report's glyph count against that value. This is
+not a new execution of the candidate outline/cmap comparison, and the original
+candidate build, runtime fonts and notice texts stay unchanged.
+
 The snapshot records the then-current Dockerfile hash but explicitly denies a
 verified image-to-Dockerfile binding. No application or port is started. Three
 ephemeral read-only, non-root, network-disabled commands query package metadata,
@@ -160,6 +221,7 @@ node tools/native-licensing/runtime-source-evidence.mjs explain-macos
 node tools/native-licensing/runtime-source-evidence.mjs resolve-container-links artifacts/native-runtime-provenance/1795374811152-19192c2c/os-notices.tar
 node tools/native-licensing/runtime-source-evidence.mjs verify-container-links artifacts/native-runtime-provenance/1795374811152-19192c2c/os-notices.tar
 node tools/native-licensing/runtime-source-evidence.mjs observe-native-components artifacts/native-dependency-inspection/local-restore-review.json ~/.nuget/packages
+node tools/native-licensing/runtime-source-evidence.mjs verify-component-payloads ~/.nuget/packages/tesseract/5.2.0
 ```
 
 The default check is offline and checks local bindings and pinned historical

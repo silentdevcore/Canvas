@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scope": "retained-tesseract-payload-reference-not-build-authentication",
+  "package": {
+    "key": "Tesseract/5.2.0",
+    "archiveSha256": "202d82fc7c7d8384df7da57206d5e1f456ccdabd648c46e67cdfaa3a911d4795"
+  },
+  "repository": "https://github.com/charlesw/tesseract",
+  "tag": "5.2.0",
+  "commit": "2c993543f7fa66576a8890a6c4ab053c4598aaed",
+  "payloads": [
+    {
+      "file": "x64/leptonica-1.82.0.dll",
+      "sha256": "dfcb3e6ed0b16bc55bfdbcf53543cfe42a354b87c3e35bd3a95eebf005d73e76",
+      "gitBlob": "64f449cd7b5b5c9fd4b4b7c7f6261c4a24bf6583",
+      "bytes": 4168192
+    },
+    {
+      "file": "x64/tesseract50.dll",
+      "sha256": "de4d04ec75095374d98f5dd7a60d14d7e2e0f76589db693eccf7ae658be8cb2b",
+      "gitBlob": "92a0dd317ce247f417ad5c09fbb19225f60cec9c",
+      "bytes": 2788352
+    },
+    {
+      "file": "x86/leptonica-1.82.0.dll",
+      "sha256": "1700330110ada8e4f07fb063915e60e2b585ad87d9b1948093945e4645b66d08",
+      "gitBlob": "d244fa29bd981b648b46bfae27d0ca6a02f0534f",
+      "bytes": 3379712
+    },
+    {
+      "file": "x86/tesseract50.dll",
+      "sha256": "7f4873cdb78b9cd18c069eae434d38dd14e987531866463357cf51c016241820",
+      "gitBlob": "3a336415298c07cbece4a06da0089fbb35517f3b",
+      "bytes": 2336768
+    }
+  ],
+  "componentRepositories": {
+    "leptonica": "https://github.com/DanBloomberg/leptonica",
+    "tesseract": "https://github.com/tesseract-ocr/tesseract",
+    "libtiff": "https://gitlab.com/libtiff/libtiff",
+    "libjpeg-turbo": "https://github.com/libjpeg-turbo/libjpeg-turbo",
+    "zlib": "https://github.com/madler/zlib",
+    "libpng": "https://github.com/pnggroup/libpng",
+    "liblzma": null
+  },
+  "inferredComponents": [
+    {
+      "component": "libpng",
+      "version": "1.6.37",
+      "assets": [
+        "x64/leptonica-1.82.0.dll",
+        "x86/leptonica-1.82.0.dll"
+      ]
+    }
+  ],
+  "publisherAuthenticated": false,
+  "sourceBuildVerified": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false,
+  "limitations": [
+    "Payload SHA256, sizes and Git blob IDs were independently recomputed from the exact local package bytes; repository identifiers are retained references, not publisher authentication.",
+    "Offline reference consistency does not fetch upstream files or prove build recipes. Explicit payload verification rereads the selected local package bytes."
+  ]
+}

@@ -269,6 +269,202 @@ export function validateObservation(record, assets) {
   }
 }
 
+const componentSourceScope = 'tesseract-5.2.0-component-source-candidates-not-verified-build-or-approval';
+const componentSourceStates = ['candidate-version-association', 'candidate-version-inferred',
+  'license-text-identical-across-candidates-version-ambiguous', 'unresolved-version-not-observed'];
+const gitBlob = bytes => createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex');
+const payloadReferencePath = 'assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/payload-reference.v1.json';
+
+function relativeEvidencePath(file) {
+  assert.ok(typeof file === 'string' && !file.startsWith('/') && !/[\\:\u0000-\u001f]/.test(file)
+    && file.split('/').every(part => part && part !== '.' && part !== '..'), 'Unsafe evidence path.');
+}
+
+function sourceNoticeUrl(source, file) {
+  relativeEvidencePath(file);
+  assert.match(source.commit, /^[a-f0-9]{40}$/);
+  const repository = new URL(source.repository);
+  assert.ok(['github.com', 'gitlab.com'].includes(repository.hostname));
+  assert.match(repository.pathname, /^\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/);
+  assert.equal(repository.href, 'https://' + repository.hostname + repository.pathname, 'Noncanonical source repository.');
+  const member = file.split('/').map(part => encodeURIComponent(part)).join('/');
+  return repository.hostname === 'github.com'
+    ? 'https://raw.githubusercontent.com' + repository.pathname + '/' + source.commit + '/' + member
+    : repository.href + '/-/raw/' + source.commit + '/' + member;
+}
+
+function validatePayloadReference(reference, scanned) {
+  assert.equal(reference.schemaVersion, 1);
+  assert.equal(reference.scope, 'retained-tesseract-payload-reference-not-build-authentication');
+  for (const key of ['publisherAuthenticated', 'sourceBuildVerified', 'legalApprovalGranted', 'publicationReady']) assert.equal(reference[key], false);
+  assert.equal(reference.package.key, scanned.key); assert.equal(reference.package.archiveSha256, scanned.archiveSha256);
+  sourceNoticeUrl(reference, 'LICENSE.txt');
+  assert.deepEqual(reference.payloads.map(payload => [payload.file, payload.sha256]).sort(),
+    scanned.assets.map(asset => [asset.file, asset.sha256]).sort(), 'Payload reference differs from the scanned package.');
+  for (const payload of reference.payloads) {
+    relativeEvidencePath(payload.file);
+    assert.match(payload.gitBlob, /^[a-f0-9]{40}$/);
+    assert.ok(Number.isSafeInteger(payload.bytes) && payload.bytes > 0 && payload.bytes <= 128 * 1024 * 1024);
+  }
+}
+
+export function verifyComponentPayloadBytes(payloads, readPayload) {
+  assert.ok(Array.isArray(payloads) && payloads.length > 0 && payloads.length <= 32);
+  const seen = new Set();
+  for (const payload of payloads) {
+    relativeEvidencePath(payload.file);
+    assert.ok(!seen.has(payload.file), 'Duplicate payload.'); seen.add(payload.file);
+    const bytes = readPayload(payload.file);
+    assert.ok(Buffer.isBuffer(bytes) && bytes.length > 0 && bytes.length <= 128 * 1024 * 1024);
+    assert.equal(bytes.length, payload.bytes, 'Payload size differs from the reference.');
+    assert.equal(sha(bytes), payload.sha256, 'Payload SHA256 differs from the reference.');
+    assert.equal(gitBlob(bytes), payload.gitBlob, 'Payload Git blob differs from the reference.');
+  }
+  return { payloads: payloads.length, localPayloadHashesRecomputed: true, upstreamFetched: false, publicationReady: false };
+}
+
+export function verifyComponentPayloads(directory, rootDirectory = root) {
+  checkEvidence(rootDirectory);
+  const reference = JSON.parse(regularBytes(join(rootDirectory, payloadReferencePath)));
+  return verifyComponentPayloadBytes(reference.payloads, file => regularBytes(join(directory, file), 128 * 1024 * 1024));
+}
+
+// Candidate associations stay distinct from verified builds: every notice is reread and rehashed, every
+// observed marker must exist in the recorded payload scan, and nothing grants source or legal approval.
+export function validateComponentSources(record, components, readAsset, reference = JSON.parse(readAsset(payloadReferencePath))) {
+  assert.equal(record.schemaVersion, 1); assert.equal(record.scope, componentSourceScope);
+  for (const key of ['sourceBuildVerified', 'legalApprovalGranted', 'publicationReady']) assert.equal(record[key], false);
+  const scanned = components.packages.find(entry => entry.key === record.package.key);
+  assert.ok(scanned, 'Component sources name an unscanned package.');
+  validatePayloadReference(reference, scanned);
+  assert.equal(record.package.archiveSha256, scanned.archiveSha256);
+  const association = record.artifactAssociation;
+  assert.equal(association.relation, 'payloads-byte-identical-to-upstream-repository-blobs');
+  assert.equal(association.buildRecipeInRepository, false);
+  for (const field of ['repository', 'tag', 'commit']) assert.equal(association[field], reference[field], 'Payload origin differs from retained reference.');
+  assert.deepEqual(association.payloads.map(payload => [payload.file, payload.sha256, payload.gitBlob]).sort(),
+    reference.payloads.map(payload => [payload.file, payload.sha256, payload.gitBlob]).sort(), 'Associated payloads differ from the retained reference.');
+  const checkNotice = (notice, sources) => {
+    relativeEvidencePath(notice.file);
+    assert.ok(notice.file.startsWith('assets/licenses/'));
+    const bytes = readAsset(notice.file);
+    assert.equal(bytes.length, notice.bytes, 'Stored original notice changed.'); assert.equal(sha(bytes), notice.sha256, 'Stored original notice changed.');
+    assert.equal(gitBlob(bytes), notice.gitBlob, 'Stored notice is not the upstream blob.');
+    assert.ok(sources.some(source => notice.url === sourceNoticeUrl(source, notice.upstreamPath)),
+      'Notice URL does not match its repository, commit and member.');
+  };
+  relativeEvidencePath(record.wrapperLicense.repositoryCopy);
+  checkNotice({ ...record.wrapperLicense, upstreamPath: 'LICENSE.txt', file: record.wrapperLicense.repositoryCopy,
+    bytes: readAsset(record.wrapperLicense.repositoryCopy).length }, [reference]);
+  const markers = new Map();
+  for (const asset of scanned.assets) for (const marker of asset.markers)
+    markers.set(marker.component, [...(markers.get(marker.component) ?? []), { asset: asset.file, versions: marker.versions }]);
+  const names = record.components.map(value => value.component);
+  assert.equal(new Set(names).size, names.length, 'Duplicate component source.');
+  for (const component of markers.keys()) assert.ok(names.includes(component), `Observed component ${component} has no source record.`);
+  for (const value of record.components) {
+    assert.ok(componentSourceStates.includes(value.status));
+    assert.ok(Object.hasOwn(reference.componentRepositories, value.component), 'Unreviewed component identity.');
+    assert.ok(['identification-string', 'identification-string-and-file-name', 'bare-version-string',
+      'bare-version-string-beside-component-messages'].includes(value.observed.basis), 'Unreviewed observation basis.');
+    assert.ok(typeof value.ambiguity === 'string' && value.ambiguity.length > 20);
+    assert.ok(value.observed.assets.length > 0 && new Set(value.observed.assets).size === value.observed.assets.length
+      && value.observed.assets.every(asset => scanned.assets.some(item => item.file === asset)));
+    const found = markers.get(value.component) ?? [];
+    const sources = value.candidateSource ? [value.candidateSource] : value.candidateSources ?? [];
+    if (value.observed.version === null) {
+      assert.equal(value.status, 'unresolved-version-not-observed', 'Unknown versions must remain unresolved.');
+      assert.equal(value.candidateSource, null); assert.equal(sources.length, 0); assert.deepEqual(value.notices, []);
+    } else assert.match(value.observed.version, /^\d+(?:\.\d+)+$/);
+    if (value.observed.basis === 'bare-version-string')
+      assert.equal(value.status, 'license-text-identical-across-candidates-version-ambiguous', 'Bare version strings retain ambiguity.');
+    for (const source of sources) {
+      assert.equal(source.repository, reference.componentRepositories[value.component], 'Source belongs to another component.');
+      sourceNoticeUrl(source, 'LICENSE');
+    }
+    if (value.observed.basis === 'bare-version-string-beside-component-messages') {
+      assert.equal(value.status, 'candidate-version-inferred', 'An inferred version cannot become a direct association.');
+      assert.equal(found.length, 0);
+      const inferred = reference.inferredComponents.find(item => item.component === value.component);
+      assert.ok(inferred, 'Unreviewed inferred component.');
+      assert.equal(value.observed.version, inferred.version);
+      assert.deepEqual([...value.observed.assets].sort(), [...inferred.assets].sort());
+    } else {
+      for (const asset of value.observed.assets) assert.ok(found.some(item => item.asset === asset), `${value.component} is not observed in ${asset}.`);
+      if (value.observed.version !== null)
+        for (const asset of value.observed.assets) assert.ok(found.some(item => item.asset === asset && item.versions.includes(value.observed.version)),
+          `${value.component} version was not observed in ${asset}.`);
+    }
+    if (value.status === 'unresolved-version-not-observed') {
+      assert.equal(value.observed.version, null); assert.equal(value.candidateSource, null); assert.deepEqual(value.notices, []);
+      continue;
+    }
+    assert.ok(value.notices.length > 0, `${value.component} has no retained notice.`);
+    if (value.status === 'license-text-identical-across-candidates-version-ambiguous') {
+      assert.equal(value.candidateSource, null); assert.ok(sources.length >= 2);
+      assert.equal(new Set(sources.map(source => source.tag)).size, sources.length, 'Duplicate ambiguous candidate tag.');
+      assert.equal(new Set(sources.map(source => source.commit)).size, sources.length, 'Duplicate ambiguous candidate commit.');
+      assert.ok(sources.some(source => source.tag.replace(/^v/, '') === value.observed.version), 'No candidate matches the observed version.');
+      for (const notice of value.notices) assert.deepEqual([...notice.sameBytesAt].sort(), sources.map(source => source.tag).sort());
+    } else {
+      assert.ok(value.candidateSource && value.candidateSource.tag.replace(/^v/, '') === value.observed.version,
+        'A candidate tag must equal the observed version, not a nearby release.');
+    }
+    for (const notice of value.notices) checkNotice(notice, sources);
+  }
+  return { components: record.components.length,
+    withNotices: record.components.filter(value => value.notices.length).length,
+    unresolved: record.components.filter(value => value.status === 'unresolved-version-not-observed').length };
+}
+
+const fontBuildScope = 'liberation-sans-candidate-rebuild-from-pinned-debian-source-not-reproduction-or-approval';
+
+// A rebuild may only differ in FontForge's timestamp table, the cmap encoding with identical mappings and the
+// resulting head checksum; anything else is not an equivalent candidate. It never authenticates the source.
+function fontGlyphCount(bytes) {
+  assert.ok(Buffer.isBuffer(bytes) && bytes.length >= 12 && bytes.length <= 16 * 1024 * 1024, 'Bounded TrueType font required.');
+  assert.equal(bytes.readUInt32BE(0), 0x00010000, 'Only the pinned TrueType font format is supported.');
+  const count = bytes.readUInt16BE(4), end = 12 + count * 16;
+  assert.ok(count > 0 && count <= 256 && end <= bytes.length, 'Invalid font table directory.');
+  const maxp = [];
+  for (let index = 12; index < end; index += 16) if (bytes.toString('ascii', index, index + 4) === 'maxp') {
+    const offset = bytes.readUInt32BE(index + 8), length = bytes.readUInt32BE(index + 12);
+    assert.ok(offset >= end && length >= 6 && offset + length <= bytes.length, 'Invalid maxp table bounds.');
+    maxp.push(bytes.readUInt16BE(offset + 4));
+  }
+  assert.equal(maxp.length, 1, 'Exactly one maxp table is required.');
+  assert.ok(maxp[0] > 0, 'An empty font is not equivalent.');
+  return maxp[0];
+}
+
+export function validateFontBuild(record, assets, evidence, readAsset) {
+  assert.equal(record.schemaVersion, 1); assert.equal(record.scope, fontBuildScope);
+  for (const key of ['shippedFontsReplaced', 'legalApprovalGranted', 'publicationReady']) assert.equal(record[key], false);
+  assert.equal(record.source.version, evidence.fonts.version); assert.equal(record.source.signatureVerified, false);
+  assert.equal(record.source.descriptorSha256, evidence.fonts.sourceFiles.find(file => file.name.endsWith('.dsc')).sha256);
+  assert.match(record.environment.image, /^debian@sha256:[a-f0-9]{64}$/); assert.equal(record.environment.containersRemoved, true);
+  assert.match(record.builtPackage.sha256, /^[a-f0-9]{64}$/);
+  const group = assets.registry.groups.find(value => value.id === 'liberation-sans-1-07-4');
+  assert.deepEqual(record.faces.map(face => face.file).sort(), group.assets.map(asset => asset.file).sort());
+  for (const face of record.faces) {
+    assert.equal(face.shippedSha256, group.assets.find(asset => asset.file === face.file).sha256, 'Shipped font hash changed.');
+    assert.match(face.builtSha256, /^[a-f0-9]{64}$/);
+    const shipped = readAsset(face.file);
+    assert.equal(sha(shipped), face.shippedSha256, 'Shipped font bytes changed.');
+    assert.ok(Number.isSafeInteger(face.glyphCount) && face.glyphCount > 0);
+    assert.equal(face.glyphCount, fontGlyphCount(shipped), 'Glyph count differs from the shipped font.');
+    assert.equal(face.glyphOutlinesEqual, true, 'Candidate glyph outlines differ.');
+    assert.equal(face.cmapSubtablesEqual, true, 'Candidate cmap subtables differ.');
+    assert.equal(face.cmapMappingsEqual, true, 'Candidate character mapping differs.');
+    assert.ok(Array.isArray(face.differingTables) && new Set(face.differingTables).size === face.differingTables.length);
+    assert.ok(face.differingTables.every(table => ['FFTM', 'cmap', 'head'].includes(table)), 'Candidate differs beyond build metadata.');
+    assert.deepEqual(face.headFieldsDiffering, face.differingTables.includes('head') ? ['checkSumAdjustment'] : []);
+    assert.equal(face.differingTables.length === 0, face.builtSha256 === face.shippedSha256);
+  }
+  assert.equal(record.byteReproduced, record.faces.every(face => face.builtSha256 === face.shippedSha256));
+  return { faces: record.faces.length, byteReproduced: record.byteReproduced };
+}
+
 export function validateEvidence(evidence, assets, readAsset, readObservation) {
   assert.equal(evidence.schemaVersion, 1);
   assert.equal(evidence.publicationReady, false); assert.equal(evidence.legalApprovalGranted, false);
@@ -303,8 +499,8 @@ export function validateEvidence(evidence, assets, readAsset, readObservation) {
   assert.equal(descriptor.signer.trusted, false); assert.match(descriptor.signer.issuerFingerprint, /^[A-F0-9]{40}$/);
   assert.equal(descriptor.signer.issuerKeyId, descriptor.signer.issuerFingerprint.slice(24));
   assert.deepEqual(evidence.observations.map(record => record.file).sort(), ['evidence/container-local-os.v1.json',
-    'evidence/container-notice-links.v1.json', 'evidence/macos-build-differences.v1.json', 'evidence/macos-local-builds.v1.json',
-    'evidence/native-components.v1.json']);
+    'evidence/container-notice-links.v1.json', 'evidence/liberation-sans-candidate-build.v1.json',
+    'evidence/macos-build-differences.v1.json', 'evidence/macos-local-builds.v1.json', 'evidence/native-components.v1.json']);
   const records = new Map();
   for (const observation of evidence.observations) {
     assert.match(observation.file, /^evidence\/[a-z0-9.-]+\.json$/);
@@ -313,11 +509,21 @@ export function validateEvidence(evidence, assets, readAsset, readObservation) {
     assert.equal(sha(bytes), observation.sha256, 'Recorded observation changed.');
     records.set(observation.file, { record: JSON.parse(bytes), sha256: observation.sha256 });
   }
+  assert.deepEqual(evidence.componentSources.map(record => record.file), ['component-sources/tesseract-5.2.0/component-sources.v1.json']);
+  for (const source of evidence.componentSources) {
+    const bytes = readObservation(source.file);
+    assert.equal(sha(bytes), source.sha256, 'Recorded component sources changed.');
+    assert.equal(evidence.componentPayloadReference.file, payloadReferencePath);
+    const referenceBytes = readAsset(payloadReferencePath);
+    assert.equal(sha(referenceBytes), evidence.componentPayloadReference.sha256, 'Retained payload reference changed.');
+    validateComponentSources(JSON.parse(bytes), records.get('evidence/native-components.v1.json').record, readAsset, JSON.parse(referenceBytes));
+  }
   const historical = records.get('evidence/container-local-os.v1.json');
   for (const [file, { record }] of records) {
     if (file === 'evidence/container-notice-links.v1.json') validateNoticeLinks(record, historical.record, historical.sha256);
     else if (file === 'evidence/native-components.v1.json') validateNativeComponents(record);
     else if (file === 'evidence/macos-build-differences.v1.json') validateDifferences(record, assets);
+    else if (file === 'evidence/liberation-sans-candidate-build.v1.json') validateFontBuild(record, assets, evidence, readAsset);
     else validateObservation(record, assets);
   }
   assert.ok(evidence.limitations.length >= 4 && evidence.limitations.every(value => typeof value === 'string' && value.length > 20));
@@ -871,5 +1077,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     mkdirSync(output, { recursive: true }); writeFileSync(join(output, 'native-components.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
     console.log(JSON.stringify({ output, counts: record.counts }));
   } else if (args.length === 2 && args[0] === 'verify-container-links') console.log(JSON.stringify(verifyContainerLinks(resolve(args[1])), null, 2));
-  else { assert.equal(args.length, 0, 'Use observe-macos, explain-macos, observe-container <image-digest>, resolve-container-links <archive>, verify-container-links <archive>, observe-native-components <restore-review> <nuget-root> or verify-downloads <download-directory>.'); console.log(JSON.stringify(checkEvidence(), null, 2)); }
+  else if (args.length === 2 && args[0] === 'verify-component-payloads') console.log(JSON.stringify(verifyComponentPayloads(resolve(args[1])), null, 2));
+  else { assert.equal(args.length, 0, 'Use observe-macos, explain-macos, observe-container <image-digest>, resolve-container-links <archive>, verify-container-links <archive>, observe-native-components <restore-review> <nuget-root>, verify-component-payloads <package-directory> or verify-downloads <download-directory>.'); console.log(JSON.stringify(checkEvidence(), null, 2)); }
 }

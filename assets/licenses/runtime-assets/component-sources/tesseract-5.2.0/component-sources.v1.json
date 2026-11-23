@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "scope": "tesseract-5.2.0-component-source-candidates-not-verified-build-or-approval",
+  "package": {
+    "key": "Tesseract/5.2.0",
+    "archiveSha256": "202d82fc7c7d8384df7da57206d5e1f456ccdabd648c46e67cdfaa3a911d4795"
+  },
+  "artifactAssociation": {
+    "repository": "https://github.com/charlesw/tesseract",
+    "tag": "5.2.0",
+    "commit": "2c993543f7fa66576a8890a6c4ab053c4598aaed",
+    "relation": "payloads-byte-identical-to-upstream-repository-blobs",
+    "payloads": [
+      {
+        "file": "x64/leptonica-1.82.0.dll",
+        "sha256": "dfcb3e6ed0b16bc55bfdbcf53543cfe42a354b87c3e35bd3a95eebf005d73e76",
+        "gitBlob": "64f449cd7b5b5c9fd4b4b7c7f6261c4a24bf6583"
+      },
+      {
+        "file": "x64/tesseract50.dll",
+        "sha256": "de4d04ec75095374d98f5dd7a60d14d7e2e0f76589db693eccf7ae658be8cb2b",
+        "gitBlob": "92a0dd317ce247f417ad5c09fbb19225f60cec9c"
+      },
+      {
+        "file": "x86/leptonica-1.82.0.dll",
+        "sha256": "1700330110ada8e4f07fb063915e60e2b585ad87d9b1948093945e4645b66d08",
+        "gitBlob": "d244fa29bd981b648b46bfae27d0ca6a02f0534f"
+      },
+      {
+        "file": "x86/tesseract50.dll",
+        "sha256": "7f4873cdb78b9cd18c069eae434d38dd14e987531866463357cf51c016241820",
+        "gitBlob": "3a336415298c07cbece4a06da0089fbb35517f3b"
+      }
+    ],
+    "buildRecipeInRepository": false,
+    "note": "The wrapper repository commits these prebuilt DLLs; it does not record how or from which component revisions they were built."
+  },
+  "wrapperLicense": {
+    "repositoryCopy": "assets/licenses/native-packages/Tesseract/5.2.0/LICENSE.txt",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "url": "https://raw.githubusercontent.com/charlesw/tesseract/2c993543f7fa66576a8890a6c4ab053c4598aaed/LICENSE.txt",
+    "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7"
+  },
+  "components": [
+    {
+      "component": "leptonica",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": "1.82.0",
+        "basis": "identification-string-and-file-name"
+      },
+      "candidateSource": {
+        "repository": "https://github.com/DanBloomberg/leptonica",
+        "tag": "1.82.0",
+        "commit": "f4138265b390f1921b9891d6669674d3157887d8"
+      },
+      "notices": [
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/leptonica/1.82.0/leptonica-license.txt",
+          "upstreamPath": "leptonica-license.txt",
+          "url": "https://raw.githubusercontent.com/DanBloomberg/leptonica/f4138265b390f1921b9891d6669674d3157887d8/leptonica-license.txt",
+          "bytes": 1521,
+          "sha256": "87829abb5bbb00b55a107365da89e9a33f86c4250169e5a1e5588505be7d5806",
+          "gitBlob": "73d44c601c0746534128804c3fb0b93772897f82"
+        }
+      ],
+      "status": "candidate-version-association",
+      "ambiguity": "The tag matches the observed version string; the exact build configuration and patches are unknown."
+    },
+    {
+      "component": "tesseract",
+      "observed": {
+        "assets": [
+          "x64/tesseract50.dll",
+          "x86/tesseract50.dll"
+        ],
+        "version": "5.0.0",
+        "basis": "bare-version-string"
+      },
+      "candidateSource": null,
+      "candidateSources": [
+        {
+          "repository": "https://github.com/tesseract-ocr/tesseract",
+          "tag": "5.0.0",
+          "commit": "924b746e6f8e02e634188de1f15c8a95ebe9680b"
+        },
+        {
+          "repository": "https://github.com/tesseract-ocr/tesseract",
+          "tag": "5.2.0",
+          "commit": "5ad5325a0aa8effc47ca033625b6a51682f82767"
+        }
+      ],
+      "notices": [
+        {
+          "file": "assets/licenses/native-packages/Tesseract/5.2.0/LICENSE.txt",
+          "upstreamPath": "LICENSE",
+          "url": "https://raw.githubusercontent.com/tesseract-ocr/tesseract/924b746e6f8e02e634188de1f15c8a95ebe9680b/LICENSE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+          "sameBytesAt": [
+            "5.0.0",
+            "5.2.0"
+          ]
+        }
+      ],
+      "status": "license-text-identical-across-candidates-version-ambiguous",
+      "ambiguity": "The DLL reports 5.0.0, while the wrapper changelog for this release says Tesseract 5.2. Both tags carry byte-identical license text, which equals the stored wrapper license. The \"tesseract 3.04\" marker in the Leptonica DLL is a Leptonica message, not embedded Tesseract code."
+    },
+    {
+      "component": "libtiff",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": "4.4.0",
+        "basis": "identification-string"
+      },
+      "candidateSource": {
+        "repository": "https://gitlab.com/libtiff/libtiff",
+        "tag": "v4.4.0",
+        "commit": "b6a17e567f143fab49734a9e09e5bafeb6f97354"
+      },
+      "notices": [
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/libtiff/v4.4.0/COPYRIGHT",
+          "upstreamPath": "COPYRIGHT",
+          "url": "https://gitlab.com/libtiff/libtiff/-/raw/b6a17e567f143fab49734a9e09e5bafeb6f97354/COPYRIGHT",
+          "bytes": 1146,
+          "sha256": "fbd6fed7938541d2c809c0826225fc85e551fdbfa8732b10f0c87e0847acafd7",
+          "gitBlob": "8282186151e224ac83d9990805062ff7b8effa00"
+        }
+      ],
+      "status": "candidate-version-association",
+      "ambiguity": "The tag matches the observed version string; build options and patches are unknown."
+    },
+    {
+      "component": "libjpeg-turbo",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": "2.1.4",
+        "basis": "identification-string"
+      },
+      "candidateSource": {
+        "repository": "https://github.com/libjpeg-turbo/libjpeg-turbo",
+        "tag": "2.1.4",
+        "commit": "8162eddf041e0be26f5c671bb6528723c55fed9d"
+      },
+      "notices": [
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/libjpeg-turbo/2.1.4/LICENSE.md",
+          "upstreamPath": "LICENSE.md",
+          "url": "https://raw.githubusercontent.com/libjpeg-turbo/libjpeg-turbo/8162eddf041e0be26f5c671bb6528723c55fed9d/LICENSE.md",
+          "bytes": 5213,
+          "sha256": "ee1eaf194d5924b6360af8a6ba6a4e1554037091f7505943300cdeec65f1aebb",
+          "gitBlob": "d753e1d76aa0ca9529f999f9158b9e6b8bf0ff01"
+        },
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/libjpeg-turbo/2.1.4/README.ijg",
+          "upstreamPath": "README.ijg",
+          "url": "https://raw.githubusercontent.com/libjpeg-turbo/libjpeg-turbo/8162eddf041e0be26f5c671bb6528723c55fed9d/README.ijg",
+          "bytes": 12732,
+          "sha256": "4b7b9f8c03bb8d60270dfd12684e70ab21e4abfd27e73905cd1a7c4cae6f5cdb",
+          "gitBlob": "9453c195010fb0ace756f8e46d74c7688bb1c857"
+        }
+      ],
+      "status": "candidate-version-association",
+      "ambiguity": "LICENSE.md refers to README.ijg for the IJG terms, so both are retained. Build options are unknown."
+    },
+    {
+      "component": "zlib",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": "1.2.13",
+        "basis": "identification-string"
+      },
+      "candidateSource": {
+        "repository": "https://github.com/madler/zlib",
+        "tag": "v1.2.13",
+        "commit": "04f42ceca40f73e2978b50e93806c2a18c1281fc"
+      },
+      "notices": [
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/zlib/v1.2.13/LICENSE",
+          "upstreamPath": "LICENSE",
+          "url": "https://raw.githubusercontent.com/madler/zlib/04f42ceca40f73e2978b50e93806c2a18c1281fc/LICENSE",
+          "bytes": 1002,
+          "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+          "gitBlob": "ab8ee6f71428c3e4646b12b64ad387cde33462e5"
+        }
+      ],
+      "status": "candidate-version-association",
+      "ambiguity": "The tag matches the observed inflate/deflate strings."
+    },
+    {
+      "component": "libpng",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": "1.6.37",
+        "basis": "bare-version-string-beside-component-messages"
+      },
+      "candidateSource": {
+        "repository": "https://github.com/pnggroup/libpng",
+        "tag": "v1.6.37",
+        "commit": "a40189cf881e9f0db80511c382292a5604c3c3d1"
+      },
+      "notices": [
+        {
+          "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/notices/libpng/v1.6.37/LICENSE",
+          "upstreamPath": "LICENSE",
+          "url": "https://raw.githubusercontent.com/pnggroup/libpng/a40189cf881e9f0db80511c382292a5604c3c3d1/LICENSE",
+          "bytes": 5345,
+          "sha256": "bf5e22b9dce8464064ae17a48ea1133c3369ac9e1d80ef9e320e5219aa14ea9b",
+          "gitBlob": "e0c5b531cf548d608e911c43c577cd4ba9a1526e"
+        }
+      ],
+      "status": "candidate-version-inferred",
+      "ambiguity": "Not found by the fixed marker table; the version is inferred from a bare string next to libpng messages."
+    },
+    {
+      "component": "liblzma",
+      "observed": {
+        "assets": [
+          "x64/leptonica-1.82.0.dll",
+          "x86/leptonica-1.82.0.dll"
+        ],
+        "version": null,
+        "basis": "identification-string"
+      },
+      "candidateSource": null,
+      "notices": [],
+      "status": "unresolved-version-not-observed",
+      "ambiguity": "No version string is present. XZ Utils changed its licensing across releases, so no notice is attached without an exact version."
+    }
+  ],
+  "sourceBuildVerified": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false
+}

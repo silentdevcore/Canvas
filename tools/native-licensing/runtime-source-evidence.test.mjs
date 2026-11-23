@@ -9,7 +9,7 @@ import { loadRuntimeAssets } from './runtime-assets.mjs';
 import { checkEvidence, compareModel, componentMarkersIn, containerArguments, correlateNative, coverageFor, deriveNoticeLinks, machoSections,
   checkSourceDescriptor, explainNativeDifference, noticeComponents, signatureIssuer, validateDifferences, validateNativeComponents,
   parseDpkgPackages, parseNoticeArchive, resolveNoticeMember, trainedDataOffsets, validateEvidence, validateNoticeLinks,
-  validateObservation, verifyDownloads } from './runtime-source-evidence.mjs';
+  validateComponentSources, validateFontBuild, validateObservation, verifyComponentPayloadBytes, verifyDownloads } from './runtime-source-evidence.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -24,6 +24,8 @@ const containerSha = sha(readObservation('evidence/container-local-os.v1.json'))
 const links = JSON.parse(readObservation('evidence/container-notice-links.v1.json'));
 const components = JSON.parse(readObservation('evidence/native-components.v1.json'));
 const differences = JSON.parse(readObservation('evidence/macos-build-differences.v1.json'));
+const componentSources = JSON.parse(readObservation('component-sources/tesseract-5.2.0/component-sources.v1.json'));
+const fontBuild = JSON.parse(readObservation('evidence/liberation-sans-candidate-build.v1.json'));
 
 function model() {
   const bytes = Buffer.alloc(80, 3);
@@ -445,4 +447,138 @@ test('recorded font evidence keeps the Debian signature blocked while binding th
     const changed = structuredClone(evidence); mutate(changed);
     assert.throws(() => validateEvidence(changed, assets, readAsset, readObservation));
   }
+});
+
+test('Tesseract component sources keep candidate tags, inferred versions and the unresolved liblzma gap distinct', () => {
+  assert.deepEqual(validateComponentSources(componentSources, components, readAsset), { components: 7, withNotices: 6, unresolved: 1 });
+  const byName = Object.fromEntries(componentSources.components.map(value => [value.component, value]));
+  assert.equal(byName.libpng.status, 'candidate-version-inferred');
+  assert.equal(byName.liblzma.status, 'unresolved-version-not-observed');
+  assert.equal(byName.tesseract.status, 'license-text-identical-across-candidates-version-ambiguous');
+  const mutations = [
+    record => { record.legalApprovalGranted = true; },
+    record => { record.sourceBuildVerified = true; },
+    record => { record.components.find(value => value.component === 'zlib').notices[0].sha256 = '0'.repeat(64); },
+    record => { record.components.find(value => value.component === 'libpng').status = 'candidate-version-association'; },
+    record => { record.components.find(value => value.component === 'libtiff').candidateSource.tag = 'v4.4.1'; },
+    record => { record.components.find(value => value.component === 'libtiff').observed.version = '4.5.0'; },
+    record => { record.components = record.components.filter(value => value.component !== 'liblzma'); },
+    record => { record.components.find(value => value.component === 'liblzma').notices = structuredClone(byName.zlib.notices); },
+    record => { record.components.find(value => value.component === 'zlib').notices[0].url = byName.zlib.notices[0].url.replace(byName.zlib.candidateSource.commit, 'a'.repeat(40)); },
+    record => { record.artifactAssociation.payloads[0].sha256 = '1'.repeat(64); },
+    record => { record.artifactAssociation.buildRecipeInRepository = true; },
+    record => { record.components.push(structuredClone(record.components[0])); },
+    record => { record.components.find(value => value.component === 'tesseract').notices[0].sameBytesAt = ['5.0.0']; },
+  ];
+  for (const mutate of mutations) {
+    const record = structuredClone(componentSources); mutate(record);
+    assert.throws(() => validateComponentSources(record, components, readAsset));
+  }
+  const changedNotice = file => file.endsWith('leptonica-license.txt') ? Buffer.concat([readAsset(file), Buffer.from(' ')]) : readAsset(file);
+  assert.throws(() => validateComponentSources(componentSources, components, changedNotice), /changed|differ/i);
+});
+
+test('unknown component versions cannot borrow an unrelated ambiguous license', () => {
+  const record = structuredClone(componentSources);
+  const unknown = record.components.find(value => value.component === 'liblzma');
+  const tesseract = record.components.find(value => value.component === 'tesseract');
+  unknown.status = tesseract.status;
+  unknown.candidateSources = structuredClone(tesseract.candidateSources);
+  unknown.notices = structuredClone(tesseract.notices);
+  assert.throws(() => validateComponentSources(record, components, readAsset));
+});
+
+test('notice origins and paths must match the exact component repository and immutable commit', () => {
+  const zlib = componentSources.components.find(value => value.component === 'zlib');
+  for (const url of [
+    `http://unrelated.invalid/${zlib.candidateSource.commit}/LICENSE`,
+    `https://unrelated.invalid/${zlib.candidateSource.commit}/LICENSE`,
+    zlib.notices[0].url + '?redirect=other', zlib.notices[0].url + '#unrelated',
+    zlib.notices[0].url.replace('/madler/zlib/', '/other/zlib/'),
+    zlib.notices[0].url.replace('/LICENSE', '/OTHER'),
+  ]) {
+    const record = structuredClone(componentSources);
+    record.components.find(value => value.component === 'zlib').notices[0].url = url;
+    assert.throws(() => validateComponentSources(record, components, readAsset));
+  }
+  const record = structuredClone(componentSources);
+  record.artifactAssociation.payloads[0].gitBlob = '0'.repeat(40);
+  assert.throws(() => validateComponentSources(record, components, readAsset));
+  const borrowed = structuredClone(componentSources);
+  const source = borrowed.components.find(value => value.component === 'zlib');
+  source.candidateSource.repository = borrowed.components.find(value => value.component === 'tesseract').candidateSources[0].repository;
+  assert.throws(() => validateComponentSources(borrowed, components, readAsset));
+});
+
+test('the Liberation Sans candidate rebuild is equivalent only within build metadata and never claims reproduction', () => {
+  assert.deepEqual(validateFontBuild(fontBuild, assets, evidence, readAsset), { faces: 4, byteReproduced: false });
+  const mutations = [
+    record => { record.byteReproduced = true; },
+    record => { record.faces[0].glyphOutlinesEqual = false; },
+    record => { record.faces[0].differingTables.push('glyf'); },
+    record => { record.faces[0].cmapMappingsEqual = false; },
+    record => { record.faces[0].headFieldsDiffering.push('fontRevision'); },
+    record => { record.faces[0].shippedSha256 = '2'.repeat(64); },
+    record => { record.source.signatureVerified = true; },
+    record => { record.shippedFontsReplaced = true; },
+    record => { record.faces.pop(); },
+    record => { record.faces[0].builtSha256 = record.faces[0].shippedSha256; },
+  ];
+  for (const mutate of mutations) {
+    const record = structuredClone(fontBuild); mutate(record);
+    assert.throws(() => validateFontBuild(record, assets, evidence, readAsset));
+  }
+});
+
+test('font equivalence requires true booleans and a glyph count matching the shipped font', () => {
+  for (const field of ['glyphOutlinesEqual', 'cmapSubtablesEqual', 'cmapMappingsEqual']) {
+    for (const value of ['false', 'true', 0, 1, null, {}, []]) {
+      const record = structuredClone(fontBuild); record.faces[0][field] = value;
+      assert.throws(() => validateFontBuild(record, assets, evidence, readAsset));
+    }
+  }
+  for (const count of [0, -1, 1.5, '681', 682]) {
+    const record = structuredClone(fontBuild); record.faces[0].glyphCount = count;
+    assert.throws(() => validateFontBuild(record, assets, evidence, readAsset));
+  }
+});
+
+test('payload verification recomputes SHA256, byte lengths and Git blob IDs from actual bytes', () => {
+  const bytes = Buffer.from('synthetic DLL payload, never executable');
+  const record = { file: 'x64/synthetic.dll', bytes: bytes.length, sha256: sha(bytes),
+    gitBlob: createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex') };
+  assert.deepEqual(verifyComponentPayloadBytes([record], () => bytes),
+    { payloads: 1, localPayloadHashesRecomputed: true, upstreamFetched: false, publicationReady: false });
+  for (const change of [{ bytes: record.bytes + 1 }, { sha256: '0'.repeat(64) }, { gitBlob: '0'.repeat(40) },
+    { file: '../private' }, { file: 'C:\\private' }])
+    assert.throws(() => verifyComponentPayloadBytes([{ ...record, ...change }], () => bytes));
+  assert.throws(() => verifyComponentPayloadBytes([record, record], () => bytes));
+  assert.throws(() => verifyComponentPayloadBytes([record], () => Buffer.from('changed')));
+});
+
+test('the payload reference is hash-pinned by the offline evidence index', () => {
+  for (const mutate of [record => { record.componentPayloadReference.sha256 = '0'.repeat(64); },
+    record => { record.componentPayloadReference.file = '../private'; }]) {
+    const record = structuredClone(evidence); mutate(record);
+    assert.throws(() => validateEvidence(record, assets, readAsset, readObservation));
+  }
+});
+
+test('font glyph counts are read from a bounded TrueType maxp table', () => {
+  const font = Buffer.alloc(34);
+  font.writeUInt32BE(0x00010000, 0); font.writeUInt16BE(1, 4); font.write('maxp', 12);
+  font.writeUInt32BE(28, 20); font.writeUInt32BE(6, 24);
+  font.writeUInt32BE(0x00010000, 28); font.writeUInt16BE(681, 32);
+  const check = bytes => {
+    const record = structuredClone(fontBuild), registry = structuredClone(assets.registry);
+    const first = record.faces[0]; first.shippedSha256 = sha(bytes);
+    registry.groups.find(group => group.id === 'liberation-sans-1-07-4').assets.find(asset => asset.file === first.file).sha256 = sha(bytes);
+    return validateFontBuild(record, { registry }, evidence, file => file === first.file ? bytes : readAsset(file));
+  };
+  assert.equal(check(font).faces, 4);
+  for (const mutate of [bytes => bytes.writeUInt16BE(2, 4), bytes => bytes.writeUInt32BE(30, 20),
+    bytes => bytes.writeUInt32BE(5, 24), bytes => bytes.writeUInt16BE(0, 32)]) {
+    const changed = Buffer.from(font); mutate(changed); assert.throws(() => check(changed));
+  }
+  assert.throws(() => check(font.subarray(0, 6)));
 });

@@ -84,6 +84,10 @@
     {
       "file": "evidence/macos-build-differences.v1.json",
       "sha256": "1b95de163bb5963d64581fc2e2a28718ee9aea30c11975ea76d2dbc1862bb4a8"
+    },
+    {
+      "file": "evidence/liberation-sans-candidate-build.v1.json",
+      "sha256": "de644c9386bbb72d87a0d97e5748b9b9ecbf0d7544239e425667a449f884efd4"
     }
   ],
   "limitations": [
@@ -94,6 +98,18 @@
     "Font source archives were hashed; a trusted-key Debian signature check, reproducible build and legal corresponding-source review remain open.",
     "Notice links were resolved from the retained historical archive only; a link to a same-source package's original text is not an attribution review, agreement or legal approval.",
     "Native component markers are fixed identification strings in cached payloads; a named notice section is not a verified component license, and a missing marker does not prove absence.",
-    "Locating every differing byte in the Mach-O header and load commands explains the local install-name rewrite; it does not authenticate the Homebrew bottle, its publisher or its source."
+    "Locating every differing byte in the Mach-O header and load commands explains the local install-name rewrite; it does not authenticate the Homebrew bottle, its publisher or its source.",
+    "Tesseract component notices are candidate associations by matching tags; the prebuilt DLLs carry no build recipe, so no source revision or build configuration is verified.",
+    "The Liberation Sans candidate rebuild reproduces every glyph outline and character mapping but not the shipped bytes; it does not authenticate the unverified source signature."
+  ],
+  "componentPayloadReference": {
+    "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/payload-reference.v1.json",
+    "sha256": "e7f86862d01ad6fcae8bd0d867cb22aaabad5e203fb4feff006018e8a3e5ff5c"
+  },
+  "componentSources": [
+    {
+      "file": "component-sources/tesseract-5.2.0/component-sources.v1.json",
+      "sha256": "745a8c93ba820b9ddad4e3bbcd516cfb6925fcd5417d3410f60987e6fe4d39ae"
+    }
   ]
 }
