@@ -248,3 +248,48 @@ revalidation modes. Native metadata/runtime bundle guards, current naming and
 tracked-Markdown guards, version/fragment checks and `git diff --check` pass.
 The pre-existing Vite config-loader warning remains visible. The new internal
 fragment uses `none`; no general application, platform or fuzz pass is claimed.
+
+## 10. Current Working-Tree Solution Source Build
+
+On 2026-11-23 the complete current working-tree `PVAD.sln`, including the
+owner-added ImporterEngineProbe, WebApiProtectionProbe and GeneratorPackageProbe,
+built successfully in Debug using the existing source-reference mode:
+
+```bash
+node tools/native-licensing/test-session.mjs exec -- dotnet build PVAD.sln --disable-build-servers -m:1 -nr:false -p:PvadOriginalBaseline=true --verbosity minimal
+```
+
+The executed SDK was 10.0.113, runtime 10.0.13, macOS/x64. MSBuild completed in
+8 minutes 47 seconds with **0 errors and 178 warnings**; warnings were not
+suppressed. All three additional probes appear as successful build outputs.
+The exact SDK executable, command, source commit and timestamps are retained in
+`artifacts/native-solution-source-build/1795459309475-e3e790c5/report.json`;
+`build.log` beside it retains the full compiler output. These are local ignored
+artifacts, not committed or published acceptance records.
+
+The before/after hashes of all 2,122 tracked build inputs matched, including the
+owner's modified Solution and the original source trust register. The isolated
+session cleanup confirmed temporary files removed, source trust unchanged and
+existing artifacts unchanged. No project was excluded or Solution edit made.
+
+This supplements the earlier HEAD-only build and resolves the local source-build
+question without requiring unpublished packages. `PvadOriginalBaseline=true`
+selects project references; the default package-probe mode still requires its
+protected rehearsal feed. This build is **not** protected-package acceptance,
+execution of the compiled tests, a Release build, platform acceptance or remote
+CI. Earlier package runs remain separately scoped historical evidence.
+
+The 37 saved fuzz cases in two exception classes, existing ImageAnalysis
+failures, human visual acceptance and remaining external inputs stay open.
+No runtime code, fixture, threshold, production trust, VERSION, published
+release, live data or owner-owned file changed. Primary status remains
+**70/76 (92.1%)**. No commit, push or deployment was performed.
+
+Follow-up validation passed all **247/247** native/version/release tooling
+tests, version synchronization, fragment validation, the tracked-Markdown
+zero-match guard and `git diff --check`. The historical JSON naming audit still
+fails with **475 findings**, including stale retained entries and protected-file
+hash mismatches. Its raw report remains at
+`artifacts/rename/json-name-audit-current.json`. None of those original records
+or allowlists was changed to turn that independent audit green; it is not a
+Solution compiler failure or a new licensing completion claim.

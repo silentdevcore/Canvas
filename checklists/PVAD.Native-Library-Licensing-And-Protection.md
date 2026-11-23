@@ -19,6 +19,15 @@ Current primary status: **70/76 (92.1%)**, with six primary items still open.
 The latest cross-platform package acceptance below supersedes earlier pending
 platform notes; earlier evidence records retain their original results.
 
+The complete current working-tree Solution source build passed on 2026-11-23
+using `PvadOriginalBaseline=true`: Debug, SDK 10.0.113 on macOS/x64,
+0 errors and 178 unsuppressed warnings. The three owner-added probes compiled;
+the Solution and all tracked build inputs remained unchanged, and isolated
+session cleanup passed. This does not execute tests or replace protected-package,
+Release, platform or fuzz acceptance. See the
+[scoped build evidence](PVAD.Native-Licensing-Final-Work-Report.md#10-current-working-tree-solution-source-build).
+The six primary items remain open; no progress percentage changes.
+
 The [remaining-work handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md)
 assigns the six open items, separates engineering from owner/legal inputs and
 defines the evidence required for subsequent independent agent review.

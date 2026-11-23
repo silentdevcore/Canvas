@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-solution-source-build-evidence",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "improved",
+  "summary": "Documented complete source-build validation separately from protected package acceptance.",
+  "breaking": false,
+  "reason": "Internal validation evidence and developer instructions only; no shipped behavior, package configuration or acceptance thresholds changed."
+}

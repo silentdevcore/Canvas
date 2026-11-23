@@ -1706,6 +1706,7 @@ API/PostgreSQL, visual, cross-platform or protected-package acceptance.
 
 ```bash
 node tools/native-licensing/test-session.mjs exec -- dotnet test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj
+node tools/native-licensing/test-session.mjs exec -- dotnet build PVAD.sln --disable-build-servers -m:1 -nr:false -p:PvadOriginalBaseline=true --verbosity minimal
 node tools/native-licensing/session-rehearsal.mjs
 node tools/dependencies/api-full-validation.mjs
 node tools/dependencies/coverage-smoke.mjs artifacts/coverage-native-licensing-new-run
@@ -1731,6 +1732,16 @@ It rejects Pack/Publish and compilation outside the isolated build root.
 Manufacturer release builds and container/package jobs do not opt into this
 session. The existing protected-package rehearsal remains a separate explicit
 candidate-only exercise, not a publication workflow.
+
+For a full Solution source build, `PvadOriginalBaseline=true` selects the
+existing project-reference mode of GeneratorPackageProbe instead of its default
+unpublished-package references. Keep all Solution projects included. The default
+package-probe mode still requires the protected local rehearsal feed; source
+mode is not a substitute for testing those packages. The build command above
+uses Debug unless a configuration is explicitly supplied, compiles test
+projects without running their tests, and does not grant Release, platform,
+visual, fuzz or production-trust acceptance. See the
+[current working-tree build evidence](../../checklists/PVAD.Native-Licensing-Final-Work-Report.md#10-current-working-tree-solution-source-build).
 
 GitHub test jobs call `prepare-ci` after Node setup and before restore, then
 `cleanup-ci` with `if: always()`. Preparation writes only to the runner-owned
