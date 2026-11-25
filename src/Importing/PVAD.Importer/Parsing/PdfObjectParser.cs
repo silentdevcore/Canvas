@@ -168,8 +168,8 @@ public sealed class PdfObjectParser
         return token.Kind switch
         {
             PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
-            PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], IsHex: false) { SourceSpan = Span(token) },
-            PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], IsHex: true) { SourceSpan = Span(token) },
+            PdfTokenKind.LiteralString => new PdfString(token.StringContent(), IsHex: false) { SourceSpan = Span(token) },
+            PdfTokenKind.HexString => new PdfString(token.StringContent(), IsHex: true) { SourceSpan = Span(token) },
             PdfTokenKind.ArrayStart => ParseArray(ref reader, _activeBaseOffset + token.Offset, depth),
             PdfTokenKind.DictionaryStart => ParseDictionaryOrStream(ref reader, _activeBaseOffset + token.Offset, depth),
             PdfTokenKind.Number => ParseNumberOrReference(ref reader, token),
@@ -251,7 +251,8 @@ public sealed class PdfObjectParser
             streamStart++;
         }
 
-        var encoded = length > 0 && streamStart + length <= _context.Source.Length
+        // Compare against the remaining bytes so an oversized /Length cannot overflow the bound check.
+        var encoded = length > 0 && streamStart <= _context.Source.Length && length <= _context.Source.Length - streamStart
             ? _context.Source.Slice(streamStart, checked((int)length))
             : ReadUntilEndStream(streamStart);
 

@@ -54,11 +54,69 @@ remaining validation failures, required human inputs and exact closure criteria.
 The [earlier handoff](PVAD.Native-Licensing-Remaining-Work-Handoff.md) remains
 historical context. Progress changes only after actual closure evidence.
 
+The [completion report](PVAD.Native-Licensing-Completion-Report.md) executes that
+handoff. All three fresh campaign findings are reproduced and classified on
+macOS/x64 and Linux/arm64, and fixed:
+
+- an overflowing `/Length` bound check;
+- unbounded CID `/W` range expansion (out of memory on Linux);
+- unbounded ToUnicode `bfrange` expansion (the timeout).
+
+Follow-up replays and campaigns exposed two more defects, both fixed:
+unterminated end-of-input strings and a pre-existing `PdfTrustInspector` null
+dereference. On the final candidate, all 42 saved inputs replay with controlled
+outcomes, and a fresh unchanged 300-second Linux/arm64 campaign found
+**0 crashes and 0 timeouts**. The completed local checks below pass; the
+ImageAnalysis suite retains four known snapshot failures, and full
+current-candidate validation remains incomplete:
+
+- Importer 734/734.
+- Selected API test classes with PostgreSQL 449/449 (not the complete API audit),
+  Export 221/221 and ImageOcr 104/104.
+- The working-tree Solution with all owner probes builds with 0 errors.
+
+The 2026-11-24 local macOS/x64 protected-package follow-up now passes for the
+current parser candidate: 54 assemblies, 52 independent package references,
+original/protected comparisons and real OCR/CodeWorker/migration checks, with
+successful cleanup. See the [follow-up evidence](PVAD.Native-Licensing-Completion-Report.md#local-protected-package-follow-up-2026-11-24).
+Current-candidate Windows/Linux acceptance remains outstanding; remote platform
+runs additionally require owner authorization. The
+ImageAnalysis reference work needs an owner decision on reference font bytes,
+and every open primary row still needs human or external inputs.
+Status remains **70/76 (92.1%)**.
+
 ## Goal And Decisions
 
 Implement offline licensing for every native product and a free, reproducible
 release protection pipeline. This checklist records implementation evidence, not
 a claim that obfuscation prevents reverse engineering.
+
+Commercial strategy noted on 2026-11-24: start free of charge with signed
+licenses; introduce paid offerings later without a fixed transition date.
+For later consideration, retain the recommendation that installed versions
+covered by a free license remain usable while future versions/update rights
+may become paid; Cloud access is a separate decision. See the
+[saved model](PVAD.Native-Licensing-Completion-Report.md#commercial-model-to-revisit-later-2026-11-24).
+This is a planning note, not a runtime change or final commercial/legal approval.
+
+Free-phase account rights recorded on 2026-11-24 distinguish company licenses
+owned by organizations from personal licenses owned directly by individual users.
+Private accounts may author/edit, print, create/version/publish templates,
+edit/execute own code and use API/service accounts. Allowed imports are
+DOC/DOCX, XLSX, CSV/TSV, ODT, PPTX, Markdown, HTML and XML. PDF import is excluded
+by the later owner decision on 2026-11-25, superseding the earlier allowance;
+SVG and raster-image import/OCR remain excluded. PDF creation, editing of own
+designs, export and printing remain allowed. HTML/XML import is policy-approved but dedicated document importers
+are not yet present in the inspected paths. Allowed exports are PDF, DOCX, XLSX
+and ODT; PPTX export, raster images, SVG and
+text/data exports (HTML, XML, Markdown, CSV, TSV) are excluded. These later
+format-specific decisions supersede the earlier blanket export allowance;
+`.xls` remains deferred. PDF signing/redaction/archive conversion and E-Invoice
+creation/validation are excluded; Migration needs explicit PVAD-admin approval
+for both account types.
+See the [account policy and implementation gaps](PVAD.Native-Licensing-Completion-Report.md#free-phase-account-policy-and-implementation-gaps-2026-11-24).
+These are confirmed requirements, not implemented enforcement or additional
+completed primary items.
 
 - [x] Record subscriptions, perpetual licenses, and explicitly issued 30-day Trials.
 - [x] Define seven days of grace for paid subscriptions and none for Trials.
@@ -4027,9 +4085,19 @@ changes remain outside that commit and this milestone.
 | Existing API test analyzer warnings include duplicate `InlineData`, for example [API-key compatibility fixtures](../tests/PVAD.Api.Tests/PvadApiKeyHeaderIntegrationTests.cs), and interpolated `SET LOCAL` in [E-Invoice retention tests](../tests/PVAD.Api.Tests/EInvoiceValidationRecordImmutabilityTests.cs) | P2 test-maintenance review: clarify distinct intended cases and review the controlled identifier allowlist. The inspected SQL helper receives fixed test settings, not public request input; this is not evidence of a production injection flaw. | Record only. Review after native licensing; do not change tests, suppress warnings or expand the primary task count here. |
 | Unprotected Windows 72-DPI image exports are not reproducible between process runs; repeated originals match protected output, and disabling tiered compilation does not resolve the inconsistency | Blocks Windows package acceptance. The pixel hashes differ while dimensions agree; visual severity and the native-font/runtime cause remain unproven. | Retain exact comparisons and mandatory original-repeat verification. Preserve synthetic reports from runs `45030859717` and `45032079759`; investigate rendering with actual image-level evidence, without approving replacement baselines or portraying this as a proven obfuscation defect. No production renderer or font selection is changed here. |
 | Newly reached Windows ImageAnalysis suite reports 27 failures and 154 passes, including JSON LF/CRLF snapshots, glyph recognition and quality metrics | Cross-platform analysis/test-portability follow-up, not demonstrated license-enforcement defects. It keeps complete CI acceptance open. | Preserve source fixtures, expected text, snapshots and quality thresholds. Review after licensing as requested; no skip, weakened assertion, snapshot regeneration or algorithm rewrite is authorized in this milestone. Evidence: native run `45030859717`, Windows admission job `137233922178`. |
-| The bounded coverage-guided PDF fuzz campaign (300 s, unmodified harness, disposable Linux/arm64 container, 2026-11-23) saved 37 crashing inputs. All reproduce on macOS/x64: 32 `IndexOutOfRangeException` in `PdfGraphicsInterpreter.InterpretAdmitted` and 5 `ZLibException` in Flate stream reading, during `PdfImporter.LoadAsync`. | P1 importer robustness for untrusted PDFs: unexpected exception types instead of controlled malformed-input rejection. These are managed exceptions, with no hang, process-fatal or memory-safety evidence. Not a native-licensing defect, but the fuzz acceptance item stays failed. | Retain the synthetic crash inputs only in ignored `artifacts/pdf-fuzz-local/1795456750-686a6243/` and never upload them. Do not widen the harness's expected-exception list or skip inputs. Fix the operand bounds and Flate error mapping in a separate reviewed change after licensing, then rerun the same bounded campaign. |
+| The bounded coverage-guided PDF fuzz campaign (300 s, unmodified harness, disposable Linux/arm64 container, 2026-11-23) saved 37 crashing inputs. All reproduce on macOS/x64: 32 `IndexOutOfRangeException` in `PdfGraphicsInterpreter.InterpretAdmitted` and 5 `ZLibException` in Flate stream reading, during `PdfImporter.LoadAsync`. | P1 importer robustness for untrusted PDFs: unexpected exception types instead of controlled malformed-input rejection. These are managed exceptions, with no hang, process-fatal or memory-safety evidence. Not a native-licensing defect, but the fuzz acceptance item stays failed. | Retain the synthetic crash inputs only in ignored `artifacts/pdf-fuzz-local/1795456750-686a6243/` and never upload them. Do not widen the harness's expected-exception list or skip inputs. **Resolved later by owner-authorized hardening:** operand validation and Flate FDICT rejection (commit `445519ca`); all 37 inputs replay with controlled outcomes. See the [completion report](PVAD.Native-Licensing-Completion-Report.md#3-findings-fixes-regression-cases-and-runs). |
+| Font and ToUnicode resources are re-parsed for every page without a cache, so an under-budget but expensive mapping repeated across many pages multiplies import time | P2 import performance/denial-of-service hardening. Each mapping is now bounded (`PVADPDFPARSE012`/`013`); the multi-page repetition path is pre-existing and was not observed as a timeout by the fresh campaigns. | Record only. Consider per-document font caching or an aggregate budget in a separate reviewed change. |
+| New font-mapping limit/format rejections (and the existing invalid-hex `FormatException`) fail the whole import instead of dropping only the affected font mapping with a diagnostic | P3 import resilience consistency with object-granular recovery of other parse limits. | Record only. Review whether to degrade to a diagnostic in a separate change; the current behavior is controlled rejection, not a crash. |
 
 ## Deferred Work
+
+Paid-launch requirement recorded on 2026-11-24: installation activation and
+license-sharing controls are deferred during the free phase, but must be
+implemented and validated before introducing paid licenses. Define licensed
+units/limits, activation binding, transfers/recovery and offline/revalidation
+behavior first. See the [paid-launch gate](PVAD.Native-Licensing-Completion-Report.md#mandatory-activation-controls-before-paid-launch-2026-11-24).
+This future requirement does not change the fixed primary denominator or the
+current signed offline license implementation.
 
 - [ ] Evaluate Native AOT or native components independently if stronger code concealment is commercially justified.
 - [ ] Evaluate commercial obfuscation/anti-tamper tools only after a separate budget decision.

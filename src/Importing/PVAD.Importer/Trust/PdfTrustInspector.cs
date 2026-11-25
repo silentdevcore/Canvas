@@ -146,9 +146,9 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             .ToArray() ?? [];
         var revisionCount = revisions.Length > 0
             ? revisions.Length
-            : xref?.Entries.Count == 0
+            : xref is null || xref.Entries.Count == 0
                 ? 0
-                : xref!.Entries.Values.Max(entry => entry.Revision) + 1;
+                : xref.Entries.Values.Max(entry => entry.Revision) + 1;
 
         if (xref is not null)
         {

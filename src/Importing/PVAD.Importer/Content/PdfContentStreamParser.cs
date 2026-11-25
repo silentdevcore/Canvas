@@ -106,8 +106,8 @@ public sealed class PdfContentStreamParser
             PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
             PdfTokenKind.Number when long.TryParse(token.Text, out var integer) => new PdfInteger(integer) { SourceSpan = Span(token) },
             PdfTokenKind.Number when double.TryParse(token.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) => new PdfNumber(number) { SourceSpan = Span(token) },
-            PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], false) { SourceSpan = Span(token) },
-            PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], true) { SourceSpan = Span(token) },
+            PdfTokenKind.LiteralString => new PdfString(token.AvailableStringContent(), false) { SourceSpan = Span(token) },
+            PdfTokenKind.HexString => new PdfString(token.AvailableStringContent(), true) { SourceSpan = Span(token) },
             PdfTokenKind.ArrayStart => ParseArray(ref tokenizer, token),
             PdfTokenKind.DictionaryStart => ParseDictionary(ref tokenizer, token),
             _ => new PdfName(token.Text) { SourceSpan = Span(token) }

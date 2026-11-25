@@ -38,6 +38,54 @@ by the application or this guide.
    reviewed deployment process. It adds an append-only ledger and database
    mutation trigger; the implementation does not migrate a live database for you.
 
+## Proposed Initial Production Key Storage (Not Provisioned)
+
+Planning proposal recorded on 2026-11-24 at the owner's request. Manufacturer
+display name: PVAD. Website administrators manage license policy; this alone
+does not grant host access to private keys. Hosting environment and the specific
+key/backup custodian still need confirmation. The owner subsequently confirmed
+Cloud hosting, with the provider still open. No production key was generated.
+
+Recommend keeping the manufacturer private signing key in the chosen Cloud's
+dedicated secret/key service, separate from the application database. The
+database holds issued signed license artifacts, ownership, rights and audit
+records; it does not need the private signing key. Key IDs and service references
+may be stored as configuration without exposing private material.
+
+The current PEM-based signer can use a secret supplied as a protected runtime
+file. Alternatively, a future remote-signing adapter can call a non-exportable
+P-256 key in a managed key service. That option requires implementation and
+signature-format verification; it is not supported by the current file signer.
+Only the manufacturer issuer workload should receive secret-read or signing
+permission. Website administrator access must not automatically confer secret
+retrieval or export rights. Final provider and storage selection are pending.
+
+For a manufacturer-controlled server or container deployment, the existing
+signer supports a P-256 private PEM file at an absolute path:
+
+- Keep the original outside source control, build contexts, images and public
+  web directories. Supply it to the manufacturer issuer through a protected
+  runtime secret/file mount, read-only to the application.
+- On Unix, make the mounted file readable only by the dedicated issuer service
+  identity (for example mode `0400`); the signer rejects group/other permissions.
+  Establish and verify the equivalent restricted ACL on Windows.
+- Keep an encrypted backup separately from the server and keep its recovery
+  credential separately from the backup. Record an accountable custodian and
+  independent recovery reviewer, then demonstrate recovery without exposing
+  private contents or issuing a customer license.
+- Maintain public key ID/fingerprint, provisioning approval and rotation records.
+  Ship only the reviewed public key in customer libraries; customer hosts and
+  workers never receive the private key.
+- For automatic free issuance, use a narrowly scoped server-side issuance policy
+  after verified customer eligibility. Do not give the customer Admin issuance
+  rights or accept arbitrary products, owners or Migration grants from a request.
+
+A managed secret store may supply the mounted file if the hosting platform
+supports that arrangement. Remote non-exportable KMS/HSM signing is a separate
+integration: the current signer reads a PEM file and is not a KMS/HSM client.
+Do not generate production material until storage, access, backup, recovery and
+public-register provisioning have been reviewed and explicitly authorized.
+
 ## Issue A License
 
 1. Reauthenticate as an authorized manufacturer operator and obtain the normal

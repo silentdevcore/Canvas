@@ -4,6 +4,6 @@
   "impact": "patch",
   "components": ["importer"],
   "category": "fixed",
-  "summary": "Improved PDF import reliability when documents contain malformed text commands or unsupported compressed data.",
+  "summary": "Improved PDF import reliability when documents contain malformed text commands, unterminated strings, oversized stream lengths, excessive font mapping ranges or unsupported compressed data.",
   "breaking": false
 }
