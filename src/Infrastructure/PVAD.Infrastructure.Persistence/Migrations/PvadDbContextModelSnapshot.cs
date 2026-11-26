@@ -1650,6 +1650,99 @@ namespace PVAD.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PVAD.Domain.Entities.NativeLicenseRegistrationJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ContractJson")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LicenseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OwnerKey")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SourceOrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceSubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<Guid>("VerificationId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicenseId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("OwnerKey")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("SourceOrganizationId");
+
+                    b.HasIndex("SourceSubscriptionId");
+
+                    b.HasIndex("SourceUserId");
+
+                    b.HasIndex("Status", "ScheduledAt");
+
+                    b.ToTable("native_license_registration_jobs", "administration", t =>
+                        {
+                            t.HasCheckConstraint("CK_native_registration_single_owner", "(\"OrganizationId\" IS NOT NULL) <> (\"OwnerUserId\" IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("PVAD.Domain.Entities.OfflineLicense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3151,6 +3244,42 @@ namespace PVAD.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PreviousLicenseId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("PVAD.Domain.Entities.NativeLicenseRegistrationJob", b =>
+                {
+                    b.HasOne("PVAD.Domain.Entities.NativeLibraryLicense", null)
+                        .WithMany()
+                        .HasForeignKey("LicenseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PVAD.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PVAD.Infrastructure.Persistence.Identity.PvadIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PVAD.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("SourceOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PVAD.Domain.Entities.OrganizationSubscription", null)
+                        .WithMany()
+                        .HasForeignKey("SourceSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PVAD.Infrastructure.Persistence.Identity.PvadIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("SourceUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PVAD.Domain.Entities.OfflineLicense", b =>

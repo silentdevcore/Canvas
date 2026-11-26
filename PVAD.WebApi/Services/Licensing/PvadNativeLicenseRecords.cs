@@ -5,7 +5,11 @@ using PVAD.Licensing;
 
 namespace PVAD.WebApi.Services.Licensing;
 
-public sealed record NativeLicensePage(IReadOnlyList<NativeLicenseResponse> Items, int Total, int Page, int PageSize);
+public sealed record NativeLicensePage(IReadOnlyList<NativeLicenseResponse> Items, int Total, int Page, int PageSize)
+{
+    public bool AutomaticIssuancePending { get; init; }
+    public bool AutomaticIssuanceNeedsReview { get; init; }
+}
 public sealed record NativeLicenseDetails(NativeLicenseResponse License, string CustomerReference,
     bool RedistributionAllowed, PvadLicenseGrant[] Grants, Guid? RenewedByLicenseId)
 {

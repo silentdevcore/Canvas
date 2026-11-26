@@ -1696,3 +1696,14 @@ Deploy the ownership migration with the matching API and portals. Existing signe
 files and legacy ownership remain unchanged; renewals cannot change ownership.
 See the [activation and ownership guide](guides/PVAD.Native-Library-Activation.md#personal-and-organization-ownership)
 for migration and rollback behavior. Automatic issuance is not enabled by this change.
+
+
+## Automatic Registration Issuance
+
+A durable request is recorded after successful registration email verification.
+An explicitly configured manufacturer worker signs the baseline personal or company
+license, without redistribution or Migration grants, and retains the same contract
+across retries. The Account portal shows pending/review status and offers completed
+files through owner-checked downloads. The worker defaults to disabled; production
+keys and approved license terms must be supplied separately. The queue migration
+must precede deployment, and existing verified accounts are not backfilled.

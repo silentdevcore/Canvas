@@ -110,7 +110,7 @@ Native issuance accepts exactly one owner: `organizationId` for a company or
 the server assigns the individual capability policy even if that person also
 belongs to a company. An organization target cannot create a new individual-scoped
 license. The manufacturer administrator still performs issuance; registration
-and customer self-service automation are a later step.
+and customer self-service automation are controlled separately.
 
 Personal native licenses can be listed and downloaded by their verified, active
 owner using a valid browser session, including a session without an organization.
@@ -135,7 +135,24 @@ The native signed format and offline signature checks are unchanged. Account
 ownership is not installation activation or sharing detection. Cloud document
 workspaces and current registration tenancy are unchanged by this licensing step;
 a personal native license does not require or create such a workspace. Automatic
-customer issuance and production key custody remain separate rollout tasks.
+registration issuance is prepared as an explicitly enabled manufacturer policy;
+production activation and key custody remain separate rollout tasks.
+
+## Automatic Registration Issuance
+
+After successful email verification, registration records a durable native-license
+request for the personal user or company organization. Issuance runs separately
+on the configured manufacturer deployment, with an explicitly approved license
+model/duration or update cutoff, an allowlisted operator identity and the approved
+signing key. It is disabled by default. No production key or commercial contract
+is generated or inferred from the free launch plan.
+
+The automatic policy grants baseline products under the signed account scope,
+without redistribution or Migration. Migration remains a separate administrator
+approval. Account shows pending/review state and provides the signed file after
+completion. Duplicate verification/retries and a crash after issuance preserve
+one owner's request and the original artifact. Existing verified accounts are not
+backfilled by this registration-only workflow. Licensing verification stays offline.
 
 ## Product Rights And Dependencies
 

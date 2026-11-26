@@ -29,6 +29,7 @@ public sealed class PvadDbContext
     public DbSet<SubscriptionLifecycleEvent> SubscriptionLifecycleEvents => Set<SubscriptionLifecycleEvent>();
     public DbSet<SubscriptionUsageEvent> SubscriptionUsageEvents => Set<SubscriptionUsageEvent>();
     public DbSet<OfflineLicense> OfflineLicenses => Set<OfflineLicense>();
+    public DbSet<NativeLicenseRegistrationJob> NativeLicenseRegistrationJobs => Set<NativeLicenseRegistrationJob>();
     public DbSet<NativeLibraryLicense> NativeLibraryLicenses => Set<NativeLibraryLicense>();
     public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();

@@ -276,6 +276,151 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
             { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = harness.Principal() } } }.Download(personal.Id, default));
     }
 
+    [Fact]
+    public async Task Registration_automation_is_disabled_without_database_or_key_access_and_requires_explicit_terms()
+    {
+        var processor = new PvadNativeLicenseAutomationProcessor(null!, null!, Options.Create(new PvadNativeLicenseAutomationOptions()),
+            Options.Create(new PvadNativeIssuerOptions()), TimeProvider.System);
+        Assert.False(await processor.ProcessNextAsync(default));
+        Assert.False(new PvadNativeLicenseAutomationOptions { Enabled = true }.IsValid());
+        Assert.False(new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = Guid.NewGuid(), PolicyVersion = "free-1", Model = PvadLicenseModel.Perpetual }.IsValid());
+    }
+
+    [PostgreSqlFact]
+    public async Task Registration_automation_preserves_owner_limits_and_recovers_after_a_committed_issuance()
+    {
+        foreach (var type in new[] { SubscriptionAccountType.Company, SubscriptionAccountType.IndividualDeveloper })
+        {
+            await using var harness = await Harness.CreateAsync(output);
+            await using var db = new PvadDbContext(harness.Database);
+            var customerId = Guid.NewGuid();
+            db.Users.Add(new PvadIdentityUser { Id = customerId, UserName = customerId.ToString(), DisplayName = "Registration customer", EmailConfirmed = true });
+            var subscription = new OrganizationSubscription { OrganizationId = harness.OrganizationId, AccountType = type, Status = SubscriptionStatus.Active };
+            db.OrganizationSubscriptions.Add(subscription);
+            db.OrganizationMemberships.Add(new OrganizationMembership { UserId = customerId, OrganizationId = harness.OrganizationId });
+            db.SubscriptionEntitlements.Add(new SubscriptionEntitlement { SubscriptionId = subscription.Id, Capability = "migration", Source = EntitlementSource.NegotiatedOverride, Enabled = true });
+            await db.SaveChangesAsync();
+            var queue = new PvadNativeLicenseRegistrationQueue(db);
+            await queue.EnqueueAsync(customerId, subscription, Guid.NewGuid(), default);
+            await queue.EnqueueAsync(customerId, subscription, Guid.NewGuid(), default);
+            Assert.Single(await db.NativeLicenseRegistrationJobs.ToListAsync());
+            var policy = Options.Create(new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = harness.UserId, PolicyVersion = "free-1", Model = PvadLicenseModel.Subscription, ValidityDays = 365 });
+            var processor = new PvadNativeLicenseAutomationProcessor(db, harness.Service(db), policy, Options.Create(harness.Options()), TimeProvider.System);
+            Assert.True(await processor.ProcessNextAsync(default));
+            var job = await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync();
+            Assert.Equal(NativeLicenseRegistrationStatus.Completed, job.Status);
+            var license = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync();
+            Assert.Equal(job.LicenseId, license.Id);
+            Assert.Equal(type == SubscriptionAccountType.Company ? harness.OrganizationId : (Guid?)null, license.OrganizationId);
+            Assert.Equal(type == SubscriptionAccountType.IndividualDeveloper ? customerId : (Guid?)null, license.OwnerUserId);
+            var payload = harness.Signer.Verify(license.ArtifactJson);
+            Assert.False(payload.RedistributionAllowed);
+            Assert.DoesNotContain(payload.Grants, grant => grant.Product.StartsWith("migration."));
+            Assert.DoesNotContain(payload.AccountScope!.Capabilities, capability => capability.StartsWith("migration."));
+            Assert.Equal(type == SubscriptionAccountType.Company, payload.AccountScope.Capabilities.Contains("import.pdf"));
+            var firstArtifact = license.ArtifactJson;
+            // Simulate a crash after native ledger commit, before queue completion.
+            await db.NativeLicenseRegistrationJobs.ExecuteUpdateAsync(set => set
+                .SetProperty(value => value.Status, NativeLicenseRegistrationStatus.Processing)
+                .SetProperty(value => value.LeaseUntil, harness.Now.AddMinutes(-1))
+                .SetProperty(value => value.LeaseId, Guid.NewGuid()).SetProperty(value => value.LicenseId, (Guid?)null));
+            Assert.True(await processor.ProcessNextAsync(default));
+            Assert.Single(await db.NativeLibraryLicenses.ToListAsync());
+            Assert.Equal(firstArtifact, (await db.NativeLibraryLicenses.AsNoTracking().SingleAsync()).ArtifactJson);
+            Assert.Single(await db.AuditEvents.Where(value => value.Action == "native-licenses.issue").ToListAsync());
+        }
+    }
+
+    [PostgreSqlFact]
+    public async Task Registration_automation_retries_transient_signing_and_never_issues_to_a_disabled_owner()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var subscription = new OrganizationSubscription { OrganizationId = harness.OrganizationId, AccountType = SubscriptionAccountType.IndividualDeveloper, Status = SubscriptionStatus.Active };
+        db.OrganizationSubscriptions.Add(subscription); await db.SaveChangesAsync();
+        await new PvadNativeLicenseRegistrationQueue(db).EnqueueAsync(harness.UserId, subscription, Guid.NewGuid(), default);
+        var policy = Options.Create(new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = harness.UserId, PolicyVersion = "free-1", Model = PvadLicenseModel.Trial, ValidityDays = 30 });
+        var flaky = new FirstFailureSigner(harness.Signer);
+        var processor = new PvadNativeLicenseAutomationProcessor(db, harness.Service(db, overrideSigner: flaky), policy,
+            Options.Create(harness.Options()), TimeProvider.System);
+        Assert.True(await processor.ProcessNextAsync(default));
+        var job = await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync();
+        Assert.Equal(NativeLicenseRegistrationStatus.Pending, job.Status);
+        Assert.Equal("PVAD_NATIVE_ISSUER_UNAVAILABLE", job.FailureCode);
+        Assert.Empty(await db.NativeLibraryLicenses.ToListAsync());
+        var contract = job.ContractJson;
+        await db.NativeLicenseRegistrationJobs.ExecuteUpdateAsync(set => set.SetProperty(value => value.ScheduledAt, harness.Now.AddMinutes(-1)));
+        Assert.True(await processor.ProcessNextAsync(default));
+        Assert.Equal(contract, (await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync()).ContractJson);
+        Assert.Single(await db.NativeLibraryLicenses.ToListAsync());
+        Assert.Equal(NativeLicenseRegistrationStatus.Completed, (await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync()).Status);
+    }
+
+    [PostgreSqlFact]
+    public async Task Registration_automation_has_one_claimant_and_rechecks_eligibility()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using (var db = new PvadDbContext(harness.Database))
+        {
+            var subscription = new OrganizationSubscription { OrganizationId = harness.OrganizationId, AccountType = SubscriptionAccountType.Company, Status = SubscriptionStatus.Active };
+            db.OrganizationSubscriptions.Add(subscription);
+            db.OrganizationMemberships.Add(new OrganizationMembership { UserId = harness.UserId, OrganizationId = harness.OrganizationId });
+            await db.SaveChangesAsync();
+            await new PvadNativeLicenseRegistrationQueue(db).EnqueueAsync(harness.UserId, subscription, Guid.NewGuid(), default);
+            (await db.Users.SingleAsync()).IsActive = false; await db.SaveChangesAsync();
+        }
+        async Task<bool> Process()
+        {
+            await using var db = new PvadDbContext(harness.Database);
+            return await new PvadNativeLicenseAutomationProcessor(db, harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions
+                { Enabled = true, IssuerUserId = harness.UserId, PolicyVersion = "free-1", Model = PvadLicenseModel.Subscription, ValidityDays = 365 }),
+                Options.Create(harness.Options()), TimeProvider.System).ProcessNextAsync(default);
+        }
+        var results = await Task.WhenAll(Process(), Process());
+        Assert.Equal(1, results.Count(value => value));
+        await using var verify = new PvadDbContext(harness.Database);
+        Assert.Empty(await verify.NativeLibraryLicenses.ToListAsync());
+        var job = await verify.NativeLicenseRegistrationJobs.SingleAsync();
+        Assert.Equal(NativeLicenseRegistrationStatus.DeadLetter, job.Status);
+        Assert.Equal("PVAD_NATIVE_AUTOMATION_ACCOUNT_UNAVAILABLE", job.FailureCode);
+    }
+
+    [PostgreSqlFact]
+    public async Task Registration_automation_pins_policy_and_retains_queue_history()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var subscription = new OrganizationSubscription { OrganizationId = harness.OrganizationId, AccountType = SubscriptionAccountType.IndividualDeveloper, Status = SubscriptionStatus.Active };
+        db.OrganizationSubscriptions.Add(subscription); await db.SaveChangesAsync();
+        await new PvadNativeLicenseRegistrationQueue(db).EnqueueAsync(harness.UserId, subscription, Guid.NewGuid(), default);
+        var settings = new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = harness.UserId, PolicyVersion = "free-1", Model = PvadLicenseModel.Subscription, ValidityDays = 365 };
+        var processor = new PvadNativeLicenseAutomationProcessor(db, harness.Service(db, overrideSigner: new FirstFailureSigner(harness.Signer)),
+            Options.Create(settings), Options.Create(harness.Options()), TimeProvider.System);
+        Assert.True(await processor.ProcessNextAsync(default));
+        var contract = (await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync()).ContractJson;
+        settings.PolicyVersion = "free-2";
+        await db.NativeLicenseRegistrationJobs.ExecuteUpdateAsync(set => set.SetProperty(value => value.ScheduledAt, harness.Now.AddMinutes(-1)));
+        Assert.True(await processor.ProcessNextAsync(default));
+        var retained = await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync();
+        Assert.Equal(contract, retained.ContractJson);
+        Assert.Equal(NativeLicenseRegistrationStatus.DeadLetter, retained.Status);
+        Assert.Equal("PVAD_NATIVE_AUTOMATION_POLICY_CHANGED", retained.FailureCode);
+        Assert.Empty(await db.NativeLibraryLicenses.ToListAsync());
+        await Assert.ThrowsAsync<Npgsql.PostgresException>(() => db.GetService<IMigrator>().MigrateAsync("20261126180911_AddPersonalNativeLicenseOwnership"));
+        Assert.Single(await db.NativeLicenseRegistrationJobs.ToListAsync());
+    }
+
+    private sealed class FirstFailureSigner(IPvadNativeLicenseIssuerSigner inner) : IPvadNativeLicenseIssuerSigner
+    {
+        private bool failed;
+        public string Sign(PvadLicensePayload payload)
+        {
+            if (!failed) { failed = true; throw new PvadNativeIssuanceException("PVAD_NATIVE_ISSUER_UNAVAILABLE", 503); }
+            return inner.Sign(payload);
+        }
+        public PvadLicensePayload Verify(string artifact) => inner.Verify(artifact);
+    }
+
     [PostgreSqlFact]
     public async Task Authorized_issue_preserves_all_models_grants_and_audit_atomically()
     {
@@ -675,8 +820,8 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
             "synthetic-customer", model, Now, model == PvadLicenseModel.Perpetual ? null : Now.AddDays(30),
             model == PvadLicenseModel.Perpetual ? Now.AddYears(1) : null, false,
             [new(PvadLicenseProducts.Pdf, []), new(PvadLicenseProducts.PdfCodeMigration, ["aspose-pdf"])], "purchase");
-        public PvadNativeLicenseIssuanceService Service(PvadDbContext db, PvadNativeIssuerOptions? configuration = null, PvadAdminSecurityOptions? security = null) =>
-            new(db, Signer, Microsoft.Extensions.Options.Options.Create(configuration ?? Options()), Microsoft.Extensions.Options.Options.Create(new PvadStepUpOptions()),
+        public PvadNativeLicenseIssuanceService Service(PvadDbContext db, PvadNativeIssuerOptions? configuration = null, PvadAdminSecurityOptions? security = null, IPvadNativeLicenseIssuerSigner? overrideSigner = null) =>
+            new(db, overrideSigner ?? Signer, Microsoft.Extensions.Options.Options.Create(configuration ?? Options()), Microsoft.Extensions.Options.Options.Create(new PvadStepUpOptions()),
                 new(Microsoft.Extensions.Options.Options.Create(security ?? new())), new FixedClock(Now));
         public async Task ResetIdentityAsync()
         {

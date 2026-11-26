@@ -135,8 +135,12 @@ candidate (2026-11-26); see the [ownership report](PVAD.Native-Licensing-Complet
 Local validation covers 28 API cases through the corrected rerun, real database
 ownership/migration guards, 61 Account tests, 49 Admin tests and 256 tooling tests.
 No production migration, key provisioning or new commit was performed.
-Automatic customer issuance, current-candidate protected-package/platform
-acceptance and production approvals remain pending.
+Registration-triggered automatic native issuance is prepared in the subsequent
+Step 4 candidate and defaults to disabled; see the
+[automation report](PVAD.Native-Licensing-Completion-Report.md#step-4-automatic-registration-license-issuance-2026-11-26).
+Production activation still needs the approved free-policy terms, manufacturer
+identity/key custody and migration deployment. Current-candidate protected-package/
+platform acceptance and production approvals remain pending.
 Local Step 2 source validation: 1,579 native tests passed; 1,542 API cases are
 accounted for through the full run and corrected reruns, with no unresolved
 failure (not a second unfiltered green run). Designer, Admin, Account and tooling

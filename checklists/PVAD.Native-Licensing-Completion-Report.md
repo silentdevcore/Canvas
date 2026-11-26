@@ -356,6 +356,72 @@ registration/customer issuance is Step 4. No production keys, installation
 activation, sharing enforcement, paid rollout, XLS decision, platform acceptance
 or primary checklist closure is implied. Primary status remains **70/76 (92.1%)**.
 
+### Step 4: Automatic Registration License Issuance (2026-11-26)
+
+Prepared after explicit owner authorization, following ownership commit `9c48c016`.
+These changes are uncommitted and automation is disabled by default. Email
+verification records a durable request in the same transaction as activation,
+verification audit and welcome mail. Failed or repeated verification cannot issue
+another owner request. No signing key is needed on the registration request path.
+There is no backfill of existing already-verified registrations.
+
+A separate manufacturer worker claims jobs with row locks/leases, pins explicit
+operator-approved terms and signs through the existing trusted signer/ledger.
+The actor must be explicitly allowlisted, active, verified, unlocked, authorized
+by operator policy and actually a global System Administrator. This internal
+workload path does not manufacture or bypass a browser session. Customer APIs
+and service accounts gain no signing endpoint. Manual manufacturer issuance
+continues to require its existing permissions and recent live browser session.
+
+The automatic contract has no default model or duration: subscription needs
+explicit validity days, Trial exactly 30 days, perpetual an explicit UTC update
+cutoff. Both manufacturer issuance and automation need explicit enablement.
+Policy/actor/date values are retained across retries; incompatible policy changes
+become review items instead of rewriting the contract. Baseline PDF/Word/
+Spreadsheet/Importer/Converter grants are derived server-side under the account
+capability scope. Redistribution and Migration are never automatic, even when
+Migration entitlement records exist. Provider approval remains a separate Admin
+workflow. Company eligibility is rechecked against its current active account,
+workspace and membership; private ownership needs the active verified user and
+unchanged registration account classification, without requiring workspace
+membership. The production key/approved native trust is not generated here.
+
+One retained owner request and the actor/request ledger key protect retries and
+a crash after ledger commit. A stale lease cannot overwrite a newer worker's
+completion. Transient failures retry at most five times; permanent failures are
+retained for review. Status fields/logs avoid sensitive exception details. The
+Account page shows owner-filtered pending/review notices and uses the existing
+owner-authorized download for completed artifacts. Queue history cannot be
+silently dropped through a schema rollback.
+
+Validation: `artifacts/native-registration-automation/20261126/`, macOS/x64 SDK
+10.0.113. `automation.trx` passes **27/27** (native issuance, registration and
+personal HTTP); `automation-final.trx` passes **12/12**, including separate
+manufacturer/customer users, policy pinning, rollback guard and Account cross-tenant
+regressions. Both use isolated PostgreSQL fixtures with **0 skipped** cases.
+The union covers **34 distinct passed API cases**. Tests explicitly cover duplicate
+queue insertion, actual registration verification capture, disabled automation
+without DB/key access, company/personal scope, no auto-Migration/redistribution,
+retry after a transient signer failure, recovery after a committed artifact,
+concurrent claims, disabled owners, changed policy review and retained history.
+These are business-flow tests with synthetic test signers; no production trust or
+protected-package acceptance is claimed. Native signature verification code is unchanged.
+
+Account: **61/61**, typecheck/build passed, including actual bundled pending
+status presentation. Tooling/version/release-author/operator-guide checks:
+**256/256**, 0 skipped. EF reports no pending model changes and generates the
+migration SQL without a live deployment. Source hashes, TRX and logs are retained;
+test-session cleanup is audited separately. No full unfiltered API, solution,
+protected-package or cross-platform rerun is claimed. The release fragment is
+**Minor / added**; VERSION and published releases are unchanged.
+
+Operational activation still requires migration deployment, a reviewed free
+license contract/policy, an allowlisted manufacturer identity, approved public
+trust and securely provisioned production signing key. The Cloud provider and
+key custody are still open. No production migration, key creation, publishing,
+paid rollout, installation activation/sharing enforcement or primary checklist
+closure is performed. Primary status remains **70/76 (92.1%)**.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The owner stated that PVAD will initially be offered free of charge while still

@@ -57,7 +57,7 @@ test('orgless license page loads personal artifacts without calling organization
   globalThis.fetch = async path => {
     paths.push(String(path));
     assert.match(String(path), /account\/native-licenses/);
-    return new Response(JSON.stringify({ items: [{ id: 'personal-artifact', organizationId: null, ownerUserId: 'owner', model: 'Perpetual' }], total: 1 }),
+    return new Response(JSON.stringify({ items: [{ id: 'personal-artifact', organizationId: null, ownerUserId: 'owner', model: 'Perpetual' }], total: 1, automaticIssuancePending: true }),
       { headers: { 'Content-Type': 'application/json' } });
   };
   try {
@@ -68,6 +68,7 @@ test('orgless license page loads personal artifacts without calling organization
     const html = licensesPage(owner);
     assert.equal(paths.length, 1);
     assert.match(html, /personal-artifact/);
+    assert.match(html, /Your registration is recorded for license issuance/);
     assert.doesNotMatch(html, /Server offline licenses/);
   } finally { globalThis.fetch = previousFetch; globalThis.window = previousWindow; }
 });

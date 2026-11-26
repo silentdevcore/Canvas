@@ -74,6 +74,11 @@ public sealed class PvadNativeLicenseIssuanceService
         CancellationToken cancellationToken)
     {
         var actor = await RequireIssuerAsync(principal, cancellationToken);
+        return await IssueCoreAsync(actor, request, cancellationToken);
+    }
+
+    private async Task<NativeLicenseResponse> IssueCoreAsync(Guid actor, IssueNativeLicenseRequest request, CancellationToken cancellationToken, string? automationPolicyVersion = null)
+    {
         ValidateRequest(request.RequestId, request.ReasonCode);
         var now = PvadLicenseTimestamps.Normalize(clock.GetUtcNow());
         if ((request.OrganizationId is null) == (request.OwnerUserId is null) ||
@@ -109,7 +114,8 @@ public sealed class PvadNativeLicenseIssuanceService
         if (payload.ValidUntil <= now) throw Error("PVAD_NATIVE_ISSUANCE_INVALID", 400);
         var canonicalRequest = request with { Grants = payload.Grants, ValidFrom = payload.ValidFrom,
             ValidUntil = payload.ValidUntil, UpdatesUntil = payload.UpdatesUntil, AccountScope = payload.AccountScope };
-        var checksum = RequestHash(new { operation = "issue", request = canonicalRequest });
+        var checksum = automationPolicyVersion is null ? RequestHash(new { operation = "issue", request = canonicalRequest }) :
+            RequestHash(new { operation = "automatic-registration", policyVersion = automationPolicyVersion, request = canonicalRequest });
         if (request.OrganizationId is not null && payload.AccountScope?.AccountType == "individualDeveloper")
         {
             // Retained requests remain idempotent; only new private issuance
@@ -119,7 +125,30 @@ public sealed class PvadNativeLicenseIssuanceService
             throw Error("PVAD_NATIVE_PERSONAL_OWNER_REQUIRED", 400);
         }
         return await PersistAsync(actor, request.RequestId, checksum, request.OrganizationId, request.OwnerUserId, null, request.ReasonCode,
-            payload, cancellationToken);
+            payload, cancellationToken, automationPolicyVersion);
+    }
+
+    // Only the internal registration worker can enter this path. It cannot
+    // choose customer grants, redistribution, migration providers or another actor.
+    internal async Task<NativeLicenseResponse> IssueAutomaticAsync(NativeLicenseRegistrationJob job,
+        PvadNativeAutomaticContract contract, PvadNativeLicenseAutomationOptions automation, CancellationToken cancellationToken)
+    {
+        if (!automation.Enabled || !automation.IsValid() || !options.Value.Enabled ||
+            contract.IssuerUserId != automation.IssuerUserId || contract.PolicyVersion != automation.PolicyVersion ||
+            !options.Value.AllowedUserIds.Contains(contract.IssuerUserId))
+            throw Error("PVAD_NATIVE_ISSUER_FORBIDDEN", 403);
+        var now = clock.GetUtcNow();
+        var actor = await db.Users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == contract.IssuerUserId, cancellationToken);
+        if (actor is null || !actor.IsActive || !actor.EmailConfirmed || actor.LockoutEnd > now || !operatorAccess.IsAuthorized(actor) ||
+            !await (from assignment in db.UserRoles join role in db.Roles on assignment.RoleId equals role.Id
+                where assignment.UserId == actor.Id && role.Name == PvadRoles.SystemAdministrator && role.OrganizationId == null
+                select assignment).AnyAsync(cancellationToken)) throw Error("PVAD_NATIVE_ISSUER_FORBIDDEN", 403);
+        var request = new IssueNativeLicenseRequest(job.Id, job.OrganizationId, "free-registration:" + job.OwnerKey,
+            contract.Model, contract.ValidFrom, contract.ValidUntil, contract.UpdatesUntil, false,
+            [new(PvadLicenseProducts.Pdf, []), new(PvadLicenseProducts.Word, []), new(PvadLicenseProducts.Spreadsheet, []),
+             new(PvadLicenseProducts.Importer, []), new(PvadLicenseProducts.Converter, [])], "registration")
+        { OwnerUserId = job.OwnerUserId };
+        return await IssueCoreAsync(actor.Id, request, cancellationToken, contract.PolicyVersion);
     }
 
     public async Task<NativeLicenseResponse> RenewAsync(ClaimsPrincipal principal, Guid licenseId,
@@ -197,7 +226,7 @@ public sealed class PvadNativeLicenseIssuanceService
     }
 
     private async Task<NativeLicenseResponse> PersistAsync(Guid actor, Guid requestId, string requestHash,
-        Guid? organizationId, Guid? ownerUserId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken)
+        Guid? organizationId, Guid? ownerUserId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken, string? automationPolicyVersion = null)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
         try
@@ -221,7 +250,7 @@ public sealed class PvadNativeLicenseIssuanceService
                 TargetType = "native-library-license", TargetId = payload.LicenseId.ToString(), Outcome = "succeeded",
                 CreatedAt = payload.IssuedAt,
                 DetailsJson = JsonSerializer.Serialize(new { PreviousLicenseId = previousId, ArtifactSha256 = Hash(artifact),
-                    Model = payload.Model.ToString(), ReasonCode = reasonCode, OwnerUserId = ownerUserId }),
+                    Model = payload.Model.ToString(), ReasonCode = reasonCode, OwnerUserId = ownerUserId, AutomationPolicyVersion = automationPolicyVersion }),
             };
             var license = new NativeLibraryLicense
             {
@@ -252,7 +281,7 @@ public sealed class PvadNativeLicenseIssuanceService
 
     private static void ValidateRequest(Guid id, string reason)
     {
-        if (id == Guid.Empty || reason is not ("purchase" or "evaluation" or "renewal" or "correction"))
+        if (id == Guid.Empty || reason is not ("purchase" or "evaluation" or "renewal" or "correction" or "registration"))
             throw Error("PVAD_NATIVE_ISSUANCE_INVALID", 400);
     }
 

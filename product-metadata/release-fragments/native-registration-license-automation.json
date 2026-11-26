@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-registration-license-automation",
+  "impact": "minor",
+  "components": ["account", "api", "infrastructure", "documentation"],
+  "category": "added",
+  "summary": "Verified registrations can receive native licenses automatically through an explicitly configured manufacturer policy. Account shows pending issuance and review status.",
+  "breaking": false,
+  "documentation": ["/docs/guides/PVAD.Native-Library-Activation.md", "/docs/native-library-licensing.md"]
+}

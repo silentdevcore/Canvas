@@ -27,7 +27,13 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
         var total = await query.CountAsync(cancellationToken);
         var rows = await query.OrderByDescending(value => value.IssuedAt).ThenByDescending(value => value.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
-        return Ok(new NativeLicensePage(rows.Select(PvadNativeLicenseIssuanceService.Summary).ToArray(), total, page, pageSize));
+        var issuance = db.NativeLicenseRegistrationJobs.AsNoTracking().Where(value => value.OwnerUserId == access.UserId ||
+            (access.OrganizationId != null && value.OrganizationId == access.OrganizationId));
+        return Ok(new NativeLicensePage(rows.Select(PvadNativeLicenseIssuanceService.Summary).ToArray(), total, page, pageSize)
+        {
+            AutomaticIssuancePending = await issuance.AnyAsync(value => value.Status == NativeLicenseRegistrationStatus.Pending || value.Status == NativeLicenseRegistrationStatus.Processing, cancellationToken),
+            AutomaticIssuanceNeedsReview = await issuance.AnyAsync(value => value.Status == NativeLicenseRegistrationStatus.DeadLetter, cancellationToken),
+        });
     }
 
     [HttpGet("{licenseId:guid}")]
@@ -93,7 +99,8 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
         // Personal ownership survives workspace changes and membership removal.
         // Never compare a nullable organization directly without a non-null guard.
         if (tenant.OrganizationId is not null && !hasWorkspaceMembership &&
-            !await db.NativeLibraryLicenses.AsNoTracking().AnyAsync(value => value.OwnerUserId == userId, cancellationToken)) return null;
+            !await db.NativeLibraryLicenses.AsNoTracking().AnyAsync(value => value.OwnerUserId == userId, cancellationToken) &&
+            !await db.NativeLicenseRegistrationJobs.AsNoTracking().AnyAsync(value => value.OwnerUserId == userId, cancellationToken)) return null;
         return new(userId, readableOrganization);
     }
 

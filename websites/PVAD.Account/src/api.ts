@@ -195,6 +195,8 @@ export interface NativeLicenseResponse {
   artifactSha256: string;
 }
 export interface NativeLicensePage {
+  automaticIssuancePending?: boolean;
+  automaticIssuanceNeedsReview?: boolean;
   items: NativeLicenseResponse[];
   total: number;
   page: number;

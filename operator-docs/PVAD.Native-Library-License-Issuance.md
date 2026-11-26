@@ -120,6 +120,62 @@ transaction. Audit details contain model, reason code, artifact hash, renewal
 link and personal-owner ID where applicable; not the full artifact, customer
 reference, email address or signing material.
 
+## Automatic Registration Issuance
+
+Automation is a separate, disabled-by-default manufacturer workload. Apply
+`20261126184951_AddNativeRegistrationLicenseQueue` before deploying the updated
+registration/API code. Email verification records one durable job per owner in
+the same transaction as activation, audit and welcome-mail enqueue. Registration
+does not read signing keys or require signing to succeed. Failed/unverified email
+confirmation does not enqueue a license; retry/resend cannot create duplicate
+owner jobs. Existing already-verified accounts are not silently backfilled.
+
+Configure `NativeLicenseAutomation` only on the manufacturer deployment:
+
+- `Enabled`: defaults to false; native manufacturer issuance must also be enabled.
+- `IssuerUserId`: explicitly allowlisted, active, verified, unlocked global System
+  Administrator authorized by the operator policy. The worker does not impersonate
+  a browser session. Customer requests and service accounts have no issuance route.
+- `PolicyVersion`: a reviewed stable lowercase identifier, for example `free-1`.
+- `Model`: explicitly choose `Subscription`, `Trial` or `Perpetual`; there is no
+  default free contract. Subscription requires `ValidityDays` (1–3650) and no update
+  cutoff; Trial requires exactly 30 days. Perpetual requires an explicit UTC
+  `UpdatesUntil` and no validity-day value. This is configuration capability, not
+  approval of any commercial or perpetual-use terms.
+
+The worker fixes the approved policy, issuer and dates on its first claim. A
+configuration change cannot silently change that job's contract; a mismatch is
+retained for operator review. It grants only PDF, Word, Spreadsheet, Importer and
+Converter under the server account-capability policy, never redistribution or
+Migration, even if a subscription entitlement lists Migration. Approved Migration
+still uses the separate provider-specific manufacturer workflow.
+
+Company ownership is organization-bound, with current active workspace/account
+and membership eligibility rechecked. Private ownership is user-bound and remains
+independent of workspace membership; the source registration's account type and
+the active verified user are checked. An inactive user/account cannot obtain an
+automatic artifact. Lease claims use row locks with `SKIP LOCKED`; a worker whose
+lease expired cannot overwrite another worker's completion. A crash after ledger
+commit reuses the same request, signed bytes and audit rather than issuing again.
+Transient failures retry with the pinned contract, at most five attempts;
+permanent failures become review items. Failure fields contain stable codes, not
+exception messages, paths or signing material. Audit records retain the policy
+version, and the job links verification, owner, request and final artifact.
+
+Account shows pending/review status and delivers completed files through the
+existing owner-authorized download endpoint. Queue status does not grant product
+rights. Operators can inspect retained rows in
+`administration.native_license_registration_jobs` using approved operational
+access; no public reset/requeue API is added. Fix configuration/account causes
+before an explicitly reviewed replay. Do not edit issued artifacts, owner IDs or
+pinned terms. The migration refuses rollback if any queue history exists, because
+dropping it would lose pending work and deduplication state.
+
+No automation is enabled, no production secret is provisioned and no live
+migration is performed by this change. Production activation still requires the
+approved contract, trusted public register and secret custody described above.
+Offline verification and the later installation/sharing controls are unchanged.
+
 ## Renew Without Rewriting History
 
 1. Select an existing native license and confirm its customer and rights.

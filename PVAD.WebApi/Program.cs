@@ -452,6 +452,13 @@ builder.Services.AddOptions<PvadNativeIssuerOptions>()
         options.AllowedUserIds is { Length: > 0 and <= 128 } && !options.AllowedUserIds.Contains(Guid.Empty)),
         "Native manufacturer issuance requires an explicit key ID, absolute secret path and operator user IDs.")
     .ValidateOnStart();
+builder.Services.AddOptions<PvadNativeLicenseAutomationOptions>()
+    .Bind(builder.Configuration.GetSection(PvadNativeLicenseAutomationOptions.SectionName))
+    .Validate(options => options.IsValid(), "Native automation needs an explicitly approved policy version, issuer and license terms.")
+    .Validate(options => !options.Enabled || builder.Configuration.GetValue<bool>("NativeLicenseIssuer:Enabled"),
+        "Native automation is restricted to a manufacturer issuer deployment.")
+    .ValidateOnStart();
+builder.Services.AddScoped<PvadNativeLicenseAutomationProcessor>();
 builder.Services.AddSingleton<PvadNativeLicenseSigner>();
 builder.Services.AddScoped(services => new PvadNativeLicenseIssuanceService(
     services.GetRequiredService<PvadDbContext>(), services.GetRequiredService<PvadNativeLicenseSigner>(),
@@ -541,6 +548,7 @@ builder.Services.AddScoped<PvadJobRetentionService>();
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddHostedService<PvadMailWorker>();
+    builder.Services.AddHostedService<PvadNativeLicenseAutomationWorker>();
     builder.Services.AddHostedService<TrialExpiryWorker>();
     builder.Services.AddHostedService<PvadJobWorker>();
     builder.Services.AddHostedService<PvadJobRetentionWorker>();

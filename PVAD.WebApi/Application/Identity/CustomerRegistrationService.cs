@@ -7,6 +7,7 @@ using PVAD.Infrastructure.Persistence;
 using PVAD.Infrastructure.Persistence.Identity;
 using PVAD.WebApi.Security;
 using PVAD.WebApi.Services.Mail;
+using PVAD.WebApi.Services.Licensing;
 
 namespace PVAD.WebApi.Application.Identity;
 
@@ -273,6 +274,7 @@ public sealed class CustomerRegistrationService(
         if (!update.Succeeded)
             return EmailVerificationOutcome.Invalid();
         trialActivation.ActivatePendingTrial(subscription, membership, now);
+        await new PvadNativeLicenseRegistrationQueue(dbContext).EnqueueAsync(user.Id, subscription, actionToken.Id, cancellationToken);
         actionToken.UsedAt = now;
         dbContext.AuditEvents.Add(new AuditEvent
         {

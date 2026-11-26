@@ -58,6 +58,12 @@ public sealed class PersonalNativeLicenseHttpTests
             artifact = row.ArtifactJson;
             db.NativeLibraryLicenses.Add(row);
             db.NativeLibraryLicenses.Add(License(Guid.NewGuid(), foreignId));
+            db.NativeLicenseRegistrationJobs.Add(new NativeLicenseRegistrationJob { OwnerKey = "user:" + userId, OwnerUserId = userId,
+                SourceUserId = userId, SourceOrganizationId = Guid.NewGuid(), SourceSubscriptionId = Guid.NewGuid(), VerificationId = Guid.NewGuid(),
+                AccountType = SubscriptionAccountType.IndividualDeveloper, Status = NativeLicenseRegistrationStatus.Pending });
+            db.NativeLicenseRegistrationJobs.Add(new NativeLicenseRegistrationJob { OwnerKey = "foreign", OwnerUserId = Guid.NewGuid(),
+                SourceUserId = Guid.NewGuid(), SourceOrganizationId = Guid.NewGuid(), SourceSubscriptionId = Guid.NewGuid(), VerificationId = Guid.NewGuid(),
+                AccountType = SubscriptionAccountType.IndividualDeveloper, Status = NativeLicenseRegistrationStatus.DeadLetter });
             await db.SaveChangesAsync();
         }
         var user = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/auth/me");
@@ -66,6 +72,8 @@ public sealed class PersonalNativeLicenseHttpTests
         Assert.Empty(user.GetProperty("organizations").EnumerateArray());
         Assert.DoesNotContain(user.GetProperty("permissions").EnumerateArray(), item => item.GetString() == PvadAccountPermissions.LicensesRead);
         var page = await client.GetFromJsonAsync<JsonElement>("/api/pvad/v1/account/native-licenses");
+        Assert.True(page.GetProperty("automaticIssuancePending").GetBoolean());
+        Assert.False(page.GetProperty("automaticIssuanceNeedsReview").GetBoolean());
         var item = Assert.Single(page.GetProperty("items").EnumerateArray());
         Assert.Equal(licenseId, item.GetProperty("id").GetGuid());
         Assert.Equal(userId, item.GetProperty("ownerUserId").GetGuid());

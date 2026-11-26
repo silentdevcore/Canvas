@@ -17,11 +17,13 @@ interface LicensesPageState {
   nativeTotal: number;
   nativeDetail: NativeLicenseDetails | null;
   organizationLicenses: boolean;
+  nativePending: boolean;
+  nativeNeedsReview: boolean;
 }
 
 let generation = 0;
 const state: LicensesPageState = { licenses: [], loading: false, loaded: false, error: null, validation: {},
-  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, organizationLicenses: true };
+  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, nativePending: false, nativeNeedsReview: false, organizationLicenses: true };
 registerAccountStateReset(() => {
   generation++;
   Object.assign(state, {
@@ -30,7 +32,7 @@ registerAccountStateReset(() => {
     loaded: false,
     error: null,
     validation: {},
-    native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null,
+    native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, nativePending: false, nativeNeedsReview: false,
   });
 });
 
@@ -49,7 +51,7 @@ async function loadLicenses(): Promise<void> {
   if (current !== generation) return;
   try {
     const result = await getAccountNativeLicenses(state.nativePage);
-    if (current === generation) { state.native = result?.items ?? []; state.nativeTotal = result?.total ?? 0; }
+    if (current === generation) { state.native = result?.items ?? []; state.nativeTotal = result?.total ?? 0; state.nativePending = result?.automaticIssuancePending ?? false; state.nativeNeedsReview = result?.automaticIssuanceNeedsReview ?? false; }
   } catch (error) {
     if (current === generation) { state.nativeError = (error as ApiError).message; state.native = []; }
   } finally {
@@ -64,6 +66,8 @@ function nativeLicensesSection(): string {
   const detail = state.nativeDetail;
   return `<section class="account-section account-licenses-section" aria-busy="${state.loading}"><h2>Native library licenses</h2>
     ${state.nativeError ? `<p role="alert">${escapeHtml(displaySystemMessage(state.nativeError))}</p>` : ''}
+    ${state.nativePending ? '<p role="status">Your registration is recorded for license issuance.</p>' : ''}
+    ${state.nativeNeedsReview ? '<p role="status">Your license issuance needs a review. Please contact support.</p>' : ''}
     <div class="account-table-scroll"><table class="account-table"><thead><tr><th>License</th><th>Model</th><th>Valid until / updates</th><th>Actions</th></tr></thead>
     <tbody>${state.native.map(item => `<tr><td>${escapeHtml(item.id)}</td><td>${escapeHtml(item.model)}</td>
       <td>${item.validUntil || item.updatesUntil ? new Date((item.validUntil || item.updatesUntil)!).toLocaleDateString() : 'No end date'}</td>
