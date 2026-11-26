@@ -48,6 +48,9 @@ public sealed record PvadLicensePayload(
     /// <summary>Required for version two; absent from legacy version-one payloads.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public PvadLicenseAccountScope? AccountScope { get; init; }
+    /// <summary>Signed subscription grace override; absent retains seven legacy days.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? GracePeriodDays { get; init; }
 }
 
 /// <summary>The signature covers the exact decoded UTF-8 Payload bytes, not reserialized JSON.</summary>

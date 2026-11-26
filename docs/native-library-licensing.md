@@ -1707,3 +1707,12 @@ across retries. The Account portal shows pending/review status and offers comple
 files through owner-checked downloads. The worker defaults to disabled; production
 keys and approved license terms must be supplied separately. The queue migration
 must precede deployment, and existing verified accounts are not backfilled.
+
+
+## Selected Free License Term
+
+The free launch uses three calendar months with required renewal and zero grace.
+The automatic subscription signs `gracePeriodDays: 0`, so new processing is denied
+at `validUntil`. Older files retain their prior terms; older strict V2 readers
+must be upgraded before using new strict-expiry artifacts. The disabled
+three-month example contains no production key or usable manufacturer identity.

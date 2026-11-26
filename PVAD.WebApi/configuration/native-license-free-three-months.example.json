@@ -1,0 +1,11 @@
+{
+  "NativeLicenseAutomation": {
+    "Enabled": false,
+    "IssuerUserId": "00000000-0000-0000-0000-000000000000",
+    "PolicyVersion": "free-three-months-v1",
+    "Model": "Subscription",
+    "ValidityMonths": 3,
+    "ValidityDays": null,
+    "UpdatesUntil": null
+  }
+}

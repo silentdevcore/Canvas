@@ -286,6 +286,19 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         Assert.False(new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = Guid.NewGuid(), PolicyVersion = "free-1", Model = PvadLicenseModel.Perpetual }.IsValid());
     }
 
+    [Fact]
+    public void Free_launch_uses_calendar_months_and_rejects_mixed_duration_units()
+    {
+        var policy = new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = Guid.NewGuid(), PolicyVersion = "free-three-months-v1",
+            Model = PvadLicenseModel.Subscription, ValidityMonths = 3 };
+        Assert.True(policy.IsValid());
+        var start = new DateTimeOffset(2027, 8, 31, 12, 0, 0, TimeSpan.Zero);
+        Assert.Equal(new DateTimeOffset(2027, 11, 30, 12, 0, 0, TimeSpan.Zero), policy.EndFrom(start));
+        Assert.NotEqual(start.AddDays(90), policy.EndFrom(start));
+        policy.ValidityDays = 90;
+        Assert.False(policy.IsValid());
+    }
+
     [PostgreSqlFact]
     public async Task Registration_automation_preserves_owner_limits_and_recovers_after_a_committed_issuance()
     {
@@ -341,7 +354,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         await new PvadNativeLicenseRegistrationQueue(db).EnqueueAsync(harness.UserId, subscription, Guid.NewGuid(), default);
         var policy = Options.Create(new PvadNativeLicenseAutomationOptions { Enabled = true, IssuerUserId = harness.UserId, PolicyVersion = "free-1", Model = PvadLicenseModel.Trial, ValidityDays = 30 });
         var flaky = new FirstFailureSigner(harness.Signer);
-        var processor = new PvadNativeLicenseAutomationProcessor(db, harness.Service(db, overrideSigner: flaky), policy,
+        var processor = new PvadNativeLicenseAutomationProcessor(db, harness.Service(db, overrideSigner: flaky, issuerClock: TimeProvider.System), policy,
             Options.Create(harness.Options()), TimeProvider.System);
         Assert.True(await processor.ProcessNextAsync(default));
         var job = await db.NativeLicenseRegistrationJobs.AsNoTracking().SingleAsync();
@@ -820,9 +833,9 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
             "synthetic-customer", model, Now, model == PvadLicenseModel.Perpetual ? null : Now.AddDays(30),
             model == PvadLicenseModel.Perpetual ? Now.AddYears(1) : null, false,
             [new(PvadLicenseProducts.Pdf, []), new(PvadLicenseProducts.PdfCodeMigration, ["aspose-pdf"])], "purchase");
-        public PvadNativeLicenseIssuanceService Service(PvadDbContext db, PvadNativeIssuerOptions? configuration = null, PvadAdminSecurityOptions? security = null, IPvadNativeLicenseIssuerSigner? overrideSigner = null) =>
+        public PvadNativeLicenseIssuanceService Service(PvadDbContext db, PvadNativeIssuerOptions? configuration = null, PvadAdminSecurityOptions? security = null, IPvadNativeLicenseIssuerSigner? overrideSigner = null, TimeProvider? issuerClock = null) =>
             new(db, overrideSigner ?? Signer, Microsoft.Extensions.Options.Options.Create(configuration ?? Options()), Microsoft.Extensions.Options.Options.Create(new PvadStepUpOptions()),
-                new(Microsoft.Extensions.Options.Options.Create(security ?? new())), new FixedClock(Now));
+                new(Microsoft.Extensions.Options.Options.Create(security ?? new())), issuerClock ?? new FixedClock(Now));
         public async Task ResetIdentityAsync()
         {
             await using var db = new PvadDbContext(Database);

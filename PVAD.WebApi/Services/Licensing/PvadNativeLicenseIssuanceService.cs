@@ -20,6 +20,8 @@ public sealed record IssueNativeLicenseRequest(Guid RequestId, Guid? Organizatio
 {
     public PvadLicenseAccountScope? AccountScope { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? GracePeriodDays { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? OwnerUserId { get; init; }
 }
 public sealed record RenewNativeLicenseRequest(Guid RequestId, DateTimeOffset? ValidUntil,
@@ -77,7 +79,7 @@ public sealed class PvadNativeLicenseIssuanceService
         return await IssueCoreAsync(actor, request, cancellationToken);
     }
 
-    private async Task<NativeLicenseResponse> IssueCoreAsync(Guid actor, IssueNativeLicenseRequest request, CancellationToken cancellationToken, string? automationPolicyVersion = null)
+    private async Task<NativeLicenseResponse> IssueCoreAsync(Guid actor, IssueNativeLicenseRequest request, CancellationToken cancellationToken, string? automationPolicyVersion = null, DateTimeOffset? preparedAt = null)
     {
         ValidateRequest(request.RequestId, request.ReasonCode);
         var now = PvadLicenseTimestamps.Normalize(clock.GetUtcNow());
@@ -102,11 +104,12 @@ public sealed class PvadNativeLicenseIssuanceService
                 request.Grants?.Any(grant => grant?.Product == capability.Id) == true)
                 .Select(capability => capability.Id).ToArray());
         }
-        var payload = new PvadLicensePayload(requestedScope is null ? 1 : 2, Guid.NewGuid(), request.CustomerReference, request.Model, now,
+        var payload = new PvadLicensePayload(requestedScope is null ? 1 : 2, Guid.NewGuid(), request.CustomerReference, request.Model, preparedAt ?? now,
             Timestamp(request.ValidFrom), Timestamp(request.ValidUntil), Timestamp(request.UpdatesUntil),
             request.RedistributionAllowed, request.Grants?.Select(grant => grant is null ? null! :
                 new PvadLicenseGrant(grant.Product, grant.Providers?.ToArray()!)).ToArray()!)
         {
+            GracePeriodDays = request.GracePeriodDays,
             AccountScope = requestedScope is { } scope
                 ? new(scope.AccountType, scope.Capabilities?.ToArray()!) : null,
         };
@@ -147,8 +150,8 @@ public sealed class PvadNativeLicenseIssuanceService
             contract.Model, contract.ValidFrom, contract.ValidUntil, contract.UpdatesUntil, false,
             [new(PvadLicenseProducts.Pdf, []), new(PvadLicenseProducts.Word, []), new(PvadLicenseProducts.Spreadsheet, []),
              new(PvadLicenseProducts.Importer, []), new(PvadLicenseProducts.Converter, [])], "registration")
-        { OwnerUserId = job.OwnerUserId };
-        return await IssueCoreAsync(actor.Id, request, cancellationToken, contract.PolicyVersion);
+        { OwnerUserId = job.OwnerUserId, GracePeriodDays = contract.GracePeriodDays };
+        return await IssueCoreAsync(actor.Id, request, cancellationToken, contract.PolicyVersion, contract.ValidFrom);
     }
 
     public async Task<NativeLicenseResponse> RenewAsync(ClaimsPrincipal principal, Guid licenseId,
@@ -222,7 +225,7 @@ public sealed class PvadNativeLicenseIssuanceService
         var successor = await db.NativeLibraryLicenses.AsNoTracking().Where(value => value.PreviousLicenseId == licenseId)
             .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
         return new(Summary(row), payload.CustomerReference, payload.RedistributionAllowed, payload.Grants, successor)
-        { AccountScope = payload.AccountScope };
+        { AccountScope = payload.AccountScope, GracePeriodDays = payload.GracePeriodDays };
     }
 
     private async Task<NativeLicenseResponse> PersistAsync(Guid actor, Guid requestId, string requestHash,

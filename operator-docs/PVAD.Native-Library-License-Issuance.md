@@ -120,6 +120,28 @@ transaction. Audit details contain model, reason code, artifact hash, renewal
 link and personal-owner ID where applicable; not the full artifact, customer
 reference, email address or signing material.
 
+## Approved Free Launch Terms (2026-11-26)
+
+The owner selected renewable free native licenses valid for **three calendar
+months**, with **no grace period**: new processing is denied at the signed
+`validUntil` instant. This is not a perpetual free-use or update-cutoff promise,
+not 90 days, and not an instruction to introduce a fee after three months. The
+Cloud provider/key storage remains open; continue with local synthetic validation.
+
+`PVAD.WebApi/configuration/native-license-free-three-months.example.json` records
+that policy as a disabled example (`Subscription`, `ValidityMonths: 3`). It is not
+automatically loaded and does not contain an approved issuer identity or key.
+Supply the actual allowlisted manufacturer identity and trust/key custody before
+reviewed activation; do not simply enable the placeholder example.
+
+New strict subscription files sign `gracePeriodDays: 0`. Their native consumer
+libraries must be updated together: older strict V2 readers reject the new field
+rather than silently allowing seven days. Files without the field retain the
+previous subscription grace behavior; no historical artifact is rewritten.
+Renewal retains the signed strict-expiry setting and owner. Already-admitted
+operations keep the established completion semantics; expiry prevents new
+operations. Automatic renewal/self-service is not introduced by this change.
+
 ## Automatic Registration Issuance
 
 Automation is a separate, disabled-by-default manufacturer workload. Apply
@@ -138,8 +160,10 @@ Configure `NativeLicenseAutomation` only on the manufacturer deployment:
   a browser session. Customer requests and service accounts have no issuance route.
 - `PolicyVersion`: a reviewed stable lowercase identifier, for example `free-1`.
 - `Model`: explicitly choose `Subscription`, `Trial` or `Perpetual`; there is no
-  default free contract. Subscription requires `ValidityDays` (1–3650) and no update
-  cutoff; Trial requires exactly 30 days. Perpetual requires an explicit UTC
+  default free contract. Subscription requires exactly one of `ValidityDays` (1–3650) or `ValidityMonths`
+  (1–120), and no update cutoff. The selected free policy uses three calendar
+  months and signs zero grace days. Trial requires exactly 30 days and no month
+  value. Perpetual requires an explicit UTC
   `UpdatesUntil` and no validity-day value. This is configuration capability, not
   approval of any commercial or perpetual-use terms.
 
@@ -157,8 +181,11 @@ the active verified user are checked. An inactive user/account cannot obtain an
 automatic artifact. Lease claims use row locks with `SKIP LOCKED`; a worker whose
 lease expired cannot overwrite another worker's completion. A crash after ledger
 commit reuses the same request, signed bytes and audit rather than issuing again.
-Transient failures retry with the pinned contract, at most five attempts;
-permanent failures become review items. Failure fields contain stable codes, not
+Transient failures retry with the pinned contract, at most five attempts.
+Automatic `IssuedAt` records that contract's preparation time (`ValidFrom`), so
+queue delays and retries preserve the same term and valid trial ordering. Current
+time still rejects an already-expired contract before issuance.
+Permanent failures become review items. Failure fields contain stable codes, not
 exception messages, paths or signing material. Audit records retain the policy
 version, and the job links verification, owner, request and final artifact.
 

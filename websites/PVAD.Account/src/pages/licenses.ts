@@ -83,6 +83,7 @@ function nativeLicensesSection(): string {
       <dt>Feature rights</dt><dd>${detail.accountScope
         ? detail.accountScope.capabilities.map(escapeHtml).join(', ')
         : 'Legacy product-level license'}</dd>
+      ${detail.gracePeriodDays === 0 ? '<dt>Expiry</dt><dd>No new processing is permitted at or after the signed expiry time.</dd>' : ''}
       <dt>Artifact SHA-256</dt><dd class="account-license-hash">${escapeHtml(detail.license.artifactSha256)}</dd></dl>
       ${detail.renewedByLicenseId ? '<p>A renewed license is available. The original artifact remains unchanged.</p>' : ''}</div>` : ''}
   </section>`;

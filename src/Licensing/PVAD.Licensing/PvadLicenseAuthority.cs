@@ -144,7 +144,8 @@ internal sealed class PvadLicenseAuthority(
         if (license is null)
             return new(PvadLicenseState.Unlicensed, "PVADLIC001");
         var now = timeProvider.GetUtcNow();
-        var graceEnd = license.Model == PvadLicenseModel.Subscription ? license.ValidUntil?.AddDays(7) : null;
+        var graceDays = license.GracePeriodDays ?? 7;
+        var graceEnd = license.Model == PvadLicenseModel.Subscription && graceDays > 0 ? license.ValidUntil?.AddDays(graceDays) : null;
         var state = PvadLicenseState.Active;
         var code = "PVADLIC000";
         if (revocations?.Revoked.Contains(license.LicenseId) == true)

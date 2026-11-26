@@ -14,6 +14,7 @@ public sealed record NativeLicenseDetails(NativeLicenseResponse License, string 
     bool RedistributionAllowed, PvadLicenseGrant[] Grants, Guid? RenewedByLicenseId)
 {
     public PvadLicenseAccountScope? AccountScope { get; init; }
+    public int? GracePeriodDays { get; init; }
 }
 public sealed record NativeLicenseProduct(string Id, IReadOnlyList<string> Providers);
 public sealed record NativeLicenseCapabilities(bool Enabled, IReadOnlyList<NativeLicenseProduct> Products);

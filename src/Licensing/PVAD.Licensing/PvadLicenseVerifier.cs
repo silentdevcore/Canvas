@@ -102,7 +102,10 @@ internal sealed class PvadLicenseVerifier
             (license.IssuedAt > license.ValidFrom || license.ValidFrom > DateTimeOffset.MaxValue.AddDays(-30) ||
              license.ValidUntil != license.ValidFrom.AddDays(30) || license.RedistributionAllowed))
             throw PvadLicenseJson.Error("PVADLIC004", "Trial licenses must cover exactly 30 days without redistribution rights.");
-        if (license.Model == PvadLicenseModel.Subscription && license.ValidUntil > DateTimeOffset.MaxValue.AddDays(-7))
+        if (license.GracePeriodDays is not null && (license.SchemaVersion != 2 ||
+            license.Model != PvadLicenseModel.Subscription || license.GracePeriodDays is not (0 or 7)))
+            throw PvadLicenseJson.Error("PVADLIC004", "The signed grace period is invalid for this license.");
+        if (license.Model == PvadLicenseModel.Subscription && license.ValidUntil > DateTimeOffset.MaxValue.AddDays(-(license.GracePeriodDays ?? 7)))
             throw PvadLicenseJson.Error("PVADLIC004", "The subscription term cannot represent its grace period.");
         if (license.Grants is null || license.Grants.Length is < 1 or > 64)
             throw PvadLicenseJson.Error("PVADLIC004", "The license must contain a bounded set of product grants.");

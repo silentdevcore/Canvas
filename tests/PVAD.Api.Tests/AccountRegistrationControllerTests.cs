@@ -19,7 +19,7 @@ using Testcontainers.PostgreSql;
 
 namespace PVAD.Api.Tests;
 
-public sealed class AccountRegistrationControllerTests
+public sealed partial class AccountRegistrationControllerTests
 {
     [PostgreSqlFact]
     public async Task Registration_requires_current_legal_versions_and_records_exact_acceptances()

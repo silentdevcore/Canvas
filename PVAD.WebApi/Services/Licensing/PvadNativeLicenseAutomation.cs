@@ -16,16 +16,19 @@ public sealed class PvadNativeLicenseAutomationOptions
     public string? PolicyVersion { get; set; }
     public PvadLicenseModel? Model { get; set; }
     public int? ValidityDays { get; set; }
+    public int? ValidityMonths { get; set; }
     public DateTimeOffset? UpdatesUntil { get; set; }
     public bool IsValid() => !Enabled || IssuerUserId != Guid.Empty &&
         PolicyVersion is not null && Regex.IsMatch(PolicyVersion, "^[a-z0-9][a-z0-9.-]{0,63}$") &&
-        (Model == PvadLicenseModel.Subscription && ValidityDays is >= 1 and <= 3650 && UpdatesUntil is null ||
-         Model == PvadLicenseModel.Trial && ValidityDays == 30 && UpdatesUntil is null ||
-         Model == PvadLicenseModel.Perpetual && ValidityDays is null && UpdatesUntil is { Offset: var offset } && offset == TimeSpan.Zero);
+        (Model == PvadLicenseModel.Subscription && ((ValidityDays is >= 1 and <= 3650 && ValidityMonths is null) || (ValidityMonths is >= 1 and <= 120 && ValidityDays is null)) && UpdatesUntil is null ||
+         Model == PvadLicenseModel.Trial && ValidityDays == 30 && ValidityMonths is null && UpdatesUntil is null ||
+         Model == PvadLicenseModel.Perpetual && ValidityDays is null && ValidityMonths is null && UpdatesUntil is { Offset: var offset } && offset == TimeSpan.Zero);
+    internal DateTimeOffset? EndFrom(DateTimeOffset start) => ValidityMonths is { } months ? start.AddMonths(months) :
+        ValidityDays is { } days ? start.AddDays(days) : null;
 }
 
 internal sealed record PvadNativeAutomaticContract(string PolicyVersion, Guid IssuerUserId, PvadLicenseModel Model,
-    DateTimeOffset ValidFrom, DateTimeOffset? ValidUntil, DateTimeOffset? UpdatesUntil);
+    DateTimeOffset ValidFrom, DateTimeOffset? ValidUntil, DateTimeOffset? UpdatesUntil, int? GracePeriodDays = null);
 
 public sealed class PvadNativeLicenseRegistrationQueue(PvadDbContext db)
 {
@@ -72,9 +75,8 @@ public sealed class PvadNativeLicenseAutomationProcessor(PvadDbContext db, PvadN
             job.Status = NativeLicenseRegistrationStatus.Processing;
             job.LeaseId = Guid.NewGuid(); job.LeaseUntil = now.AddMinutes(5); job.Attempts++;
             job.ContractJson ??= JsonSerializer.Serialize(new PvadNativeAutomaticContract(policy.PolicyVersion!, policy.IssuerUserId,
-                policy.Model!.Value, PvadLicenseTimestamps.Normalize(now), policy.ValidityDays is { } days
-                    ? PvadLicenseTimestamps.Normalize(now.AddDays(days)) : null,
-                policy.UpdatesUntil is { } cutoff ? PvadLicenseTimestamps.Normalize(cutoff) : null), PvadLicenseJson.Options);
+                policy.Model!.Value, PvadLicenseTimestamps.Normalize(now), policy.EndFrom(PvadLicenseTimestamps.Normalize(now)),
+                policy.UpdatesUntil is { } cutoff ? PvadLicenseTimestamps.Normalize(cutoff) : null, policy.Model == PvadLicenseModel.Subscription ? 0 : null), PvadLicenseJson.Options);
             await db.SaveChangesAsync(cancellationToken);
             await claim.CommitAsync(cancellationToken);
         }
@@ -88,7 +90,8 @@ public sealed class PvadNativeLicenseAutomationProcessor(PvadDbContext db, PvadN
                 ?? throw new InvalidOperationException("Missing contract.");
             if (contract.PolicyVersion != policy.PolicyVersion || contract.IssuerUserId != policy.IssuerUserId ||
                 contract.Model != policy.Model || contract.UpdatesUntil != (policy.UpdatesUntil is { } cutoff ? PvadLicenseTimestamps.Normalize(cutoff) : null) ||
-                contract.ValidUntil != (policy.ValidityDays is { } days ? contract.ValidFrom.AddDays(days) : null))
+                contract.ValidUntil != policy.EndFrom(contract.ValidFrom) ||
+                contract.GracePeriodDays != (policy.Model == PvadLicenseModel.Subscription ? 0 : (int?)null))
                 throw new PvadNativeIssuanceException("PVAD_NATIVE_AUTOMATION_POLICY_CHANGED", 409);
             var subscription = await db.OrganizationSubscriptions.AsNoTracking().SingleOrDefaultAsync(value =>
                 value.Id == job.SourceSubscriptionId && value.OrganizationId == job.SourceOrganizationId, cancellationToken);

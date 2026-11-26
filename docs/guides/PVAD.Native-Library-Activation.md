@@ -138,6 +138,23 @@ a personal native license does not require or create such a workspace. Automatic
 registration issuance is prepared as an explicitly enabled manufacturer policy;
 production activation and key custody remain separate rollout tasks.
 
+## Free Launch Expiry Policy
+
+The selected free native-license policy is renewable and valid for three calendar
+months, with no grace period. New operations fail with `PVADLIC009` at the exact
+signed expiry time. This does not imply payment is due after three months or
+promise permanent use. Month arithmetic is calendar-based, including month-end
+clamping, not a fixed 90-day interval.
+
+Strict subscription files contain signed `gracePeriodDays: 0`. Use an updated
+compatible native assembly set before distributing those files: older V2 readers
+reject the additional field. Removing/changing the field invalidates the signature.
+Existing V1/V2 artifacts without the override keep their original seven-day
+subscription grace; Trial and perpetual behavior are unchanged. Renewal preserves
+the override. Operations already admitted retain their existing completion rules.
+The disabled three-month configuration example does not provision production keys
+or enable automation, and the Cloud provider/key custody are still undecided.
+
 ## Automatic Registration Issuance
 
 After successful email verification, registration records a durable native-license

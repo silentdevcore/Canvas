@@ -149,7 +149,7 @@ export function main(args) {
       run(['build', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-restore', '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false',
         '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties, '-p:PvadNativeLicenseTestBootstrap=true',
         '--verbosity', 'minimal'], env);
-      const filter = 'FullyQualifiedName~PvadNativeLicenseIssuanceTests|FullyQualifiedName~PvadLicensingSeparationTests|FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~AdminMutationContractTests|FullyQualifiedName~AdminSystemControllerTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~OpenApiNamingSnapshotTests';
+      const filter = 'FullyQualifiedName~PvadNativeLicenseIssuanceTests|FullyQualifiedName~PvadLicensingSeparationTests|FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~AdminMutationContractTests|FullyQualifiedName~AdminSystemControllerTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~OpenApiNamingSnapshotTests|FullyQualifiedName~AccountRegistrationControllerTests.Native_automatic_registration_roundtrip';
       run(['vstest', join(build, 'bin/PVAD.Api.Tests/debug/PVAD.Api.Tests.dll'), `/TestCaseFilter:${filter}`,
         `/ResultsDirectory:${output}`, '/Logger:trx;LogFileName=licensed-tests.trx'], env);
     } else if (args[0] === 'revocation') {

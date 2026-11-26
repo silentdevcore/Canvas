@@ -422,7 +422,62 @@ key custody are still open. No production migration, key creation, publishing,
 paid rollout, installation activation/sharing enforcement or primary checklist
 closure is performed. Primary status remains **70/76 (92.1%)**.
 
+### Free Launch Policy And Local Activation Rehearsal (2026-11-26)
+
+Following commit `fd060740`, the owner explicitly selected **three calendar
+months**, renewal required, with **immediate expiry and no seven-day grace**.
+The earlier perpetual-covered-version suggestion is superseded for the current
+free launch. Cloud provider/key custody is still open; the owner requested local
+testing. No production keys, deployment, migration or enablement is authorized or
+performed here.
+
+Automation accepts exclusive calendar-month/day units and the disabled example
+selects `Subscription` + `ValidityMonths: 3`. Month-end arithmetic uses `AddMonths`,
+not 90 days. Subscription jobs pin signed `GracePeriodDays = 0`; an old pending
+contract without that rule is reviewed rather than silently changed. Native V2
+payloads optionally carry signed `gracePeriodDays`; only subscription values 0/7
+are valid and V1 cannot carry an override. Existing files with no override retain
+their prior seven days. New zero-grace files require compatible updated readers;
+older strict V2 readers reject the extension. Renewal retains the signed setting.
+New operations stop at expiry; already-admitted work keeps its established
+completion semantics. There is no automatic renewal, new fee or perpetual promise.
+
+A full HTTP/PostgreSQL test now covers Company and IndividualDeveloper:
+registration, synthetic verification mail, verification, repeated-token rejection,
+customer cookie login, pending state, separate manufacturer/customer identity,
+worker issuance, download, cryptographic offline admission and expiry at the exact
+boundary. The manufacturer test profile requires a real temporary embedded trust
+anchor and real file signer; ordinary database tests can use a clearly labeled
+synthetic fallback. Neither modifies source trust or produces production keys.
+The native-issuer runner includes this test and removes synthetic keys/builds.
+
+Validation evidence is under `artifacts/native-free-activation/20261126/` and
+`artifacts/native-engine-tests/1795721545503-650474ce/`, macOS/x64 SDK 10.0.113:
+
+| Check | Result |
+| --- | --- |
+| Full licensing suite | **241/241**, 0 skipped; strict expiry, legacy grace, malformed metadata and signature tampering |
+| Native issuer / PostgreSQL acceptance profile | **66/66**, 0 skipped; real temporary signer and embedded trust, including both registration account types |
+| Account tests | **61/61**, 0 skipped; typecheck and production build passed |
+| Version / release-author / operator guide / isolated runner tests | **41/41**, 0 skipped; version and fragment checks passed |
+| Isolated API build | 0 errors, 86 warnings; no warning acceptance or dependency decision implied |
+| Cleanup | Ephemeral keys/build removed, source trust and regular licensing outputs unchanged; no testcontainers left running |
+
+Both TRX files were audited for nonempty, exclusively passing selections and zero
+skips; the API TRX confirms the real embedded-trust registration path. The initial
+run (`1795721045828-ede00661`) failed the new test because its clock preceded
+`IssuedAt`; that failure is retained. The final run uses a valid initial clock.
+Automatic issuance now pins `IssuedAt` to contract preparation (`ValidFrom`),
+also fixing trial ordering during real-time retries; the retry test uses the
+system clock. Manual issuance timing is unchanged, and current time still rejects
+expired automatic contracts. No database model change or migration is needed.
+Primary status remains **70/76 (92.1%)**, with production/platform/protection and
+key custody gates still open. Current changes are uncommitted.
+
 ### Commercial Model To Revisit Later (2026-11-24)
+
+The recommendation below is historical. The current free-launch choice above
+requires three-month renewal with no grace, not permanent covered-version use.
 
 The owner stated that PVAD will initially be offered free of charge while still
 requiring signed licenses. A paid offering is intended later, but no transition
