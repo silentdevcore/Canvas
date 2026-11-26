@@ -6,6 +6,13 @@ Supports explicit signed Trials, subscriptions with seven days of grace, and
 perpetual licenses with release-date-based update eligibility. Loading performs
 no network calls and never creates an implicit evaluation license.
 
+Version-two artifacts bind account type and explicit feature/format capabilities
+to the signature. Product grants remain mandatory; `Require(product)` alone
+does not authorize a restricted format. Missing capability rights fail with
+`PVADLIC016`. Version-one artifacts keep their product/provider semantics, and
+older libraries reject version-two artifacts rather than ignoring restrictions.
+Deploy a matching upgraded assembly set before loading a scoped artifact.
+
 The developer lifecycle guide is available in the repository at
 `docs/guides/PVAD.Native-Library-Activation.md` and in PVADE Documentation under
 Code SDK > Code path > Related links > Native library activation guide.

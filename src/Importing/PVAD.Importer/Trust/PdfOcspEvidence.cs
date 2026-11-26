@@ -22,7 +22,7 @@ public static class PdfOcspEvidence
 
     public static byte[] CreateRequest(X509Certificate2 certificate, X509Certificate2 issuer)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.validate");
         var writer = new AsnWriter(AsnEncodingRules.DER);
         writer.PushSequence();
         writer.PushSequence();

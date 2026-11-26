@@ -51,7 +51,7 @@ public sealed class MarkdownFileImporter : IFileImporter
         Uri? assetBaseUri,
         CancellationToken cancellationToken)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.md");
         var text = await ReadBoundedTextAsync(stream, cancellationToken);
         var design = ImportText(text, name, cancellationToken);
         await ResolveRemoteImagesAsync(design, assetBaseUri, cancellationToken);
@@ -64,7 +64,7 @@ public sealed class MarkdownFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.md");
         var text = ReadBoundedText(stream);
         return ImportText(text, name, CancellationToken.None);
     }

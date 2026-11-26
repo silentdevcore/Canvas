@@ -86,6 +86,31 @@ internal sealed class PvadLicenseExecution : IDisposable
         _ => throw new ArgumentOutOfRangeException(nameof(operation)),
     };
 
+    internal static string? CapabilityFor(PvadNativeOperation operation) => operation switch
+    {
+        PvadNativeOperation.PdfSerialization or PvadNativeOperation.ImporterRegeneration => "export.pdf",
+        PvadNativeOperation.ImageAnalysis => "image.analysis",
+        PvadNativeOperation.ImageOcr => "image.ocr",
+        PvadNativeOperation.PdfImport or PvadNativeOperation.DesignerPdfImport or PvadNativeOperation.PdfAnalysis => "import.pdf",
+        PvadNativeOperation.PdfTrustInspection or PvadNativeOperation.PdfChangeImpact or PvadNativeOperation.PdfTrustPostProcessing => "pdf.trust.inspect",
+        PvadNativeOperation.PdfSigning or PvadNativeOperation.PdfTimestamp => "pdf.signature.sign",
+        PvadNativeOperation.PdfRedaction => "pdf.redaction.apply",
+        PvadNativeOperation.PdfRedactionAudit => "pdf.redaction.inspect",
+        PvadNativeOperation.PdfEInvoice => "pdf.e-invoice.create",
+        PvadNativeOperation.PdfAssociatedFiles => "pdf.e-invoice.read",
+        PvadNativeOperation.PdfArchiveConversion => "pdf.compliance.convert",
+        PvadNativeOperation.PdfCodeMigration => PvadLicenseProducts.PdfCodeMigration,
+        PvadNativeOperation.SpreadsheetCodeMigration => PvadLicenseProducts.SpreadsheetCodeMigration,
+        PvadNativeOperation.PdfViewerMigration => PvadLicenseProducts.PdfViewerMigration,
+        PvadNativeOperation.PdfDesignerMigration => PvadLicenseProducts.PdfDesignerMigration,
+        PvadNativeOperation.ReportDesignerMigration => PvadLicenseProducts.ReportDesignerMigration,
+        PvadNativeOperation.ImporterBlankPage or PvadNativeOperation.PdfSave or PvadNativeOperation.PdfEditing or
+        PvadNativeOperation.PdfColorResolution or PvadNativeOperation.PdfColorConversion or
+        PvadNativeOperation.SpreadsheetProcessing => "document.edit",
+        // Format-specific exporter entries must supply their explicit capability.
+        _ => null,
+    };
+
     internal static PvadLicenseExecution Enter(PvadNativeOperation operation, PvadLicenseOperation admission, object authority)
     {
         if (admission.Product != ProductFor(operation) ||

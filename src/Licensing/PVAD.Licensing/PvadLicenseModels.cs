@@ -29,7 +29,10 @@ public enum PvadLicenseState { Unlicensed, Active, GracePeriod, NotYetValid, Exp
 /// <summary>A product grant. Migration providers use canonical registry keys, never aliases.</summary>
 public sealed record PvadLicenseGrant(string Product, string[] Providers);
 
-/// <summary>Version-one manufacturer-issued native license payload; all timestamps are UTC.</summary>
+/// <summary>Signed account eligibility and explicit capability grants for version-two licenses.</summary>
+public sealed record PvadLicenseAccountScope(string AccountType, string[] Capabilities);
+
+/// <summary>Manufacturer-issued native license payload; all timestamps are UTC.</summary>
 public sealed record PvadLicensePayload(
     int SchemaVersion,
     Guid LicenseId,
@@ -40,7 +43,12 @@ public sealed record PvadLicensePayload(
     DateTimeOffset? ValidUntil,
     DateTimeOffset? UpdatesUntil,
     bool RedistributionAllowed,
-    PvadLicenseGrant[] Grants);
+    PvadLicenseGrant[] Grants)
+{
+    /// <summary>Required for version two; absent from legacy version-one payloads.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public PvadLicenseAccountScope? AccountScope { get; init; }
+}
 
 /// <summary>The signature covers the exact decoded UTF-8 Payload bytes, not reserialized JSON.</summary>
 public sealed record PvadSignedNativeLicense(

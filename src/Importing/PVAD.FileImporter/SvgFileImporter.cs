@@ -28,7 +28,7 @@ public sealed class SvgFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.svg");
         var doc  = XDocument.Load(stream);
         var root = doc.Root ?? throw new InvalidDataException("Not a valid SVG file.");
 

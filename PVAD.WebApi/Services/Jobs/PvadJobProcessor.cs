@@ -10,6 +10,8 @@ using PVAD.Core.Contracts;
 using PVAD.FileImporter;
 using PVAD.WebApi.Services;
 using PVAD.WebApi.Observability;
+using PVAD.Licensing;
+using PVAD.WebApi.Services.Licensing;
 
 namespace PVAD.WebApi.Services.Jobs;
 
@@ -46,6 +48,9 @@ public sealed class PvadJobProcessor(
         var outcome = "completed";
         try
         {
+            var policy = await PvadAccountPolicyService.ReadAsync(dbContext, job.OrganizationId, cancellationToken, requireActive: true)
+                ?? throw new PvadPermanentJobException("Account policy is unavailable.");
+            using var accountScope = PvadAccountCapabilityContext.Enter(policy.Kind, policy.ApprovedMigrations);
             var execution = job.Type switch
             {
                 PvadJobQueue.TemplateRenderType => await RenderTemplateAsync(job, cancellationToken),
@@ -76,7 +81,9 @@ public sealed class PvadJobProcessor(
             job.FailureReason = Truncate(exception.Message, 2000);
             job.LeaseId = null;
             job.LeaseExpiresAt = null;
-            if (exception is PvadPermanentJobException || job.Attempts >= job.MaximumAttempts)
+            if (exception is PvadPermanentJobException ||
+                exception is PvadLicenseException { Code: "PVAD_ACCOUNT_CAPABILITY_DENIED" or "PVADLIC016" } ||
+                job.Attempts >= job.MaximumAttempts)
             {
                 job.Status = PvadBackgroundJobStatus.DeadLetter;
                 job.CompletedAt = DateTimeOffset.UtcNow;
@@ -253,6 +260,7 @@ public sealed class PvadJobProcessor(
     {
         var payload = Deserialize<DocumentImportJobPayload>(job);
         var extension = payload.Extension.Trim().TrimStart('.').ToLowerInvariant();
+        PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ImportCapability(extension));
         var importer = importers.FirstOrDefault(value => value.SupportedExtensions.Contains(extension))
             ?? throw new PvadPermanentJobException($"No importer is registered for '.{extension}'.");
         var input = await RequireInputAsync(job, cancellationToken);
@@ -275,6 +283,7 @@ public sealed class PvadJobProcessor(
         CancellationToken cancellationToken)
     {
         var payload = Deserialize<DocumentExportJobPayload>(job);
+        PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ExportCapability(payload.Format));
         var input = await RequireInputAsync(job, cancellationToken);
         await using var inputContent = input.Content;
         DesignExportDto design;
@@ -320,6 +329,7 @@ public sealed class PvadJobProcessor(
         CancellationToken cancellationToken)
     {
         var payload = Deserialize<CodeMigrationJobPayload>(job);
+        PvadAccountCapabilityContext.Require("migration.pdf.code");
         var input = await RequireInputAsync(job, cancellationToken);
         await using var inputContent = input.Content;
         using var reader = new StreamReader(inputContent);
@@ -356,6 +366,7 @@ public sealed class PvadJobProcessor(
         CancellationToken cancellationToken)
     {
         _ = Deserialize<PdfTrustInspectionJobPayload>(job);
+        PvadAccountCapabilityContext.Require("pdf.trust.inspect");
         var execution = await pdfTrustInspection.ExecuteAsync(job, cancellationToken);
         return new JobExecutionResult(execution.Result, execution.DiagnosticsJson);
     }

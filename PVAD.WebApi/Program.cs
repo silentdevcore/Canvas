@@ -730,6 +730,7 @@ app.UseRateLimiter();
 app.UseMiddleware<PvadPdfTrustAvailabilityMiddleware>();
 app.UseMiddleware<PvadProductAccessMiddleware>();
 app.UseAuthorization();
+app.UseMiddleware<PvadAccountCapabilityMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

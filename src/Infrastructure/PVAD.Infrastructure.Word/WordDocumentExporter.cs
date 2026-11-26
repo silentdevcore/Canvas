@@ -63,7 +63,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        PvadLicense.Require(PvadLicenseProducts.Word);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Word, "export.docx");
         var cancellationToken = options?.CancellationToken ?? CancellationToken.None;
         var fidelityV2 = options?.WordFidelityV2 ?? true;
         cancellationToken.ThrowIfCancellationRequested();

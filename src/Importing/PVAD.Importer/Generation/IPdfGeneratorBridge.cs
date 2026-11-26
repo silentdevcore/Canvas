@@ -24,7 +24,7 @@ public sealed class PdfGeneratorBridgePipeline
 
     public Task SaveAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "export.pdf");
         return SaveWithAdmissionAsync(document, output, cancellationToken);
     }
 

@@ -30,7 +30,7 @@ public sealed class ImageFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string originalFileName)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.image");
         // SKCodec needs a seekable stream; buffer arbitrary caller streams.
         var raw = ReadAllBytes(stream);
 

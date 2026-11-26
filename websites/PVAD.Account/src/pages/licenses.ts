@@ -74,6 +74,9 @@ function nativeLicensesSection(): string {
     ${detail ? `<div><h3>Native license details</h3><dl class="account-native-metadata"><dt>License</dt><dd>${escapeHtml(detail.license.id)}</dd>
       <dt>Products</dt><dd>${detail.grants.map(grant => `${escapeHtml(grant.product)}${grant.providers.length ? ` (${grant.providers.map(escapeHtml).join(', ')})` : ''}`).join('<br>')}</dd>
       <dt>Redistribution</dt><dd>${detail.redistributionAllowed ? 'Permitted' : 'Not permitted'}</dd>
+      <dt>Feature rights</dt><dd>${detail.accountScope
+        ? detail.accountScope.capabilities.map(escapeHtml).join(', ')
+        : 'Legacy product-level license'}</dd>
       <dt>Artifact SHA-256</dt><dd class="account-license-hash">${escapeHtml(detail.license.artifactSha256)}</dd></dl>
       ${detail.renewedByLicenseId ? '<p>A renewed license is available. The original artifact remains unchanged.</p>' : ''}</div>` : ''}
   </section>`;

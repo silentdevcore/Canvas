@@ -26,7 +26,7 @@ public sealed class OdtDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.odt");
         using var ms  = new MemoryStream();
         using var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true);
 

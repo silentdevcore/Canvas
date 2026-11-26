@@ -15,7 +15,7 @@ public sealed class XmlDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.xml");
         return ExportDocument(design, "PvadDocument");
     }
 

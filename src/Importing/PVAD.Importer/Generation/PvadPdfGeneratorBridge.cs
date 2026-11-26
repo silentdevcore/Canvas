@@ -104,7 +104,7 @@ public sealed class PvadPdfGeneratorBridge : IPdfGeneratorBridge
 #pragma warning restore PVAD0001
             PopulateDocument(document, generated);
             configureDocument(generated);
-            PvadLicense.Require(PvadLicenseProducts.Importer);
+            PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "export.pdf");
             bytes = _renderer.Render(generated);
         }
         if (shadingPlans.Any(static plan => plan.Count > 0))

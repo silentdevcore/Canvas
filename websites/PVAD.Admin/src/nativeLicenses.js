@@ -68,12 +68,13 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
   }
   function details() {
     if (!state.detail) return '';
-    const { license, grants, customerReference, redistributionAllowed, renewedByLicenseId } = state.detail;
+    const { license, grants, customerReference, redistributionAllowed, renewedByLicenseId, accountScope } = state.detail;
     const renewable = license.model !== 'Trial' && !renewedByLicenseId;
     return `<section class="admin-section" aria-label="Native license details"><div class="admin-section-heading"><h2>Native license ${e(license.id)}</h2></div>
       <dl class="admin-detail-list admin-detail-list--compact"><div><dt>Customer reference</dt><dd>${e(customerReference)}</dd></div><div><dt>Model</dt><dd>${e(license.model)}</dd></div>
       <div><dt>Redistribution</dt><dd>${redistributionAllowed ? 'Permitted' : 'Not permitted'}</dd></div><div><dt>Artifact SHA-256</dt><dd class="native-license-hash">${e(license.artifactSha256)}</dd></div>
-      <div><dt>Issued</dt><dd>${e(date(license.issuedAt))}</dd></div><div><dt>Products</dt><dd>${grants.map(grant => `${e(grant.product)}${grant.providers.length ? ` (${grant.providers.map(e).join(', ')})` : ''}`).join('<br>')}</dd></div></dl>
+      <div><dt>Issued</dt><dd>${e(date(license.issuedAt))}</dd></div><div><dt>Products</dt><dd>${grants.map(grant => `${e(grant.product)}${grant.providers.length ? ` (${grant.providers.map(e).join(', ')})` : ''}`).join('<br>')}</dd></div>
+      <div><dt>Feature rights</dt><dd>${accountScope ? accountScope.capabilities.map(e).join(', ') : 'Legacy product-level license'}</dd></div></dl>
       <div class="admin-row-actions"><a data-native href="${api.nativeLicenseDownloadUrl(license.id)}">Download</a>
       ${license.previousLicenseId ? `<button type="button" data-native-detail="${e(license.previousLicenseId)}">Previous license</button>` : ''}
       ${renewedByLicenseId ? `<button type="button" data-native-detail="${e(renewedByLicenseId)}">Renewed license</button>` : ''}</div>

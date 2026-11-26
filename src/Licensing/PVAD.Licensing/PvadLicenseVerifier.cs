@@ -12,10 +12,12 @@ internal sealed class PvadLicenseVerifier
     internal PvadLicensePayload Verify(ReadOnlyMemory<byte> document)
     {
         var envelope = PvadLicenseJson.Read<PvadSignedNativeLicense>(document, PvadLicenseJson.MaximumEnvelopeBytes);
-        if (envelope.SchemaVersion != 1 || envelope.Algorithm != PvadLicenseJson.Algorithm)
+        if (envelope.SchemaVersion is not (1 or 2) || envelope.Algorithm != PvadLicenseJson.Algorithm)
             throw PvadLicenseJson.Error("PVADLIC005", "The license schema or signature algorithm is unsupported.");
         var payload = VerifySignedPayload(envelope.KeyId, envelope.Payload, envelope.Signature);
         var license = PvadLicenseJson.Read<PvadLicensePayload>(payload, PvadLicenseJson.MaximumPayloadBytes);
+        if (license.SchemaVersion != envelope.SchemaVersion)
+            throw PvadLicenseJson.Error("PVADLIC005", "The license envelope and payload versions do not match.");
         ValidatePayload(license);
         return license;
     }
@@ -83,7 +85,7 @@ internal sealed class PvadLicenseVerifier
 
     internal static void ValidatePayload(PvadLicensePayload license)
     {
-        if (license.SchemaVersion != 1)
+        if (license.SchemaVersion is not (1 or 2))
             throw PvadLicenseJson.Error("PVADLIC005", "The native license payload schema is unsupported.");
         if (license.LicenseId == Guid.Empty || string.IsNullOrWhiteSpace(license.CustomerReference) ||
             license.CustomerReference.Length > 160 || license.CustomerReference.Any(char.IsControl) ||
@@ -115,6 +117,24 @@ internal sealed class PvadLicenseVerifier
                 (PvadLicenseProducts.IsMigration(grant.Product) ? grant.Providers.Length == 0 : grant.Providers.Length != 0))
                 throw PvadLicenseJson.Error("PVADLIC004", "The license product or provider grants are malformed.");
         }
+        if (license.SchemaVersion == 1)
+        {
+            if (license.AccountScope is not null)
+                throw PvadLicenseJson.Error("PVADLIC004", "Legacy licenses cannot carry account restrictions.");
+            return;
+        }
+        var scope = license.AccountScope;
+        if (scope is null || !PvadAccountLicensePolicy.TryAccountKind(scope.AccountType, out var account) ||
+            scope.Capabilities is null || scope.Capabilities.Length is < 1 or > 128 ||
+            scope.Capabilities.Distinct(StringComparer.Ordinal).Count() != scope.Capabilities.Length ||
+            scope.Capabilities.Any(capability => PvadAccountLicensePolicy.Evaluate(account, capability) is not
+                (PvadAccountLicenseDecision.Allowed or PvadAccountLicenseDecision.RequiresAdminApproval)))
+            throw PvadLicenseJson.Error("PVADLIC004", "The account capability scope is missing or invalid.");
+        // Migration approval must be expressed in both the signed capability scope
+        // and a provider-bound native grant, never inferred from an account role.
+        foreach (var product in PvadLicenseProducts.All.Where(PvadLicenseProducts.IsMigration))
+            if (scope.Capabilities.Contains(product, StringComparer.Ordinal) != products.Contains(product))
+                throw PvadLicenseJson.Error("PVADLIC004", "Migration capability and provider grants must agree.");
     }
 
     private static bool IsProvider(string? provider) => provider is { Length: > 0 and <= 100 } && provider != "auto" &&

@@ -12,7 +12,7 @@ public sealed class ExportControllerTests : IClassFixture<PvadApiTestFactory>
 
     public ExportControllerTests(PvadApiTestFactory factory)
     {
-        _client = factory.CreateClient();
+        _client = factory.CreateCompanyProductClient();
     }
 
     private static readonly DesignExportDto SampleDesign = new()

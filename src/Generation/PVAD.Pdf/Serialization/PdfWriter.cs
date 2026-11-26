@@ -21,7 +21,8 @@ internal sealed class PdfWriter
     public PdfWriteResult Write(PdfDocument document, PdfSaveOptions? options = null)
     {
         // Recheck on each export, before mutations or output; an admitted write may finish.
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSerialization);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.PdfSerialization, "export.pdf",
+            options?.ComplianceProfile is { } profile && profile != PdfComplianceProfile.None ? "pdf.compliance.convert" : null);
         return WriteCore(document, options);
     }
 

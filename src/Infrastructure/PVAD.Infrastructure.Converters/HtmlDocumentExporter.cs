@@ -18,7 +18,7 @@ public sealed class HtmlDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.html");
         var sb = new StringBuilder();
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 

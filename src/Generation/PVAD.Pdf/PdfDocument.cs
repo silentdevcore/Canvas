@@ -54,7 +54,7 @@ public sealed class PdfDocument
         "Direct PVAD.Pdf.PdfDocument construction is discouraged. Use PVAD.Generator.Pdf.CreateDocument(...) for new code.",
         DiagnosticId = "PVAD0001")]
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
-        : this(defaultFont, PvadLicense.Require(PvadLicenseProducts.Pdf))
+        : this(defaultFont, PvadLicense.RequireCapability(PvadLicenseProducts.Pdf, "document.create"))
     {
     }
 

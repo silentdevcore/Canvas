@@ -25,7 +25,7 @@ public sealed class DocFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.doc");
         byte[] data = ReadAll(stream);
 
         // Verify CFBF magic: D0 CF 11 E0 A1 B1 1A E1

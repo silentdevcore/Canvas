@@ -8,16 +8,19 @@ namespace PVAD.Api.Tests;
 public sealed class TemplatesControllerTests : IClassFixture<PvadApiTestFactory>
 {
     private readonly HttpClient client;
+    private readonly PvadApiTestFactory root;
 
     public TemplatesControllerTests(PvadApiTestFactory factory)
     {
-        client = factory.CreateClient();
+        root = factory;
+        client = factory.CreateCompanyProductClient();
     }
 
     [Fact]
     public async Task GetTemplateNames_PvadRoute_RequiresAuthentication()
     {
-        var response = await client.GetAsync("/api/pvad/templates");
+        using var anonymous = root.CreateClient();
+        var response = await anonymous.GetAsync("/api/pvad/templates");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

@@ -31,10 +31,15 @@ internal static class NativeLicenseIssuer
         {
             using var payloadStream = File.OpenRead(options["--payload"]);
             var payloadBytes = PvadLicenseJson.ReadBounded(payloadStream);
+            var schemaVersion = 1;
             if (revocations)
                 PvadLicenseVerifier.ValidateRevocations(PvadLicenseJson.Read<PvadNativeRevocationList>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes));
             else
-                PvadLicenseVerifier.ValidatePayload(PvadLicenseJson.Read<PvadLicensePayload>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes));
+            {
+                var payload = PvadLicenseJson.Read<PvadLicensePayload>(payloadBytes, PvadLicenseJson.MaximumPayloadBytes);
+                PvadLicenseVerifier.ValidatePayload(payload);
+                schemaVersion = payload.SchemaVersion;
+            }
             var keyPath = options["--private-key"];
             if (!OperatingSystem.IsWindows() &&
                 (File.GetUnixFileMode(keyPath) & (UnixFileMode.GroupRead | UnixFileMode.GroupWrite |
@@ -61,7 +66,7 @@ internal static class NativeLicenseIssuer
             var serialized = revocations
                 ? JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeRevocationList(1, PvadNativeRevocationList.DocumentKind,
                     options["--key-id"], PvadLicenseJson.Algorithm, Convert.ToBase64String(payloadBytes), Convert.ToBase64String(signature)), PvadLicenseJson.Options)
-                : JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeLicense(1, options["--key-id"], PvadLicenseJson.Algorithm,
+                : JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeLicense(schemaVersion, options["--key-id"], PvadLicenseJson.Algorithm,
                     Convert.ToBase64String(payloadBytes), Convert.ToBase64String(signature)), PvadLicenseJson.Options);
             var fileOptions = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
             if (!OperatingSystem.IsWindows())

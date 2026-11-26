@@ -68,6 +68,17 @@ public static class PvadLicense
 
     internal static PvadLicenseExecution BeginOperation(PvadNativeOperation operation, string? provider = null) => Authority.Value.Begin(operation, provider);
 
+    internal static PvadLicenseExecution BeginCapability(PvadNativeOperation operation, string capability) =>
+        Authority.Value.Begin(operation, capability: capability);
+
+    internal static PvadLicenseExecution BeginCapability(PvadNativeOperation operation, string capability, string? additionalCapability) =>
+        Authority.Value.Begin(operation, capability: capability, additionalCapability: additionalCapability);
+
+    internal static PvadLicenseOperation RequireCapability(string product, string capability) =>
+        Authority.Value.RequireCapability(product, capability);
+
+    internal static void RequireAccountCapability(string capability) => Authority.Value.RequireAccountCapability(capability);
+
     internal static PvadLicenseOperation DemandContinuation(string product) => PvadLicenseExecution.Demand(product, Authority.Value);
 
     internal static PvadLicenseOperation DemandMigrationContinuation(string product, string provider) =>

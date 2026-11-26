@@ -259,8 +259,8 @@ test('operation continuation policy stays internal and never replaces public or 
   assert.match(api, /PvadLicenseExecution.DemandDependency\(dependency, Authority.Value\)/);
   const worker = readFileSync(resolve(root, 'src/Importing/PVAD.FileImporter.ImageOcr.Worker/Program.cs'), 'utf8');
   assert.ok(worker.indexOf('PvadLicense.LoadFromFile') < worker.indexOf('File.ReadAllTextAsync(requestPath)'));
-  assert.ok(worker.indexOf('PvadLicense.Require(PvadLicenseProducts.Importer)') < worker.indexOf('File.ReadAllTextAsync(requestPath)'));
-  assert.ok(!worker.includes('BeginOperation'));
+  const admission = worker.indexOf('PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr)');
+  assert.ok(admission >= 0 && admission < worker.indexOf('File.ReadAllTextAsync(requestPath)'));
 });
 
 test('typed PDF load/save use internal continuations without granting new public or custom calls', () => {
@@ -392,7 +392,7 @@ test('signing and timestamps retain sealed built-in dispatch without bypassing c
   const source = path => readFileSync(resolve(root, path), 'utf8');
   const signing = name => source(`src/Importing/PVAD.Importer/Signing/${name}.cs`);
   const service = signing('PdfPadesSigningService');
-  assert.ok(service.includes('PvadLicense.Require(PvadLicenseProducts.Importer);\n        return SignWithAdmissionAsync('));
+  assert.ok(service.includes('PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.sign");\n        return SignWithAdmissionAsync('));
   assert.ok(service.includes('using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning)'));
   for (const method of ['CreateDetachedAdmitted', 'CreateDetachedWithTimestampAdmittedAsync', 'AppendAdmitted', 'AddAdmittedAsync', 'InspectAdmittedAsync'])
     assert.ok(service.includes(method));
@@ -520,7 +520,7 @@ test('Trust post-processing keeps one internal admission without bypassing custo
   }
   assert.ok(!/public[^\n]*\w+Admitted\w*\s*\(/.test(pipeline));
   const signing = read('Signing/PdfPadesSigningService');
-  assert.match(signing, /public Task<PdfSigningResult> SignAsync[^]*?PvadLicense.Require\(PvadLicenseProducts.Importer\)/);
+  assert.match(signing, /public Task<PdfSigningResult> SignAsync[^]*?PvadLicense.RequireCapability\(PvadLicenseProducts.Importer, "pdf.signature.sign"\)/);
   assert.match(signing, /internal Task<PdfSigningResult> SignAdmittedAsync[^]*?DemandContinuation\(PvadLicenseProducts.Importer\)[^]*?return SignCoreAsync/);
   const policy = readFileSync(resolve(root, 'src/Licensing/PVAD.Licensing/PvadLicenseExecution.cs'), 'utf8');
   assert.ok(!/\(PvadNativeOperation.PdfTrustPostProcessing, PvadNativeDependency\./.test(policy));
@@ -539,13 +539,13 @@ test('regeneration retains purpose-bound rendering without widening callback, ma
   assert.ok(bridge.includes('BeginOperation(PvadNativeOperation.ImporterRegeneration)'));
   assert.ok(bridge.includes('PdfWriter.RegenerateForImporterAdmitted('));
   assert.ok(bridge.includes('if (configureDocument is not null)\n            PvadLicense.Require(PvadLicenseProducts.Pdf)'));
-  assert.ok(bridge.includes('configureDocument(generated);\n            PvadLicense.Require(PvadLicenseProducts.Importer);\n            bytes = _renderer.Render(generated);'));
+  assert.ok(bridge.includes('configureDocument(generated);\n            PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "export.pdf");\n            bytes = _renderer.Render(generated);'));
   assert.ok(!/new PdfStreamDecoderRegistry\(\)\.Decode\(|\.ParseDocumentGraph\(|new PdfIncrementalUpdateWriter\(\)\.Append\(/.test(bridge));
   const pipeline = read('src/Importing/PVAD.Importer/Generation/IPdfGeneratorBridge.cs');
   assert.ok(pipeline.includes('_bridge is PvadPdfGeneratorBridge builtin'));
   assert.ok(pipeline.includes('builtin.RegenerateAdmittedAsync('));
   assert.ok(pipeline.includes('else\n            await _bridge.RegenerateAsync('));
-  assert.match(pipeline, /public Task SaveAsync[^]*?PvadLicense.Require\(PvadLicenseProducts.Importer\)[^]*?return SaveWithAdmissionAsync/);
+  assert.match(pipeline, /public Task SaveAsync[^]*?PvadLicense.RequireCapability\(PvadLicenseProducts.Importer, "export.pdf"\)[^]*?return SaveWithAdmissionAsync/);
   const writer = read('src/Generation/PVAD.Pdf/Serialization/PdfWriter.cs');
   assert.ok(writer.includes('internal static byte[] RegenerateForImporterAdmitted('));
   assert.match(writer, /RegenerateForImporterAdmitted\(Action<PdfDocument> populate\)[^]*?DemandDependency\(PvadNativeDependency.RegenerationPdf\)[^]*?populate\(document\);\n        PvadLicense.DemandDependency\(PvadNativeDependency.RegenerationPdf\)/);
@@ -570,7 +570,14 @@ test('Spreadsheet continuations stay product-bound and preserve fresh authoring 
   assert.ok(!/\(PvadNativeOperation.SpreadsheetProcessing, PvadNativeDependency\./.test(scope));
   for (const file of ['ExcelWorkbookExporter', 'SpreadsheetCalculator', 'CsvSheetIo', 'XlsWorkbookIo', 'PvadWorkbookBuilder']) {
     const source = read(`src/Infrastructure/PVAD.Infrastructure.Spreadsheet/${file}.cs`);
-    assert.ok(source.includes('BeginOperation(PvadNativeOperation.SpreadsheetProcessing)'));
+    const admission = {
+      ExcelWorkbookExporter: 'BeginCapability(PvadNativeOperation.SpreadsheetProcessing, "export.xlsx")',
+      SpreadsheetCalculator: 'BeginOperation(PvadNativeOperation.SpreadsheetProcessing)',
+      CsvSheetIo: 'BeginCapability(PvadNativeOperation.SpreadsheetProcessing, delimiter == \'\\t\' ? "export.tsv" : "export.csv")',
+      XlsWorkbookIo: 'BeginCapability(PvadNativeOperation.SpreadsheetProcessing, "export.xls")',
+      PvadWorkbookBuilder: 'BeginCapability(PvadNativeOperation.SpreadsheetProcessing, Path.GetExtension(path).ToLowerInvariant() switch',
+    }[file];
+    assert.ok(source.includes(admission), `${file} must admit its exact output capability`);
     assert.ok(source.includes('DemandContinuation(PvadLicenseProducts.Spreadsheet)'));
     assert.ok(!/public[^\n]*\w+Admitted\w*\s*\(/.test(source));
   }
@@ -591,11 +598,13 @@ test('Converter exporters require fresh product admission and share no private P
   assert.ok(!/\(PvadNativeOperation.ConverterExport, PvadNativeDependency\./.test(scope));
   for (const file of ['Html', 'Markdown', 'Csv', 'Xml', 'Svg', 'Odt', 'Image', 'Tiff']) {
     const source = read(`src/Infrastructure/PVAD.Infrastructure.Converters/${file}DocumentExporter.cs`);
-    assert.ok(source.includes('BeginOperation(PvadNativeOperation.ConverterExport)'));
+    const format = { Html: 'html', Markdown: 'md', Csv: 'csv', Xml: 'xml', Svg: 'svg', Odt: 'odt', Image: 'png', Tiff: 'tiff' }[file];
+    assert.ok(source.includes(`BeginCapability(PvadNativeOperation.ConverterExport, "export.${format}")`));
     assert.ok(!source.includes('PvadLicenseProducts.Pdf'));
   }
   const image = read('src/Infrastructure/PVAD.Infrastructure.Converters/ImageDocumentExporter.cs');
-  assert.equal(image.match(/BeginOperation\(PvadNativeOperation.ConverterExport\)/g).length, 2);
+  assert.equal(image.match(/BeginCapability\(PvadNativeOperation.ConverterExport, "export\.(png|jpeg)"\)/g).length, 2);
+  assert.ok(image.includes('BeginCapability(PvadNativeOperation.ConverterExport, "export.jpeg")'));
   assert.ok(image.includes('DemandContinuation(PvadLicenseProducts.Converter)'));
   const probe = read('tools/native-licensing/ConverterEngineProbe/Program.cs');
   for (const marker of ['complete-thirteen-public-overloads', 'callback-native-call-fresh', 'original-error', 'admitted-completion'])

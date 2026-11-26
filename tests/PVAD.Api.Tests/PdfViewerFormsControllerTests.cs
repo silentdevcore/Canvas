@@ -12,7 +12,7 @@ public sealed class PdfViewerFormsControllerTests : IClassFixture<PvadApiTestFac
 
     public PdfViewerFormsControllerTests(PvadApiTestFactory factory)
     {
-        _client = factory.CreateClient();
+        _client = factory.CreateCompanyProductClient();
     }
 
     [Fact]

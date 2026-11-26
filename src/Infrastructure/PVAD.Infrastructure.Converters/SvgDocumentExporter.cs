@@ -22,7 +22,7 @@ public sealed class SvgDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.svg");
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 
         // Web fonts used by the editor (Google Fonts) must be linked so the standalone

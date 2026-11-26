@@ -7,6 +7,16 @@ example. The sections below retain detailed integration and acceptance evidence.
 
 ## Implementation Status
 
+The 2026-11-25 account capability integration adds a version-two signed scope
+without changing existing version-one product licenses. Format/feature checks
+apply at native entry points, API account boundaries, workers and background
+jobs. See the [activation guide](guides/PVAD.Native-Library-Activation.md#product-rights-and-dependencies)
+for migration and compatibility requirements. Authenticated account context is
+now required for product API routes, and standalone E-Invoice processing needs
+an active license. These are pending Major workflow changes; VERSION and
+published releases have not been changed. Personal ownership/self-service
+issuance, production trust and all release/distribution gates remain separate.
+
 The standalone .NET 10 verifier, admission API, and offline manufacturer
 preparation tool are implemented. Native PDF construction and serialization now
 enforce the `pdf` grant, including direct engine calls, the Generator facade,
@@ -1571,6 +1581,8 @@ Do not mount manufacturer private keys into customer containers.
 | `PVADLIC013` | File/stream could not be read |
 | `PVADLIC014` | License ID revoked by an explicitly imported signed list |
 | `PVADLIC015` | Future-dated, rolled-back, altered or non-cumulative revocation update |
+| `PVADLIC016` | Required feature/format is not included in the signed capability scope |
+| `PVAD_ACCOUNT_CAPABILITY_DENIED` | Hosted account policy denies the operation; API returns 403 |
 
 ## Protection And Packaging
 

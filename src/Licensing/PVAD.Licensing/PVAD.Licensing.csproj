@@ -23,10 +23,15 @@
     <InternalsVisibleTo Include="PVAD.FileImporter.ImageOcr" />
     <InternalsVisibleTo Include="PVAD.FileImporter.ImageAnalysis" />
     <InternalsVisibleTo Include="PVAD.Pdf" />
+    <InternalsVisibleTo Include="PVAD.Generator" />
     <InternalsVisibleTo Include="PVAD.Importer" />
     <InternalsVisibleTo Include="PVAD.FileImporter" />
     <InternalsVisibleTo Include="PVAD.WebApi" />
+    <InternalsVisibleTo Include="PVAD.CodeWorker" />
+    <InternalsVisibleTo Include="PVAD.Api.Tests" />
+    <InternalsVisibleTo Include="PVAD.FileImporter.ImageOcr.Worker" />
     <InternalsVisibleTo Include="PVAD.Infrastructure.Spreadsheet" />
+    <InternalsVisibleTo Include="PVAD.Infrastructure.Word" />
     <InternalsVisibleTo Include="PVAD.Infrastructure.Converters" />
     <InternalsVisibleTo Include="PVAD.Migration.Roslyn" />
     <InternalsVisibleTo Include="PVAD.Migration.Pdf.Viewer.Nutrient" />

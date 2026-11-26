@@ -15,7 +15,7 @@ public sealed class ExcelDocumentExporter : IDocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, "export.xlsx");
         using var wb = new XLWorkbook();
 
         var allElements = design.Pages

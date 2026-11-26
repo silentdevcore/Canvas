@@ -7,7 +7,10 @@ namespace PVAD.WebApi.Services.Licensing;
 
 public sealed record NativeLicensePage(IReadOnlyList<NativeLicenseResponse> Items, int Total, int Page, int PageSize);
 public sealed record NativeLicenseDetails(NativeLicenseResponse License, string CustomerReference,
-    bool RedistributionAllowed, PvadLicenseGrant[] Grants, Guid? RenewedByLicenseId);
+    bool RedistributionAllowed, PvadLicenseGrant[] Grants, Guid? RenewedByLicenseId)
+{
+    public PvadLicenseAccountScope? AccountScope { get; init; }
+}
 public sealed record NativeLicenseProduct(string Id, IReadOnlyList<string> Providers);
 public sealed record NativeLicenseCapabilities(bool Enabled, IReadOnlyList<NativeLicenseProduct> Products);
 
@@ -29,10 +32,11 @@ internal static class PvadNativeLicenseRecords
             if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != license.ArtifactSha256)
                 throw new InvalidOperationException();
             var envelope = PvadLicenseJson.Read<PvadSignedNativeLicense>(bytes, PvadLicenseJson.MaximumEnvelopeBytes);
-            if (envelope.SchemaVersion != 1 || envelope.Algorithm != PvadLicenseJson.Algorithm)
+            if (envelope.SchemaVersion is not (1 or 2) || envelope.Algorithm != PvadLicenseJson.Algorithm)
                 throw new InvalidOperationException();
             var payload = PvadLicenseJson.Read<PvadLicensePayload>(Convert.FromBase64String(envelope.Payload), PvadLicenseJson.MaximumPayloadBytes);
             PvadLicenseVerifier.ValidatePayload(payload);
+            if (payload.SchemaVersion != envelope.SchemaVersion) throw new InvalidOperationException();
             if (payload.LicenseId != license.Id || payload.CustomerReference != license.CustomerReference ||
                 payload.Model.ToString() != license.LicenseModel || payload.IssuedAt != license.IssuedAt ||
                 payload.ValidFrom != license.ValidFrom || payload.ValidUntil != license.ValidUntil || payload.UpdatesUntil != license.UpdatesUntil)

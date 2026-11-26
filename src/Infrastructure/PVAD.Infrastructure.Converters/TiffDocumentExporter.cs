@@ -23,7 +23,7 @@ public sealed class TiffDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.tiff");
         var dpi   = options?.Dpi ?? DefaultDpi;
         var scale = dpi / 72f;
         var ps    = design.PageSettings ?? new PageSettingsDto();

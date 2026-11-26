@@ -15,6 +15,7 @@ export interface DesignerUser {
   displayName: string;
   roles: string[];
   permissions: string[];
+  accountCapabilities?: string[];
   organizations: DesignerOrganization[];
   activeOrganizationId: string | null;
   lastLoginAt: string | null;
@@ -57,6 +58,7 @@ const knownDesignerAuthCodes = new Set([
   'PVAD_ENTITLEMENT_MISSING', 'PVAD_ENTITLEMENT_DENIED',
   'PVAD_DESIGNER_PERMISSION_REQUIRED', 'PVAD_API_VERSION_INCOMPATIBLE',
   'PVAD_DESIGNER_SESSION_EXPIRED',
+  'PVAD_ACCOUNT_CAPABILITY_DENIED',
 ]);
 
 export function isKnownDesignerAuthCode(code?: string): boolean {

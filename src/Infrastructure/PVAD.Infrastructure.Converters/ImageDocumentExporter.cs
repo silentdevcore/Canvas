@@ -24,7 +24,7 @@ public sealed class ImageDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.png");
         var dpi   = options?.Dpi ?? DefaultDpi;
         var scale = dpi / 72f;
         var ps    = design.PageSettings ?? new PageSettingsDto();
@@ -580,7 +580,7 @@ public sealed class JpegDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.jpeg");
         var quality = options?.Quality ?? DefaultQuality;
         var dpi = options?.Dpi ?? 150f;
         var scale = dpi / 72f;

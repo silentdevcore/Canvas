@@ -12,7 +12,7 @@ import { documentHandoffKeys, writeDocumentHandoff } from '@/auth/documentHandof
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 import { designerDocumentationUrl } from '@/product/productMetadata';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { migrationProviderPermission } from '@/auth/designerPermissions';
+import { hasAnyDesignerPermission, migrationProviderPermission } from '@/auth/designerPermissions';
 import { transpileNutrientViewerTypeScript } from '@/features/pdf-viewer/nutrientTypeScript';
 import { migrationCodeArtifact } from '@/features/migrations/artifacts';
 import {
@@ -965,8 +965,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       (framework.kind ?? kindFilter) as 'pdf' | 'spreadsheet' | 'report',
       framework.id,
     );
-    return user.permissions.includes(framework.requiredPermission)
-      || user.permissions.includes(legacyPermission);
+    return hasAnyDesignerPermission(user, [framework.requiredPermission, legacyPermission]);
   });
   const current = availableFrameworks.find(f => f.id === selectedId);
   const legacyFramework = DESIGNER_FRAMEWORKS.find(framework => current?.aliases?.includes(framework.id));

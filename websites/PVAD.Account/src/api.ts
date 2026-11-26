@@ -199,6 +199,7 @@ export interface NativeLicensePage {
   pageSize: number;
 }
 export interface NativeLicenseDetails {
+  accountScope?: { accountType: string; capabilities: string[] } | null;
   license: NativeLicenseResponse;
   grants: { product: string; providers: string[] }[];
   redistributionAllowed: boolean;

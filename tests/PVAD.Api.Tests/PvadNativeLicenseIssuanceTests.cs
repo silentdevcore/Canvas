@@ -81,6 +81,49 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
     }
 
     [PostgreSqlFact]
+    public async Task Classified_accounts_receive_signed_v2_rights_and_renewals_preserve_scope()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var subscription = new OrganizationSubscription
+        {
+            OrganizationId = harness.OrganizationId, AccountType = SubscriptionAccountType.IndividualDeveloper, Status = SubscriptionStatus.Active,
+        };
+        db.OrganizationSubscriptions.Add(subscription);
+        await db.SaveChangesAsync();
+        foreach (var kind in new[] { SubscriptionAccountType.IndividualDeveloper, SubscriptionAccountType.Company })
+        {
+            subscription.AccountType = kind;
+            await db.SaveChangesAsync();
+            var request = harness.Request();
+            var service = harness.Service(db);
+            var result = await service.IssueAsync(harness.Principal(), request, default);
+            var stored = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(value => value.Id == result.Id);
+            var payload = harness.Signer.Verify(stored.ArtifactJson);
+            Assert.Equal(2, payload.SchemaVersion);
+            using var envelope = JsonDocument.Parse(stored.ArtifactJson);
+            Assert.Equal(2, envelope.RootElement.GetProperty("schemaVersion").GetInt32());
+            var scope = Assert.IsType<PvadLicenseAccountScope>(payload.AccountScope);
+            Assert.Equal(kind == SubscriptionAccountType.Company ? "company" : "individualDeveloper", scope.AccountType);
+            Assert.Contains("export.pdf", scope.Capabilities);
+            Assert.Contains("migration.pdf.code", scope.Capabilities); // Explicit manufacturer-admin grant.
+            Assert.DoesNotContain("migration.report.designer", scope.Capabilities);
+            Assert.Equal(kind == SubscriptionAccountType.Company, scope.Capabilities.Contains("import.pdf"));
+            Assert.Equal(kind == SubscriptionAccountType.Company, scope.Capabilities.Contains("export.png"));
+            var renewed = await service.RenewAsync(harness.Principal(), result.Id,
+                new RenewNativeLicenseRequest(Guid.NewGuid(), harness.Now.AddDays(60), null, "renewal"), default);
+            var renewedRow = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(value => value.Id == renewed.Id);
+            var renewedScope = harness.Signer.Verify(renewedRow.ArtifactJson).AccountScope!;
+            Assert.Equal(scope.AccountType, renewedScope.AccountType);
+            Assert.Equal(scope.Capabilities, renewedScope.Capabilities);
+            var mismatched = request with { RequestId = Guid.NewGuid(), AccountScope = new(
+                kind == SubscriptionAccountType.Company ? "individualDeveloper" : "company", ["export.pdf"]) };
+            var error = await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), mismatched, default));
+            Assert.Equal("PVAD_NATIVE_ISSUANCE_INVALID", error.Code);
+        }
+    }
+
+    [PostgreSqlFact]
     public async Task Authorized_issue_preserves_all_models_grants_and_audit_atomically()
     {
         await using var harness = await Harness.CreateAsync(output);
@@ -495,7 +538,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         public string Sign(PvadLicensePayload payload)
         {
             var bytes = JsonSerializer.SerializeToUtf8Bytes(payload, Json);
-            return JsonSerializer.Serialize(new PvadSignedNativeLicense(1, "synthetic-unit-issuer", "ECDSA_P256_SHA256_P1363",
+            return JsonSerializer.Serialize(new PvadSignedNativeLicense(payload.SchemaVersion, "synthetic-unit-issuer", "ECDSA_P256_SHA256_P1363",
                 Convert.ToBase64String(bytes), Convert.ToBase64String(key.SignData(bytes, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))), Json);
         }
         public PvadLicensePayload Verify(string artifact)

@@ -1,0 +1,23 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-account-capability-enforcement",
+  "impact": "major",
+  "components": [
+    "account",
+    "admin",
+    "api",
+    "designer",
+    "generator",
+    "importer",
+    "infrastructure",
+    "sdk",
+    "spreadsheet"
+  ],
+  "category": "breaking",
+  "summary": "Product APIs now require an authenticated eligible account. New scoped licenses enforce individual and company feature rights, and electronic invoice processing requires an active license.",
+  "breaking": true,
+  "documentation": [
+    "/docs/guides/PVAD.Native-Library-Activation.md",
+    "/docs/native-library-licensing.md"
+  ]
+}

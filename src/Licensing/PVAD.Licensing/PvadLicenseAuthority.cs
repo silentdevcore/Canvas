@@ -54,10 +54,60 @@ internal sealed class PvadLicenseAuthority(
             revocations.Hash);
 
     internal PvadLicenseOperation Require(string product, string? provider)
-    { lock (gate) return Require(current?.Payload, product, provider); }
+    {
+        lock (gate)
+        {
+            var admitted = Require(current?.Payload, product, provider);
+            if (PvadLicenseProducts.IsMigration(product)) CheckCapability(current!.Payload, product);
+            return admitted;
+        }
+    }
 
-    internal PvadLicenseExecution Begin(PvadNativeOperation operation, string? provider = null) =>
-        PvadLicenseExecution.Enter(operation, Require(PvadLicenseExecution.ProductFor(operation), provider), this);
+    internal PvadLicenseExecution Begin(PvadNativeOperation operation, string? provider = null, string? capability = null,
+        string? additionalCapability = null)
+    {
+        lock (gate)
+        {
+            var admitted = Require(current?.Payload, PvadLicenseExecution.ProductFor(operation), provider);
+            CheckCapability(current!.Payload, capability ?? PvadLicenseExecution.CapabilityFor(operation));
+            if (additionalCapability is not null) CheckCapability(current.Payload, additionalCapability);
+            return PvadLicenseExecution.Enter(operation, admitted, this);
+        }
+    }
+
+    internal PvadLicenseOperation RequireCapability(string product, string capability)
+    {
+        lock (gate)
+        {
+            var admitted = Require(current?.Payload, product, null);
+            CheckCapability(current!.Payload, capability);
+            return admitted;
+        }
+    }
+
+    internal void RequireAccountCapability(string capability)
+    {
+        lock (gate)
+        {
+            var status = Status(current?.Payload);
+            if (current is null || !status.CanStartOperation)
+                throw PvadLicenseJson.Error(status.Code, "A valid license is required for this capability.");
+            CheckCapability(current.Payload, capability);
+        }
+    }
+
+    private static void CheckCapability(PvadLicensePayload license, string? capability)
+    {
+        if (capability is null)
+        {
+            if (license.AccountScope is not null)
+                throw PvadLicenseJson.Error("PVADLIC016", "A scoped license requires an explicit capability.");
+            return;
+        }
+        PvadAccountCapabilityContext.Require(capability);
+        if (license.AccountScope is { } scope && !scope.Capabilities.Contains(capability, StringComparer.Ordinal))
+            throw PvadLicenseJson.Error("PVADLIC016", "The license does not include the requested capability.");
+    }
 
     // The worker receives signed bytes from the same immutable snapshot being admitted.
     internal byte[] CaptureImporterWorkerLicense()
@@ -70,6 +120,7 @@ internal sealed class PvadLicenseAuthority(
         lock (gate)
         {
             Require(current?.Payload, PvadLicenseProducts.Importer, null);
+            CheckCapability(current!.Payload, "image.ocr");
             return new(current!.Envelope.ToArray(), revocations?.Envelope.ToArray());
         }
     }

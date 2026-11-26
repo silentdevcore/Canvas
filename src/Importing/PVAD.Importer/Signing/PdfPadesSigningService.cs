@@ -54,7 +54,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfTimestampAuthority? timestampAuthority = null,
         CancellationToken cancellationToken = default)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.sign");
         return SignWithAdmissionAsync(source, signingKey, options, timestampAuthority, cancellationToken);
     }
 

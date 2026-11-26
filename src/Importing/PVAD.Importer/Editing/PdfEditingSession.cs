@@ -16,31 +16,31 @@ public sealed class PdfEditingSession
 
     public void Insert(PdfPageModel page, PdfGraphicsElement element)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "document.edit");
         page.Insert(element);
     }
 
     public void ReplaceText(PdfTextElement element, string newText)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "document.edit");
         element.Text = newText;
     }
 
     public void Move(PdfGraphicsElement element, PdfMatrix transform)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "document.edit");
         element.Transform = element.Transform.Multiply(transform);
     }
 
     public void Delete(PdfGraphicsElement element)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "document.edit");
         element.IsDeleted = true;
     }
 
     public void SetMetadata(string key, PdfObject value)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "document.edit");
         Document.Metadata[key] = value;
     }
 }

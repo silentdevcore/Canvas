@@ -168,7 +168,7 @@ public sealed class PdfPkcs12SigningKey : IPdfSigningKey, IDisposable
 
     public PdfPkcs12SigningKey(ReadOnlySpan<byte> pkcs12Bytes, string? password = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.sign");
         if (pkcs12Bytes.IsEmpty)
         {
             throw new ArgumentException("A non-empty PKCS#12 payload is required.", nameof(pkcs12Bytes));

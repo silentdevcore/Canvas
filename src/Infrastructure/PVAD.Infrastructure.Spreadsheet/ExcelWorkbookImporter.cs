@@ -17,7 +17,7 @@ public sealed class ExcelWorkbookImporter
 
     public SpreadsheetDto Import(Stream xlsx, string? fileName = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, "import.xlsx");
         using var package = new MemoryStream();
         xlsx.CopyTo(package);
         package.Position = 0;

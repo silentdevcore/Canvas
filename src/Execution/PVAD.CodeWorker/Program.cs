@@ -18,6 +18,9 @@ static async Task<int> RunAsync(string[] args)
     var response = new PvadCodeWorkerResponse();
     try
     {
+        var accountCapabilities = Environment.GetEnvironmentVariable("PVAD_ACCOUNT_CAPABILITIES");
+        using var accountScope = accountCapabilities is null ? null : PvadAccountCapabilityContext.Restore(
+            JsonSerializer.Deserialize<string[]>(accountCapabilities) ?? []);
         var requestBytes = await File.ReadAllBytesAsync(args[0]);
         if (requestBytes.Length > PvadCodeLimits.MaximumWorkerRequestBytes) throw new InvalidOperationException("PVADCODE009: Worker request is too large.");
         var request = JsonSerializer.Deserialize<PvadCodeWorkerRequest>(requestBytes,

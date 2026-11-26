@@ -21,7 +21,7 @@ public sealed class PvadNativeReportMigrationLicenseTests
     public async Task Canonical_alias_auto_and_legacy_report_routes_keep_native_license_problems()
     {
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         try
         {
             foreach (var profile in new[] { "pdf", "migration-code", "migration-viewer", "migration-designer", "migration-report" })

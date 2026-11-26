@@ -105,6 +105,38 @@ the library's own checks.
 
 ## Product Rights And Dependencies
 
+New version-two licenses additionally carry a signed `accountScope` with the
+account type and explicit capability IDs. A product grant is necessary but no
+longer sufficient for scoped operations. For example, `import.docx` does not
+authorize `import.pdf`, and `export.odt` does not authorize image or CSV export.
+`PVADLIC016` means the signed license lacks the requested capability. Loading
+the file or calling `Require(product)` is not a transferable capability grant.
+
+Version-one product licenses retain their existing product/provider semantics;
+they are not silently converted into individual-account licenses. Older
+libraries reject version-two artifacts, so upgrade the complete approved
+assembly set before deploying a scoped license. Envelope and payload versions
+must match. Renewal preserves the signed scope; new rights require a separately
+approved issuance. Both versions continue to verify locally without networking.
+
+Hosted product APIs separately require an authenticated, eligible account.
+The host derives account restrictions from its database, irrespective of roles
+or UI headers, and intersects them with its native license. Migration execution
+requires explicit non-default, unexpired administrator entitlement approval.
+The XLS account-policy decision remains deferred: scoped licenses and hosted
+account processing do not authorize XLS import/export yet. Existing version-one
+offline product licenses retain their native XLS behavior; the dependency and
+its distribution decision are unchanged.
+Background jobs recheck account policy at execution; CodeWorker dispatch carries
+the trusted host restriction snapshot into the child process. A website role
+change does not rewrite a downloaded offline artifact.
+
+Standalone E-Invoice generation/validation/recognition/attachment now requires
+an active native license and, for version two, the relevant signed capability.
+Metadata helpers and DTO construction remain separate from processing. This
+requirement and authenticated product APIs are intentional workflow changes;
+previously anonymous API clients must authenticate and have account context.
+
 Detached contracts, DTOs and options can be constructed without activation.
 SDK type metadata, renderer capabilities and format/provider catalogs are also
 license-free. This does not include reading metadata from a customer document:

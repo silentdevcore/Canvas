@@ -42,7 +42,7 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
                 .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
             // Customer references are manufacturer bookkeeping, not customer-facing metadata.
             return Ok(new NativeLicenseDetails(PvadNativeLicenseIssuanceService.Summary(row), string.Empty,
-                payload.RedistributionAllowed, payload.Grants, successor));
+                payload.RedistributionAllowed, payload.Grants, successor) { AccountScope = payload.AccountScope });
         }
         catch (PvadNativeIssuanceException error) { return Failure(error); }
     }

@@ -26,7 +26,7 @@ public sealed class DocxFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.docx");
         using var doc = WordprocessingDocument.Open(stream, false);
         var mainPart = doc.MainDocumentPart
             ?? throw new InvalidDataException("DOCX has no main document part.");

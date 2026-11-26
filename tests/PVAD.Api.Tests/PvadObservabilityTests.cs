@@ -806,7 +806,7 @@ public sealed class PvadObservabilityTests
                         ["Observability:ExportTraces"] = "true",
                     }));
             });
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient(keepHostedServices: true);
 
         using var response = await client.PostAsJsonAsync(
             "/api/export?format=html",

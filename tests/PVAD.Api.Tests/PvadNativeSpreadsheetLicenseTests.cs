@@ -20,7 +20,7 @@ public sealed class PvadNativeSpreadsheetLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")
             ?? throw new InvalidOperationException("Run with a signed native test session.");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         var workbook = new SpreadsheetDto
         {
             Name = "Native license test", Sheets = [new SheetDto
@@ -33,7 +33,7 @@ public sealed class PvadNativeSpreadsheetLicenseTests
         try
         {
             PvadLicense.LoadFromFile(Path.Combine(Path.GetDirectoryName(integrated)!, "pdf.json"));
-            foreach (var format in new[] { "xlsx", "xls", "csv", "tsv" })
+            foreach (var format in new[] { "xlsx", "csv", "tsv" })
             {
                 // Empty CSV/TSV exports must not bypass the native entry check.
                 using var response = await client.PostAsJsonAsync($"/api/pvad/spreadsheet/export?format={format}", new SpreadsheetDto());

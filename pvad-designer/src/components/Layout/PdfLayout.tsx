@@ -17,7 +17,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
+import { designerPermissions, hasAccountCapability, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
@@ -51,7 +51,7 @@ const PdfLayout: React.FC = () => {
     { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon,
       disabled: !hasDesignerPermission(user, designerPermissions.pdfTemplatesRead), disabledReason: permissionRequired },
     { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload,
-      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport), disabledReason: permissionRequired },
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport) || !hasAccountCapability(user, 'import.pdf'), disabledReason: permissionRequired },
     { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye,
       disabled: !hasDesignerPermission(user, designerPermissions.pdfConvert), disabledReason: permissionRequired },
     {

@@ -23,7 +23,7 @@ public sealed class PvadNativeImporterLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")
             ?? throw new InvalidOperationException("Run with a signed native test session.");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
 #pragma warning disable PVAD0001 // Synthetic PDF preparation uses the integrated test grant.
         var document = new PVAD.Pdf.PdfDocument();
 #pragma warning restore PVAD0001
@@ -71,7 +71,7 @@ public sealed class PvadNativeImporterLicenseTests
             services.RemoveAll<IOcrEngine>();
             services.AddSingleton<IOcrEngine>(engine);
         }));
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         using var bitmap = new SKBitmap(160, 80);
         using (var canvas = new SKCanvas(bitmap)) canvas.Clear(SKColors.White);
         using var image = SKImage.FromBitmap(bitmap);
@@ -137,7 +137,7 @@ public sealed class PvadNativeImporterLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")
             ?? throw new InvalidOperationException("Run with a signed native test session.");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
 #pragma warning disable PVAD0001 // Synthetic input preparation uses the integrated test grant.
         var document = new PVAD.Pdf.PdfDocument();
 #pragma warning restore PVAD0001
@@ -163,7 +163,7 @@ public sealed class PvadNativeImporterLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")
             ?? throw new InvalidOperationException("Run with a signed native test session.");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         var routes = new[]
         {
             ("import-pdf-engine", "pdf"), ("debug-pdf-engine", "pdf"), ("import-doc", "doc"),

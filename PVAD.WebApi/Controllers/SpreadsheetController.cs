@@ -56,7 +56,7 @@ public class SpreadsheetController : ControllerBase
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, PvadAccountLicensePolicy.ExportCapability(format));
         var name = ExportFileNameSanitizer.Sanitize(workbook.Name, "workbook");
         return format.ToLowerInvariant() switch
         {
@@ -92,6 +92,7 @@ public class SpreadsheetController : ControllerBase
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "A spreadsheet file (.xlsx, .xls, .csv, or .tsv) is required." });
+        PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ImportCapability(Path.GetExtension(file.FileName)));
 
         PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         using var ms = new MemoryStream();
@@ -129,6 +130,7 @@ public class SpreadsheetController : ControllerBase
     [ProducesResponseType(415)]
     public IActionResult Render([FromBody] PvadSpreadsheetDto workbook, [FromQuery] string format = "pdf", [FromQuery] int sheet = 0)
     {
+        PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ExportCapability(format));
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 

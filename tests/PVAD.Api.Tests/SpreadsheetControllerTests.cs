@@ -12,7 +12,7 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
 
     public SpreadsheetControllerTests(PvadApiTestFactory factory)
     {
-        client = factory.CreateClient();
+        client = factory.CreateCompanyProductClient();
     }
 
     [Fact]
@@ -52,7 +52,6 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
 
     [Theory]
     [InlineData("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx", "504B")]
-    [InlineData("xls", "application/vnd.ms-excel", ".xls", "D0CF11E0")]
     [InlineData("csv", "text/csv", ".csv", null)]
     [InlineData("tsv", "text/tab-separated-values", ".tsv", null)]
     public async Task Export_ReturnsBytesMatchingTheDeclaredSpreadsheetFormat(
@@ -72,6 +71,17 @@ public sealed class SpreadsheetControllerTests : IClassFixture<PvadApiTestFactor
         Assert.NotEmpty(bytes);
         if (signatureHex is not null)
             Assert.True(bytes.AsSpan().StartsWith(Convert.FromHexString(signatureHex)));
+    }
+
+    [Fact]
+    public async Task DeferredXlsPolicyRejectsAccountImportAndExport()
+    {
+        using var exported = await client.PostAsJsonAsync("/api/pvad/spreadsheet/export?format=xls", SampleWorkbook());
+        Assert.Equal(HttpStatusCode.Forbidden, exported.StatusCode);
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent([0]), "file", "synthetic.xls");
+        using var imported = await client.PostAsync("/api/pvad/spreadsheet/import", form);
+        Assert.Equal(HttpStatusCode.Forbidden, imported.StatusCode);
     }
 
     [Fact]

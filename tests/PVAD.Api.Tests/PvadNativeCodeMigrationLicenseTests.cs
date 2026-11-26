@@ -17,7 +17,7 @@ public sealed class PvadNativeCodeMigrationLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")
             ?? throw new InvalidOperationException("Run with a signed native test session.");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         try
         {
             PvadLicense.LoadFromFile(Path.Combine(Path.GetDirectoryName(integrated)!, "pdf.json"));
@@ -48,7 +48,7 @@ public sealed class PvadNativeCodeMigrationLicenseTests
         var integrated = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH")!;
         var codeOnly = Path.Combine(Path.GetDirectoryName(integrated)!, "migration-code.json");
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         var service = new MigrationService();
         try
         {

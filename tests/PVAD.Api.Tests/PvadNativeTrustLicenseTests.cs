@@ -78,6 +78,10 @@ public sealed class PvadNativeTrustLicenseTests
         using (var scope = application.Services.CreateScope())
         {
             var database = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            database.OrganizationSubscriptions.Add(new OrganizationSubscription
+            {
+                OrganizationId = OrganizationId, AccountType = SubscriptionAccountType.Company, Status = SubscriptionStatus.Active,
+            });
             database.UserSessions.Add(new UserSession
             {
                 Id = SessionId, UserId = UserId, OrganizationId = OrganizationId,

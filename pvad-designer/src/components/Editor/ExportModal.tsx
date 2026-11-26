@@ -9,6 +9,8 @@ import ExportService, { type ExportFormat } from '@/services/ExportService';
 import type { Template, Page, SimpleElement, PageSettings } from '@/types';
 import SignDocxModal from './SignDocxModal';
 import { validateDesignerAccessibility } from '@/accessibility/designerAccessibility';
+import { useOptionalDesignerAuth } from '@/auth/DesignerAuthGate';
+import { formatCapability, hasAccountCapability } from '@/auth/designerPermissions';
 
 interface Props {
   template: Template;
@@ -54,6 +56,7 @@ const LAST_FORMAT_KEY = 'pvad_export_format';
 
 const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSettings, onClose }) => {
   const { t } = useTranslation('editor');
+  const auth = useOptionalDesignerAuth();
   const [states, setStates] = useState<Record<string, ExportState>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState<Record<string, string>>({});
@@ -67,13 +70,14 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
 
   useEffect(() => {
     let active = true;
+    setFormatsLoaded(false);
     void ExportService.listSupportedFormats().then(formats => {
       if (!active) return;
       setSupportedFormats(new Set(formats.map(format => format.key)));
       setFormatsLoaded(true);
     });
     return () => { active = false; };
-  }, []);
+  }, [auth?.user.activeOrganizationId, auth?.user.accountCapabilities]);
 
   const activeLangs = pageSettings?.activeLanguages ?? [];
   const hasMultiLang = activeLangs.length > 1;
@@ -83,6 +87,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   const accessibilityBlocked = accessibilityIssues.some(issue => issue.severity === 'error');
 
   const handleExport = useCallback(async (card: FormatCard) => {
+    if (!hasAccountCapability(auth?.user, formatCapability('export', card.format))) return;
     if (card.serverSide && !supportedFormats.has(card.format)) return;
     if (runningFormats.current.has(card.format)) return;
     runningFormats.current.add(card.format);
@@ -112,7 +117,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
     } finally {
       runningFormats.current.delete(card.format);
     }
-  }, [template, pages, sharedElements, pageSettings, supportedFormats, t]);
+  }, [template, pages, sharedElements, pageSettings, supportedFormats, t, auth?.user]);
 
   const handleExportAllLanguages = useCallback(async () => {
     if (accessibilityBlocked) {
@@ -198,7 +203,9 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
           )}
 
           {GROUPS.map(group => {
-            const cards = FORMAT_CARDS.filter(c => c.group === group);
+            const cards = FORMAT_CARDS.filter(c => c.group === group &&
+              hasAccountCapability(auth?.user, formatCapability('export', c.format)));
+            if (cards.length === 0) return null;
             return (
               <div key={group} className="export-group">
                 <h3 className="export-group-label">{t(`export.groups.${group}`)}</h3>

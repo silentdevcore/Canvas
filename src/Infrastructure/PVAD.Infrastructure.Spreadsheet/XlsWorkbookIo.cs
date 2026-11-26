@@ -17,7 +17,7 @@ public sealed class XlsWorkbookIo
 {
     public byte[] Export(SpreadsheetDto workbook)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, "export.xls");
         return ExportAdmitted(workbook);
     }
 
@@ -47,7 +47,7 @@ public sealed class XlsWorkbookIo
 
     public SpreadsheetDto Import(Stream xls, string? fileName = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, "import.xls");
         using var wb = new HSSFWorkbook(xls);
         var dto = new SpreadsheetDto
         {

@@ -744,7 +744,12 @@ public sealed class AuthController : ControllerBase
             organizations,
             activeMembership?.OrganizationId,
             user.LastLoginAt,
-            "1");
+            "1")
+        {
+            AccountCapabilities = activeMembership is null ? [] :
+                (await PVAD.WebApi.Services.Licensing.PvadAccountPolicyService.ReadAsync(dbContext,
+                    activeMembership.OrganizationId, cancellationToken, requireActive: true))?.AllowedCapabilities() ?? [],
+        };
     }
 
     private Task<List<ActiveMembership>> GetActiveMembershipsAsync(
@@ -898,6 +903,9 @@ public sealed record UserInfo(
     IReadOnlyList<OrganizationInfo> Organizations,
     Guid? ActiveOrganizationId,
     DateTimeOffset? LastLoginAt,
-    string ApiVersion);
+    string ApiVersion)
+{
+    public IReadOnlyList<string> AccountCapabilities { get; init; } = [];
+}
 
 public sealed record OrganizationInfo(Guid Id, string Name, string Slug);

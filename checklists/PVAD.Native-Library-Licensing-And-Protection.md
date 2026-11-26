@@ -118,6 +118,27 @@ See the [account policy and implementation gaps](PVAD.Native-Licensing-Completio
 These are confirmed requirements, not implemented enforcement or additional
 completed primary items.
 
+Step 1 foundation (2026-11-25): the internal shared account capability catalog
+now represents these individual/company decisions and independent import/export
+rights, including format aliases, separate Migration approval and deferred XLS.
+It is not yet wired to issuance, API/native processing or worker admission.
+See the [Step 1 implementation scope](PVAD.Native-Licensing-Completion-Report.md#step-1-central-account-capability-policy-2026-11-25).
+
+Subsequent Step 2 candidate (2026-11-25) connects the policy to signed V2 scopes,
+native format/feature admission, authenticated API account policy, workers,
+background jobs and UI choices. The planning/Step 1 notes above describe their
+earlier state. V1 native files keep their prior product rights; authenticated
+product APIs and active-license requirements for standalone E-Invoice processing
+are pending Major workflow changes. See the [Step 2 scope and validation](PVAD.Native-Licensing-Completion-Report.md#step-2-signed-capabilities-and-processing-enforcement-2026-11-25).
+Personal ownership and automatic customer issuance are still pending, as are
+current-candidate protected-package/platform acceptance and production approvals.
+Local Step 2 source validation: 1,579 native tests passed; 1,542 API cases are
+accounted for through the full run and corrected reruns, with no unresolved
+failure (not a second unfiltered green run). Designer, Admin, Account and tooling
+checks pass; the actual signed-scope public API probe passes 20 checks. Evidence
+and intermediate failures are retained in the linked report.
+No primary checkbox or denominator changes.
+
 - [x] Record subscriptions, perpetual licenses, and explicitly issued 30-day Trials.
 - [x] Define seven days of grace for paid subscriptions and none for Trials.
 - [x] Require signed files without mandatory internet access or hidden telemetry.

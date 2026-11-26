@@ -13,7 +13,7 @@ public static class CsvSheetIo
 {
     public static string ToCsv(SheetDto sheet, char delimiter = ',')
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, delimiter == '\t' ? "export.tsv" : "export.csv");
         return ToCsvAdmitted(sheet, delimiter);
     }
 
@@ -40,7 +40,7 @@ public static class CsvSheetIo
 
     public static SheetDto FromCsv(string text, string name = "Sheet1", char delimiter = ',')
     {
-        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, delimiter == '\t' ? "import.tsv" : "import.csv");
         var rows = Parse(text, delimiter);
         var sheet = new SheetDto { Id = Guid.NewGuid().ToString("n"), Name = name };
         for (var r = 0; r < rows.Count; r++)

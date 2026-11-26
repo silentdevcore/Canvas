@@ -10,6 +10,7 @@ using PVAD.Importer.Trust;
 using PVAD.WebApi.Infrastructure;
 using System.Text.Json;
 using PVAD.Testing;
+using PVAD.Licensing;
 
 namespace PVAD.Api.Tests;
 
@@ -521,6 +522,24 @@ public sealed class CodeWorkspaceConversionTests
         Assert.Null(response.PdfBytes);
         Assert.Empty(response.SourceMap);
         Assert.Equal(PvadCodeFidelity.Unsupported, response.Fidelity);
+    }
+
+    [Fact]
+    public async Task PrivateAccountRestrictionReachesTheActualPackagedCodeWorker()
+    {
+        using var scope = PvadAccountCapabilityContext.Enter(PvadLicenseAccountKind.IndividualDeveloper);
+        var service = CreatePackagedWorkerService();
+        const string create = "var document = PVAD.Generator.Pdf.CreateDocument(); document.AddPage(100, 100); ";
+        var allowed = await service.ExecuteAsync(PvadCodeLanguages.CSharpPdf, create + "return document;", default);
+        Assert.True(allowed.Success, JsonSerializer.Serialize(allowed.Diagnostics));
+        Assert.NotEmpty(allowed.PdfBytes!);
+        // A trusted host may narrow the account policy further. The child must
+        // preserve that restriction even with a broad legacy native license.
+        using var narrowed = PvadAccountCapabilityContext.Restore(["code.execute", "export.pdf"]);
+        var denied = await service.ExecuteAsync(PvadCodeLanguages.CSharpPdf, create + "return document;", default);
+        Assert.False(denied.Success);
+        Assert.Contains(denied.Diagnostics, value => value.Code == "PVAD_ACCOUNT_CAPABILITY_DENIED");
+        Assert.Null(denied.PdfBytes);
     }
 
     [Fact]

@@ -135,6 +135,161 @@ rights, template publication audience and free version/update coverage remain
 to be finalized during policy implementation. The `.xls` decision remains
 deferred; company eligibility is not approval to ship unapproved dependencies.
 
+### Step 1: Central Account Capability Policy (2026-11-25)
+
+The owner authorized committing the reviewed parser/planning snapshot and then
+starting Step 1. Commit `6ce048f4` records that snapshot; the owner-owned
+`PVAD.sln` and `.vscode/` changes were excluded. The policy foundation described
+here is subsequent work and is not part of that commit.
+
+`src/Licensing/PVAD.Licensing/PvadAccountLicensePolicy.cs` defines an internal,
+read-only capability catalog shared with the existing friend assemblies. It
+separates individual/company eligibility and import/export formats. Decisions
+are explicitly `Allowed`, `Denied`, `RequiresAdminApproval`, `Undecided` or
+`Deferred`. Unknown capabilities/account kinds fail closed. Migration always
+requires separate approval for both account types; the catalog does not accept
+an untrusted request flag as approval. `.xls` remains deferred for both.
+
+Format evaluators normalize extensions and aliases (Markdown, JPEG, TIFF and
+HTML) without inspecting file content or assuming an importer exists. All raster
+input formats map to the image-import restriction. Import allowances do not
+authorize export of the same format. Inspection/read rights not decided by the
+owner remain undecided rather than being inferred from denied mutation rights.
+
+Tests in `tests/PVAD.Licensing.Tests/AccountLicensePolicyTests.cs` cover the
+confirmed rights, private/company differences, Migration approval, `.xls`
+deferral, undecided checks, broad/unknown identifiers, format aliases and catalog
+immutability. An internal-only release fragment records this foundation with
+impact `none`; no public API, native payload/signature schema, role defaults,
+database ownership, issuance route or processing admission has changed.
+
+This completes the central eligibility matrix foundation. Step 2 must bind
+operation/format restrictions to verified signed rights and enforce them at the
+API, native entry points and workers. Current version-one licenses still carry
+broad product grants, so this matrix must not be described as activated private
+account enforcement. Personal user ownership and self-service issuance remain
+later steps. HTML/XML document import and PPTX export availability are not
+implemented by adding policy entries. No production key was created.
+
+Validation: the full `PVAD.Licensing.Tests` suite passed **213/213**, including
+**95 new policy cases**, with zero skipped/failed/aborted cases; TRX counters
+were independently audited. Evidence:
+`artifacts/native-account-policy/20261125-step1-final/licensing-tests.trx`.
+The initial pre-alias suite also passed 188/188 and is retained under
+`artifacts/native-account-policy/20261125-step1/`.
+Version/release-author tests passed **29/29**; version/fragment validation and
+`git diff --check` pass. Tests used isolated build output directories, .NET SDK
+10.0.113 and the x64 runtime. No source trust, product version or owner-owned
+Solution/editor configuration was changed. Primary status remains **70/76**.
+
+### Step 2: Signed Capabilities And Processing Enforcement (2026-11-25)
+
+Implemented after explicit owner authorization; not committed or deployed.
+
+- V2 envelope/payload versions must match and contain a valid account scope.
+  Capabilities are part of the exact signed bytes, bounded, unique and checked
+  against the central account policy. Migration capabilities must match explicit
+  provider-bound product grants. V1 artifacts keep their broad product/provider
+  behavior; existing artifacts are not retroactively restricted or repriced.
+- Native importers, converters, Spreadsheet CSV/TSV/XLSX paths, PDF processing,
+  signatures/redaction/archive conversion and standalone E-Invoice entry points
+  perform explicit capability admission. PDF archive-save options additionally
+  check archival rights atomically with PDF output rights. Internal rendering
+  for allowed output/printing is separate from standalone image export.
+- Product API routes require authentication and active account policy even if
+  older optional product-access middleware is disabled. DB account type and
+  separately approved Migration entitlements constrain the request independently
+  of user roles and Designer headers. Account denials return 403; signed native
+  scope failures use `PVADLIC016` through the existing host-license error path.
+- Background jobs re-read current account eligibility and approval before input
+  processing. CodeWorker receives an intersecting host restriction snapshot;
+  OCR dispatch and child admission independently enforce OCR rights.
+- Manufacturer issuance derives V2 scopes for classified existing accounts;
+  explicit scope requests must match the stored account type. Administrative
+  legacy issuance for unclassified organizations and CLI V1 preparation remain
+  supported; they are not the future customer self-service route. Renewal keeps
+  scope. Admin/Account details expose actual signed feature rights.
+- Designer receives effective account capabilities, filters format choices and
+  feature permissions, rejects blocked imports, and avoids reusing another
+  account's export-format cache. Native/API enforcement remains authoritative.
+
+Compatibility: authenticated product API context and active-license checks for
+previously standalone E-Invoice helpers are intentional workflow changes. The
+pending enforcement fragment therefore declares **Major / breaking** impact;
+the separate policy-foundation fragment remains internal-only. No VERSION bump,
+publication, production key creation or primary-row closure is included.
+
+Validation evidence for this source candidate is under
+`artifacts/native-account-policy/20261125-step2-final/` (TRX, retained logs and
+source hashes). This is macOS/x64 source validation, not protected-package or
+cross-platform release acceptance.
+
+| Check | Result |
+| --- | --- |
+| Full Licensing suite | **235/235**, 0 skipped |
+| Full Importer suite, including malformed-PDF regressions | **734/734**, 0 skipped |
+| Designer | **1,057 tests / 94 suites / 1 snapshot**, typecheck and production build passed |
+| Admin / Account portals | **48/48** and **57/57**; both builds and Account typecheck passed |
+| Native source/tooling and version/release-author tests | **250/250**, 0 skipped; version check and fragment validation passed |
+| Actual signed V2 private-license public API probe | **20/20**, including PDF archive-save, direct import/export, empty CSV/TSV save and E-Invoice denial; legacy V1 SVG and allowed V2 Markdown/ODT/PDF remain usable |
+| Additional native suites | Generator **141**, Spreadsheet **13**, Word **6**, Converters **20**, FileImporter **29**, Export **221**, OCR **104**, Infrastructure.Pdf **76**; all passed, 0 skipped. Together with Licensing/Importer: **1,579/1,579** |
+| API corrected reruns and real CodeWorker | **1,542 distinct API cases accounted for across the full run and corrected reruns**, no unresolved failure or skipped case; this is combined coverage, not a second unfiltered green run |
+
+The final signed probe is
+`artifacts/native-account-capabilities/1795643391420-3d6edefd/`: source hashes
+are bound, source did not change during that run, synthetic keys/build were
+removed, and the source trust file is unchanged. No production trust or
+publication is claimed.
+
+Intermediate runs are retained: the first API build lacked Word friend access;
+a subsequent run passed 9/11 but had two missing-method errors from source
+changes during that build. The first full API/PostgreSQL run completed
+**1,451 passed / 88 failed / 0 skipped**; the failures came from existing product
+fixtures without the now-required account/authentication context. The affected
+classes are rerun with explicit synthetic company accounts, independent native
+product grants and administrator Migration approval. Account/authentication
+negative tests keep their own identities and continue to test denials. The next
+fixture run also exposed missing existing Designer entitlement in these new
+test accounts and an authentication-negative Template test that must retain an
+anonymous client; both fixture corrections are retained for review. These
+intermediate runs are not final acceptance. Unknown export formats continue to
+return 415 with account-filtered suggestions; known forbidden formats return
+403. The initial signed native probe passed 19 checks before archival-save
+coverage was added.
+
+API evidence stays explicit: `api-full.trx` is 1,451 passed / 88 failed;
+`api-account-regressions.trx` is 131 passed / 7 fixture failures (138 total);
+`api-final.trx` is 21 passed / 1 worker-test design failure (22 total).
+All seven fixture failures pass in that final selection. The extra worker test
+initially used an archive-save source string that the existing lexical sandbox
+rejected before child execution (`PVADCODE008`, `File.` matching the
+`PdfComplianceProfile.` suffix). That possible sandbox false-positive is
+unchanged and remains a separate follow-up. The corrected test compares allowed
+private PDF code with the same code under a further-narrowed trusted host scope;
+the actual child returns `PVAD_ACCOUNT_CAPABILITY_DENIED` and no PDF output.
+`api-worker-final.trx` passes **1/1**. Native archive denial is independently
+proved by the actual signed public API probe above; the sandbox was not relaxed.
+
+`validation-summary.json` audits the case-name union in execution order: all
+**1,542** cases end in Passed. The former account XLS-success theory is explicitly
+retired and replaced by `DeferredXlsPolicyRejectsAccountImportAndExport`;
+existing legacy native XLS support remains covered by Spreadsheet regressions.
+No failed-run evidence was overwritten and no second unfiltered full API run
+is claimed. The signed test session cleanup at
+`artifacts/native-test-sessions/79d8959d-cfe0-4742-af0b-7706cd575b7b/cleanup.json`
+confirms temporary files removed, unchanged synthetic artifacts and unchanged
+source trust. Current-candidate protected-package checks, Windows/Linux runs,
+full solution build and ImageAnalysis baseline review were not repeated here.
+
+Personal user ownership without an organization and customer-triggered automatic
+issuance are still Steps 3/4, not implemented by this integration. HTML/XML
+document importers are still absent; policy eligibility is not format support.
+XLS and production/distribution decisions remain open. Deferred XLS rights
+are not granted in scoped licenses or hosted account processing; legacy offline
+product licenses retain their native XLS paths and the dependency is unchanged.
+Client-side previews and editable project data are not a DRM boundary against manually saving visible
+content. Primary status remains **70/76 (92.1%)**.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The owner stated that PVAD will initially be offered free of charge while still

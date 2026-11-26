@@ -45,7 +45,7 @@ public sealed class PvadNativeLicenseSigner(IOptions<PvadNativeIssuerOptions> op
             {
                 ObjectDisposedException.ThrowIf(disposed, this);
                 key ??= LoadKey();
-                var artifact = JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeLicense(1, configuration.KeyId!,
+                var artifact = JsonSerializer.SerializeToUtf8Bytes(new PvadSignedNativeLicense(payload.SchemaVersion, configuration.KeyId!,
                     PvadLicenseJson.Algorithm, Convert.ToBase64String(bytes), Convert.ToBase64String(key.SignData(
                         bytes, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation))), PvadLicenseJson.Options);
                 // A configured key must already be trusted by the actual shipped verifier.

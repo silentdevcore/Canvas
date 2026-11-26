@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-free-account-policy-foundation",
+  "impact": "none",
+  "components": ["sdk"],
+  "category": "improved",
+  "summary": "Prepared a shared account capability policy for individual and company licensing.",
+  "breaking": false,
+  "reason": "Internal policy foundation only; issuance, signed license formats, processing enforcement and public APIs are unchanged."
+}

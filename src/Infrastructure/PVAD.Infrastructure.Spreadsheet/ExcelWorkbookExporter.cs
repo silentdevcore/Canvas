@@ -16,7 +16,7 @@ public sealed class ExcelWorkbookExporter
     /// are evaluated server-side (ClosedXML) so the file carries fresh cached values.</summary>
     public byte[] Export(SpreadsheetDto workbook, bool recalculate = false)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, "export.xlsx");
         return ExportAdmitted(workbook, recalculate);
     }
 

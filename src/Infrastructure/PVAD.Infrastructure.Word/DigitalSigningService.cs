@@ -44,7 +44,7 @@ public static class DigitalSigningService
 
     public static byte[] SignDocx(Stream docxStream, byte[] pfxBytes, string? pfxPassword = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Word);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Word, "export.docx");
         // EphemeralKeySet keeps the private key out of the disk-backed key store, but it is
         // unsupported on macOS/Linux - fall back to the default (temporary on-disk) key set there.
         var storageFlags = OperatingSystem.IsWindows()

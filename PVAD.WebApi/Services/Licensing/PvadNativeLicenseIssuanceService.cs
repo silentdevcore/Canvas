@@ -16,7 +16,10 @@ namespace PVAD.WebApi.Services.Licensing;
 public sealed record IssueNativeLicenseRequest(Guid RequestId, Guid OrganizationId, string CustomerReference,
     [property: JsonConverter(typeof(JsonStringEnumConverter<PvadLicenseModel>))] PvadLicenseModel Model,
     DateTimeOffset ValidFrom, DateTimeOffset? ValidUntil, DateTimeOffset? UpdatesUntil,
-    bool RedistributionAllowed, PvadLicenseGrant[] Grants, string ReasonCode);
+    bool RedistributionAllowed, PvadLicenseGrant[] Grants, string ReasonCode)
+{
+    public PvadLicenseAccountScope? AccountScope { get; init; }
+}
 public sealed record RenewNativeLicenseRequest(Guid RequestId, DateTimeOffset? ValidUntil,
     DateTimeOffset? UpdatesUntil, string ReasonCode);
 public sealed record NativeLicenseResponse(Guid Id, Guid OrganizationId, Guid? PreviousLicenseId, string Model,
@@ -68,14 +71,34 @@ public sealed class PvadNativeLicenseIssuanceService
         var actor = await RequireIssuerAsync(principal, cancellationToken);
         ValidateRequest(request.RequestId, request.ReasonCode);
         var now = PvadLicenseTimestamps.Normalize(clock.GetUtcNow());
-        var payload = new PvadLicensePayload(1, Guid.NewGuid(), request.CustomerReference, request.Model, now,
+        var accountPolicy = await PvadAccountPolicyService.ReadAsync(db, request.OrganizationId, cancellationToken);
+        var requestedScope = request.AccountScope;
+        if (accountPolicy is not null)
+        {
+            var accountType = accountPolicy.Kind == PvadLicenseAccountKind.Company ? "company" : "individualDeveloper";
+            if (requestedScope is not null && requestedScope.AccountType != accountType)
+                throw Error("PVAD_NATIVE_ISSUANCE_INVALID", 400);
+            // This is the separately authorized manufacturer-admin path: selecting
+            // explicit provider-bound Migration grants constitutes signed approval.
+            // Future customer self-service must derive approvals from server records.
+            requestedScope ??= new(accountType, PvadAccountLicensePolicy.Capabilities.Where(capability =>
+                PvadAccountLicensePolicy.Evaluate(accountPolicy.Kind, capability.Id) == PvadAccountLicenseDecision.Allowed ||
+                PvadAccountLicensePolicy.Evaluate(accountPolicy.Kind, capability.Id) == PvadAccountLicenseDecision.RequiresAdminApproval &&
+                request.Grants?.Any(grant => grant?.Product == capability.Id) == true)
+                .Select(capability => capability.Id).ToArray());
+        }
+        var payload = new PvadLicensePayload(requestedScope is null ? 1 : 2, Guid.NewGuid(), request.CustomerReference, request.Model, now,
             Timestamp(request.ValidFrom), Timestamp(request.ValidUntil), Timestamp(request.UpdatesUntil),
             request.RedistributionAllowed, request.Grants?.Select(grant => grant is null ? null! :
-                new PvadLicenseGrant(grant.Product, grant.Providers?.ToArray()!)).ToArray()!);
+                new PvadLicenseGrant(grant.Product, grant.Providers?.ToArray()!)).ToArray()!)
+        {
+            AccountScope = requestedScope is { } scope
+                ? new(scope.AccountType, scope.Capabilities?.ToArray()!) : null,
+        };
         ValidatePayload(payload);
         if (payload.ValidUntil <= now) throw Error("PVAD_NATIVE_ISSUANCE_INVALID", 400);
         var canonicalRequest = request with { Grants = payload.Grants, ValidFrom = payload.ValidFrom,
-            ValidUntil = payload.ValidUntil, UpdatesUntil = payload.UpdatesUntil };
+            ValidUntil = payload.ValidUntil, UpdatesUntil = payload.UpdatesUntil, AccountScope = payload.AccountScope };
         var checksum = RequestHash(new { operation = "issue", request = canonicalRequest });
         return await PersistAsync(actor, request.RequestId, checksum, request.OrganizationId, null, request.ReasonCode,
             payload, cancellationToken);
@@ -150,7 +173,8 @@ public sealed class PvadNativeLicenseIssuanceService
         var payload = PvadNativeLicenseRecords.ReadStoredPayload(row);
         var successor = await db.NativeLibraryLicenses.AsNoTracking().Where(value => value.PreviousLicenseId == licenseId)
             .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
-        return new(Summary(row), payload.CustomerReference, payload.RedistributionAllowed, payload.Grants, successor);
+        return new(Summary(row), payload.CustomerReference, payload.RedistributionAllowed, payload.Grants, successor)
+        { AccountScope = payload.AccountScope };
     }
 
     private async Task<NativeLicenseResponse> PersistAsync(Guid actor, Guid requestId, string requestHash,

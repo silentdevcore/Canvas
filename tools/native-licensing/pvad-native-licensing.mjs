@@ -102,7 +102,7 @@ export function validateFileImporterEntries(inventory) {
     assert.equal(entry.publicProcessingOverloads, ['MarkdownFileImporter', 'PdfFileImporter'].includes(entry.type) ? 4 : 2);
     assert.ok(source.includes(entry.key === 'pdf'
       ? 'PvadLicense.BeginOperation(PvadNativeOperation.DesignerPdfImport)'
-      : 'PvadLicense.Require(PvadLicenseProducts.Importer);'));
+      : `PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.${entry.key}");`));
   }
   assert.equal(types.size, 0, 'A public importer lacks inventory coverage.');
   assert.deepEqual([...keys].sort(), ['doc', 'docx', 'image', 'md', 'odt', 'pdf', 'pptx', 'svg']);

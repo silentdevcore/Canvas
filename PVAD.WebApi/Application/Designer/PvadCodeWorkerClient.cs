@@ -71,6 +71,9 @@ public sealed class PvadCodeWorkerClient(
             process.StartInfo.Environment.Clear();
             process.StartInfo.Environment["DOTNET_EnableDiagnostics"] = "0";
             process.StartInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+            var accountCapabilities = PvadAccountCapabilityContext.Capture();
+            if (accountCapabilities is not null)
+                process.StartInfo.Environment["PVAD_ACCOUNT_CAPABILITIES"] = JsonSerializer.Serialize(accountCapabilities);
             if (!string.IsNullOrWhiteSpace(nativeLicensing?.Value.LicensePath))
                 process.StartInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] =
                     Path.GetFullPath(nativeLicensing.Value.LicensePath, environment.ContentRootPath);

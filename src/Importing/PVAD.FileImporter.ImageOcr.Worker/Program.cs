@@ -24,7 +24,7 @@ try
     if (!string.IsNullOrWhiteSpace(revocationPath)) PvadLicense.ImportRevocationsFromFile(revocationPath);
     var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
     if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
-    PvadLicense.Require(PvadLicenseProducts.Importer);
+    using var admission = PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr);
     var requestJson = await File.ReadAllTextAsync(requestPath);
     var request = JsonSerializer.Deserialize<OcrWorkerRequest>(requestJson, jsonOptions)
         ?? throw new InvalidOperationException("OCR worker request is invalid.");

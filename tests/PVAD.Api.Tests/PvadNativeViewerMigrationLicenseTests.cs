@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using PVAD.FileImporter;
 using PVAD.Licensing;
 using PVAD.Infrastructure.Persistence;
+using PVAD.Domain.Entities;
 using PVAD.Migration.Pdf.Viewer.Nutrient;
 using PVAD.Testing;
 using PVAD.WebApi.Services;
@@ -56,6 +57,20 @@ public sealed class PvadNativeViewerMigrationLicenseTests
             }).AddScheme<AuthenticationSchemeOptions, ViewerAuthentication>("synthetic-native-viewer", _ => { });
         }));
         using var client = application.CreateClient();
+        using (var scope = application.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            var subscription = new OrganizationSubscription
+            {
+                OrganizationId = ViewerOrganizationId, AccountType = SubscriptionAccountType.Company, Status = SubscriptionStatus.Active,
+            };
+            db.OrganizationSubscriptions.Add(subscription);
+            db.SubscriptionEntitlements.Add(new SubscriptionEntitlement
+            {
+                SubscriptionId = subscription.Id, Capability = "migration.pdf.viewer", Enabled = true, Source = EntitlementSource.NegotiatedOverride,
+            });
+            await db.SaveChangesAsync();
+        }
         try
         {
             foreach (var profile in new[] { "pdf", "importer", "migration-code", "migration-designer", "migration-viewer" })
@@ -96,7 +111,7 @@ public sealed class PvadNativeViewerMigrationLicenseTests
     public async Task Designer_only_license_includes_source_pdf_and_mapping_but_not_public_engines()
     {
         using var factory = new PvadApiTestFactory();
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         var pdf = CreatePdf();
         try
         {

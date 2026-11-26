@@ -16,7 +16,7 @@ public sealed class MarkdownDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ConverterExport);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.md");
         var sb = new StringBuilder();
         sb.AppendLine($"# {design.Name}");
         sb.AppendLine();

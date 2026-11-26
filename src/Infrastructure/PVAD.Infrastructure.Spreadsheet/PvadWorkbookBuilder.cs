@@ -63,7 +63,10 @@ public sealed class PvadWorkbook
     /// <summary>Writes the workbook to disk; format is chosen by extension (.xlsx, .xls, .csv, .tsv).</summary>
     public void Save(string path)
     {
-        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".xls" => "export.xls", ".csv" => "export.csv", ".tsv" => "export.tsv", _ => "export.xlsx",
+        });
         SaveAdmitted(path);
     }
 

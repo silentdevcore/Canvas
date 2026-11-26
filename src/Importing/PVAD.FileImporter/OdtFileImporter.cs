@@ -29,7 +29,7 @@ public sealed class OdtFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        PvadLicense.Require(PvadLicenseProducts.Importer);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.odt");
         using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
 
         var styleMap = new Dictionary<string, ParaStyle>();
