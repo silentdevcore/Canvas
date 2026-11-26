@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using PVAD.Domain.Entities;
 using PVAD.Infrastructure.Persistence;
@@ -37,6 +38,7 @@ public sealed partial class AccountRegistrationControllerTests
             using var scratch = new RegistrationScratch();
             using var fallback = keyPath is null ? new RegistrationSigner() : null;
             var actorId = Guid.NewGuid();
+            var issuerClock = new RegistrationClock { Now = DateTimeOffset.UtcNow };
             var keyId = "synthetic-registration";
             if (keyPath is not null)
             {
@@ -56,14 +58,14 @@ public sealed partial class AccountRegistrationControllerTests
                     ["NativeLicenseIssuer:Enabled"] = "true", ["NativeLicenseIssuer:KeyId"] = keyId,
                     ["NativeLicenseIssuer:PrivateKeyPath"] = keyPath ?? Path.Combine(Path.GetTempPath(), "not-read-registration-test.pem"),
                     ["NativeLicenseIssuer:AllowedUserIds:0"] = actorId.ToString(),
-                    ["NativeLicenseAutomation:Enabled"] = "true", ["NativeLicenseAutomation:IssuerUserId"] = actorId.ToString(),
+                    ["NativeLicenseAutomation:Enabled"] = "true", ["NativeLicenseAutomation:FreeRenewalEnabled"] = "true", ["NativeLicenseAutomation:IssuerUserId"] = actorId.ToString(),
                     ["NativeLicenseAutomation:PolicyVersion"] = "synthetic-free-three-months-v1",
                     ["NativeLicenseAutomation:Model"] = "Subscription", ["NativeLicenseAutomation:ValidityMonths"] = "3",
                 }));
-                if (fallback is not null) builder.ConfigureServices(services => services.AddScoped(provider =>
-                    new PvadNativeLicenseIssuanceService(provider.GetRequiredService<PvadDbContext>(), fallback,
+                builder.ConfigureServices(services => services.AddScoped(provider =>
+                    new PvadNativeLicenseIssuanceService(provider.GetRequiredService<PvadDbContext>(), (IPvadNativeLicenseIssuerSigner?)fallback ?? provider.GetRequiredService<PvadNativeLicenseSigner>(),
                         provider.GetRequiredService<IOptions<PvadNativeIssuerOptions>>(), provider.GetRequiredService<IOptions<PvadStepUpOptions>>(),
-                        provider.GetRequiredService<PvadSystemOperatorAccess>(), TimeProvider.System)));
+                        provider.GetRequiredService<PvadSystemOperatorAccess>(), issuerClock)));
             });
             await SeedRolesAsync(factory.Services);
             await using (var scope = factory.Services.CreateAsyncScope())
@@ -135,6 +137,43 @@ public sealed partial class AccountRegistrationControllerTests
             Assert.Equal(Encoding.UTF8.GetString(bytes), retained.ArtifactJson);
             Assert.Equal(actorId, retained.IssuedByUserId);
             Assert.Single(await finalDb.AuditEvents.Where(row => row.Action == "native-licenses.issue").ToListAsync());
+
+            var initialDetails = await client.GetFromJsonAsync<NativeLicenseDetails>($"/api/pvad/v1/account/native-licenses/{license.Id}");
+            Assert.False(initialDetails!.FreeRenewal!.CanRenew);
+            using var tooEarly = CreateCsrfRequest(HttpMethod.Post, $"/api/pvad/v1/account/native-licenses/{license.Id}/renew-free", await GetCsrfAsync(client), new { });
+            Assert.Equal(HttpStatusCode.Conflict, (await client.SendAsync(tooEarly)).StatusCode);
+            issuerClock.Now = payload.ValidUntil.Value;
+            using var noCsrf = await client.PostAsJsonAsync($"/api/pvad/v1/account/native-licenses/{license.Id}/renew-free", new { });
+            Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(CreateCsrfRequest(HttpMethod.Post,
+                $"/api/pvad/v1/account/native-licenses/{Guid.NewGuid()}/renew-free", await GetCsrfAsync(client), new { }))).StatusCode);
+            var ready = await client.GetFromJsonAsync<NativeLicenseDetails>($"/api/pvad/v1/account/native-licenses/{license.Id}");
+            Assert.True(ready!.FreeRenewal!.CanRenew);
+            async Task<NativeLicenseResponse> Renew()
+            {
+                using var request = CreateCsrfRequest(HttpMethod.Post, $"/api/pvad/v1/account/native-licenses/{license.Id}/renew-free", await GetCsrfAsync(client), new { });
+                using var response = await client.SendAsync(request);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                return (await response.Content.ReadFromJsonAsync<NativeLicenseResponse>())!;
+            }
+            var renewed = await Renew();
+            Assert.Equal(renewed.Id, (await Renew()).Id);
+            var renewedBytes = await client.GetByteArrayAsync($"/api/pvad/v1/account/native-licenses/{renewed.Id}/download");
+            var renewedPayload = verifier.Verify(renewedBytes);
+            Assert.Equal(payload.ValidUntil, renewedPayload.ValidFrom);
+            Assert.Equal(renewedPayload.ValidFrom.AddMonths(3), renewedPayload.ValidUntil);
+            clock.Now = renewedPayload.ValidFrom;
+            offline.Load(new MemoryStream(renewedBytes));
+            offline.RequireCapability(PvadLicenseProducts.Pdf, "export.pdf");
+            clock.Now = renewedPayload.ValidUntil!.Value;
+            Assert.Equal(PvadLicenseState.Expired, offline.GetStatus().State);
+            var oldDetails = await client.GetFromJsonAsync<NativeLicenseDetails>($"/api/pvad/v1/account/native-licenses/{license.Id}");
+            Assert.Equal(renewed.Id, oldDetails!.RenewedByLicenseId);
+            Assert.Null(oldDetails.FreeRenewal);
+            Assert.Equal(2, await finalDb.NativeLibraryLicenses.CountAsync());
+            Assert.Single(await finalDb.AuditEvents.Where(row => row.Action == "native-licenses.renew").ToListAsync());
+            Console.WriteLine("native_free_renewal_embedded_trust=" + (keyPath is not null));
+
         }
     }
 

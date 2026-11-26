@@ -34,7 +34,7 @@ using Xunit.Abstractions;
 
 namespace PVAD.Api.Tests;
 
-public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
+public sealed partial class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     { Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) } };
@@ -149,7 +149,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         foreach (var identity in customer.Identities)
         foreach (var claim in identity.Claims.Where(claim => claim.Type == ClaimTypes.Role || claim.Type == PvadClaimTypes.Permission).ToArray())
             identity.RemoveClaim(claim);
-        var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now))
+        var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now), harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions()))
             { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = customer } } };
         Assert.Equal(personal.Id, Assert.Single(Assert.IsType<NativeLicensePage>(Assert.IsType<OkObjectResult>((await controller.List()).Result).Value).Items).Id);
         Assert.IsType<NotFoundResult>(await controller.Download(company.Id, default));
@@ -165,7 +165,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         session.OrganizationId = harness.OrganizationId;
         await db.SaveChangesAsync();
         // No membership in this workspace: personal ownership still works; its company license stays hidden.
-        var switched = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now))
+        var switched = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now), harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions()))
             { ControllerContext = controller.ControllerContext };
         Assert.IsType<FileContentResult>(await switched.Download(personal.Id, default));
         Assert.IsType<NotFoundResult>(await switched.Download(company.Id, default));
@@ -272,7 +272,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         }
         await Assert.ThrowsAsync<Npgsql.PostgresException>(() => migrator.MigrateAsync("20261120054204_AddNativeLibraryLicenses"));
         Assert.Equal(2, await db.NativeLibraryLicenses.CountAsync());
-        Assert.IsType<FileContentResult>(await new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now))
+        Assert.IsType<FileContentResult>(await new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now), harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions()))
             { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = harness.Principal() } } }.Download(personal.Id, default));
     }
 
@@ -714,7 +714,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         await db.SaveChangesAsync();
         var other = await harness.Service(db).IssueAsync(harness.Principal(), harness.Request() with { OrganizationId = foreignId }, default);
         var principal = harness.CustomerPrincipal();
-        var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now))
+        var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now), harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions()))
         { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = principal } } };
         var response = Assert.IsType<OkObjectResult>((await controller.List(cancellationToken: default)).Result);
         Assert.Equal(own.Id, Assert.Single(Assert.IsType<NativeLicensePage>(response.Value).Items).Id);
@@ -736,7 +736,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         var disabled = harness.Options(); disabled.Enabled = false;
         Assert.False((await harness.Service(db, disabled).CapabilitiesAsync(principal, default)).Enabled);
         Assert.IsType<FileContentResult>(await controller.Download(own.Id, default));
-        var crossContext = new AccountNativeLicensesController(db, new Tenant(harness.UserId, foreignId), new FixedClock(harness.Now))
+        var crossContext = new AccountNativeLicensesController(db, new Tenant(harness.UserId, foreignId), new FixedClock(harness.Now), harness.Service(db), Options.Create(new PvadNativeLicenseAutomationOptions()))
         { ControllerContext = controller.ControllerContext };
         Assert.IsType<ForbidResult>(await crossContext.Download(other.Id, default));
         session.RevokedAt = harness.Now; await db.SaveChangesAsync();

@@ -203,6 +203,7 @@ export interface NativeLicensePage {
   pageSize: number;
 }
 export interface NativeLicenseDetails {
+  freeRenewal?: { availableAt: string; canRenew: boolean } | null;
   gracePeriodDays?: number | null;
   accountScope?: { accountType: string; capabilities: string[] } | null;
   license: NativeLicenseResponse;
@@ -453,3 +454,6 @@ export const requestOrganizationClosure = (reason: string | null) =>
   mutation<AccountClosureResponse>(`${accountClosureBase}/organization`, { reason });
 export const cancelAccountClosure = (requestId: string) =>
   mutation<AccountClosureResponse>(`${accountClosureBase}/${encodeURIComponent(requestId)}/cancel`, {});
+
+export const renewAccountNativeLicenseFree = (id: string) => mutation<NativeLicenseResponse>(
+  `${accountNativeLicensesBase}/${encodeURIComponent(id)}/renew-free`, {});

@@ -474,6 +474,51 @@ expired automatic contracts. No database model change or migration is needed.
 Primary status remains **70/76 (92.1%)**, with production/platform/protection and
 key custody gates still open. Current changes are uncommitted.
 
+### Customer-Requested Free Renewal (2026-11-26)
+
+Following commit `ba8f0696`, the owner authorized free renewal in Account.
+`FreeRenewalEnabled` is separately opt-in and defaults to false. The disabled
+example opts in without enabling production automation. Details expose
+server-derived eligibility and the exact expiry time. The customer POST accepts
+no selectable dates, owner, grants or signing token; it requires a live human
+session, owner/organization access, CSRF and the existing signing rate limit.
+
+Renewal is available at expiry, with three calendar months from the successful
+request and zero grace. It is restricted to completed automatic registration
+licenses and their automatic free successors under the same policy version.
+Current account eligibility and manufacturer operator authorization are checked;
+rights can only stay the same or shrink. No Migration/redistribution is added.
+The separate Cloud trial can expire without forcing payment for native renewal;
+suspension/cancellation and organization/member restrictions still block it.
+
+The append-only ledger and predecessor uniqueness retain a single signed
+successor and renewal audit, recording both manufacturer and requesting user.
+Repeated requests return the same successor; a concurrent conflict can be
+retried. Signing failure creates neither a license nor a renewal audit. A new
+file must be downloaded and explicitly loaded in the offline application. There
+is no unattended renewal, remote activation or change to old signed files.
+
+Account tests pass **63/63**, with typecheck and production build passing. Release,
+operator and activation-guide checks pass **41/41**, with version/fragments valid.
+The real temporary-key PostgreSQL profile passes **69/69**, 0 skipped, under
+`artifacts/native-engine-tests/1795722546049-02a332f1/`. Its TRX was audited for a
+nonempty exclusively passing selection, including all three new renewal tests
+and the full HTTP registration/renewal/download/offline-expiry roundtrip for both
+account types. Output confirms the real embedded-trust path. The isolated build
+has 0 errors and 86 warnings. Both concurrent callers leave one successor/audit;
+the failure test confirms signing rollback. Earlier requests, repeated requests,
+late renewal, multiple terms and disabled/foreign accounts are covered.
+
+Cleanup confirms ephemeral keys and build directories removed, source trust and
+regular licensing outputs unchanged, and no testcontainers left running. Combined
+logs, TRX audit, release checks and source hashes are retained under
+`artifacts/native-free-renewal/20261126/`. The release fragment
+`native-free-account-renewal.json` declares **Minor / added** impact for Account,
+API and documentation; the signed native payload format is unchanged from the
+preceding strict-expiry commit. No database schema change,
+production key generation, deployment or commit is part of this change. Primary
+status remains **70/76 (92.1%)**, with existing release gates still open.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The recommendation below is historical. The current free-launch choice above

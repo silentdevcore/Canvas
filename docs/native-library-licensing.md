@@ -1716,3 +1716,12 @@ The automatic subscription signs `gracePeriodDays: 0`, so new processing is deni
 at `validUntil`. Older files retain their prior terms; older strict V2 readers
 must be upgraded before using new strict-expiry artifacts. The disabled
 three-month example contains no production key or usable manufacturer identity.
+
+With `NativeLicenseAutomation.FreeRenewalEnabled` explicitly enabled on the
+configured manufacturer deployment, eligible human owners can request free
+renewal in Account at expiry. The server fixes three more calendar months from
+the request, keeps zero grace and ownership, and never widens signed rights.
+Retries retain one immutable successor; customers download and explicitly load
+that replacement for offline use. This is separate from the Cloud trial and
+does not enable unattended renewal, production keys or paid licensing. See
+[the operator procedure](../operator-docs/PVAD.Native-Library-License-Issuance.md#customer-requested-free-renewal).

@@ -33,7 +33,7 @@ public sealed record NativeLicenseResponse(Guid Id, Guid? OrganizationId, Guid? 
     public Guid? OwnerUserId { get; init; }
 }
 
-public sealed class PvadNativeLicenseIssuanceService
+public sealed partial class PvadNativeLicenseIssuanceService
 {
     private readonly PvadDbContext db;
     private readonly IPvadNativeLicenseIssuerSigner signer;
@@ -229,7 +229,7 @@ public sealed class PvadNativeLicenseIssuanceService
     }
 
     private async Task<NativeLicenseResponse> PersistAsync(Guid actor, Guid requestId, string requestHash,
-        Guid? organizationId, Guid? ownerUserId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken, string? automationPolicyVersion = null)
+        Guid? organizationId, Guid? ownerUserId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken, string? automationPolicyVersion = null, Guid? requestedByUserId = null)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
         try
@@ -253,7 +253,7 @@ public sealed class PvadNativeLicenseIssuanceService
                 TargetType = "native-library-license", TargetId = payload.LicenseId.ToString(), Outcome = "succeeded",
                 CreatedAt = payload.IssuedAt,
                 DetailsJson = JsonSerializer.Serialize(new { PreviousLicenseId = previousId, ArtifactSha256 = Hash(artifact),
-                    Model = payload.Model.ToString(), ReasonCode = reasonCode, OwnerUserId = ownerUserId, AutomationPolicyVersion = automationPolicyVersion }),
+                    Model = payload.Model.ToString(), ReasonCode = reasonCode, OwnerUserId = ownerUserId, AutomationPolicyVersion = automationPolicyVersion, RequestedByUserId = requestedByUserId }),
             };
             var license = new NativeLibraryLicense
             {

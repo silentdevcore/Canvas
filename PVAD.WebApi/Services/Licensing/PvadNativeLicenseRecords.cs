@@ -10,11 +10,13 @@ public sealed record NativeLicensePage(IReadOnlyList<NativeLicenseResponse> Item
     public bool AutomaticIssuancePending { get; init; }
     public bool AutomaticIssuanceNeedsReview { get; init; }
 }
+public sealed record NativeLicenseFreeRenewal(DateTimeOffset AvailableAt, bool CanRenew);
 public sealed record NativeLicenseDetails(NativeLicenseResponse License, string CustomerReference,
     bool RedistributionAllowed, PvadLicenseGrant[] Grants, Guid? RenewedByLicenseId)
 {
     public PvadLicenseAccountScope? AccountScope { get; init; }
     public int? GracePeriodDays { get; init; }
+    public NativeLicenseFreeRenewal? FreeRenewal { get; init; }
 }
 public sealed record NativeLicenseProduct(string Id, IReadOnlyList<string> Providers);
 public sealed record NativeLicenseCapabilities(bool Enabled, IReadOnlyList<NativeLicenseProduct> Products);

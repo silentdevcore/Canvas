@@ -12,6 +12,7 @@ public sealed class PvadNativeLicenseAutomationOptions
 {
     public const string SectionName = "NativeLicenseAutomation";
     public bool Enabled { get; set; }
+    public bool FreeRenewalEnabled { get; set; }
     public Guid IssuerUserId { get; set; }
     public string? PolicyVersion { get; set; }
     public PvadLicenseModel? Model { get; set; }

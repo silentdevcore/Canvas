@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.RateLimiting;
 using PVAD.Domain.Entities;
 using PVAD.Infrastructure.Persistence;
 using PVAD.WebApi.Security;
@@ -13,7 +15,8 @@ namespace PVAD.WebApi.Controllers;
 [Authorize]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/pvad/v1/account/native-licenses")]
-public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenantContext tenant, TimeProvider clock) : ControllerBase
+public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenantContext tenant, TimeProvider clock,
+    PvadNativeLicenseIssuanceService issuer, IOptions<PvadNativeLicenseAutomationOptions> automation) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<NativeLicensePage>> List([FromQuery] int page = 1, [FromQuery] int pageSize = 25,
@@ -50,7 +53,8 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
                 .Select(value => (Guid?)value.Id).SingleOrDefaultAsync(cancellationToken);
             // Customer references are manufacturer bookkeeping, not customer-facing metadata.
             return Ok(new NativeLicenseDetails(PvadNativeLicenseIssuanceService.Summary(row), string.Empty,
-                payload.RedistributionAllowed, payload.Grants, successor) { AccountScope = payload.AccountScope, GracePeriodDays = payload.GracePeriodDays });
+                payload.RedistributionAllowed, payload.Grants, successor) { AccountScope = payload.AccountScope, GracePeriodDays = payload.GracePeriodDays,
+                    FreeRenewal = await issuer.FreeRenewalStatusAsync(row, access.UserId, automation.Value, cancellationToken) });
         }
         catch (PvadNativeIssuanceException error) { return Failure(error); }
     }
@@ -68,6 +72,20 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
             Response.Headers["X-Content-Type-Options"] = "nosniff";
             return File(Encoding.UTF8.GetBytes(row.ArtifactJson), "application/json", $"PVAD-native-{row.Id:N}.json");
         }
+        catch (PvadNativeIssuanceException error) { return Failure(error); }
+    }
+
+    [HttpPost("{licenseId:guid}/renew-free")]
+    [EnableRateLimiting("native-license-issuance")]
+    [PvadValidateAntiforgery]
+    [PvadAuditedMutation("native-licenses.renew-free")]
+    public async Task<ActionResult<NativeLicenseResponse>> RenewFree(Guid licenseId, CancellationToken cancellationToken)
+    {
+        var access = await ReadAccessAsync(cancellationToken);
+        if (access is null) return Forbid();
+        var row = await OwnLicenses(access).SingleOrDefaultAsync(value => value.Id == licenseId, cancellationToken);
+        if (row is null) return NotFound();
+        try { return Ok(await issuer.RenewFreeAsync(row, access.UserId, automation.Value, cancellationToken)); }
         catch (PvadNativeIssuanceException error) { return Failure(error); }
     }
 
@@ -105,6 +123,6 @@ public sealed class AccountNativeLicensesController(PvadDbContext db, IPvadTenan
     }
 
     private ObjectResult Failure(PvadNativeIssuanceException error) => Problem(statusCode: error.StatusCode,
-        title: "Native license unavailable", detail: "The native license could not be loaded.",
+        title: "Native license unavailable", detail: "The native license operation could not be completed. Refresh the license details or contact support.",
         extensions: new Dictionary<string, object?> { ["code"] = error.Code });
 }

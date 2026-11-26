@@ -155,6 +155,21 @@ the override. Operations already admitted retain their existing completion rules
 The disabled three-month configuration example does not provision production keys
 or enable automation, and the Cloud provider/key custody are still undecided.
 
+### Renew A Free License In Account
+
+When the manufacturer enables free renewal, open **Licenses → Details** in
+Account. The page shows the exact local expiry time and enables **Renew free
+license** at expiry. The server rechecks ownership and current account eligibility
+and issues three more calendar months from the successful request, without grace
+or additional product rights. Renewal is free; no payment is implied. Repeating
+the request returns the same successor. Earlier manufacturer-issued or manually
+renewed licenses may require support instead of this workflow.
+
+Download the new file, deploy it to your application and explicitly call
+`LoadFromFile`/`LoadFromStream`. The expired old file remains expired. File
+creation/renewal requires access to Account; subsequent use and expiry checking
+remain offline. The independent Cloud trial is not extended by native renewal.
+
 ## Automatic Registration Issuance
 
 After successful email verification, registration records a durable native-license
@@ -273,7 +288,8 @@ A successful replacement replaces the **entire** active license; grants are not
 merged. A cryptographically valid Word-only replacement can load successfully
 and still deny later PDF processing with `PVADLIC012`. The sample's `true`
 return means the file was accepted, not that every product was granted. The
-manufacturer renewal endpoint preserves rights within a renewal chain; the
+manufacturer renewal endpoint preserves rights within a renewal chain; free
+Account renewal may reduce them to the current account policy. The
 generic load API is also capable of selecting a different valid license.
 
 Already expired, future-dated, malformed, untrusted or signature-invalid

@@ -1,6 +1,6 @@
 import { escapeHtml } from '../shell';
 import { accountLicenseDownloadUrl, getAccountLicenses, validateAccountLicense,
-  getAccountNativeLicenses, getAccountNativeLicense, accountNativeLicenseDownloadUrl } from '../api';
+  getAccountNativeLicenses, getAccountNativeLicense, accountNativeLicenseDownloadUrl, renewAccountNativeLicenseFree } from '../api';
 import type { UserInfo, ApiError, AccountLicenseResponse, NativeLicenseResponse, NativeLicenseDetails } from '../api';
 import { registerAccountStateReset } from '../accountContext';
 import { displayDiagnosticCode, displaySystemMessage } from '../../../shared/diagnosticPresentation';
@@ -19,11 +19,13 @@ interface LicensesPageState {
   organizationLicenses: boolean;
   nativePending: boolean;
   nativeNeedsReview: boolean;
+  nativeRenewing: boolean;
+  nativeNotice: string | null;
 }
 
 let generation = 0;
 const state: LicensesPageState = { licenses: [], loading: false, loaded: false, error: null, validation: {},
-  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, nativePending: false, nativeNeedsReview: false, organizationLicenses: true };
+  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, nativePending: false, nativeNeedsReview: false, nativeRenewing: false, nativeNotice: null, organizationLicenses: true };
 registerAccountStateReset(() => {
   generation++;
   Object.assign(state, {
@@ -33,6 +35,7 @@ registerAccountStateReset(() => {
     error: null,
     validation: {},
     native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, nativePending: false, nativeNeedsReview: false,
+    nativeRenewing: false, nativeNotice: null,
   });
 });
 
@@ -66,11 +69,13 @@ function nativeLicensesSection(): string {
   const detail = state.nativeDetail;
   return `<section class="account-section account-licenses-section" aria-busy="${state.loading}"><h2>Native library licenses</h2>
     ${state.nativeError ? `<p role="alert">${escapeHtml(displaySystemMessage(state.nativeError))}</p>` : ''}
+    ${state.nativeNotice ? `<p role="status">${escapeHtml(state.nativeNotice)}</p>` : ''}
     ${state.nativePending ? '<p role="status">Your registration is recorded for license issuance.</p>' : ''}
     ${state.nativeNeedsReview ? '<p role="status">Your license issuance needs a review. Please contact support.</p>' : ''}
     <div class="account-table-scroll"><table class="account-table"><thead><tr><th>License</th><th>Model</th><th>Valid until / updates</th><th>Actions</th></tr></thead>
     <tbody>${state.native.map(item => `<tr><td>${escapeHtml(item.id)}</td><td>${escapeHtml(item.model)}</td>
-      <td>${item.validUntil || item.updatesUntil ? new Date((item.validUntil || item.updatesUntil)!).toLocaleDateString() : 'No end date'}</td>
+      <td>${item.validUntil || item.updatesUntil ? new Date((item.validUntil || item.updatesUntil)!).toLocaleString() : 'No end date'}
+      ${item.validUntil && Date.parse(item.validUntil) <= Date.now() ? '<br><strong>Term ended — open Details to check renewal.</strong>' : ''}</td>
       <td><button type="button" class="account-native-detail" data-license-id="${escapeHtml(item.id)}">Details</button>
       <a class="pvad-button pvad-button--secondary" href="${accountNativeLicenseDownloadUrl(item.id)}">Download</a></td></tr>`).join('') || `<tr><td colspan="4">${state.loading ? 'Loading...' : 'No native library licenses issued.'}</td></tr>`}</tbody></table></div>
     <div class="account-actions"><button id="account-native-previous" ${state.loading || state.nativePage <= 1 ? 'disabled' : ''}>Previous</button>
@@ -85,7 +90,11 @@ function nativeLicensesSection(): string {
         : 'Legacy product-level license'}</dd>
       ${detail.gracePeriodDays === 0 ? '<dt>Expiry</dt><dd>No new processing is permitted at or after the signed expiry time.</dd>' : ''}
       <dt>Artifact SHA-256</dt><dd class="account-license-hash">${escapeHtml(detail.license.artifactSha256)}</dd></dl>
-      ${detail.renewedByLicenseId ? '<p>A renewed license is available. The original artifact remains unchanged.</p>' : ''}</div>` : ''}
+      ${detail.renewedByLicenseId ? `<p>A renewed license is available. <a href="${accountNativeLicenseDownloadUrl(detail.renewedByLicenseId)}">Download renewed license</a></p>` : ''}
+      ${detail.freeRenewal ? `<p>Free renewal is available from ${escapeHtml(new Date(detail.freeRenewal.availableAt).toLocaleString())}.
+        Each renewal is valid for three calendar months without an expiry grace period. Download the new file and load it in your offline application.</p>
+        <button type="button" id="account-native-renew-free" data-license-id="${escapeHtml(detail.license.id)}"
+          ${!detail.freeRenewal.canRenew || state.nativeRenewing ? 'disabled' : ''}>${state.nativeRenewing ? 'Renewing…' : 'Renew free license'}</button>` : ''}</div>` : ''}
   </section>`;
 }
 
@@ -133,6 +142,27 @@ export function licensesPage(user?: UserInfo): string {
 }
 
 export function bindLicensesEvents(): void {
+  document.getElementById('account-native-renew-free')?.addEventListener('click', async () => {
+    if (state.nativeRenewing || !state.nativeDetail?.freeRenewal?.canRenew) return;
+    const current = generation;
+    const id = state.nativeDetail.license.id;
+    state.nativeRenewing = true; state.nativeError = null; state.nativeNotice = null;
+    window.dispatchEvent(new Event('pvad:rerender'));
+    try {
+      const renewed = await renewAccountNativeLicenseFree(id);
+      if (current !== generation || !renewed) return;
+      const detail = await getAccountNativeLicense(renewed.id);
+      if (current !== generation) return;
+      state.nativeDetail = detail;
+      state.nativeNotice = 'Your free license has been renewed. Download the new license and load it in your application.';
+      state.nativePage = 1;
+      await loadLicenses();
+    } catch (error) {
+      if (current === generation) state.nativeError = (error as ApiError).message;
+    } finally {
+      if (current === generation) { state.nativeRenewing = false; window.dispatchEvent(new Event('pvad:rerender')); }
+    }
+  });
   document.querySelectorAll<HTMLButtonElement>('.account-native-detail').forEach(button => button.addEventListener('click', async () => {
     const current = generation;
     button.disabled = true;

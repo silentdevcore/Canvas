@@ -20,6 +20,9 @@ The owner-selected free launch policy is three calendar months, renewal required
 with no expiry grace. See the 2026-11-26 local activation rehearsal in
 [the completion report](PVAD.Native-Licensing-Completion-Report.md). Production
 automation remains disabled while Cloud/key custody is undecided.
+The follow-up free-renewal workflow is separately opt-in and owner-requested at
+expiry; local evidence is recorded in the completion report without closing
+production acceptance gates or increasing the primary denominator.
 The latest cross-platform package acceptance below supersedes earlier pending
 platform notes; earlier evidence records retain their original results.
 

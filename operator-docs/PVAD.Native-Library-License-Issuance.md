@@ -140,7 +140,55 @@ rather than silently allowing seven days. Files without the field retain the
 previous subscription grace behavior; no historical artifact is rewritten.
 Renewal retains the signed strict-expiry setting and owner. Already-admitted
 operations keep the established completion semantics; expiry prevents new
-operations. Automatic renewal/self-service is not introduced by this change.
+operations. The optional customer-requested free renewal below issues a new file;
+there is no unattended renewal or automatic activation on customer machines.
+
+## Customer-Requested Free Renewal
+
+`NativeLicenseAutomation.FreeRenewalEnabled` defaults to false. The disabled
+three-month example sets it to true, but the enclosing automation and issuer
+must still be explicitly configured and enabled. This workflow only accepts
+the selected subscription policy with exactly three calendar months and zero
+grace; it is not a paid-license renewal endpoint.
+
+An authenticated human owner opens **Account → Licenses → Details**, then
+**Renew free license** at or after the signed expiry time. Company users need
+current organization membership and `account.licenses.read`; personal owners
+need no organization. `POST /api/pvad/v1/account/native-licenses/{id}/renew-free`
+requires the normal CSRF token and uses the manufacturer issuance rate limit.
+It accepts no customer-selected owner, term, grants or signing token. The
+allowlisted manufacturer actor must still be active, verified, unlocked and a
+global System Administrator authorized by the operator policy.
+
+Only completed automatic registration artifacts under the same policy version,
+and their automatic free successors, are eligible. Manual, paid, legacy-grace,
+Trial, perpetual and administrator-renewed artifacts are excluded. Account,
+organization, membership, cancellation and policy eligibility are rechecked.
+Expiry of the independent 30-day Cloud trial does not block this free native
+renewal; explicit suspension or cancellation does. This changes no Cloud access
+or trial entitlements.
+
+The server starts the new term at the successful request's current time and
+sets its end to three calendar months later, with no grace. A late request
+does not lose validity to an already elapsed gap. Ownership and baseline product
+grants are retained, and feature rights are intersected with current account
+policy. No Migration or redistribution rights are added. The original signed
+artifact stays immutable. The append-only predecessor constraint and stable
+request identity allow only one successor and audit; a completed retry returns
+the same successor bytes and term. A simultaneous loser may receive 409: refresh
+and retry the same predecessor, never create a new request identity.
+
+The renewal audit records both manufacturer issuer and requesting customer.
+Signing failure commits no license or renewal audit. Details link to an existing
+successor, including one produced through the manufacturer workflow. Customers
+download the new file and explicitly load/deploy it in their offline application;
+Account cannot update an offline installation remotely. No schema migration or
+new production key is required by this feature.
+
+Offline revocation manifests contain license IDs and are not consulted by this
+issuance endpoint. When stopping a customer's future issuance, also suspend the
+owner account/organization or disable free renewal; revoking only an old file
+does not disable an otherwise eligible account's renewal route.
 
 ## Automatic Registration Issuance
 
@@ -157,7 +205,8 @@ Configure `NativeLicenseAutomation` only on the manufacturer deployment:
 - `Enabled`: defaults to false; native manufacturer issuance must also be enabled.
 - `IssuerUserId`: explicitly allowlisted, active, verified, unlocked global System
   Administrator authorized by the operator policy. The worker does not impersonate
-  a browser session. Customer requests and service accounts have no issuance route.
+  a browser session. Customers have only the constrained free-renewal route above;
+  service accounts have no issuance route.
 - `PolicyVersion`: a reviewed stable lowercase identifier, for example `free-1`.
 - `Model`: explicitly choose `Subscription`, `Trial` or `Perpetual`; there is no
   default free contract. Subscription requires exactly one of `ValidityDays` (1–3650) or `ValidityMonths`
