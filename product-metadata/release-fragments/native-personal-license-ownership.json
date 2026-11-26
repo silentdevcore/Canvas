@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-personal-license-ownership",
+  "impact": "major",
+  "components": ["account", "admin", "api", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Native licenses can belong directly to individual users. Personal issuance requires a user owner, and license clients must support personal ownership alongside organizations.",
+  "breaking": true,
+  "documentation": ["/docs/guides/PVAD.Native-Library-Activation.md", "/docs/native-library-licensing.md"]
+}

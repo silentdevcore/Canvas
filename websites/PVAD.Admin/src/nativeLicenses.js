@@ -2,19 +2,23 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
   let context = null;
   let epoch = 0;
   let state;
-  const initialForm = () => ({ organizationId: '', customerReference: '', model: 'Subscription',
+  const initialForm = () => ({ ownerKind: 'organization', ownerUserId: '', organizationId: '', customerReference: '', model: 'Subscription',
     validFrom: new Date(Date.now() + 120000).toISOString().slice(0, 19),
     cutoff: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 19),
     reasonCode: 'purchase', redistributionAllowed: false, grants: [] });
   function reset() {
     epoch++;
-    state = { loaded: false, busy: false, error: '', notice: '', capabilities: null, organizations: [],
+    state = { loaded: false, busy: false, error: '', notice: '', capabilities: null, organizations: [], users: [],
       items: [], total: 0, page: 1, organizationId: '', detail: null, form: initialForm(), retry: null };
   }
   reset();
   const e = escapeHtml;
   const date = value => value ? new Date(value).toLocaleString() : 'No end date';
-  const problem = error => error.status === 403
+  const problem = error => error.code === 'PVAD_NATIVE_PERSONAL_OWNER_REQUIRED'
+    ? 'Choose Private user and select the license owner for a private account.'
+    : error.code === 'PVAD_NATIVE_OWNER_UNAVAILABLE'
+      ? 'The selected owner must have an active, verified account.'
+      : error.status === 403
     ? 'Manufacturer access requires a recent sign-in and explicit issuer authorization. Sign in again or contact your operator.'
     : error.message || 'Native licensing is unavailable.';
   async function work(operation) {
@@ -31,7 +35,7 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
   }
   function capture(form) {
     const data = new FormData(form);
-    state.form = { ...state.form, organizationId: String(data.get('organizationId') || ''),
+    state.form = { ...state.form, ownerKind: String(data.get('ownerKind') || 'organization'), ownerUserId: String(data.get('ownerUserId') || ''), organizationId: String(data.get('organizationId') || ''),
       customerReference: String(data.get('customerReference') || ''), model: String(data.get('model')),
       validFrom: String(data.get('validFrom')), cutoff: String(data.get('cutoff') || ''),
       reasonCode: String(data.get('reasonCode')), redistributionAllowed: data.get('redistributionAllowed') === 'on',
@@ -47,10 +51,12 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
     const form = state.form;
     const options = `${form.organizationId && !state.organizations.some(org => org.id === form.organizationId) ? `<option value="${e(form.organizationId)}" selected>${e(form.organizationId)}</option>` : ''}${state.organizations.map(org => `<option value="${e(org.id)}" ${org.id === form.organizationId ? 'selected' : ''}>${e(org.name)}</option>`).join('')}`;
     return `<section class="admin-section"><div class="admin-section-heading"><h2>Issue native license</h2></div>
+      ${form.ownerKind === 'user' ? '<form id="native-user-search" class="admin-table-toolbar"><input name="search" aria-label="Search license owners" placeholder="User name or email"><button type="submit">Search users</button></form>' : ''}
       <form id="native-organization-search" class="admin-table-toolbar"><input name="search" aria-label="Search organizations" placeholder="Organization name"><button type="submit">Search organizations</button></form>
       <form id="native-license-issue" class="admin-form-stack"><fieldset ${state.busy ? 'disabled' : ''}>
         <div class="admin-subscription-fields">
-          <label class="admin-field"><span>Organization</span><select name="organizationId" required><option value="">Select organization</option>${options}</select></label>
+          <label class="admin-field"><span>License owner</span><select name="ownerKind"><option value="organization" ${form.ownerKind === 'organization' ? 'selected' : ''}>Organization</option><option value="user" ${form.ownerKind === 'user' ? 'selected' : ''}>Private user</option></select></label>
+          ${form.ownerKind === 'user' ? `<label class="admin-field"><span>Private owner</span><select name="ownerUserId" required><option value="">Search and select user</option>${state.users.map(user => `<option value="${e(user.id)}" ${form.ownerUserId === user.id ? 'selected' : ''}>${e(user.displayName || user.email || user.id)}</option>`).join('')}</select></label><p>Private feature limits apply automatically. This license belongs to the user.</p>` : `<label class="admin-field"><span>Organization</span><select name="organizationId" required><option value="">Select organization</option>${options}</select></label>`}
           <label class="admin-field"><span>Customer reference</span><input name="customerReference" maxlength="160" value="${e(form.customerReference)}" required></label>
           <label class="admin-field"><span>License model</span><select name="model">${['Subscription', 'Perpetual', 'Trial'].map(value => `<option ${form.model === value ? 'selected' : ''}>${value}</option>`).join('')}</select></label>
           <label class="admin-field"><span>Start (UTC)</span><input name="validFrom" type="datetime-local" step="1" value="${e(form.validFrom)}" required></label>
@@ -71,7 +77,7 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
     const { license, grants, customerReference, redistributionAllowed, renewedByLicenseId, accountScope } = state.detail;
     const renewable = license.model !== 'Trial' && !renewedByLicenseId;
     return `<section class="admin-section" aria-label="Native license details"><div class="admin-section-heading"><h2>Native license ${e(license.id)}</h2></div>
-      <dl class="admin-detail-list admin-detail-list--compact"><div><dt>Customer reference</dt><dd>${e(customerReference)}</dd></div><div><dt>Model</dt><dd>${e(license.model)}</dd></div>
+      <dl class="admin-detail-list admin-detail-list--compact"><div><dt>Owner</dt><dd>${license.ownerUserId ? `Private user: ${e(license.ownerUserId)}` : `Organization: ${e(license.organizationId)}`}</dd></div><div><dt>Customer reference</dt><dd>${e(customerReference)}</dd></div><div><dt>Model</dt><dd>${e(license.model)}</dd></div>
       <div><dt>Redistribution</dt><dd>${redistributionAllowed ? 'Permitted' : 'Not permitted'}</dd></div><div><dt>Artifact SHA-256</dt><dd class="native-license-hash">${e(license.artifactSha256)}</dd></div>
       <div><dt>Issued</dt><dd>${e(date(license.issuedAt))}</dd></div><div><dt>Products</dt><dd>${grants.map(grant => `${e(grant.product)}${grant.providers.length ? ` (${grant.providers.map(e).join(', ')})` : ''}`).join('<br>')}</dd></div>
       <div><dt>Feature rights</dt><dd>${accountScope ? accountScope.capabilities.map(e).join(', ') : 'Legacy product-level license'}</dd></div></dl>
@@ -105,7 +111,7 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
         ${state.error ? `<div class="admin-alert admin-alert--error" role="alert">${e(state.error)} <button id="native-license-reauth" type="button" ${state.busy ? 'disabled' : ''}>Sign out and sign in</button></div>` : ''}
         ${state.notice ? `<div class="admin-alert" role="status">${e(state.notice)}</div>` : ''}
         ${!state.capabilities ? (state.error ? '' : '<p role="status">Checking manufacturer access...</p>') : !state.capabilities.enabled ? '<section class="admin-section"><h2>Manufacturer issuance disabled</h2><p>This deployment cannot issue native licenses.</p></section>' : `${issueForm()}${details()}
-        <section class="admin-table-section" aria-busy="${state.busy}"><form id="native-license-filter" class="admin-table-toolbar"><label>Organization <select name="organizationId"><option value="">All organizations</option>${state.organizations.map(org => `<option value="${e(org.id)}" ${state.organizationId === org.id ? 'selected' : ''}>${e(org.name)}</option>`).join('')}</select></label><button type="submit">Filter</button></form>
+        <section class="admin-table-section" aria-busy="${state.busy}"><form id="native-license-filter" class="admin-table-toolbar"><label>Organization <select name="organizationId"><option value="">All owners</option>${state.organizations.map(org => `<option value="${e(org.id)}" ${state.organizationId === org.id ? 'selected' : ''}>${e(org.name)}</option>`).join('')}</select></label><button type="submit">Filter</button></form>
         <div class="admin-table-scroll"><table><thead><tr><th>License</th><th>Model</th><th>Start</th><th>End / updates</th><th>Actions</th></tr></thead><tbody>${state.items.map(item => `<tr><td>${e(item.id)}</td><td>${e(item.model)}</td><td>${e(date(item.validFrom))}</td><td>${e(date(item.validUntil || item.updatesUntil))}</td><td><button type="button" data-native-detail="${e(item.id)}">Details</button> <a data-native href="${api.nativeLicenseDownloadUrl(item.id)}">Download</a></td></tr>`).join('') || '<tr><td colspan="5">No native licenses</td></tr>'}</tbody></table></div>
         <footer class="admin-pagination"><span>Page ${state.page} / ${Math.max(1, Math.ceil(state.total / 25))}</span><div><button id="native-license-previous" ${state.busy || state.page <= 1 ? 'disabled' : ''}>Previous</button><button id="native-license-next" ${state.busy || state.page * 25 >= state.total ? 'disabled' : ''}>Next</button></div></footer></section>`}</div>`;
     },
@@ -117,24 +123,30 @@ export function createNativeLicensePage(api, escapeHtml, changed) {
       root.querySelector('#native-license-refresh')?.addEventListener('click', () => { state.loaded = false; this.ensureLoaded(); });
       const issue = root.querySelector('#native-license-issue');
       issue?.addEventListener('input', () => capture(issue));
-      issue?.addEventListener('change', event => { capture(issue); if (event.target.name === 'model' || event.target.name?.startsWith('product:')) changed(); });
+      issue?.addEventListener('change', event => { capture(issue); if (event.target.name === 'ownerKind' || event.target.name === 'model' || event.target.name?.startsWith('product:')) changed(); });
       issue?.addEventListener('submit', event => {
         event.preventDefault(); capture(issue);
         work(async token => {
           const form = state.form;
+          if (form.ownerKind === 'user' ? !form.ownerUserId : !form.organizationId) throw new Error('Select a license owner.');
           if (!form.grants.length) throw new Error('Select at least one product.');
           const from = new Date(`${form.validFrom}Z`).toISOString();
-          const payload = { ...form, validFrom: from, validUntil: form.model === 'Perpetual' ? null : form.model === 'Trial'
+          const payload = { ...form, organizationId: form.ownerKind === 'user' ? null : form.organizationId,
+            ownerUserId: form.ownerKind === 'user' ? form.ownerUserId : null, validFrom: from, validUntil: form.model === 'Perpetual' ? null : form.model === 'Trial'
             ? new Date(Date.parse(from) + 30 * 86400000).toISOString() : new Date(`${form.cutoff}Z`).toISOString(),
             updatesUntil: form.model === 'Perpetual' ? new Date(`${form.cutoff}Z`).toISOString() : null,
             redistributionAllowed: form.model !== 'Trial' && form.redistributionAllowed };
-          delete payload.cutoff;
+          delete payload.cutoff; delete payload.ownerKind;
           const result = await api.issueNativeLicense({ ...payload, requestId: retryId(payload) });
           if (token !== epoch) return;
           state.retry = null; state.notice = 'Native license issued.'; state.page = 1;
           const detail = await api.getNativeLicenseDetails(result.id);
           if (token === epoch) { state.detail = detail; await list(token); }
         });
+      });
+      root.querySelector('#native-user-search')?.addEventListener('submit', event => {
+        event.preventDefault(); const search = String(new FormData(event.currentTarget).get('search') || '');
+        work(async token => { const result = await api.getAdminUsers({ search, status: 'active', pageSize: 100 }); if (token === epoch) state.users = result.items; });
       });
       root.querySelector('#native-organization-search')?.addEventListener('submit', event => {
         event.preventDefault(); const search = String(new FormData(event.currentTarget).get('search') || '');

@@ -1602,7 +1602,10 @@ namespace PVAD.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<Guid>("OrganizationId")
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OwnerUserId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("PreviousLicenseId")
@@ -1639,7 +1642,12 @@ namespace PVAD.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrganizationId", "IssuedAt");
 
-                    b.ToTable("native_library_licenses", "administration");
+                    b.HasIndex("OwnerUserId", "IssuedAt");
+
+                    b.ToTable("native_library_licenses", "administration", t =>
+                        {
+                            t.HasCheckConstraint("CK_native_library_licenses_single_owner", "(\"OrganizationId\" IS NOT NULL) <> (\"OwnerUserId\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("PVAD.Domain.Entities.OfflineLicense", b =>
@@ -3132,8 +3140,12 @@ namespace PVAD.Infrastructure.Persistence.Migrations
                     b.HasOne("PVAD.Domain.Entities.Organization", null)
                         .WithMany()
                         .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PVAD.Infrastructure.Persistence.Identity.PvadIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("PVAD.Domain.Entities.NativeLibraryLicense", null)
                         .WithMany()

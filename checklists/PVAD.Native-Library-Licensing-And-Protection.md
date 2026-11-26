@@ -130,8 +130,13 @@ background jobs and UI choices. The planning/Step 1 notes above describe their
 earlier state. V1 native files keep their prior product rights; authenticated
 product APIs and active-license requirements for standalone E-Invoice processing
 are pending Major workflow changes. See the [Step 2 scope and validation](PVAD.Native-Licensing-Completion-Report.md#step-2-signed-capabilities-and-processing-enforcement-2026-11-25).
-Personal ownership and automatic customer issuance are still pending, as are
-current-candidate protected-package/platform acceptance and production approvals.
+Personal native-license ownership is implemented in the subsequent Step 3
+candidate (2026-11-26); see the [ownership report](PVAD.Native-Licensing-Completion-Report.md#step-3-personal-native-license-ownership-2026-11-26).
+Local validation covers 28 API cases through the corrected rerun, real database
+ownership/migration guards, 61 Account tests, 49 Admin tests and 256 tooling tests.
+No production migration, key provisioning or new commit was performed.
+Automatic customer issuance, current-candidate protected-package/platform
+acceptance and production approvals remain pending.
 Local Step 2 source validation: 1,579 native tests passed; 1,542 API cases are
 accounted for through the full run and corrected reruns, with no unresolved
 failure (not a second unfiltered green run). Designer, Admin, Account and tooling

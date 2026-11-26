@@ -31,9 +31,9 @@ async function loadOrganizationStatus(): Promise<void> {
 }
 
 export function dashboardPage(user: UserInfo): string {
-  if (!state.loaded && !state.loading) loadOrganizationStatus();
   const organizations = user.organizations || [];
   const active = organizations.find((item) => item.id === user.activeOrganizationId) || organizations[0];
+  if (active && user.permissions.includes('account.organization.read') && !state.loaded && !state.loading) loadOrganizationStatus();
   const suspended = state.organization?.status === 'Suspended';
   return `
     <header class="account-page-header">
@@ -42,7 +42,7 @@ export function dashboardPage(user: UserInfo): string {
         <h1>${escapeHtml(active?.name || 'Your PVADE account')}</h1>
         <p>Manage your customer identity and continue into PVADE products.</p>
       </div>
-      <span class="account-status">Trial workspace</span>
+      <span class="account-status">${active ? 'Trial workspace' : 'Personal account'}</span>
     </header>
     ${suspended ? '<p class="account-message account-message--error" role="alert">This organization is suspended. Contact support to restore access.</p>' : ''}
     <section class="account-summary" aria-label="Account summary">
@@ -53,7 +53,9 @@ export function dashboardPage(user: UserInfo): string {
     <section class="account-section">
       <div><h2>Continue working</h2><p>Open the product surface or guidance that matches your next task.</p></div>
       <div class="account-actions">
-        <a class="pvad-button pvad-button--primary" href="${siteLinks.designer}">Open Designer</a>
+        ${!active && user.canReadPersonalNativeLicenses
+          ? '<a class="pvad-button pvad-button--primary" href="/licenses">Your licenses</a>'
+          : `<a class="pvad-button pvad-button--primary" href="${siteLinks.designer}">Open Designer</a>`}
         <a class="pvad-button pvad-button--secondary" href="${siteLinks.demo}">Explore demos</a>
         <a class="pvad-button pvad-button--secondary" href="${siteLinks.documentation}">Read documentation</a>
       </div>

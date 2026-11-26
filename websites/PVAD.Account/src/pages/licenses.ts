@@ -1,7 +1,7 @@
 import { escapeHtml } from '../shell';
 import { accountLicenseDownloadUrl, getAccountLicenses, validateAccountLicense,
   getAccountNativeLicenses, getAccountNativeLicense, accountNativeLicenseDownloadUrl } from '../api';
-import type { ApiError, AccountLicenseResponse, NativeLicenseResponse, NativeLicenseDetails } from '../api';
+import type { UserInfo, ApiError, AccountLicenseResponse, NativeLicenseResponse, NativeLicenseDetails } from '../api';
 import { registerAccountStateReset } from '../accountContext';
 import { displayDiagnosticCode, displaySystemMessage } from '../../../shared/diagnosticPresentation';
 
@@ -16,11 +16,12 @@ interface LicensesPageState {
   nativePage: number;
   nativeTotal: number;
   nativeDetail: NativeLicenseDetails | null;
+  organizationLicenses: boolean;
 }
 
 let generation = 0;
 const state: LicensesPageState = { licenses: [], loading: false, loaded: false, error: null, validation: {},
-  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null };
+  native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null, organizationLicenses: true };
 registerAccountStateReset(() => {
   generation++;
   Object.assign(state, {
@@ -40,7 +41,7 @@ async function loadLicenses(): Promise<void> {
   state.error = null;
   state.nativeError = null;
   try {
-    const licenses = (await getAccountLicenses()) ?? [];
+    const licenses = state.organizationLicenses ? (await getAccountLicenses()) ?? [] : [];
     if (current === generation) state.licenses = licenses;
   } catch (error) {
     if (current === generation) state.error = (error as ApiError).message;
@@ -72,6 +73,7 @@ function nativeLicensesSection(): string {
       <span>Page ${state.nativePage} / ${Math.max(1, Math.ceil(state.nativeTotal / 25))}</span>
       <button id="account-native-next" ${state.loading || state.nativePage * 25 >= state.nativeTotal ? 'disabled' : ''}>Next</button></div>
     ${detail ? `<div><h3>Native license details</h3><dl class="account-native-metadata"><dt>License</dt><dd>${escapeHtml(detail.license.id)}</dd>
+      <dt>Owner</dt><dd>${detail.license.ownerUserId ? 'Personal license' : 'Organization license'}</dd>
       <dt>Products</dt><dd>${detail.grants.map(grant => `${escapeHtml(grant.product)}${grant.providers.length ? ` (${grant.providers.map(escapeHtml).join(', ')})` : ''}`).join('<br>')}</dd>
       <dt>Redistribution</dt><dd>${detail.redistributionAllowed ? 'Permitted' : 'Not permitted'}</dd>
       <dt>Feature rights</dt><dd>${detail.accountScope
@@ -99,7 +101,8 @@ function licenseRow(license: AccountLicenseResponse): string {
   `;
 }
 
-export function licensesPage(): string {
+export function licensesPage(user?: UserInfo): string {
+  state.organizationLicenses = user ? Boolean(user.activeOrganizationId && user.permissions.includes('account.licenses.read')) : true;
   if (!state.loaded && !state.loading) loadLicenses();
 
   return `
@@ -107,10 +110,10 @@ export function licensesPage(): string {
       <div>
         <p class="pvad-kicker">Customer workspace</p>
         <h1>Licenses</h1>
-        <p>Server and native library licenses</p>
+        <p>Personal and organization licenses</p>
       </div>
     </header>
-    <section class="account-section account-licenses-section">
+    ${state.organizationLicenses ? `<section class="account-section account-licenses-section">
       <h2>Server offline licenses</h2>
       <div>
         ${state.error ? `<p role="alert">${escapeHtml(displaySystemMessage(state.error))}</p>` : ''}
@@ -119,7 +122,7 @@ export function licensesPage(): string {
           <tbody>${state.licenses.map(licenseRow).join('') || `<tr><td colspan="5">${state.loading ? 'Loading…' : 'No offline licenses issued yet.'}</td></tr>`}</tbody>
         </table>
       </div>
-    </section>
+    </section>` : ''}
     ${nativeLicensesSection()}
   `;
 }

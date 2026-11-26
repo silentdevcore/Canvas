@@ -9,9 +9,12 @@ internal sealed class NativeLibraryLicenseConfiguration : IEntityTypeConfigurati
 {
     public void Configure(EntityTypeBuilder<NativeLibraryLicense> builder)
     {
-        builder.ToTable("native_library_licenses", DatabaseSchemas.Administration);
+        builder.ToTable("native_library_licenses", DatabaseSchemas.Administration, table =>
+            table.HasCheckConstraint("CK_native_library_licenses_single_owner",
+                "(\"OrganizationId\" IS NOT NULL) <> (\"OwnerUserId\" IS NOT NULL)"));
         builder.HasKey(value => value.Id);
         builder.HasOne<Organization>().WithMany().HasForeignKey(value => value.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<PvadIdentityUser>().WithMany().HasForeignKey(value => value.OwnerUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<PvadIdentityUser>().WithMany().HasForeignKey(value => value.IssuedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<AuditEvent>().WithMany().HasForeignKey(value => value.AuditEventId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<NativeLibraryLicense>().WithMany().HasForeignKey(value => value.PreviousLicenseId).OnDelete(DeleteBehavior.Restrict);
@@ -24,5 +27,6 @@ internal sealed class NativeLibraryLicenseConfiguration : IEntityTypeConfigurati
         builder.HasIndex(value => new { value.IssuedByUserId, value.RequestId }).IsUnique();
         builder.HasIndex(value => value.PreviousLicenseId).IsUnique();
         builder.HasIndex(value => new { value.OrganizationId, value.IssuedAt });
+        builder.HasIndex(value => new { value.OwnerUserId, value.IssuedAt });
     }
 }

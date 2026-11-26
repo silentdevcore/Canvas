@@ -4,7 +4,8 @@ namespace PVAD.Domain.Entities;
 public sealed class NativeLibraryLicense
 {
     public Guid Id { get; set; }
-    public Guid OrganizationId { get; set; }
+    public Guid? OrganizationId { get; set; }
+    public Guid? OwnerUserId { get; set; }
     public Guid IssuedByUserId { get; set; }
     public Guid AuditEventId { get; set; }
     public Guid RequestId { get; set; }

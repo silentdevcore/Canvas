@@ -290,6 +290,72 @@ product licenses retain their native XLS paths and the dependency is unchanged.
 Client-side previews and editable project data are not a DRM boundary against manually saving visible
 content. Primary status remains **70/76 (92.1%)**.
 
+### Step 3: Personal Native License Ownership (2026-11-26)
+
+Implemented after owner authorization following commit `53c51164`; these new
+changes are not committed or deployed. Native artifacts have exactly one
+immutable owner: an organization or an individual user. Personal issuance needs
+no organization, derives individual capabilities server-side and preserves the
+manufacturer authorization, signing, idempotency and audit controls. New
+individual-scoped issuance cannot target an organization. Legacy artifacts are
+not automatically reassigned, and renewal preserves their actual owner.
+
+The customer native-license API checks the active, verified, unlocked user and
+matching unrevoked browser session. Personal ownership works with no active
+organization and survives workspace switches or membership removal. Organization
+access still needs active membership, an active organization and the explicit
+license-read permission. Null organization IDs cannot act as an ownership filter.
+Service accounts and foreign owners cannot download another user's artifact.
+
+The migration adds nullable personal ownership and a database constraint for
+exactly one owner, an owner-user FK and an owner/time index. A renewal insert
+trigger checks the predecessor owner; append-only mutation protection remains.
+The migration does not rewrite signed bytes or existing ownership. Its rollback
+refuses personal rows before DDL. No live database migration is performed.
+
+Admin supports explicit private-user selection; Account exposes personal
+licenses without requiring organizational permissions or organization-only API
+requests. Orgless login lands on a personal dashboard. Account caches are
+invalidated when effective permissions or personal-license visibility change.
+The API adds owner metadata and makes `organizationId` nullable for personal
+records; the fragment declares **Major / breaking** impact and clients need a
+coordinated migration/deployment. VERSION and the published manifest are unchanged.
+
+Validation evidence: `artifacts/native-personal-ownership/20261126/`, macOS/x64,
+SDK 10.0.113. All test selections enable PostgreSQL fixtures with isolated local
+PostgreSQL 17 containers; no production database or signing key is used.
+
+| Check | Result |
+| --- | --- |
+| Native issuance, personal HTTP and persistent cookie authentication | **19/19**, 0 skipped (`ownership-rerun.trx`) |
+| Expanded issuance, authentication, cross-tenant and Account server-license regressions | **27 passed / 1 fixture failure**, 0 skipped (`ownership-final.trx`, 28 cases) |
+| Corrected retained private-organization artifact fixture | **1/1**, 0 skipped (`legacy-owner-final.trx`) |
+| Combined API case-name coverage | **28 distinct cases, all Passed after the corrected rerun**; no second complete 28-case green run is claimed |
+| Migration compatibility and constraints | Real DB roundtrip preserves original artifact bytes/hash/organization; invalid missing/both owners and cross-owner renewal inserts return SQLSTATE 23514; rollback with personal data is refused and rows remain readable |
+| EF model / deployment SQL | No pending model changes; migration SQL generated without applying it to a live DB |
+| Account portal | **61/61**, typecheck and production build passed; actual bundled orgless license page and dashboard issue no organization requests; permissions/context reset covered |
+| Admin portal | **49/49**, production build passed; private-owner selection submits ownerUserId and a null organization, with escaped display data |
+| Source/tooling/operator-guide/version/release-author checks | **256/256**, 0 skipped; version and fragment checks passed |
+
+The first compile run failed because the new HTTP fixture lacked its timestamp
+helper namespace; no tests executed. A portal fixture initially requested an
+unavailable bundler and now uses the existing Vite dependency without adding
+packages. The expanded API run's one failure was a manually retained legacy row
+whose fixture hash omitted the canonical operation wrapper; correcting that
+fixture produced the final 1/1 pass. Logs and failed-run evidence are retained.
+The test-session cleanup at
+`artifacts/native-test-sessions/ab4f924a-6a50-4741-b932-b888be2f3054/cleanup.json`
+confirms temporary files removed and unchanged source trust/synthetic artifacts.
+Native verifier/signature code is unchanged. A full unfiltered API audit,
+protected packages, cross-platform acceptance and full solution build were not
+repeated for this step.
+
+Scope: this completes native license ownership, access, download and renewal.
+Existing Cloud document-workspace/registration tenancy is retained. Automatic
+registration/customer issuance is Step 4. No production keys, installation
+activation, sharing enforcement, paid rollout, XLS decision, platform acceptance
+or primary checklist closure is implied. Primary status remains **70/76 (92.1%)**.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The owner stated that PVAD will initially be offered free of charge while still

@@ -13,18 +13,23 @@ using PVAD.WebApi.Security;
 
 namespace PVAD.WebApi.Services.Licensing;
 
-public sealed record IssueNativeLicenseRequest(Guid RequestId, Guid OrganizationId, string CustomerReference,
+public sealed record IssueNativeLicenseRequest(Guid RequestId, Guid? OrganizationId, string CustomerReference,
     [property: JsonConverter(typeof(JsonStringEnumConverter<PvadLicenseModel>))] PvadLicenseModel Model,
     DateTimeOffset ValidFrom, DateTimeOffset? ValidUntil, DateTimeOffset? UpdatesUntil,
     bool RedistributionAllowed, PvadLicenseGrant[] Grants, string ReasonCode)
 {
     public PvadLicenseAccountScope? AccountScope { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? OwnerUserId { get; init; }
 }
 public sealed record RenewNativeLicenseRequest(Guid RequestId, DateTimeOffset? ValidUntil,
     DateTimeOffset? UpdatesUntil, string ReasonCode);
-public sealed record NativeLicenseResponse(Guid Id, Guid OrganizationId, Guid? PreviousLicenseId, string Model,
+public sealed record NativeLicenseResponse(Guid Id, Guid? OrganizationId, Guid? PreviousLicenseId, string Model,
     DateTimeOffset IssuedAt, DateTimeOffset ValidFrom, DateTimeOffset? ValidUntil, DateTimeOffset? UpdatesUntil,
-    string ArtifactSha256);
+    string ArtifactSha256)
+{
+    public Guid? OwnerUserId { get; init; }
+}
 
 public sealed class PvadNativeLicenseIssuanceService
 {
@@ -71,7 +76,12 @@ public sealed class PvadNativeLicenseIssuanceService
         var actor = await RequireIssuerAsync(principal, cancellationToken);
         ValidateRequest(request.RequestId, request.ReasonCode);
         var now = PvadLicenseTimestamps.Normalize(clock.GetUtcNow());
-        var accountPolicy = await PvadAccountPolicyService.ReadAsync(db, request.OrganizationId, cancellationToken);
+        if ((request.OrganizationId is null) == (request.OwnerUserId is null) ||
+            request.OrganizationId == Guid.Empty || request.OwnerUserId == Guid.Empty)
+            throw Error("PVAD_NATIVE_OWNER_INVALID", 400);
+        var accountPolicy = request.OwnerUserId is not null
+            ? new PvadAccountPolicySnapshot(PvadLicenseAccountKind.IndividualDeveloper, [])
+            : await PvadAccountPolicyService.ReadAsync(db, request.OrganizationId!.Value, cancellationToken);
         var requestedScope = request.AccountScope;
         if (accountPolicy is not null)
         {
@@ -100,7 +110,15 @@ public sealed class PvadNativeLicenseIssuanceService
         var canonicalRequest = request with { Grants = payload.Grants, ValidFrom = payload.ValidFrom,
             ValidUntil = payload.ValidUntil, UpdatesUntil = payload.UpdatesUntil, AccountScope = payload.AccountScope };
         var checksum = RequestHash(new { operation = "issue", request = canonicalRequest });
-        return await PersistAsync(actor, request.RequestId, checksum, request.OrganizationId, null, request.ReasonCode,
+        if (request.OrganizationId is not null && payload.AccountScope?.AccountType == "individualDeveloper")
+        {
+            // Retained requests remain idempotent; only new private issuance
+            // requires personal ownership. Existing artifacts are never reassigned.
+            var retained = await FindRequestAsync(actor, request.RequestId, checksum, cancellationToken);
+            if (retained is not null) return Summary(retained);
+            throw Error("PVAD_NATIVE_PERSONAL_OWNER_REQUIRED", 400);
+        }
+        return await PersistAsync(actor, request.RequestId, checksum, request.OrganizationId, request.OwnerUserId, null, request.ReasonCode,
             payload, cancellationToken);
     }
 
@@ -117,6 +135,7 @@ public sealed class PvadNativeLicenseIssuanceService
         PvadLicensePayload original;
         try
         {
+            PvadNativeLicenseRecords.ReadStoredPayload(previous);
             if (Hash(previous.ArtifactJson) != previous.ArtifactSha256) throw new InvalidOperationException();
             original = signer.Verify(previous.ArtifactJson);
             if (original.LicenseId != previous.Id || original.CustomerReference != previous.CustomerReference ||
@@ -135,7 +154,7 @@ public sealed class PvadNativeLicenseIssuanceService
             throw Error("PVAD_NATIVE_RENEWAL_INVALID", 400);
         var payload = original with { LicenseId = Guid.NewGuid(), IssuedAt = now, ValidUntil = until, UpdatesUntil = updates };
         ValidatePayload(payload);
-        return await PersistAsync(actor, request.RequestId, checksum, previous.OrganizationId, previous.Id,
+        return await PersistAsync(actor, request.RequestId, checksum, previous.OrganizationId, previous.OwnerUserId, previous.Id,
             request.ReasonCode, payload, cancellationToken);
     }
 
@@ -178,13 +197,18 @@ public sealed class PvadNativeLicenseIssuanceService
     }
 
     private async Task<NativeLicenseResponse> PersistAsync(Guid actor, Guid requestId, string requestHash,
-        Guid organizationId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken)
+        Guid? organizationId, Guid? ownerUserId, Guid? previousId, string reasonCode, PvadLicensePayload payload, CancellationToken cancellationToken)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
         try
         {
-            if (!await db.Organizations.AnyAsync(value => value.Id == organizationId && value.Status == OrganizationStatus.Active, cancellationToken))
+            if (organizationId is { } organization &&
+                !await db.Organizations.AnyAsync(value => value.Id == organization && value.Status == OrganizationStatus.Active, cancellationToken))
                 throw Error("PVAD_NATIVE_ORGANIZATION_UNAVAILABLE", 409);
+            if (ownerUserId is { } owner &&
+                !await db.Users.AnyAsync(value => value.Id == owner && value.IsActive && value.EmailConfirmed &&
+                    (value.LockoutEnd == null || value.LockoutEnd <= clock.GetUtcNow()), cancellationToken))
+                throw Error("PVAD_NATIVE_OWNER_UNAVAILABLE", 409);
             var existing = await FindRequestAsync(actor, requestId, requestHash, cancellationToken);
             if (existing is not null) return Summary(existing);
             if (previousId is not null && await db.NativeLibraryLicenses.AnyAsync(value => value.PreviousLicenseId == previousId, cancellationToken))
@@ -197,11 +221,11 @@ public sealed class PvadNativeLicenseIssuanceService
                 TargetType = "native-library-license", TargetId = payload.LicenseId.ToString(), Outcome = "succeeded",
                 CreatedAt = payload.IssuedAt,
                 DetailsJson = JsonSerializer.Serialize(new { PreviousLicenseId = previousId, ArtifactSha256 = Hash(artifact),
-                    Model = payload.Model.ToString(), ReasonCode = reasonCode }),
+                    Model = payload.Model.ToString(), ReasonCode = reasonCode, OwnerUserId = ownerUserId }),
             };
             var license = new NativeLibraryLicense
             {
-                Id = payload.LicenseId, OrganizationId = organizationId, IssuedByUserId = actor, AuditEventId = audit.Id,
+                Id = payload.LicenseId, OrganizationId = organizationId, OwnerUserId = ownerUserId, IssuedByUserId = actor, AuditEventId = audit.Id,
                 RequestId = requestId, RequestSha256 = requestHash, PreviousLicenseId = previousId,
                 ArtifactJson = artifact, ArtifactSha256 = Hash(artifact), LicenseModel = payload.Model.ToString(),
                 CustomerReference = payload.CustomerReference, IssuedAt = payload.IssuedAt, ValidFrom = payload.ValidFrom,
@@ -253,5 +277,5 @@ public sealed class PvadNativeLicenseIssuanceService
     private static PvadNativeIssuanceException Error(string code, int status) => new(code, status);
     internal static NativeLicenseResponse Summary(NativeLibraryLicense license) => new(license.Id, license.OrganizationId,
         license.PreviousLicenseId, license.LicenseModel, license.IssuedAt, license.ValidFrom, license.ValidUntil,
-        license.UpdatesUntil, license.ArtifactSha256);
+        license.UpdatesUntil, license.ArtifactSha256) { OwnerUserId = license.OwnerUserId };
 }

@@ -746,6 +746,7 @@ public sealed class AuthController : ControllerBase
             user.LastLoginAt,
             "1")
         {
+            CanReadPersonalNativeLicenses = user.IsActive && user.EmailConfirmed,
             AccountCapabilities = activeMembership is null ? [] :
                 (await PVAD.WebApi.Services.Licensing.PvadAccountPolicyService.ReadAsync(dbContext,
                     activeMembership.OrganizationId, cancellationToken, requireActive: true))?.AllowedCapabilities() ?? [],
@@ -906,6 +907,7 @@ public sealed record UserInfo(
     string ApiVersion)
 {
     public IReadOnlyList<string> AccountCapabilities { get; init; } = [];
+    public bool CanReadPersonalNativeLicenses { get; init; }
 }
 
 public sealed record OrganizationInfo(Guid Id, string Name, string Slug);

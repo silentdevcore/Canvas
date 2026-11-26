@@ -50,3 +50,18 @@ test('tenant-scoped state resets across organization changes and user A to user 
 
   unregister();
 });
+
+
+test('license scope and role changes invalidate cached account data even in the same workspace', () => {
+  clearAccountContext();
+  let resets = 0;
+  const unregister = registerAccountStateReset(() => resets++);
+  try {
+    const owner = { ...user('owner', 'workspace'), canReadPersonalNativeLicenses: true, permissions: ['account.licenses.read'] };
+    updateAccountContext(owner);
+    updateAccountContext({ ...owner, permissions: [] });
+    assert.equal(resets, 1);
+    updateAccountContext({ ...owner, permissions: [], canReadPersonalNativeLicenses: false });
+    assert.equal(resets, 2);
+  } finally { unregister(); clearAccountContext(); }
+});

@@ -103,6 +103,40 @@ checked at the processing entry. Manual `Require` is a preflight admission value
 not a transferable token, a reservation for future calls, or a way to bypass
 the library's own checks.
 
+## Personal And Organization Ownership
+
+Native issuance accepts exactly one owner: `organizationId` for a company or
+`ownerUserId` for a personal license. Personal requests send `organizationId: null`;
+the server assigns the individual capability policy even if that person also
+belongs to a company. An organization target cannot create a new individual-scoped
+license. The manufacturer administrator still performs issuance; registration
+and customer self-service automation are a later step.
+
+Personal native licenses can be listed and downloaded by their verified, active
+owner using a valid browser session, including a session without an organization.
+Joining, switching or leaving a workspace does not transfer personal ownership.
+Organization artifacts additionally require the active membership and license-read
+permission for the selected organization. Service accounts cannot use customer
+native-license download routes. The account portal shows personal licenses without
+querying organization-only licensing endpoints.
+
+Renewal retains the original owner and creates a new immutable artifact. The
+database enforces one owner, owner foreign keys and matching renewal ownership;
+the existing append-only protection stays in place. Migration
+`20261126180911_AddPersonalNativeLicenseOwnership` preserves existing rows and
+signed bytes. Legacy organization-owned artifacts, including previously issued
+individual-scoped files, are retained and renewable without automatic reassignment.
+A retry of a retained request remains idempotent. Rollback is refused before
+schema changes if personal artifacts already exist, because the old schema cannot
+represent their ownership. Apply the migration before deploying clients/API that
+read nullable `organizationId` and optional `ownerUserId` metadata.
+
+The native signed format and offline signature checks are unchanged. Account
+ownership is not installation activation or sharing detection. Cloud document
+workspaces and current registration tenancy are unchanged by this licensing step;
+a personal native license does not require or create such a workspace. Automatic
+customer issuance and production key custody remain separate rollout tasks.
+
 ## Product Rights And Dependencies
 
 New version-two licenses additionally carry a signed `accountScope` with the

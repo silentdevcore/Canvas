@@ -67,3 +67,11 @@ test('every Account page with module state registers a context reset', async () 
     'usage.ts',
   ]);
 });
+
+
+test('personal license access does not grant organization management or organization license rights', () => {
+  const owner = { ...user([]), canReadPersonalNativeLicenses: true };
+  assert.equal(hasAccountPermission(owner, accountPermissions.licensesRead), true);
+  assert.equal(hasAccountPermission(owner, accountPermissions.organizationManage), false);
+  assert.equal(owner.permissions.includes(accountPermissions.licensesRead), false);
+});

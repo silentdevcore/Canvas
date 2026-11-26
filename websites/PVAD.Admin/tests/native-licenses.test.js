@@ -109,3 +109,31 @@ test('license metadata is escaped and unknown provider options never appear', as
     assert.deepEqual([...f.root.querySelectorAll('[name="provider:migration.pdf.code"] option')].map(option => option.value), ['aspose-pdf']);
   } finally { f.close(); }
 });
+
+
+test('personal issuance selects a user and sends no organization owner', async () => {
+  const issued = [];
+  const f = fixture({ getAdminUsers: async () => ({ items: [{ id: 'private-owner', displayName: '<Private User>' }] }),
+    issueNativeLicense: async payload => { issued.push(payload); throw new Error('Synthetic stop after capture'); } });
+  try {
+    await f.page.ensureLoaded();
+    let form = f.root.querySelector('#native-license-issue');
+    form.elements.ownerKind.value = 'user';
+    form.elements.ownerKind.dispatchEvent(new f.dom.window.Event('change', { bubbles: true }));
+    const search = f.root.querySelector('#native-user-search');
+    search.dispatchEvent(new f.dom.window.Event('submit', { bubbles: true, cancelable: true }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    form = f.root.querySelector('#native-license-issue');
+    assert.equal(form.elements.organizationId, undefined);
+    form.elements.ownerUserId.value = 'private-owner';
+    form.elements.customerReference.value = 'synthetic-private';
+    form.elements['product:pdf'].checked = true;
+    form.dispatchEvent(new f.dom.window.Event('submit', { bubbles: true, cancelable: true }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(issued.length, 1);
+    assert.equal(issued[0].ownerUserId, 'private-owner');
+    assert.equal(issued[0].organizationId, null);
+    assert.equal(issued[0].ownerKind, undefined);
+    assert.equal(f.root.querySelector('Private'), null);
+  } finally { f.close(); }
+});

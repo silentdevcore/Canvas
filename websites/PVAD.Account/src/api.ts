@@ -15,6 +15,7 @@ export interface OrganizationInfo {
 }
 
 export interface UserInfo {
+  canReadPersonalNativeLicenses?: boolean;
   id: string;
   username: string;
   email: string;
@@ -183,7 +184,8 @@ export interface AccountLicenseResponse {
 
 export interface NativeLicenseResponse {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
+  ownerUserId?: string | null;
   previousLicenseId: string | null;
   model: string;
   issuedAt: string;

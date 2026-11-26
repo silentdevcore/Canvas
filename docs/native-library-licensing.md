@@ -1681,3 +1681,18 @@ and commercial anti-tamper tools are deferred.
 
 See the [implementation checklist](../checklists/PVAD.Native-Library-Licensing-And-Protection.md)
 for open work. Public package publishing and version bumps are separate actions.
+
+
+## Personal License Ownership
+
+Personal native artifacts now belong to a user (`ownerUserId`) and have no
+organization owner. Company artifacts retain `organizationId`. Manufacturer
+issuance accepts exactly one owner; new personal licenses always use individual
+feature limits. Customer access checks the actual owner and a verified browser
+session, while company downloads additionally require membership and license-read
+permission. Personal downloads work without an organization.
+
+Deploy the ownership migration with the matching API and portals. Existing signed
+files and legacy ownership remain unchanged; renewals cannot change ownership.
+See the [activation and ownership guide](guides/PVAD.Native-Library-Activation.md#personal-and-organization-ownership)
+for migration and rollback behavior. Automatic issuance is not enabled by this change.

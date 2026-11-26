@@ -6,7 +6,7 @@ const resetters = new Set<ResetAccountState>();
 let activeContextKey: string | null = null;
 
 function contextKey(user: UserInfo | null): string | null {
-  return user ? `${user.id}:${user.activeOrganizationId ?? 'none'}` : null;
+  return user ? JSON.stringify([user.id, user.activeOrganizationId ?? null, [...(user.permissions ?? [])].sort(), user.canReadPersonalNativeLicenses === true]) : null;
 }
 
 export function registerAccountStateReset(reset: ResetAccountState): () => void {

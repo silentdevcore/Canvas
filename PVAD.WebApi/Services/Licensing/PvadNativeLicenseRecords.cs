@@ -37,6 +37,10 @@ internal static class PvadNativeLicenseRecords
             var payload = PvadLicenseJson.Read<PvadLicensePayload>(Convert.FromBase64String(envelope.Payload), PvadLicenseJson.MaximumPayloadBytes);
             PvadLicenseVerifier.ValidatePayload(payload);
             if (payload.SchemaVersion != envelope.SchemaVersion) throw new InvalidOperationException();
+            if ((license.OrganizationId is null) == (license.OwnerUserId is null) ||
+                license.OrganizationId == Guid.Empty || license.OwnerUserId == Guid.Empty ||
+                license.OwnerUserId is not null && payload.AccountScope?.AccountType != "individualDeveloper")
+                throw new InvalidOperationException();
             if (payload.LicenseId != license.Id || payload.CustomerReference != license.CustomerReference ||
                 payload.Model.ToString() != license.LicenseModel || payload.IssuedAt != license.IssuedAt ||
                 payload.ValidFrom != license.ValidFrom || payload.ValidUntil != license.ValidUntil || payload.UpdatesUntil != license.UpdatesUntil)

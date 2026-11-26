@@ -34,9 +34,11 @@ by the application or this guide.
    platform operator allowlisting. The user must be active, email verified,
    unlocked, and use a live persistent session within the configured recent
    authentication interval. API keys and service accounts cannot issue licenses.
-6. Apply the additive `AddNativeLibraryLicenses` migration through the normal
-   reviewed deployment process. It adds an append-only ledger and database
-   mutation trigger; the implementation does not migrate a live database for you.
+6. Apply `AddNativeLibraryLicenses` and `AddPersonalNativeLicenseOwnership`
+   through the reviewed deployment process. The ledger remains append-only.
+   The ownership migration preserves existing bytes/owners, adds personal-user
+   ownership and protects renewal ownership. Rollback is refused before DDL if
+   personal rows exist. The application does not migrate a live database for you.
 
 ## Proposed Initial Production Key Storage (Not Provisioned)
 
@@ -91,8 +93,12 @@ public-register provisioning have been reviewed and explicitly authorized.
 1. Reauthenticate as an authorized manufacturer operator and obtain the normal
    same-origin CSRF token. Never paste cookies or tokens into support reports.
 2. Submit `POST /api/pvad/v1/admin/native-licenses` with `requestId`,
-   `organizationId`, `customerReference`, `model`, `validFrom`, `validUntil`,
-   `updatesUntil`, `redistributionAllowed`, `grants`, and `reasonCode`.
+   `customerReference`, `model`, `validFrom`, `validUntil`, `updatesUntil`,
+   `redistributionAllowed`, `grants`, `reasonCode`, and exactly one owner:
+   `organizationId` for a company, or `ownerUserId` with `organizationId: null`
+   for a personal license. Personal owners must be active, verified and unlocked;
+   the server applies individual feature limits even if they belong to a company.
+   An individual-scoped license cannot newly target an organization.
 3. Use a new request GUID per intended action. Retry the identical request with
    the same GUID after an uncertain response; changing its contents returns 409.
 4. Use UTC dates. Trial lasts exactly 30 days from its signed start; subscription
@@ -110,8 +116,9 @@ public-register provisioning have been reviewed and explicitly authorized.
    endpoints are never exposed as customer issuance endpoints.
 
 The ledger row and successful `native-licenses.issue` audit event commit in one
-transaction. Audit details contain model, reason code, artifact hash, and renewal
-link only, not the full artifact, customer reference, or signing material.
+transaction. Audit details contain model, reason code, artifact hash, renewal
+link and personal-owner ID where applicable; not the full artifact, customer
+reference, email address or signing material.
 
 ## Renew Without Rewriting History
 
@@ -121,7 +128,7 @@ link only, not the full artifact, customer reference, or signing material.
    subscription or `updatesUntil` for a perpetual license. Leave the other date
    null. Expired new cutoffs are rejected.
 3. Expect a new license ID and `previousLicenseId`; verify unchanged customer,
-   products, providers, model, start date, and redistribution rights.
+   owner, products, providers, model, start date, and redistribution rights.
 4. Download and deliver the new artifact. Explicitly load it in the customer
    process. Failed local replacement preserves a previously valid license.
 
@@ -134,17 +141,23 @@ Renewal does not remotely revoke an offline artifact or alter existing customers
 ## Failure Handling
 
 Admin exposes the manufacturer workspace at `/native-licenses`, with catalog-
-driven product/provider selection, organization search, paging, Details, Download
+driven product/provider selection, organization/private-user search, paging, Details, Download
 and Renewal. No signing secrets are entered in the browser. A rejected operation
 keeps the draft and reuses its request ID only for an identical retry. A fresh
 sign-in can be started through the sign-out/sign-in action after a recent-session
 failure. Customer verification-only servers display issuance disabled.
 
 Account lists, details and downloads use `/api/pvad/v1/account/native-licenses`.
-The active organization comes from the persistent session, not a query parameter
-or body. Each request checks the verified active user, active membership,
-organization and live session. Removed members cannot download; foreign IDs return
-404 within an otherwise valid workspace. API keys cannot use this customer flow.
+Owner identity and active organization come from the persistent session, not
+query parameters or a body. Each request checks the verified active user and
+live browser session. Personal owners need no organization or organizational
+permission and retain access after workspace changes or membership removal.
+Organization artifacts additionally require active membership, active organization
+and license-read permission. Foreign IDs return 404 within an authorized context;
+API keys and service accounts cannot use this customer flow. Legacy organization
+artifacts retain their ownership, including formerly issued individual-scoped
+files. Their renewal does not silently transfer ownership; identical retained
+issuance requests stay idempotent.
 Issuance need not be enabled and no private key is loaded for customer downloads.
 Stored hashes and metadata are checked before delivery; the native runtime still
 verifies the signature independently before activation. Expired and superseded

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -95,7 +96,9 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         {
             subscription.AccountType = kind;
             await db.SaveChangesAsync();
-            var request = harness.Request();
+            var request = kind == SubscriptionAccountType.IndividualDeveloper
+                ? harness.Request() with { OrganizationId = null, OwnerUserId = harness.UserId }
+                : harness.Request();
             var service = harness.Service(db);
             var result = await service.IssueAsync(harness.Principal(), request, default);
             var stored = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(value => value.Id == result.Id);
@@ -121,6 +124,156 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
             var error = await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), mismatched, default));
             Assert.Equal("PVAD_NATIVE_ISSUANCE_INVALID", error.Code);
         }
+    }
+
+    [PostgreSqlFact]
+    public async Task Personal_ownership_supports_orgless_access_and_survives_workspace_changes()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var service = harness.Service(db);
+        var personal = await service.IssueAsync(harness.Principal(), harness.Request() with
+            { OrganizationId = null, OwnerUserId = harness.UserId }, default);
+        Assert.Null(personal.OrganizationId);
+        Assert.Equal(harness.UserId, personal.OwnerUserId);
+        var original = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(row => row.Id == personal.Id);
+        Assert.Equal("individualDeveloper", harness.Signer.Verify(original.ArtifactJson).AccountScope!.AccountType);
+        var company = await service.IssueAsync(harness.Principal(), harness.Request(), default);
+        var foreignUser = Guid.NewGuid();
+        db.Users.Add(new PvadIdentityUser { Id = foreignUser, DisplayName = "Other private owner", UserName = foreignUser.ToString(), EmailConfirmed = true });
+        await db.SaveChangesAsync();
+        var foreign = await service.IssueAsync(harness.Principal(), harness.Request() with
+            { OrganizationId = null, OwnerUserId = foreignUser }, default);
+        var customer = harness.Principal();
+        // No license-reading or manufacturer role/permission is needed to read one's own artifact.
+        foreach (var identity in customer.Identities)
+        foreach (var claim in identity.Claims.Where(claim => claim.Type == ClaimTypes.Role || claim.Type == PvadClaimTypes.Permission).ToArray())
+            identity.RemoveClaim(claim);
+        var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now))
+            { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = customer } } };
+        Assert.Equal(personal.Id, Assert.Single(Assert.IsType<NativeLicensePage>(Assert.IsType<OkObjectResult>((await controller.List()).Result).Value).Items).Id);
+        Assert.IsType<NotFoundResult>(await controller.Download(company.Id, default));
+        Assert.IsType<NotFoundResult>(await controller.Download(foreign.Id, default));
+        var file = Assert.IsType<FileContentResult>(await controller.Download(personal.Id, default));
+        Assert.Equal(original.ArtifactJson, Encoding.UTF8.GetString(file.FileContents));
+        var renewal = await service.RenewAsync(harness.Principal(), personal.Id,
+            new(Guid.NewGuid(), harness.Now.AddDays(60), null, "renewal"), default);
+        Assert.Null(renewal.OrganizationId);
+        Assert.Equal(harness.UserId, renewal.OwnerUserId);
+        Assert.Equal(original.ArtifactJson, (await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(row => row.Id == personal.Id)).ArtifactJson);
+        var session = await db.UserSessions.SingleAsync();
+        session.OrganizationId = harness.OrganizationId;
+        await db.SaveChangesAsync();
+        // No membership in this workspace: personal ownership still works; its company license stays hidden.
+        var switched = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now))
+            { ControllerContext = controller.ControllerContext };
+        Assert.IsType<FileContentResult>(await switched.Download(personal.Id, default));
+        Assert.IsType<NotFoundResult>(await switched.Download(company.Id, default));
+        customer.Identities.First().AddClaim(new(PvadClaimTypes.ServiceAccount, "synthetic"));
+        Assert.IsType<ForbidResult>(await switched.Download(personal.Id, default));
+        customer.Identities.First().RemoveClaim(customer.FindFirst(PvadClaimTypes.ServiceAccount)!);
+        session.RevokedAt = harness.Now;
+        await db.SaveChangesAsync();
+        Assert.IsType<ForbidResult>(await switched.Download(personal.Id, default));
+    }
+
+    [PostgreSqlFact]
+    public async Task Personal_issuance_rejects_ambiguous_unavailable_or_overprivileged_owners()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var service = harness.Service(db);
+        foreach (var invalid in new[]
+        {
+            harness.Request() with { OrganizationId = null },
+            harness.Request() with { OwnerUserId = harness.UserId },
+            harness.Request() with { OrganizationId = null, OwnerUserId = Guid.Empty },
+        })
+            Assert.Equal("PVAD_NATIVE_OWNER_INVALID", (await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), invalid, default))).Code);
+        var user = new PvadIdentityUser { Id = Guid.NewGuid(), UserName = "personal-target", DisplayName = "Private target", EmailConfirmed = false };
+        db.Users.Add(user);
+        db.OrganizationSubscriptions.Add(new OrganizationSubscription { OrganizationId = harness.OrganizationId, AccountType = SubscriptionAccountType.IndividualDeveloper });
+        await db.SaveChangesAsync();
+        Assert.Equal("PVAD_NATIVE_PERSONAL_OWNER_REQUIRED", (await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), harness.Request(), default))).Code);
+        foreach (var target in new[] { user.Id, Guid.NewGuid() })
+            Assert.Equal("PVAD_NATIVE_OWNER_UNAVAILABLE", (await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), harness.Request() with { OrganizationId = null, OwnerUserId = target }, default))).Code);
+        user.EmailConfirmed = true; user.IsActive = false; await db.SaveChangesAsync();
+        Assert.Equal("PVAD_NATIVE_OWNER_UNAVAILABLE", (await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), harness.Request() with { OrganizationId = null, OwnerUserId = user.Id }, default))).Code);
+        user.IsActive = true; await db.SaveChangesAsync();
+        var forbidden = harness.Request() with { OrganizationId = null, OwnerUserId = user.Id, AccountScope = new("company", ["export.pdf"]) };
+        Assert.Equal("PVAD_NATIVE_ISSUANCE_INVALID", (await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), forbidden, default))).Code);
+        Assert.Empty(await db.NativeLibraryLicenses.ToListAsync());
+    }
+
+    [PostgreSqlFact]
+    public async Task Retained_private_organization_artifacts_remain_idempotent_and_renewable_without_reassignment()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var request = harness.Request() with { AccountScope = new("individualDeveloper", ["export.pdf", "migration.pdf.code"]) };
+        var payload = new PvadLicensePayload(2, Guid.NewGuid(), request.CustomerReference, request.Model,
+            harness.Now, request.ValidFrom, request.ValidUntil, request.UpdatesUntil, false, request.Grants) { AccountScope = request.AccountScope };
+        var artifact = harness.Signer.Sign(payload);
+        var audit = new AuditEvent { ActorUserId = harness.UserId, OrganizationId = harness.OrganizationId,
+            Action = "native-licenses.issue", TargetType = "native-library-license", TargetId = payload.LicenseId.ToString(), Outcome = "succeeded" };
+        // Retained pre-migration artifact: never manufacture a new org-owned
+        // private artifact through the current issuance API.
+        var row = new NativeLibraryLicense { Id = payload.LicenseId, OrganizationId = harness.OrganizationId,
+            IssuedByUserId = harness.UserId, AuditEventId = audit.Id, RequestId = request.RequestId,
+            RequestSha256 = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { operation = "issue", request }, PvadLicenseJson.Options)))),
+            ArtifactJson = artifact, ArtifactSha256 = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(artifact))),
+            LicenseModel = payload.Model.ToString(), CustomerReference = payload.CustomerReference, IssuedAt = payload.IssuedAt,
+            ValidFrom = payload.ValidFrom, ValidUntil = payload.ValidUntil, UpdatesUntil = payload.UpdatesUntil };
+        db.AuditEvents.Add(audit); db.NativeLibraryLicenses.Add(row); await db.SaveChangesAsync();
+        var service = harness.Service(db);
+        Assert.Equal(row.Id, (await service.IssueAsync(harness.Principal(), request, default)).Id);
+        Assert.Single(await db.AuditEvents.ToListAsync());
+        var rejected = await Assert.ThrowsAsync<PvadNativeIssuanceException>(() => service.IssueAsync(harness.Principal(), request with { RequestId = Guid.NewGuid() }, default));
+        Assert.Equal("PVAD_NATIVE_PERSONAL_OWNER_REQUIRED", rejected.Code);
+        var renewed = await service.RenewAsync(harness.Principal(), row.Id, new(Guid.NewGuid(), harness.Now.AddDays(60), null, "renewal"), default);
+        Assert.Equal(harness.OrganizationId, renewed.OrganizationId);
+        Assert.Null(renewed.OwnerUserId);
+        var retained = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(value => value.Id == row.Id);
+        Assert.Equal(artifact, retained.ArtifactJson);
+        Assert.Equal("individualDeveloper", harness.Signer.Verify((await db.NativeLibraryLicenses.AsNoTracking().SingleAsync(value => value.Id == renewed.Id)).ArtifactJson).AccountScope!.AccountType);
+    }
+
+    [PostgreSqlFact]
+    public async Task Ownership_migration_preserves_legacy_artifacts_and_database_constraints()
+    {
+        await using var harness = await Harness.CreateAsync(output);
+        await using var db = new PvadDbContext(harness.Database);
+        var service = harness.Service(db);
+        var company = await service.IssueAsync(harness.Principal(), harness.Request(), default);
+        var before = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync();
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20261120054204_AddNativeLibraryLicenses");
+        await migrator.MigrateAsync();
+        var after = await db.NativeLibraryLicenses.AsNoTracking().SingleAsync();
+        Assert.Equal(before.ArtifactJson, after.ArtifactJson);
+        Assert.Equal(before.ArtifactSha256, after.ArtifactSha256);
+        Assert.Equal(before.OrganizationId, after.OrganizationId);
+        Assert.Null(after.OwnerUserId);
+        var personal = await service.IssueAsync(harness.Principal(), harness.Request() with { OrganizationId = null, OwnerUserId = harness.UserId }, default);
+        foreach (var ownership in new[]
+        {
+            "jsonb_build_object('OrganizationId', NULL, 'OwnerUserId', NULL)",
+            $"jsonb_build_object('OrganizationId', '{harness.OrganizationId}', 'OwnerUserId', '{harness.UserId}')",
+            $"jsonb_build_object('OrganizationId', NULL, 'OwnerUserId', '{harness.UserId}', 'PreviousLicenseId', '{company.Id}')",
+        })
+        {
+            // Only fixture-generated GUIDs enter this SQL. Copying a retained row
+            // isolates the owner constraint/trigger from unrelated required fields.
+#pragma warning disable EF1002, EF1003
+            var error = await Assert.ThrowsAsync<Npgsql.PostgresException>(() => db.Database.ExecuteSqlRawAsync(
+                "INSERT INTO administration.native_library_licenses SELECT (jsonb_populate_record(NULL::administration.native_library_licenses, to_jsonb(source) || jsonb_build_object('Id', gen_random_uuid()) || " + ownership + ")).* FROM administration.native_library_licenses source WHERE source.\"Id\" = {0}", company.Id));
+#pragma warning restore EF1002, EF1003
+            Assert.Equal("23514", error.SqlState);
+        }
+        await Assert.ThrowsAsync<Npgsql.PostgresException>(() => migrator.MigrateAsync("20261120054204_AddNativeLibraryLicenses"));
+        Assert.Equal(2, await db.NativeLibraryLicenses.CountAsync());
+        Assert.IsType<FileContentResult>(await new AccountNativeLicensesController(db, new Tenant(harness.UserId, null), new FixedClock(harness.Now))
+            { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = harness.Principal() } } }.Download(personal.Id, default));
     }
 
     [PostgreSqlFact]
@@ -402,7 +555,7 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         var session = await db.UserSessions.SingleAsync(); session.OrganizationId = harness.OrganizationId;
         await db.SaveChangesAsync();
         var other = await harness.Service(db).IssueAsync(harness.Principal(), harness.Request() with { OrganizationId = foreignId }, default);
-        var principal = harness.Principal();
+        var principal = harness.CustomerPrincipal();
         var controller = new AccountNativeLicensesController(db, new Tenant(harness.UserId, harness.OrganizationId), new FixedClock(harness.Now))
         { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = principal } } };
         var response = Assert.IsType<OkObjectResult>((await controller.List(cancellationToken: default)).Result);
@@ -416,6 +569,12 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
         var record = await db.NativeLibraryLicenses.SingleAsync(row => row.Id == own.Id);
         Assert.Equal(record.ArtifactJson, Encoding.UTF8.GetString(file.FileContents));
         Assert.Equal(own.Id, harness.Signer.Verify(Encoding.UTF8.GetString(file.FileContents)).LicenseId);
+        var readClaim = principal.FindFirst(claim => claim.Type == PvadClaimTypes.Permission && claim.Value == PvadAccountPermissions.LicensesRead)!;
+        principal.Identities.First().RemoveClaim(readClaim);
+        var personalOnly = Assert.IsType<NativeLicensePage>(Assert.IsType<OkObjectResult>((await controller.List()).Result).Value);
+        Assert.Empty(personalOnly.Items);
+        Assert.IsType<NotFoundResult>(await controller.Download(own.Id, default));
+        principal.Identities.First().AddClaim(readClaim);
         var disabled = harness.Options(); disabled.Enabled = false;
         Assert.False((await harness.Service(db, disabled).CapabilitiesAsync(principal, default)).Enabled);
         Assert.IsType<FileContentResult>(await controller.Download(own.Id, default));
@@ -431,10 +590,10 @@ public sealed class PvadNativeLicenseIssuanceTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void Customer_native_routes_require_the_existing_account_permission_without_manufacturer_permissions()
+    public void Customer_native_routes_require_authentication_and_check_ownership_without_manufacturer_permissions()
     {
         var attribute = Assert.Single(typeof(AccountNativeLicensesController).GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), false));
-        Assert.Equal(PvadAccountPermissions.LicensesRead, ((Microsoft.AspNetCore.Authorization.AuthorizeAttribute)attribute).Policy);
+        Assert.Null(((Microsoft.AspNetCore.Authorization.AuthorizeAttribute)attribute).Policy);
         Assert.Equal(3, typeof(AccountNativeLicensesController).GetMethods().Count(method => method.GetCustomAttributes(typeof(HttpGetAttribute), false).Length > 0));
         Assert.True(typeof(AdminNativeLicensesController).GetCustomAttributes(typeof(ApiExplorerSettingsAttribute), false)
             .Cast<ApiExplorerSettingsAttribute>().Single().IgnoreApi);
