@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-manufacturer-start-preparation",
+  "impact": "patch",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Manufacturer setup now includes a disabled free-launch configuration, read-only prerequisite checks and signing-key recovery guidance.",
+  "breaking": false,
+  "documentation": ["/operator-docs/PVAD.Native-Manufacturer-Setup.md"]
+}

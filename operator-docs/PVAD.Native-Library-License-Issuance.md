@@ -1,5 +1,10 @@
 # Native Library License Issuance
 
+For the selected free launch configuration, read-only configuration preflight,
+manufacturer installation order and key backup/recovery preparation, use
+[Manufacturer Setup](PVAD.Native-Manufacturer-Setup.md). It leaves production
+disabled and records the Cloud/custody decisions still required.
+
 ## Scope And Access
 
 This is a restricted manufacturer runbook. Do not include it in public website

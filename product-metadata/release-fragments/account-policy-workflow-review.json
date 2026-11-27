@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "account-policy-workflow-review",
+  "impact": "none",
+  "components": ["account", "designer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Internal account-policy checks now cover browser workflows, format processing and signed license renewal together.",
+  "breaking": false,
+  "reason": "This change adds review evidence and test tooling only; application behavior and published license terms are unchanged.",
+  "documentation": ["/checklists/PVAD.Account-Roles-Workflow-Review.md"]
+}

@@ -25,20 +25,7 @@ public sealed class AccountCapabilityHttpTests
     public async Task FullHttpPipelineEnforcesPrivateFormatsWithoutDesignerHeaderAndFiltersFormatDiscovery()
     {
         var organizationId = Guid.NewGuid();
-        using var factory = new PvadApiTestFactory().WithWebHostBuilder(builder => builder.ConfigureServices(services =>
-        {
-            services.RemoveAll<IHostedService>();
-            services.RemoveAll<DbContextOptions<PvadDbContext>>();
-            services.RemoveAll<IDbContextOptionsConfiguration<PvadDbContext>>();
-            var database = "account-http-" + Guid.NewGuid().ToString("N");
-            services.AddDbContext<PvadDbContext>(options => options.UseInMemoryDatabase(database));
-            services.AddSingleton(new TestIdentity(organizationId));
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = "AccountCapabilityTest";
-                options.DefaultChallengeScheme = "AccountCapabilityTest";
-            }).AddScheme<AuthenticationSchemeOptions, AccountAuthentication>("AccountCapabilityTest", _ => { });
-        }));
+        using var factory = CreateFactory(organizationId);
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
         using (var scope = factory.Services.CreateScope())
         {
@@ -81,6 +68,87 @@ public sealed class AccountCapabilityHttpTests
         client.DefaultRequestHeaders.Add("X-Test-Anonymous", "true");
         using var anonymous = await client.PostAsJsonAsync("/api/export?format=pdf", new { });
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(SubscriptionAccountType.IndividualDeveloper)]
+    [InlineData(SubscriptionAccountType.Company)]
+    public async Task RealHttpRoundtripAllowsBaselineFormatsAndKeepsMigrationAndDeferredXlsBlocked(SubscriptionAccountType type)
+    {
+        var organizationId = Guid.NewGuid();
+        using var factory = CreateFactory(organizationId);
+        using var client = factory.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<PvadDbContext>();
+            db.Organizations.Add(new Organization { Id = organizationId, Name = "Synthetic", Slug = "synthetic" });
+            db.OrganizationSubscriptions.Add(new OrganizationSubscription { OrganizationId = organizationId, AccountType = type, Status = SubscriptionStatus.Active });
+            await db.SaveChangesAsync();
+        }
+        using var markdown = new MultipartFormDataContent();
+        markdown.Add(new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes("# Account workflow")), "file", "synthetic.md");
+        using var imported = await client.PostAsync("/api/document/import-markdown", markdown);
+        Assert.Equal(HttpStatusCode.OK, imported.StatusCode);
+        var design = await imported.Content.ReadFromJsonAsync<JsonElement>();
+        foreach (var format in new[] { "pdf", "word", "odt" })
+        {
+            using var exported = await client.PostAsJsonAsync("/api/export?format=" + format, design);
+            Assert.Equal(HttpStatusCode.OK, exported.StatusCode);
+            Assert.NotEmpty(await exported.Content.ReadAsByteArrayAsync());
+        }
+        foreach (var format in new[] { "png", "svg", "csv", "md", "html", "xml" })
+        {
+            using var exported = await client.PostAsJsonAsync("/api/export?format=" + format, design);
+            if (type == SubscriptionAccountType.IndividualDeveloper)
+            {
+                Assert.Equal(HttpStatusCode.Forbidden, exported.StatusCode);
+                var problem = await exported.Content.ReadFromJsonAsync<JsonElement>();
+                Assert.Equal("PVAD_ACCOUNT_CAPABILITY_DENIED", problem.GetProperty("code").GetString());
+            }
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, exported.StatusCode);
+                Assert.NotEmpty(await exported.Content.ReadAsByteArrayAsync());
+            }
+        }
+        foreach (var extension in new[] { "csv", "tsv" })
+        {
+            using var table = new MultipartFormDataContent();
+            var delimiter = extension == "csv" ? "," : "\t";
+            table.Add(new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes($"Name{delimiter}Value\nAlpha{delimiter}1")), "file", "synthetic." + extension);
+            using var importedTable = await client.PostAsync("/api/spreadsheet/import", table);
+            Assert.Equal(HttpStatusCode.OK, importedTable.StatusCode);
+            var workbook = await importedTable.Content.ReadFromJsonAsync<JsonElement>();
+            using var xlsx = await client.PostAsJsonAsync("/api/spreadsheet/export?format=xlsx", workbook);
+            Assert.Equal(HttpStatusCode.OK, xlsx.StatusCode);
+            var workbookBytes = await xlsx.Content.ReadAsByteArrayAsync();
+            Assert.True(workbookBytes.Length > 4);
+            Assert.Equal((byte)'P', workbookBytes[0]); Assert.Equal((byte)'K', workbookBytes[1]);
+        }
+        using var xls = new MultipartFormDataContent();
+        xls.Add(new ByteArrayContent([0]), "file", "deferred.xls");
+        using var blockedXls = await client.PostAsync("/api/spreadsheet/import", xls);
+        Assert.Equal(HttpStatusCode.Forbidden, blockedXls.StatusCode);
+        using var migration = await client.PostAsJsonAsync("/api/pvad/v1/migrations/pdf/code/aspose-pdf/convert", new { });
+        Assert.Equal(HttpStatusCode.Forbidden, migration.StatusCode);
+    }
+
+    private static WebApplicationFactory<Program> CreateFactory(Guid organizationId)
+    {
+        return new PvadApiTestFactory().WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<IHostedService>();
+            services.RemoveAll<DbContextOptions<PvadDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<PvadDbContext>>();
+            var database = "account-http-" + Guid.NewGuid().ToString("N");
+            services.AddDbContext<PvadDbContext>(options => options.UseInMemoryDatabase(database));
+            services.AddSingleton(new TestIdentity(organizationId));
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "AccountCapabilityTest";
+                options.DefaultChallengeScheme = "AccountCapabilityTest";
+            }).AddScheme<AuthenticationSchemeOptions, AccountAuthentication>("AccountCapabilityTest", _ => { });
+        }));
     }
 
     private sealed record TestIdentity(Guid OrganizationId);

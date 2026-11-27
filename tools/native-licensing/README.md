@@ -1978,3 +1978,39 @@ font hinting on Windows, preserving other platforms and all remaining font
 settings. The native-only diagnostic intentionally retains its default mode
 as a control; its reported instability is not an application regression or
 permission to weaken the exact original/protected package comparison.
+
+## Manufacturer Start Configuration Preflight
+
+```bash
+node tools/native-licensing/manufacturer-preflight.mjs --mode prepare
+node --test tools/native-licensing/manufacturer-preflight.test.mjs
+```
+
+The preparation check accepts only the disabled selected free-launch configuration
+and reports outstanding operator/key/Cloud/evidence inputs. Deployment mode
+requires all static inputs and intentionally fails against checked-in examples.
+It never reads the private-key path, contacts a service, generates keys or changes
+configuration. Even complete fixture metadata is not production acceptance:
+`productionReady` is always false. Exact invocation, input boundaries, live checks
+and backup/recovery procedure are in the restricted
+[manufacturer setup runbook](../../operator-docs/PVAD.Native-Manufacturer-Setup.md).
+
+## Account Policy Workflow Review
+
+```bash
+PVAD_RUN_POSTGRES_TESTS=1 node tools/native-licensing/with-test-license.mjs account-flows
+cd pvad-designer
+./node_modules/.bin/playwright test --config playwright.account-policy.config.ts
+```
+
+The native profile includes the real temporary manufacturer signer/embedded trust,
+registration and free renewal, HTTP account-format processing, account policy job
+rechecks and personal ownership. PostgreSQL checks must actually execute. The
+runner removes test keys/builds and audits source trust/regular licensing outputs.
+The Playwright profile starts separate local Designer/Account servers on ports
+5186/5188, uses synthetic API fixtures, and checks desktop/phone UI. It does not
+connect the browser to the real backend. Phone visual editing retains the existing
+Desktop-required gate. Tests prefixed `review evidence` characterize current gaps;
+their success is evidence of reproduction, not acceptance of the incorrect behavior.
+See [the review](../../checklists/PVAD.Account-Roles-Workflow-Review.md) for findings,
+verified scope and work not executed.

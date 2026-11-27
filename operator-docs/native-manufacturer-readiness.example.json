@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "manufacturerName": "PVAD",
+  "hostingProvider": null,
+  "secretStorage": null,
+  "keyCustodian": null,
+  "backupCustodian": null,
+  "recoveryReviewer": null,
+  "evidence": {
+    "publicTrustReview": null,
+    "keyMountReview": null,
+    "backupRecoveryDrill": null,
+    "databaseMigrationReview": null,
+    "localAcceptance": null,
+    "distributionReview": null,
+    "releaseApproval": null
+  }
+}

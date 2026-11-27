@@ -16,6 +16,10 @@ remain separately visible. Later findings do not add implementation checkboxes
 or change that primary denominator without an approved scope change.
 
 Current primary status: **70/76 (92.1%)**, with six primary items still open.
+Manufacturer start preparation now has a disabled combined configuration,
+read-only prerequisite checker and installation/key-recovery procedure in
+[Manufacturer Setup](../operator-docs/PVAD.Native-Manufacturer-Setup.md).
+This preparation does not provision trust/keys or close production gates.
 The owner-selected free launch policy is three calendar months, renewal required,
 with no expiry grace. See the 2026-11-26 local activation rehearsal in
 [the completion report](PVAD.Native-Licensing-Completion-Report.md). Production
@@ -4113,6 +4117,13 @@ changes remain outside that commit and this milestone.
 - [ ] No claim of unbreakable protection, reliable offline seat counting, immediate offline revocation, or trusted offline wall-clock time is made.
 
 ## Later Findings Outside Original Scope
+
+2026-11-27 account-role workflow review: see
+[the findings and evidence](PVAD.Account-Roles-Workflow-Review.md). The preview
+quick menu still permits a private JSON download without a format capability;
+deferred XLS remains advertised, and account restrictions receive generic role
+or HTTP messages. Application corrections remain open after this review. These
+findings do not increase the fixed primary denominator or close release gates.
 
 | Finding | Impact And Priority | Handling |
 | --- | --- | --- |

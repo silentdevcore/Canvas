@@ -519,6 +519,82 @@ preceding strict-expiry commit. No database schema change,
 production key generation, deployment or commit is part of this change. Primary
 status remains **70/76 (92.1%)**, with existing release gates still open.
 
+### Manufacturer Start Preparation (2026-11-26)
+
+Owner follow-up, 2026-11-26: defer Cloud-provider selection, the detailed cost
+comparison and provider-specific manufacturer deployment/key-store integration
+until later. Azure/Key Vault, AWS/Secrets Manager and Hetzner were discussed as
+candidates; none was selected or booked. Keep issuance/automation disabled and
+retain the prepared setup/preflight work. Resume with provider selection,
+monthly budget, expected usage and custody responsibilities before any production
+provisioning. The owner requested switching to a different task for now.
+
+Following commit `05c68813`, the owner authorized preparation of start
+configuration, manufacturer installation guidance and key backup/recovery
+procedures. Cloud/provider selection and production custody are still open.
+
+The disabled native-only configuration combines issuer and automatic issuance
+settings without usable operator IDs, key IDs or private-key paths. Terms match
+the existing three-calendar-month, zero-grace, free-renewal example. The account
+matrix was reviewed against `PvadAccountLicensePolicy.cs`; HTML/XML import
+availability and the deferred XLS decision remain explicitly separate from
+positive account policy. No runtime policy/roles were changed.
+
+`tools/native-licensing/manufacturer-preflight.mjs` statically checks exact input
+shapes, selected terms, operator/allowlist consistency, absolute mount path,
+matching public P-256 trust and non-secret readiness/evidence metadata. Preparation
+mode requires disabled flags. Deployment mode blocks missing inputs and disabled
+flags; even a complete fixture only reaches `readyForLiveChecks`, never
+`productionReady`. Evidence references are not authenticated approval. It reads
+JSON metadata/public trust only, never the configured private PEM, environment
+credentials, a database or a remote service. Diagnostics do not echo input values.
+
+[Manufacturer Setup](../operator-docs/PVAD.Native-Manufacturer-Setup.md) records
+installation order, effective-configuration/live-check limits, current signer
+PEM requirements, separate server/native trust, operational roles, backup and
+isolated recovery steps. A remote KMS/HSM signer is not implemented. Custody
+preparation is not an actual backup/recovery drill or key-provisioning approval.
+
+Validation: **55/55** Node tests, 0 skipped, covering the new preflight, existing
+native issuer/trust contracts, operator guidance, version tooling and release
+author. Version/fragment checks and `git diff --check` pass. Checked-in examples
+pass preparation with outstanding inputs listed and intentionally fail deployment
+with exit 1. Fixtures cover malformed/unsafe inputs, redacted failures, wrong
+terms/IDs/trust and statically complete data without a private-key file. Evidence
+and policy/source hashes are in `artifacts/native-manufacturer-preparation/20261126/`.
+No .NET/Account runtime code changed, so the prior 69/63 acceptance runs were not
+repeated. The new release fragment declares **Patch / improved** for infrastructure
+and documentation. No production key, live migration, deployment, publication or
+commit was performed. Primary completion remains **70/76 (92.1%)**.
+
+### Account Roles And Workflow Review (2026-11-27)
+
+At the owner's request, the role-sensitive workflows were reviewed independently
+of deferred Cloud provisioning. See
+[the findings report](PVAD.Account-Roles-Workflow-Review.md) for exact scope,
+reproduction and limitations. Three open groups remain: P1 preview quick-menu
+JSON download without an account format grant, P2 deferred XLS advertised by
+Spreadsheet import, and P2 generic role/HTTP wording for account restrictions.
+The large export modal and actual private HTTP image-export denial work; the
+alternate preview path was the uncovered gap. No application fix was made during
+this findings phase.
+
+The added `account-flows` native test profile passes **85/85**, 0 skipped, using
+real temporary manufacturer signing/embedded trust and PostgreSQL where required;
+its audited TRX and cleanup are in
+`artifacts/native-engine-tests/1795724523603-a95848a7/`. Designer tests pass
+**33/33** with typecheck passing; Account tests pass **63/63**; Node runner/version
+tests pass **38/38**. Real Chromium desktop/phone UI checks use explicitly
+synthetic API responses and separate local servers; they are not a connected
+browser/backend stack. Final browser counters, screenshots, initial phone-gate
+fixture results and source hashes are in `artifacts/account-policy-review/`.
+Tests labeled review evidence reproduce defects rather than approve them.
+
+Review changes are test tooling/evidence only and have **None** release impact.
+Existing manufacturer preparation remains uncommitted and Cloud selection is
+still deferred. No production keys, deployments, commits or primary checklist
+closures were performed; status remains **70/76 (92.1%)**.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The recommendation below is historical. The current free-launch choice above

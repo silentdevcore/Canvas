@@ -120,9 +120,9 @@ function regularLicenseBuildSnapshot() {
 }
 
 export function main(args) {
-  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'converter', 'migration-code', 'migration-viewer', 'migration-report', 'native-issuer', 'revocation', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | converter | migration-code | migration-viewer | migration-report | native-issuer | revocation | test tests/<project>/<project>.csproj [dotnet test options]');
+  assert.ok(['pdf', 'word', 'spreadsheet', 'importer', 'image', 'converter', 'migration-code', 'migration-viewer', 'migration-report', 'native-issuer', 'account-flows', 'revocation', 'test'].includes(args[0]), 'Usage: with-test-license.mjs pdf | word | spreadsheet | importer | image | converter | migration-code | migration-viewer | migration-report | native-issuer | account-flows | revocation | test tests/<project>/<project>.csproj [dotnet test options]');
   if (args[0] === 'revocation') assert.equal(args.length, 1);
-  if (args[0] === 'native-issuer') {
+  if (['native-issuer', 'account-flows'].includes(args[0])) {
     assert.equal(args.length, 1);
     assert.equal(process.env.PVAD_RUN_POSTGRES_TESTS, '1', 'native-issuer requires real PostgreSQL tests; skipped database checks are not acceptance.');
   }
@@ -138,10 +138,10 @@ export function main(args) {
   const originalLicenseBuild = regularLicenseBuildSnapshot();
   let succeeded = false;
   try {
-    const paths = createTestLicenses(secret, Date.now(), args[0] === 'migration-code', args[0] === 'migration-report', args[0] === 'native-issuer', args[0] === 'revocation');
+    const paths = createTestLicenses(secret, Date.now(), args[0] === 'migration-code', args[0] === 'migration-report', ['native-issuer', 'account-flows'].includes(args[0]), args[0] === 'revocation');
     const env = { ...process.env, PVAD_NATIVE_LICENSE_PATH: paths.integrated, NativeLicensing__LicensePath: paths.integrated };
     const properties = [`-p:PvadLicenseTrustStorePath=${paths.trustPath}`];
-    if (args[0] === 'native-issuer') {
+    if (['native-issuer', 'account-flows'].includes(args[0])) {
       env.PVAD_TEST_NATIVE_ISSUER_PRIVATE_KEY = paths.issuerPrivateKey;
       env.PVAD_REQUIRE_NATIVE_ISSUER = '1';
       run(['restore', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--artifacts-path', build, '--disable-parallel', ...properties,
@@ -149,7 +149,8 @@ export function main(args) {
       run(['build', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-restore', '--artifacts-path', build, '--disable-build-servers', '-m:1', '-nr:false',
         '-p:UseSharedCompilation=false', '-p:BuildInParallel=false', ...properties, '-p:PvadNativeLicenseTestBootstrap=true',
         '--verbosity', 'minimal'], env);
-      const filter = 'FullyQualifiedName~PvadNativeLicenseIssuanceTests|FullyQualifiedName~PvadLicensingSeparationTests|FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~AdminMutationContractTests|FullyQualifiedName~AdminSystemControllerTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~OpenApiNamingSnapshotTests|FullyQualifiedName~AccountRegistrationControllerTests.Native_automatic_registration_roundtrip';
+      let filter = 'FullyQualifiedName~PvadNativeLicenseIssuanceTests|FullyQualifiedName~PvadLicensingSeparationTests|FullyQualifiedName~PvadLicenseReplacementTests|FullyQualifiedName~AdminMutationContractTests|FullyQualifiedName~AdminSystemControllerTests|FullyQualifiedName~PvadCanonicalApiRouteTests|FullyQualifiedName~OpenApiNamingSnapshotTests|FullyQualifiedName~AccountRegistrationControllerTests.Native_automatic_registration_roundtrip';
+      if (args[0] === 'account-flows') filter += '|FullyQualifiedName~AccountCapabilityHttpTests|FullyQualifiedName~AccountCapabilityEnforcementTests|FullyQualifiedName~AccountCapabilityJobTests|FullyQualifiedName~PersonalNativeLicenseHttpTests';
       run(['vstest', join(build, 'bin/PVAD.Api.Tests/debug/PVAD.Api.Tests.dll'), `/TestCaseFilter:${filter}`,
         `/ResultsDirectory:${output}`, '/Logger:trx;LogFileName=licensed-tests.trx'], env);
     } else if (args[0] === 'revocation') {
