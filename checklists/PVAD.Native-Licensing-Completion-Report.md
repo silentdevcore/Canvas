@@ -623,6 +623,33 @@ code was not modified. See the updated
 These changes have **Patch / fixed** release impact and remain uncommitted.
 Production/Cloud/key work is still deferred and the primary status stays 70/76.
 
+### Connected local account acceptance — 2026-11-27
+
+A separate connected Chromium run now passes both private and company workflows
+against real Kestrel, PostgreSQL, the native signer and development CodeWorker,
+without API response mocks. It verifies registration/mail verification/login,
+document autosave/version/publish, visible code editing and real execution,
+selected imports/exports and account denials, personal versus organization
+ownership, signed downloads, exact expiry with zero grace, and idempotent free
+renewal for another three calendar months.
+
+The audited result contains 22 workflow checkpoints, two authored code workspaces,
+four distinct signed license files, two renewal events and two completed
+registration issuance jobs. The isolated build passes with 0 errors / 86 existing
+warnings; accompanying tooling/version/release checks pass 31/31. Source trust
+and regular licensing outputs remain unchanged, and temporary keys, isolated
+builds and owned containers have been removed. Evidence:
+`artifacts/connected-account-browser/1795816254945-cb419e45/`.
+
+See `checklists/PVAD.Account-Roles-Workflow-Review.md` for the exact format matrix,
+failed development runs, the still-open success-toast overlap observation and
+limitations. The passing test waits for ordinary toast dismissal; no product
+correction is claimed. This local run uses development mail transport, explicit
+processor invocation, an issuer-only test clock and synthetic signing keys. It
+does not close SMTP, background scheduling, hardened sandbox, cloud, production
+key or release/platform gates. No production configuration or application
+behavior was changed. Nothing was committed. Primary status remains **70/76**.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The recommendation below is historical. The current free-launch choice above

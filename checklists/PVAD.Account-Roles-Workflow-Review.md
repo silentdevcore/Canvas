@@ -186,3 +186,59 @@ Logs, audited browser results, screenshots and source hashes are recorded under
 No deployment, production key, live migration, paid-phase policy change or
 commit is part of this correction. The release fragment declares **Patch / fixed**
 for Designer and documentation; primary release acceptance remains 70/76.
+
+## Connected local browser and backend — 2026-11-27
+
+**Passed: both account types, 22 completed workflow checkpoints.** Chromium drove
+the real Account and Designer sites through a real loopback Kestrel API and a
+fresh PostgreSQL database. No API responses were intercepted or substituted.
+The test host and executable live only in test tooling; application source and
+the selected launch policy were not changed.
+
+| Scope | Verified result |
+| --- | --- |
+| Registration and identity | Private and company registration, actual rendered verification message from the development mail outbox, email verification, login and Designer handoff succeed. |
+| Documents and templates | Rename and add a text element; read back the saved draft, create a version and publish. Two persisted templates, two versions and two published records. |
+| Code | Convert to C# PDF, type a comment into the visible Monaco editor, read it back from the API, and execute through the real development CodeWorker. Both executions succeed and return PDF bytes. Two persisted workspaces contain the authored edit. |
+| Format processing | Markdown, CSV and TSV imports; PDF, Word/DOCX, ODT and XLSX exports. Browser PDF downloads have a PDF signature; XLSX outputs have a ZIP signature. These checks do not establish document fidelity for every supported format. |
+| Restrictions | PDF import and PNG export return the account-capability denial for private accounts and succeed for company accounts. Deferred XLS import and unapproved Migration return account-capability denials for both. Private quick JSON/image exports are absent; PDF restriction and Migration approval screens are shown. |
+| Native ownership | Personal licenses have a user owner and no organization owner; company licenses have an organization owner and no personal owner. |
+| Native lifecycle | Browser downloads of the initial and renewed files have valid real signatures and the expected account scope. All four files allow offline PDF processing before expiry and deny it exactly at expiry, with zero grace and three calendar months of validity. |
+| Renewal | Disabled before expiry, enabled at expiry, then produces a new signed file. Repeating the original renewal returns the same replacement; original download bytes remain unchanged. Two renewal audit events and two completed registration issuance jobs. |
+
+Evidence is in `artifacts/connected-account-browser/1795816254945-cb419e45/`:
+`report.json`, `cleanup.json`, build logs and four inspected screenshots.
+The database audit confirms **2 customers, 2 templates, 2 versions, 2 published
+templates, 2 authored code workspaces, 4 native licenses, 2 renewal events and
+2 completed automatic-registration jobs**. All four native license IDs are
+distinct. The two UI response counters are 75 and 70; they are response counts,
+not test counts. The isolated build passes with 0 errors and 86 existing warnings.
+The accompanying tooling/version/release checks pass **31/31**, with no skips.
+
+Six initial development runs failed and are retained as failures. Harness fixes
+wait for persisted autosave, the final legal-policy form and client readiness;
+edit the visible editor instead of an inactive Monaco model or a version-specific
+textarea; and use the platform's actual end-of-file shortcut. These runs are not
+added to the passing count.
+
+**Observed UI issue, still open:** success toasts can cover the Preview export
+button. Hovering that area pauses the toast timer, so a pointer left there can
+keep the button covered. The failed company screenshot and diagnostics in
+`artifacts/connected-account-browser/1795815834952-8d5f51be/` record this. The
+passing scenario moves the pointer away and waits for normal dismissal; it does
+not force a click, hide the toast or change product CSS. A later UI correction
+should prevent success notifications from covering primary controls.
+
+Only the issuer clock is advanced; authentication, the cloud trial and machine
+time remain real. Mail and issuance processors execute their real implementations
+on explicit fixture commands. SMTP delivery, autonomous background scheduling,
+production CodeWorker hardening, cloud key storage, paid-phase sharing detection,
+phone editing, printing, API/service-account management and full-format/visual
+fidelity are outside this run. Monaco uses its configured CDN. Synthetic legal
+documents are fixture data, not publication or legal approval.
+
+Cleanup confirms temporary keys, isolated assemblies and owned containers were
+removed; source trust and regular licensing outputs are unchanged. No production
+key, deployment or commit was made. The existing owner changes to `PVAD.sln` and
+`.vscode/` were left alone. Primary release acceptance stays **70/76**. The new
+release fragment is **None / improved** for internal test tooling and evidence.

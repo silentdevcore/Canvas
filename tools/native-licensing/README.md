@@ -2016,3 +2016,39 @@ deferred XLS is rejected locally with no upload. Restriction messages and the
 allowed import list follow the current account rights.
 See [the review](../../checklists/PVAD.Account-Roles-Workflow-Review.md) for findings,
 verified scope and work not executed.
+
+## Connected Account Browser Rehearsal
+
+```bash
+node tools/native-licensing/connected-account-browser.mjs
+node --test tools/native-licensing/connected-account-browser.test.mjs
+```
+
+Requires the local .NET SDK, Docker, restored frontend dependencies and Playwright
+Chromium. Run without arguments. It builds an isolated test host, starts a fresh
+PostgreSQL container and real Kestrel API, and connects the Account and Designer
+development sites to it. Browser API responses are not mocked. Only synthetic
+private/company accounts and temporary signing keys are used; deployment
+configuration and credentials are not forwarded to child processes.
+
+The scenarios cover registration, verification through the actual development
+mail outbox, login, document autosave/version/publish, PDF download, code editing
+and execution through the development CodeWorker, format requests, account
+restrictions and native-license download/renewal. The fixture advances only the
+issuer clock to exercise three-month expiry without changing authentication or
+the machine clock. Downloaded files undergo real signature and offline authority
+checks immediately before and at expiry. Mail and issuance processors are invoked
+explicitly; SMTP delivery and background scheduling are outside this rehearsal.
+The real Monaco editor currently loads from its configured CDN. CodeWorker runs
+in development mode, so this is not production sandbox acceptance.
+
+Reports, synthetic screenshots and build logs go under
+`artifacts/connected-account-browser/`. A successful run produces `report.json`;
+`cleanup.json` separately records whether the scenarios succeeded and whether
+temporary keys, isolated builds and owned containers were removed. The runner
+also checks that source trust and regular licensing build outputs stayed
+unchanged. Failed runs retain their evidence and must not be counted as passes.
+Control messages travel only over the child process's stdin/stdout and are not
+logged; no test control HTTP endpoint, browser storage state or mail token is
+saved. The helper executable references the test assembly and is never a
+publishable application artifact.
