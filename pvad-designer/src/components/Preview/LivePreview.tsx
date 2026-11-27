@@ -12,7 +12,7 @@ import { effectivePageSettings } from '@/utils/pageLayout';
 import { DocumentElementRenderer } from '@/components/Rendering/DocumentElementRenderer';
 import { createDocumentContentResolver, effectiveDocumentElement, elementMatchesDocumentLanguage } from '@/components/Rendering/documentContent';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasDesignerPermission } from '@/auth/designerPermissions';
+import { designerPermissions, formatCapability, hasAccountCapability, hasDesignerPermission } from '@/auth/designerPermissions';
 
 interface LivePreviewProps {
   template: Template;
@@ -38,6 +38,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const { user } = useDesignerAuth();
   const canExport = hasDesignerPermission(user, designerPermissions.pdfExport);
   const canPrint = hasDesignerPermission(user, designerPermissions.pdfPrint) && canExport;
+  const canExportFormat = (format: ExportFormat) =>
+    (format === 'print' ? canPrint : canExport) && hasAccountCapability(user,
+      formatCapability('export', format === 'print' ? 'pdf' : format === 'image' ? 'png' : format));
   const [zoom, setZoom] = useState(1);
   const previewPagesRef = useRef<HTMLDivElement>(null);
   const documentPageSettings = React.useMemo(() => normalizePageSettings(pageSettings), [pageSettings]);
@@ -112,7 +115,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   }, []);
 
   const handleExport = async (format: ExportFormat) => {
-    if ((format === 'print' && !canPrint) || (format !== 'print' && !canExport)) return;
+    if (!canExportFormat(format)) return;
     if (exportLockRef.current) return;
     exportLockRef.current = true;
     setMenuOpen(false);
@@ -352,7 +355,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                   { format: 'json'  as ExportFormat, icon: <FiFileText size={14} />, label: t('exportMenu.json.label'),  sub: t('exportMenu.json.sub') },
                   { format: 'print' as ExportFormat, icon: <FiPrinter  size={14} />, label: t('exportMenu.print.label'), sub: t('exportMenu.print.sub') },
                 ] as const)
-                  .filter(({ format }) => format === 'print' ? canPrint : canExport)
+                  .filter(({ format }) => canExportFormat(format))
                   .map(({ format, icon, label, sub }) => (
                   <button
                     key={format}

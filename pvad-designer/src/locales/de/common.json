@@ -23,7 +23,17 @@
   "permissions": {
     "requiredTitle": "Berechtigung erforderlich",
     "requiredMessage": "Ihre Organisationsrolle erlaubt diese Designer-Funktion nicht.",
-    "sidebarRequired": "Berechtigung erforderlich"
+    "sidebarRequired": "Berechtigung erforderlich",
+    "accountTitle": "Kontoeinschränkung",
+    "accountMessage": "Diese Funktion ist in den Rechten Ihres Kontos nicht enthalten.",
+    "approvalTitle": "Admin-Freigabe erforderlich",
+    "approvalMessage": "Migration erfordert eine gesonderte Freigabe durch einen PVAD-Administrator. Ihre Rollenberechtigungen allein erlauben keinen Zugriff.",
+    "accountSidebar": "Kontoeinschränkung",
+    "approvalSidebar": "Admin-Freigabe erforderlich",
+    "xlsDeferred": "Der XLS-Import ist derzeit nicht verfügbar. Wählen Sie eines der aufgeführten Formate.",
+    "formatDenied": "Dieses Dateiformat ist für dieses Konto oder diesen Importmodus nicht verfügbar.",
+    "signInMessage": "Melden Sie sich an, bevor Sie eine Tabelle importieren.",
+    "importFailed": "Die Tabelle konnte nicht importiert werden. Prüfen Sie die Datei und versuchen Sie es erneut."
   },
   "pdfSidebar": {
     "createPdf": "PDF erstellen",

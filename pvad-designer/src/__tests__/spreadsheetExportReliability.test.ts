@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { SpreadsheetService } from '@/services/SpreadsheetService';
+import { SpreadsheetImportError, SpreadsheetService } from '@/services/SpreadsheetService';
 import type { Workbook } from '@/spreadsheet/types';
 import { deleteDesignerAsset, uploadDesignerImage } from '@/services/designerAssetApi';
 
@@ -60,6 +60,28 @@ describe('Spreadsheet export reliability', () => {
     URL.revokeObjectURL = originalRevokeObjectUrl;
     global.structuredClone = originalStructuredClone;
     jest.restoreAllMocks();
+  });
+
+  test.each([
+    [403, 'PVAD_ACCOUNT_CAPABILITY_DENIED', 'account'],
+    [403, 'PVAD_DESIGNER_PERMISSION_REQUIRED', 'role'],
+    [403, 'UNKNOWN_DENIAL', 'failed'],
+    [401, 'PVAD_ACCOUNT_CAPABILITY_DENIED', 'authentication'],
+    [500, 'PVAD_ACCOUNT_CAPABILITY_DENIED', 'failed'],
+  ])('spreadsheet import preserves the denial category (%s)', async (status, code, kind) => {
+    global.fetch = jest.fn(async () => ({ ok: false, status,
+      json: async () => ({ code, detail: 'DO_NOT_DISPLAY_PRIVATE_SERVER_DETAIL' }) }) as Response);
+    const error = await SpreadsheetService.importXlsx(new File(['synthetic'], 'synthetic.xlsx')).catch(error => error);
+    expect(error).toBeInstanceOf(SpreadsheetImportError);
+    expect(error.kind).toBe(kind);
+    expect(error.message).not.toContain('DO_NOT_DISPLAY');
+    expect(error.message).not.toMatch(/HTTP|403|500/);
+  });
+
+  test('spreadsheet import handles non-JSON rejection without exposing technical HTTP text', async () => {
+    global.fetch = jest.fn(async () => ({ ok: false, status: 403, headers: new Headers(),
+      json: async () => { throw new Error('invalid JSON'); } }) as unknown as Response);
+    await expect(SpreadsheetService.importXlsx(new File(['synthetic'], 'synthetic.xlsx'))).rejects.toMatchObject({ kind: 'failed' });
   });
 
   test('downloads one validated XLSX using the server filename', async () => {

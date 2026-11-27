@@ -23,7 +23,17 @@
   "permissions": {
     "requiredTitle": "Permission required",
     "requiredMessage": "Your organization role does not allow this Designer function.",
-    "sidebarRequired": "Permission required"
+    "sidebarRequired": "Permission required",
+    "accountTitle": "Account restriction",
+    "accountMessage": "This operation is not included in your account rights.",
+    "approvalTitle": "Admin approval required",
+    "approvalMessage": "Migration requires separate approval from a PVAD administrator. Your role permissions alone do not grant access.",
+    "accountSidebar": "Account restriction",
+    "approvalSidebar": "Admin approval required",
+    "xlsDeferred": "XLS import is not available yet. Choose one of the listed formats.",
+    "formatDenied": "This file format is not available for this account or import mode.",
+    "signInMessage": "Sign in before importing a spreadsheet.",
+    "importFailed": "The spreadsheet could not be imported. Check the file and try again."
   },
   "pdfSidebar": {
     "createPdf": "Create PDF",

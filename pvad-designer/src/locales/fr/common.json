@@ -23,7 +23,17 @@
   "permissions": {
     "requiredTitle": "Autorisation requise",
     "requiredMessage": "Votre rôle dans l'organisation n'autorise pas cette fonction du Designer.",
-    "sidebarRequired": "Autorisation requise"
+    "sidebarRequired": "Autorisation requise",
+    "accountTitle": "Restriction du compte",
+    "accountMessage": "Cette opération n’est pas incluse dans les droits de votre compte.",
+    "approvalTitle": "Approbation administrateur requise",
+    "approvalMessage": "La migration nécessite une approbation distincte d’un administrateur PVAD. Les autorisations de votre rôle ne suffisent pas.",
+    "accountSidebar": "Restriction du compte",
+    "approvalSidebar": "Approbation administrateur requise",
+    "xlsDeferred": "L’import XLS n’est pas encore disponible. Choisissez un des formats indiqués.",
+    "formatDenied": "Ce format de fichier n’est pas disponible pour ce compte ou ce mode d’import.",
+    "signInMessage": "Connectez-vous avant d’importer une feuille de calcul.",
+    "importFailed": "La feuille de calcul n’a pas pu être importée. Vérifiez le fichier et réessayez."
   },
   "pdfSidebar": {
     "createPdf": "Créer un PDF",

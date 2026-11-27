@@ -13,7 +13,7 @@ function capabilities(company: boolean) {
 }
 
 async function fixture(page: Page, company: boolean) {
-  let renewals = 0;
+  let renewals = 0, imports = 0;
   const license = (id: string) => ({ id, organizationId: company ? organization : null, ownerUserId: company ? null : owner,
     previousLicenseId: id === oldId ? null : oldId, model: 'Subscription', issuedAt: '2026-01-01T00:00:00Z',
     validFrom: '2026-01-01T00:00:00Z', validUntil: id === oldId ? '2026-04-01T00:00:00Z' : '2099-04-01T00:00:00Z',
@@ -47,11 +47,14 @@ async function fixture(page: Page, company: boolean) {
       body = { license: license(id), grants: [{ product: 'pdf', providers: [] }], redistributionAllowed: false,
         gracePeriodDays: 0, renewedByLicenseId: id === oldId && renewals ? newId : null,
         freeRenewal: { availableAt: license(id).validUntil, canRenew: id === oldId && renewals === 0 } };
-    } else if (path.endsWith('/spreadsheet/import')) return route.fulfill({ status: 403, contentType: 'application/problem+json',
-      body: JSON.stringify({ title: 'Account capability denied', detail: 'This operation is not included in this account\'s rights.', code: 'PVAD_ACCOUNT_CAPABILITY_DENIED' }) });
+    } else if (path.endsWith('/spreadsheet/import')) {
+      imports++;
+      return route.fulfill({ status: 403, contentType: 'application/problem+json',
+        body: JSON.stringify({ title: 'Account capability denied', detail: 'This operation is not included in this account\'s rights.', code: 'PVAD_ACCOUNT_CAPABILITY_DENIED' }) });
+    }
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
   });
-  return { renewals: () => renewals };
+  return { renewals: () => renewals, imports: () => imports };
 }
 
 for (const company of [false, true]) {
@@ -69,11 +72,15 @@ for (const company of [false, true]) {
     await fixture(page, company);
     await page.goto(`${designer}/pdf/import`);
     const choose = page.getByRole('button', { name: 'Choose PDF file' });
-    await expect(choose).toBeVisible();
-    if (company) await expect(choose).toBeEnabled(); else await expect(choose).toBeDisabled();
+    if (company) await expect(choose).toBeEnabled();
+    else {
+      await expect(page.getByRole('heading', { name: 'Account restriction' })).toBeVisible();
+      await expect(page.getByText('This operation is not included in your account rights.')).toBeVisible();
+      await expect(choose).toHaveCount(0);
+    }
     await page.screenshot({ path: test.info().outputPath('pdf-import-policy.png'), fullPage: true });
     await page.goto(`${designer}/pdf/migrations/code`);
-    await expect(page.getByRole('heading', { name: 'Permission required' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Admin approval required' })).toBeVisible();
   });
 
   test(`${company ? 'company' : 'private'}: Account renewal offers the successor download`, async ({ page }) => {
@@ -92,33 +99,43 @@ for (const company of [false, true]) {
   });
 }
 
-test('review evidence: private quick JSON export on desktop; intended editor gate on mobile', async ({ page }) => {
-  expect(capabilities(false)).not.toContain('export.json');
-  await fixture(page, false);
-  await page.goto(`${designer}/pdf/create`);
-  if (test.info().project.use.isMobile) {
-    await expect(page.locator('.editor-mobile-overlay')).toBeVisible();
-    await expect(page.locator('.editor-mobile-overlay')).toContainText('Desktop required');
-    await test.info().attach('mobile-scope', { body: 'Visual editing/preview is intentionally gated on phone width; desktop reproduces the JSON download.', contentType: 'text/plain' });
-    return;
-  }
-  await page.getByRole('button', { name: 'Preview', exact: true }).click();
-  await page.getByRole('button', { name: 'Export', exact: true }).click();
-  await page.screenshot({ path: test.info().outputPath('private-preview-quick-exports.png'), fullPage: true });
-  const pending = page.waitForEvent('download');
-  await page.getByRole('button', { name: /JSON/ }).click();
-  const download = await pending;
-  expect(download.suggestedFilename()).toMatch(/\.json$/);
-  await test.info().attach('unexpected-private-json-download', { body: download.suggestedFilename(), contentType: 'text/plain' });
-});
+for (const company of [false, true]) {
+  test(`${company ? 'company' : 'private'}: preview quick exports enforce format capabilities`, async ({ page }) => {
+    expect(capabilities(false)).not.toContain('export.json');
+    await fixture(page, company);
+    await page.goto(`${designer}/pdf/create`);
+    if (test.info().project.use.isMobile) {
+      await expect(page.locator('.editor-mobile-overlay')).toBeVisible();
+      return;
+    }
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
+    await page.screenshot({ path: test.info().outputPath('preview-format-rights.png'), fullPage: true });
+    await expect(page.getByRole('button', { name: /Export PDF/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Print.*generated PDF/ })).toBeVisible();
+    if (company) {
+      await expect(page.getByRole('button', { name: /Export Image/ })).toBeVisible();
+      const pending = page.waitForEvent('download');
+      await page.getByRole('button', { name: /Export JSON/ }).click();
+      expect((await pending).suggestedFilename()).toMatch(/\.json$/);
+    } else {
+      await expect(page.getByRole('button', { name: /Export JSON/ })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: /Export Image/ })).toHaveCount(0);
+    }
+  });
 
-test('review evidence: spreadsheet import still offers deferred XLS and displays the rejection', async ({ page }) => {
-  await fixture(page, false);
-  await page.goto(`${designer}/spreadsheet/import`);
-  const input = page.locator('input[type=file]');
-  await expect(input).toHaveAttribute('accept', /\.xls,/);
-  await input.setInputFiles({ name: 'synthetic.xls', mimeType: 'application/vnd.ms-excel', buffer: Buffer.from('synthetic') });
-  await expect(page.locator('.mgr-import-error')).toBeVisible();
-  await test.info().attach('xls-rejection-text', { body: await page.locator('.mgr-import-error').innerText(), contentType: 'text/plain' });
-  await page.screenshot({ path: test.info().outputPath('deferred-xls.png'), fullPage: true });
-});
+  test(`${company ? 'company' : 'private'}: deferred XLS is neither advertised nor uploaded and account errors are explained`, async ({ page }) => {
+    const state = await fixture(page, company);
+    await page.goto(`${designer}/spreadsheet/import`);
+    const input = page.locator('input[type=file]');
+    await expect(input).toHaveAttribute('accept', '.xlsx,.csv,.tsv,.json');
+    await expect(page.locator('.mgr-heading')).not.toContainText('.xls,');
+    await input.setInputFiles({ name: 'synthetic.xls', mimeType: 'application/vnd.ms-excel', buffer: Buffer.from('synthetic') });
+    await expect(page.getByRole('alert')).toHaveText('XLS import is not available yet. Choose one of the listed formats.');
+    expect(state.imports()).toBe(0);
+    await input.setInputFiles({ name: 'synthetic.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from('synthetic') });
+    await expect(page.getByRole('alert')).toHaveText('This operation is not included in your account rights.');
+    expect(state.imports()).toBe(1);
+    await page.screenshot({ path: test.info().outputPath('spreadsheet-format-rights.png'), fullPage: true });
+  });
+}

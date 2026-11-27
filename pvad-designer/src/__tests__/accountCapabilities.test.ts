@@ -1,4 +1,4 @@
-import { designerPermissions, formatCapability, hasAccountCapability, hasDesignerPermission } from '@/auth/designerPermissions';
+import { designerPermissionDenial, designerPermissions, formatCapability, hasAccountCapability, hasDesignerPermission } from '@/auth/designerPermissions';
 import type { DesignerUser } from '@/auth/designerAuth';
 
 describe('account capability restrictions', () => {
@@ -37,5 +37,14 @@ describe('account capability restrictions', () => {
   it('keeps older server responses compatible without fabricating a new policy', () => {
     const legacy = { permissions: [designerPermissions.pdfSignaturesSign] } as DesignerUser;
     expect(hasDesignerPermission(legacy, designerPermissions.pdfSignaturesSign)).toBe(true);
+  });
+
+  it('distinguishes role permission, account restriction and separate migration approval', () => {
+    expect(designerPermissionDenial({ ...user, permissions: [] }, [designerPermissions.pdfImport])).toBe('role');
+    expect(designerPermissionDenial(user, [designerPermissions.pdfImport])).toBe('account');
+    expect(hasDesignerPermission(user, designerPermissions.pdfImport)).toBe(false);
+    expect(designerPermissionDenial(user, [designerPermissions.migrationPdfExecute])).toBe('approval');
+    expect(designerPermissionDenial(user, [designerPermissions.documentEdit])).toBeNull();
+    expect(designerPermissionDenial(user, [designerPermissions.pdfImport, designerPermissions.documentEdit])).toBeNull();
   });
 });

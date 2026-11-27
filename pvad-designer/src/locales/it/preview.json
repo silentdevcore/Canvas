@@ -36,7 +36,7 @@
     },
     "more": {
       "label": "Altri formati…",
-      "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
+      "sub": "Mostra i formati disponibili per questo account"
     }
   },
   "openInPdfViewer": "Apri nel visualizzatore PDF",

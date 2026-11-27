@@ -90,8 +90,16 @@ export function formatCapability(direction: 'import' | 'export', format: string)
   return `${direction}.${normalized}`;
 }
 
+export function designerPermissionDenial(user: DesignerUser, permissions: readonly string[]): 'role' | 'account' | 'approval' | null {
+  if (hasAnyDesignerPermission(user, permissions)) return null;
+  const held = permissions.filter(permission => user.permissions.includes(permission));
+  if (held.length === 0) return 'role';
+  return held.some(permission => permission.startsWith('designer.migration.')) ? 'approval' : 'account';
+}
+
 function accountAllowsPermission(user: DesignerUser, permission: string): boolean {
   const capability = ({
+    'designer.pdf.import': 'import.pdf',
     'designer.pdf.signatures.sign': 'pdf.signature.sign',
     'designer.pdf.signatures.key-providers.use': 'pdf.signature.sign',
     'designer.pdf.signatures.key-providers.manage': 'pdf.signature.sign',

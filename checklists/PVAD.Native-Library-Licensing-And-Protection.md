@@ -4119,10 +4119,11 @@ changes remain outside that commit and this milestone.
 ## Later Findings Outside Original Scope
 
 2026-11-27 account-role workflow review: see
-[the findings and evidence](PVAD.Account-Roles-Workflow-Review.md). The preview
-quick menu still permits a private JSON download without a format capability;
-deferred XLS remains advertised, and account restrictions receive generic role
-or HTTP messages. Application corrections remain open after this review. These
+[the findings and evidence](PVAD.Account-Roles-Workflow-Review.md). The review
+found a preview JSON shortcut without format admission, deferred XLS advertising,
+and generic role/HTTP messages. The owner-authorized follow-up corrects these
+three groups locally with component/browser regressions; see the correction
+checkpoint in that report. It remains uncommitted and undeployed. These
 findings do not increase the fixed primary denominator or close release gates.
 
 | Finding | Impact And Priority | Handling |

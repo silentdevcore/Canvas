@@ -4,6 +4,12 @@ Date: 2026-11-27. Base commit: `05c68813`. Review of current local source and
 the selected private/company account policy. Cloud selection remains deferred.
 This is a findings phase: no application behavior or account rights were changed.
 
+**Follow-up status, 2026-11-27:** The owner subsequently authorized correction
+of all three findings. The historical findings below describe the reviewed base;
+see [the correction checkpoint](#correction-checkpoint-2026-11-27) for the local
+implementation and regression evidence. The recorded account policy remains
+unchanged, including undecided JSON rights and deferred XLS.
+
 ## Findings
 
 ### P1 — Preview quick export bypasses the private JSON capability restriction
@@ -131,3 +137,52 @@ changes are uncommitted; owner-owned `PVAD.sln` and `.vscode/` stay untouched.
 Recommended implementation order: correct preview format admission first,
 then remove deferred XLS promises, then make account/approval messages specific.
 Production readiness and the original 70/76 checklist status are unchanged.
+
+## Correction Checkpoint (2026-11-27)
+
+Authorized after review commit `a9d1f5d6`; changes remain local and uncommitted.
+
+- Preview menu visibility and action handlers now both check the selected
+  format capability, in addition to role permissions. Printing retains its
+  separate role check and PDF capability. Private JSON/image shortcuts are
+  absent; explicitly permitted company JSON remains downloadable. The handler
+  test also removes a JSON grant after rendering the button and confirms that
+  its download is refused. No account rights were expanded to make a test pass.
+- Spreadsheet import derives XLSX/CSV/TSV choices and descriptive text from
+  account capabilities. Native Workbook JSON remains available for editing.
+  Deferred XLS is not advertised or selected; an injected XLS file is refused
+  locally before the service call. Native edit mode still accepts JSON only.
+- Route and sidebar messages distinguish missing role permission, account
+  restriction and separate Migration approval. PDF import uses the same
+  capability gate at the route, rather than presenting a misleading inactive
+  upload panel. A standalone import panel also explains its disabled state.
+  Spreadsheet service failures preserve structured denial categories without
+  displaying raw HTTP codes or arbitrary server detail. The upload page renders
+  localized alerts. The new messages and dynamic format descriptions are present
+  in English, German, French, Spanish, Italian and Arabic.
+
+The existing browser profile now asserts corrected behavior rather than
+successful defect reproduction. It covers both account kinds, explicit XLS
+rejection without an upload, a server capability denial on XLSX, approval wording,
+company JSON success and private JSON/image absence. Phone preview remains
+behind the existing Desktop-required overlay; no mobile editor expansion is
+claimed. Browser APIs are synthetic, as in the original review. Backend/native
+licensing and database source were not changed, and the prior 85-test backend
+profile was not rerun for this UI change.
+
+Final validation: **147/147** component/route/renderer/permission/import/locale
+tests and **20/20** Chromium desktop/phone cases pass, with no skipped or flaky
+browser cases. Typecheck and production build pass (existing bundler warnings
+remain). Tooling/version/release-author checks pass **38/38** and fragments are
+valid. Screenshots were inspected. Browser APIs are still synthetic; no connected
+browser/backend acceptance is implied. The component checks include narrow
+account format lists, native JSON-only editing, structured/unknown/non-JSON
+server failures and role/account/approval message selection. Unknown failures do
+not falsely identify a role problem. New keys/placeholders match across all six
+locale catalogs; this is not independent professional translation approval.
+
+Logs, audited browser results, screenshots and source hashes are recorded under
+`artifacts/account-policy-fixes/20261127/`.
+No deployment, production key, live migration, paid-phase policy change or
+commit is part of this correction. The release fragment declares **Patch / fixed**
+for Designer and documentation; primary release acceptance remains 70/76.

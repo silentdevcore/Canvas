@@ -9,6 +9,7 @@ const ACCEPT = '.pdf,application/pdf';
 
 const ImporterPage: React.FC = () => {
   const { t } = useTranslation('importer');
+  const { t: common } = useTranslation('common');
   const auth = useOptionalDesignerAuth();
   const allowed = hasAccountCapability(auth?.user, 'import.pdf');
   const { loadFromFile } = useTemplateLoader();
@@ -44,6 +45,8 @@ const ImporterPage: React.FC = () => {
           <h1>{t('heading')}</h1>
           <p>{t('subheading')}</p>
         </header>
+
+        {!allowed && <p role="status">{common('permissions.accountMessage')}</p>}
 
         <div className="importer-grid importer-grid--single">
           <button

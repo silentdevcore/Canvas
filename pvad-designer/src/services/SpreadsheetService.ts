@@ -1,6 +1,14 @@
 import type { Workbook } from '../spreadsheet/types';
 import { deleteDesignerAsset, designerAssetContentUrl, uploadDesignerImage } from './designerAssetApi';
 
+export class SpreadsheetImportError extends Error {
+  constructor(public readonly kind: 'account' | 'role' | 'authentication' | 'failed') {
+    super(({ account: 'This import is not included in your account rights.', role: 'Your role does not allow this import.',
+      authentication: 'Sign in before importing a spreadsheet.', failed: 'The spreadsheet could not be imported.' })[kind]);
+    this.name = 'SpreadsheetImportError';
+  }
+}
+
 export interface PreparedWorkbookAssets {
   workbook: Workbook;
   commit: () => void;
@@ -104,7 +112,12 @@ export class SpreadsheetService {
     const fd = new FormData();
     fd.append('file', file);
     const res = await fetch(`${this.API_BASE_URL}/spreadsheet/import`, { method: 'POST', body: fd });
-    if (!res.ok) throw new Error(`Import failed (${res.status})`);
+    if (!res.ok) {
+      const problem = await res.json().catch(() => null);
+      throw new SpreadsheetImportError(res.status === 401 ? 'authentication' :
+        res.status === 403 && problem?.code === 'PVAD_ACCOUNT_CAPABILITY_DENIED' ? 'account' :
+        res.status === 403 && problem?.code === 'PVAD_DESIGNER_PERMISSION_REQUIRED' ? 'role' : 'failed');
+    }
     return this.storeEmbeddedImages(await res.json() as Workbook);
   }
 

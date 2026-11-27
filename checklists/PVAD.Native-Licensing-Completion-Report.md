@@ -595,6 +595,34 @@ Existing manufacturer preparation remains uncommitted and Cloud selection is
 still deferred. No production keys, deployments, commits or primary checklist
 closures were performed; status remains **70/76 (92.1%)**.
 
+### Account Format And Restriction Corrections (2026-11-27)
+
+After review commit `a9d1f5d6`, the owner authorized the three corrections.
+Preview shortcuts now check per-format account rights for menu visibility and
+handler admission. Deferred XLS is absent from the spreadsheet chooser and is
+rejected before upload even if injected. Allowed external choices/description
+follow the account capability list; native Workbook JSON editing remains intact.
+Account restrictions, missing role permission and separate Migration approval
+now have different route/sidebar/import messages in all six supported locales.
+No JSON policy approval, XLS decision, Migration approval or backend rights change
+is inferred from this work.
+
+Validation: **147/147** Designer/component/locale tests, **20/20** Chromium
+desktop/phone cases and **38/38** tooling/version tests; typecheck and production
+Designer build pass. The previously reproduced JSON/XLS cases are now denial
+regressions; company JSON download remains positive. A separate handler test
+removes the grant after button rendering and proves no download starts. Inputs
+with no structured denial category receive a generic failure instead of a guessed
+role diagnosis or raw HTTP detail. Evidence, audited browser counters, screenshots
+and source hashes: `artifacts/account-policy-fixes/20261127/`.
+
+The browser still uses synthetic API fixtures and the phone visual-editor gate.
+The prior 85-test backend run was not repeated: API/.NET/database/native-license
+code was not modified. See the updated
+[review correction checkpoint](PVAD.Account-Roles-Workflow-Review.md#correction-checkpoint-2026-11-27).
+These changes have **Patch / fixed** release impact and remain uncommitted.
+Production/Cloud/key work is still deferred and the primary status stays 70/76.
+
 ### Commercial Model To Revisit Later (2026-11-24)
 
 The recommendation below is historical. The current free-launch choice above

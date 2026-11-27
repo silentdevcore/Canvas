@@ -2010,7 +2010,9 @@ runner removes test keys/builds and audits source trust/regular licensing output
 The Playwright profile starts separate local Designer/Account servers on ports
 5186/5188, uses synthetic API fixtures, and checks desktop/phone UI. It does not
 connect the browser to the real backend. Phone visual editing retains the existing
-Desktop-required gate. Tests prefixed `review evidence` characterize current gaps;
-their success is evidence of reproduction, not acceptance of the incorrect behavior.
+Desktop-required gate. The original review probes have become regression checks:
+private preview JSON/image choices are absent, company JSON still downloads, and
+deferred XLS is rejected locally with no upload. Restriction messages and the
+allowed import list follow the current account rights.
 See [the review](../../checklists/PVAD.Account-Roles-Workflow-Review.md) for findings,
 verified scope and work not executed.
