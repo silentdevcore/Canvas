@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="../../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
     <ProjectReference Include="../PVAD.Migration.Report.Designer.ActiveReportsJs/PVAD.Migration.Report.Designer.ActiveReportsJs.csproj" />
     <ProjectReference Include="../PVAD.Migration.Report.Designer.DevExpress/PVAD.Migration.Report.Designer.DevExpress.csproj" />
     <ProjectReference Include="../PVAD.Migration.Report.Designer.FastReport/PVAD.Migration.Report.Designer.FastReport.csproj" />
@@ -18,7 +20,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);CS1591;CS1570;CS1572;CS1573;CS1574;CS1584</WarningsAsErrors>
   </PropertyGroup>
 
 </Project>

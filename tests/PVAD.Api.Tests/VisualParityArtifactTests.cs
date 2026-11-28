@@ -9,6 +9,7 @@ using PVAD.WebApi.Application.Designer;
 using PVAD.WebApi.Infrastructure;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using PVAD.Testing;
 
 namespace PVAD.Api.Tests;
 
@@ -200,7 +201,11 @@ public sealed class VisualParityArtifactTests
         return new PvadCodeConversionService(new PvadCodeWorkerClient(
             new TestEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance), fontLoader, instant is { } value ? new FixedClock(value) : null);
+            NullLogger<PvadCodeWorkerClient>.Instance,
+            Options.Create(new PVAD.WebApi.Services.Licensing.PvadNativeLicenseOptions
+            {
+                LicensePath = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH"),
+            })), fontLoader, instant is { } value ? new FixedClock(value) : null);
     }
 
     private sealed class FixedClock(DateTimeOffset instant) : TimeProvider

@@ -4,6 +4,7 @@ using System.Xml;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Converters;
 
@@ -25,6 +26,7 @@ public sealed class OdtDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.odt");
         using var ms  = new MemoryStream();
         using var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true);
 

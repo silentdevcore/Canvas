@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -20,6 +21,16 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         PdfTrustInspectionOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustInspection);
+        return await InspectAdmittedAsync(pdfStream, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfTrustReport> InspectAdmittedAsync(
+        Stream pdfStream,
+        PdfTrustInspectionOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         options ??= new PdfTrustInspectionOptions();
         if (options.MaximumFileSizeBytes <= 0 || options.MaximumFileSizeBytes > int.MaxValue)
@@ -70,8 +81,8 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 MaxParallelPageParsers = 1
             };
             var context = new PdfParseContext(source, importerOptions, cancellationToken);
-            xref = new PdfCrossReferenceParser().Parse(context);
-            graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
+            xref = new PdfCrossReferenceParser().ParseAdmitted(context);
+            graph = new PdfObjectParser(context, xref).ParseDocumentGraphAdmitted();
             structureStatus = version is null || graph.Objects.Count == 0
                 ? PdfTrustStatus.Invalid
                 : PdfTrustStatus.Valid;
@@ -92,7 +103,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
                 structureStatus = PdfTrustStatus.Invalid;
             }
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception) when (exception is not (OperationCanceledException or PvadLicenseException))
         {
             diagnostics.Add(new PdfTrustDiagnostic(
                 "PVADPDFTRUST002",
@@ -135,9 +146,9 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
             .ToArray() ?? [];
         var revisionCount = revisions.Length > 0
             ? revisions.Length
-            : xref?.Entries.Count == 0
+            : xref is null || xref.Entries.Count == 0
                 ? 0
-                : xref!.Entries.Values.Max(entry => entry.Revision) + 1;
+                : xref.Entries.Values.Max(entry => entry.Revision) + 1;
 
         if (xref is not null)
         {
@@ -270,7 +281,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
 
         try
         {
-            material = PdfEmbeddedValidationMaterialExtractor.Extract(graph);
+            material = PdfEmbeddedValidationMaterialExtractor.ExtractAdmitted(graph);
             if (material.Certificates.Count == 0 && material.Crls.Count == 0 &&
                 material.OcspResponses.Count == 0 && material.VriEntryCount == 0)
             {
@@ -752,7 +763,7 @@ public sealed partial class PdfTrustInspector : IPdfTrustInspector
         }
 
         var validatedAt = DateTimeOffset.UtcNow;
-        var isValid = PdfA2bConformanceValidator.Validate(graph, isEncrypted, diagnostics, archiveProfile.Value);
+        var isValid = PdfA2bConformanceValidator.ValidateAdmitted(graph, isEncrypted, diagnostics, archiveProfile.Value);
         return new PdfComplianceClaim(
             "PDF/A",
             profile,

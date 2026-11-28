@@ -9,6 +9,8 @@ using PVAD.WebApi.Controllers;
 using PVAD.Importer.Trust;
 using PVAD.WebApi.Infrastructure;
 using System.Text.Json;
+using PVAD.Testing;
+using PVAD.Licensing;
 
 namespace PVAD.Api.Tests;
 
@@ -75,7 +77,7 @@ public sealed class CodeWorkspaceConversionTests
                 Enabled = true,
                 WorkerPath = workerDirectory,
             }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
 
         var response = await client.RunAsync(new PvadCodeWorkerRequest
         {
@@ -245,7 +247,7 @@ public sealed class CodeWorkspaceConversionTests
         var worker = new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
         var service = new PvadCodeConversionService(worker);
         const string source = """
             {"pages":[{"id":"page-1","elements":[{"id":"rich-1","type":"richtext","x":10,"y":20,"width":220,"height":80,"htmlContent":"<p>Hello <strong>PVAD</strong> <a href=\"https://example.com\">Docs</a></p>","style":{"fontSize":14,"color":"#123456"}}]}]}
@@ -266,7 +268,7 @@ public sealed class CodeWorkspaceConversionTests
         var service = new PvadCodeConversionService(new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance));
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions()));
         const string source = """
             {
               "id":"roundtrip","name":"Roundtrip","vendorDocumentFlag":true,
@@ -484,7 +486,7 @@ public sealed class CodeWorkspaceConversionTests
         var client = new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = "missing-code-worker" }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
 
         var response = await client.RunAsync(new PvadCodeWorkerRequest
         {
@@ -493,6 +495,51 @@ public sealed class CodeWorkspaceConversionTests
 
         Assert.False(response.Success);
         Assert.Contains(response.Diagnostics, value => value.Code == "PVADCODE041");
+    }
+
+    [Theory]
+    [InlineData(PvadCodeLanguages.CSharpModel)]
+    [InlineData(PvadCodeLanguages.CSharpBase64)]
+    [InlineData(PvadCodeLanguages.CSharpPdf)]
+    public async Task Worker_DoesNotReturnAnUnvalidatedDocumentOnFailure(string language)
+    {
+        const string model = "var design = new DesignExportDto { Pages = new List<PageDto> { new PageDto { Id = \"same\" }, new PageDto { Id = \"same\" } } };";
+        var source = model + (language == PvadCodeLanguages.CSharpPdf
+            ? "return new PvadPdfCodeDocument { Design = design };"
+            : "return design;");
+        if (language == PvadCodeLanguages.CSharpBase64)
+        {
+            const string json = "{\"pages\":[{\"id\":\"same\"},{\"id\":\"same\"}]}";
+            var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
+            source = $"return JsonSerializer.Deserialize<DesignExportDto>(Encoding.UTF8.GetString(Convert.FromBase64String(\"{payload}\")), new JsonSerializerOptions(JsonSerializerDefaults.Web))!;";
+        }
+
+        var response = await CreatePackagedWorkerService().ExecuteAsync(language, source, default);
+
+        Assert.False(response.Success);
+        Assert.Contains(response.Diagnostics, value => value.Code == "PVADCODE104");
+        Assert.Null(response.CanonicalDesign);
+        Assert.Null(response.PdfBytes);
+        Assert.Empty(response.SourceMap);
+        Assert.Equal(PvadCodeFidelity.Unsupported, response.Fidelity);
+    }
+
+    [Fact]
+    public async Task PrivateAccountRestrictionReachesTheActualPackagedCodeWorker()
+    {
+        using var scope = PvadAccountCapabilityContext.Enter(PvadLicenseAccountKind.IndividualDeveloper);
+        var service = CreatePackagedWorkerService();
+        const string create = "var document = PVAD.Generator.Pdf.CreateDocument(); document.AddPage(100, 100); ";
+        var allowed = await service.ExecuteAsync(PvadCodeLanguages.CSharpPdf, create + "return document;", default);
+        Assert.True(allowed.Success, JsonSerializer.Serialize(allowed.Diagnostics));
+        Assert.NotEmpty(allowed.PdfBytes!);
+        // A trusted host may narrow the account policy further. The child must
+        // preserve that restriction even with a broad legacy native license.
+        using var narrowed = PvadAccountCapabilityContext.Restore(["code.execute", "export.pdf"]);
+        var denied = await service.ExecuteAsync(PvadCodeLanguages.CSharpPdf, create + "return document;", default);
+        Assert.False(denied.Success);
+        Assert.Contains(denied.Diagnostics, value => value.Code == "PVAD_ACCOUNT_CAPABILITY_DENIED");
+        Assert.Null(denied.PdfBytes);
     }
 
     [Fact]
@@ -513,7 +560,7 @@ public sealed class CodeWorkspaceConversionTests
         var client = new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory, TimeoutSeconds = 3 }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
 
         var response = await client.RunAsync(new PvadCodeWorkerRequest
         {
@@ -533,7 +580,7 @@ public sealed class CodeWorkspaceConversionTests
         var client = new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory, MaximumOutputBytes = 10 }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
 
         var response = await client.RunAsync(new PvadCodeWorkerRequest
         {
@@ -552,7 +599,7 @@ public sealed class CodeWorkspaceConversionTests
         var client = new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance);
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions());
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
@@ -703,8 +750,14 @@ public sealed class CodeWorkspaceConversionTests
         return new PvadCodeConversionService(new PvadCodeWorkerClient(
             new TestWebHostEnvironment(),
             Options.Create(new PvadCodeWorkerOptions { Enabled = true, WorkerPath = workerDirectory }),
-            NullLogger<PvadCodeWorkerClient>.Instance));
+            NullLogger<PvadCodeWorkerClient>.Instance, NativeLicenseOptions()));
     }
+
+    private static Microsoft.Extensions.Options.IOptions<PVAD.WebApi.Services.Licensing.PvadNativeLicenseOptions> NativeLicenseOptions() =>
+        Options.Create(new PVAD.WebApi.Services.Licensing.PvadNativeLicenseOptions
+        {
+            LicensePath = PvadTestEnvironment.Read("PVAD_NATIVE_LICENSE_PATH"),
+        });
 
     private static IEnumerable<Type> ReachableDtoTypes(Type root)
     {

@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-package-documentation",
+  "impact": "patch",
+  "components": ["sdk", "documentation"],
+  "category": "improved",
+  "summary": "Native package preparation now includes offline activation guidance, public API documentation and traceable dependency notices.",
+  "breaking": false
+}

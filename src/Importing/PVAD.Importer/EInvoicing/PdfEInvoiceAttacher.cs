@@ -7,6 +7,7 @@ using PVAD.Importer.Streams;
 using PVAD.Importer.Trust;
 using PVAD.Importer.Xref;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.EInvoicing;
 
@@ -19,8 +20,27 @@ namespace PVAD.Importer.EInvoicing;
 /// approved that explicitly. The caller's input stream is never written to; when an operation
 /// is blocked the original file is simply left alone.
 /// </summary>
-public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPdfEInvoiceAttacher
+public sealed class PdfEInvoiceAttacher : IPdfEInvoiceAttacher
 {
+    private readonly IPdfA2bConverter archiveConverter;
+    private readonly TimeProvider timeProvider;
+
+    /// <summary>Creates an attacher using the system UTC clock for attachment metadata.</summary>
+    public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter)
+        : this(archiveConverter, TimeProvider.System)
+    {
+    }
+
+    /// <summary>Creates an attacher using the supplied clock for attachment metadata.</summary>
+    /// <remarks>The clock does not control licensing, signature validation or archival validation.</remarks>
+    public PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter, TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(archiveConverter);
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        this.archiveConverter = archiveConverter;
+        this.timeProvider = timeProvider;
+    }
+
     internal const int MaximumFileNameLength = 120;
     internal const int MaximumDescriptionLength = 512;
 
@@ -39,6 +59,17 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         PdfEInvoiceAttachmentOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEInvoice);
+        return await PreflightAdmittedAsync(pdfStream, payload, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfEInvoiceAttachmentPreflightReport> PreflightAdmittedAsync(
+        Stream pdfStream,
+        PdfEInvoiceAttachmentPayload payload,
+        PdfEInvoiceAttachmentOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= new PdfEInvoiceAttachmentOptions();
         ValidatePayload(payload);
         ValidateOptions(options);
@@ -52,6 +83,17 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         PdfEInvoiceAttachmentOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfEInvoice);
+        return await AttachAdmittedAsync(pdfStream, payload, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfEInvoiceAttachmentResult> AttachAdmittedAsync(
+        Stream pdfStream,
+        PdfEInvoiceAttachmentPayload payload,
+        PdfEInvoiceAttachmentOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= new PdfEInvoiceAttachmentOptions();
         ValidatePayload(payload);
         ValidateOptions(options);
@@ -85,11 +127,11 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
             working = await ConvertAsync(source, options, preflight, cancellationToken).ConfigureAwait(false);
         }
 
-        var updates = BuildAttachmentUpdates(working, payload, options);
+        var updates = BuildAttachmentUpdates(working, payload, options, timeProvider.GetUtcNow());
         byte[] bytes;
         try
         {
-            bytes = new PdfIncrementalUpdateWriter().Append(working.Bytes, updates).Bytes;
+            bytes = new PdfIncrementalUpdateWriter().AppendAdmitted(working.Bytes, updates).Bytes;
         }
         catch (Exception exception) when (exception is InvalidDataException or NotSupportedException)
         {
@@ -128,15 +170,15 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         try
         {
             await using var stream = new MemoryStream(source.Bytes, writable: false);
-            var converted = await archiveConverter.ConvertAsync(
-                stream,
-                new PdfA2bConversionOptions
-                {
-                    Profile = PdfArchiveProfile.PdfA3b,
-                    MaximumFileSizeBytes = options.MaximumPdfSizeBytes,
-                    AllowSignatureInvalidation = options.AllowSignatureInvalidation
-                },
-                cancellationToken).ConfigureAwait(false);
+            var conversionOptions = new PdfA2bConversionOptions
+            {
+                Profile = PdfArchiveProfile.PdfA3b,
+                MaximumFileSizeBytes = options.MaximumPdfSizeBytes,
+                AllowSignatureInvalidation = options.AllowSignatureInvalidation
+            };
+            var converted = archiveConverter is PdfA2bConverter builtIn
+                ? await builtIn.ConvertAdmittedAsync(stream, conversionOptions, cancellationToken).ConfigureAwait(false)
+                : await archiveConverter.ConvertAsync(stream, conversionOptions, cancellationToken).ConfigureAwait(false);
             return Parse(converted.Bytes);
         }
         catch (Exception exception) when (
@@ -413,7 +455,8 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
     private static IReadOnlyList<PdfIncrementalObjectUpdate> BuildAttachmentUpdates(
         ParsedSource source,
         PdfEInvoiceAttachmentPayload payload,
-        PdfEInvoiceAttachmentOptions options)
+        PdfEInvoiceAttachmentOptions options,
+        DateTimeOffset modificationTime)
     {
         var graph = source.Graph;
         if (graph.Trailer?["Root"] is not PdfReference rootReference ||
@@ -439,7 +482,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
                 {
                     ["Size"] = new PdfInteger(content.Length),
                     ["CheckSum"] = new PdfString(MD5.HashData(content), false),
-                    ["ModDate"] = new PdfString(Encoding.ASCII.GetBytes(PdfDate(DateTimeOffset.UtcNow)), false)
+                    ["ModDate"] = new PdfString(Encoding.ASCII.GetBytes(PdfDate(modificationTime)), false)
                 }
             },
             content);
@@ -601,7 +644,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         // The limits here only have to admit everything the result legitimately contains -
         // including attachments the source already carried, which may be larger than the
         // invoice - because this pass exists to compare bytes, not to re-impose input bounds.
-        var attachments = PdfAssociatedFileExtractor.Extract(
+        var attachments = PdfAssociatedFileExtractor.ExtractAdmitted(
             result.Graph,
             new PdfAssociatedFileExtractionOptions
             {
@@ -622,7 +665,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
         }
 
         var diagnostics = new List<PdfTrustDiagnostic>();
-        PdfA2bConformanceValidator.Validate(
+        PdfA2bConformanceValidator.ValidateAdmitted(
             result.Graph,
             result.IsEncrypted,
             diagnostics,
@@ -757,13 +800,13 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
 
         var limits = new PdfParseLimits();
         var context = new PdfParseContext(bytes, new PdfImporterOptions { Limits = limits }, cancellationToken);
-        var xref = new PdfCrossReferenceParser().Parse(context);
+        var xref = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (xref.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF cross-reference data is invalid: {xref.Diagnostics[0].Code}.");
         }
 
-        var graph = new PdfObjectParser(context, xref).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, xref).ParseDocumentGraphAdmitted();
         if (context.Diagnostics.Count > 0 || graph.Objects.Count == 0)
         {
             throw new InvalidDataException("The PDF could not be parsed completely.");
@@ -790,7 +833,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
     private static bool IsStructurallyValidPdfA3(PdfObjectGraph graph, bool isEncrypted)
     {
         var diagnostics = new List<PdfTrustDiagnostic>();
-        return PdfA2bConformanceValidator.Validate(
+        return PdfA2bConformanceValidator.ValidateAdmitted(
             graph,
             isEncrypted,
             diagnostics,
@@ -956,7 +999,7 @@ public sealed class PdfEInvoiceAttacher(IPdfA2bConverter archiveConverter) : IPd
             throw new NotSupportedException("The stream uses an unsupported PDF filter.");
         }
 
-        return registry.Decode(stream);
+        return registry.DecodeAdmitted(stream);
     }
 
     private static IEnumerable<PdfStreamObject> ResolveContentStreams(PdfObjectGraph graph, PdfObject? value)

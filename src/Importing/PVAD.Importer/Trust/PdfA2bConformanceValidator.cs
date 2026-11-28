@@ -3,6 +3,7 @@ using PVAD.Importer.Content;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -62,6 +63,17 @@ internal static class PdfA2bConformanceValidator
         ICollection<PdfTrustDiagnostic> diagnostics,
         PdfArchiveProfile profile = PdfArchiveProfile.PdfA2b)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustInspection);
+        return ValidateAdmitted(graph, isEncrypted, diagnostics, profile);
+    }
+
+    internal static bool ValidateAdmitted(
+        PdfObjectGraph graph,
+        bool isEncrypted,
+        ICollection<PdfTrustDiagnostic> diagnostics,
+        PdfArchiveProfile profile = PdfArchiveProfile.PdfA2b)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var valid = true;
         if (isEncrypted)
         {
@@ -429,8 +441,8 @@ internal static class PdfA2bConformanceValidator
                         continue;
                     }
 
-                    var content = stream.IsDecoded ? stream.DecodedBytes : decoder.Decode(stream);
-                    foreach (var command in new PdfContentStreamParser().Parse(content).Where(static item => item.Operator.Name == "ri"))
+                    var content = stream.IsDecoded ? stream.DecodedBytes : decoder.DecodeAdmitted(stream);
+                    foreach (var command in new PdfContentStreamParser().ParseAdmitted(content).Where(static item => item.Operator.Name == "ri"))
                     {
                         ValidateRenderingIntent(command.Operands.LastOrDefault(), objectId);
                     }

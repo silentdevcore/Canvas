@@ -1,0 +1,10 @@
+{
+  "id": "native-word-license-enforcement",
+  "impact": "major",
+  "components": ["api", "generator", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Native DOCX generation and signing now require an explicitly loaded signed Word license, including direct exporter calls. Word-only licenses do not require an additional PDF or Converter grant.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

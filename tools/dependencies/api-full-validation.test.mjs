@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import test from 'node:test';
 import { apiValidationEnvironment, auditApiResults } from './api-full-validation.mjs';
+import { closeNativeTestSession, createNativeTestSession, nativeTestEnvironment } from '../native-licensing/test-session.mjs';
 
 const theory = 'PVAD.Api.Tests.PvadApplicationLifetimeTests.Other_failures_are_not_converted_to_a_retention_exit';
 const catalog = ['PVAD.Api.Tests.Synthetic.Passing', theory];
@@ -31,6 +32,19 @@ test('API result audit accepts only the documented four-case late theory expansi
   assert.equal(result.discoveryEntries, 2);
   assert.equal(result.concreteTestCases, 5);
   assert.deepEqual(result.lateEnumeration.exceptionTypes, types);
+});
+
+test('API child environment preserves only the owned native session and explicit container transport', () => {
+  const session = createNativeTestSession();
+  try {
+    const environment = apiValidationEnvironment({ ...session.environment, PVAD_BOOTSTRAP_ADMIN_PASSWORD: 'private',
+      DOCKER_HOST: 'unix:///synthetic/docker.sock', TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: '/var/run/docker.sock' }, '/tmp/synthetic-api');
+    assert.deepEqual(nativeTestEnvironment(environment), session.environment);
+    assert.equal(environment.PVAD_BOOTSTRAP_ADMIN_PASSWORD, undefined);
+    assert.equal(environment.TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE, '/var/run/docker.sock');
+    assert.equal(environment.DOCKER_HOST, 'unix:///synthetic/docker.sock');
+    assert.throws(() => apiValidationEnvironment({ ...session.environment, PvadLicenseTrustStorePath: '/foreign' }, '/tmp/synthetic-api'), /configuration drift/);
+  } finally { closeNativeTestSession(session.descriptor); }
 });
 
 test('API result audit rejects missing, substituted and duplicate concrete results', () => {

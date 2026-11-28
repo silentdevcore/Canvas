@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 namespace PVAD.Generator;
 
@@ -74,6 +75,7 @@ public static partial class EInvoice
         PvadEInvoiceDocument invoice,
         PvadEInvoiceOptions options)
     {
+        PvadLicense.RequireAccountCapability("pdf.e-invoice.create");
         ArgumentNullException.ThrowIfNull(invoice);
         ArgumentNullException.ThrowIfNull(options);
         var diagnostics = new List<PvadEInvoiceDiagnostic>();
@@ -87,7 +89,7 @@ public static partial class EInvoice
             ? CreateUblInvoice(invoice, calculations)
             : CreateCiiInvoice(invoice, options, calculations);
         var xml = Encoding.UTF8.GetBytes(document.ToString(SaveOptions.DisableFormatting));
-        var recognition = Recognize(xml);
+        var recognition = RecognizeCore(xml);
         diagnostics.AddRange(recognition.Diagnostics);
         if (!recognition.IsRecognized)
             diagnostics.Add(Error("PVADEINV119", "Generated invoice XML failed structural recognition."));

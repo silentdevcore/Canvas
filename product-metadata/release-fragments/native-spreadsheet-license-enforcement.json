@@ -1,0 +1,10 @@
+{
+  "id": "native-spreadsheet-license-enforcement",
+  "impact": "major",
+  "components": ["api", "generator", "spreadsheet", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Native Spreadsheet authoring, calculation, data operations, and XLSX, XLS, CSV, and TSV import and export now require a signed Spreadsheet license, including direct calls and existing builder handles.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Signing;
 
 public enum PdfPadesProfile
@@ -166,6 +168,7 @@ public sealed class PdfPkcs12SigningKey : IPdfSigningKey, IDisposable
 
     public PdfPkcs12SigningKey(ReadOnlySpan<byte> pkcs12Bytes, string? password = null)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.sign");
         if (pkcs12Bytes.IsEmpty)
         {
             throw new ArgumentException("A non-empty PKCS#12 payload is required.", nameof(pkcs12Bytes));
@@ -180,8 +183,17 @@ public sealed class PdfPkcs12SigningKey : IPdfSigningKey, IDisposable
 
     public X509Certificate2 Certificate => _certificate;
 
-    public byte[] SignHash(ReadOnlySpan<byte> hash, HashAlgorithmName digestAlgorithm) =>
-        _privateKey.SignHash(hash, digestAlgorithm, RSASignaturePadding.Pkcs1);
+    public byte[] SignHash(ReadOnlySpan<byte> hash, HashAlgorithmName digestAlgorithm)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return SignHashAdmitted(hash, digestAlgorithm);
+    }
+
+    internal byte[] SignHashAdmitted(ReadOnlySpan<byte> hash, HashAlgorithmName digestAlgorithm)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return _privateKey.SignHash(hash, digestAlgorithm, RSASignaturePadding.Pkcs1);
+    }
 
     public void Dispose()
     {

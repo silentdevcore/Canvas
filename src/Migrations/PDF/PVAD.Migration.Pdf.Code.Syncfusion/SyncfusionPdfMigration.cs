@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,10 +7,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.Syncfusion;
 
-public sealed class SyncfusionPdfMigration : CSharpSourceMigration
+/// <summary>Rewrites Syncfusion PDF C# source; report Designer inputs use a separate migration.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>syncfusion-pdf</c>. The returned code
+/// and diagnostics require review; migration does not render the resulting PDF.</remarks>
+public sealed class SyncfusionPdfMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "syncfusion-pdf");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, "syncfusion-pdf");
         if (string.IsNullOrWhiteSpace(sourceCode))
         {
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));

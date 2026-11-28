@@ -5,6 +5,7 @@ using System.Security;
 using System.Text;
 using PVAD.Pdf.Layout;
 using PVAD.Pdf.Rendering;
+using PVAD.Licensing;
 
 namespace PVAD.Pdf.Serialization;
 
@@ -18,6 +19,57 @@ internal sealed class PdfWriter
     }
 
     public PdfWriteResult Write(PdfDocument document, PdfSaveOptions? options = null)
+    {
+        // Recheck on each export, before mutations or output; an admitted write may finish.
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.PdfSerialization, "export.pdf",
+            options?.ComplianceProfile is { } profile && profile != PdfComplianceProfile.None ? "pdf.compliance.convert" : null);
+        return WriteCore(document, options);
+    }
+
+    // Only a fresh, empty page can cross this dependency boundary; no caller document escapes.
+    internal static byte[] CreateBlankPageForImporter(double width, double height)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImporterBlankPage);
+        return CreateBlankPageForImporterAdmitted(width, height);
+    }
+
+    internal static byte[] CreateBlankPageForImporterAdmitted(double width, double height)
+    {
+        var admission = PvadLicense.DemandDependency(PvadNativeDependency.BlankPagePdf);
+        if (!double.IsFinite(width) || width <= 0 || !double.IsFinite(height) || height <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), "Page dimensions must be finite and positive.");
+        var document = new PdfDocument(width, height, admission);
+        return new PdfWriter().WriteCore(document, null).Bytes;
+    }
+
+    // Only trusted importer mapping runs here; public caller callbacks use ordinary PDF admission.
+    internal static byte[] RegenerateForImporter(Action<PdfDocument> populate)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImporterRegeneration);
+        return RegenerateForImporterAdmitted(populate);
+    }
+
+    internal static byte[] RegenerateForImporterAdmitted(Action<PdfDocument> populate)
+    {
+        var admission = PvadLicense.DemandDependency(PvadNativeDependency.RegenerationPdf);
+        ArgumentNullException.ThrowIfNull(populate);
+        var document = new PdfDocument(admission);
+        populate(document);
+        PvadLicense.DemandDependency(PvadNativeDependency.RegenerationPdf);
+        return new PdfWriter().WriteCore(document, null).Bytes;
+    }
+
+    internal static byte[] RenderOcrResult(Action<PdfDocument> populate)
+    {
+        var admission = PvadLicense.DemandDependency(PvadNativeDependency.OcrResultPdf);
+        ArgumentNullException.ThrowIfNull(populate);
+        var document = new PdfDocument(admission);
+        populate(document);
+        PvadLicense.DemandDependency(PvadNativeDependency.OcrResultPdf);
+        return new PdfWriter().WriteCore(document, null).Bytes;
+    }
+
+    private PdfWriteResult WriteCore(PdfDocument document, PdfSaveOptions? options)
     {
         options ??= PdfSaveOptions.Default;
 

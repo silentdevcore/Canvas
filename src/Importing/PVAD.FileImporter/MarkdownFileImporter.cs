@@ -10,6 +10,7 @@ using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter;
@@ -50,6 +51,7 @@ public sealed class MarkdownFileImporter : IFileImporter
         Uri? assetBaseUri,
         CancellationToken cancellationToken)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.md");
         var text = await ReadBoundedTextAsync(stream, cancellationToken);
         var design = ImportText(text, name, cancellationToken);
         await ResolveRemoteImagesAsync(design, assetBaseUri, cancellationToken);
@@ -62,6 +64,7 @@ public sealed class MarkdownFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.md");
         var text = ReadBoundedText(stream);
         return ImportText(text, name, CancellationToken.None);
     }
@@ -1501,7 +1504,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             Encoding.UTF8,
             detectEncodingFromByteOrderMarks: true,
             bufferSize: 8192,
-            leaveOpen: false);
+            leaveOpen: true);
         var buffer = new char[8192];
         var text = new StringBuilder();
 
@@ -1527,7 +1530,7 @@ public sealed class MarkdownFileImporter : IFileImporter
             Encoding.UTF8,
             detectEncodingFromByteOrderMarks: true,
             bufferSize: 8192,
-            leaveOpen: false);
+            leaveOpen: true);
         var buffer = new char[8192];
         var text = new StringBuilder();
 

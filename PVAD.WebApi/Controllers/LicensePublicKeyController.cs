@@ -10,11 +10,19 @@ namespace PVAD.WebApi.Controllers;
 public sealed class LicensePublicKeyController : ControllerBase
 {
     [HttpGet("public-key")]
-    public ActionResult<LicensePublicKeyResponse> GetPublicKey([FromServices] IPvadLicenseSignatureVerifier signatureVerifier) =>
-        Ok(new LicensePublicKeyResponse(
-            signatureVerifier.KeyId,
-            "ECDSA_P256_SHA256",
-            signatureVerifier.PublicKeyPem));
+    public ActionResult<LicensePublicKeyResponse> GetPublicKey([FromServices] IPvadLicenseSignatureVerifier signatureVerifier)
+    {
+        try
+        {
+            return Ok(new LicensePublicKeyResponse(signatureVerifier.KeyId, "ECDSA_P256_SHA256", signatureVerifier.PublicKeyPem));
+        }
+        catch (PvadLicenseVerificationUnavailableException)
+        {
+            return Problem(statusCode: 503, title: "License verification unavailable",
+                detail: "The server's public license verification key is not available. Contact the operator.",
+                extensions: new Dictionary<string, object?> { ["code"] = PvadLicenseVerificationUnavailableException.Code });
+        }
+    }
 }
 
 public sealed record LicensePublicKeyResponse(string KeyId, string Algorithm, string PublicKeyPem);

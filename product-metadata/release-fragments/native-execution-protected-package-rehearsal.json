@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-execution-protected-package-rehearsal",
+  "impact": "none",
+  "components": ["generator", "importer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Extended native-package compatibility checks to document converters and code execution workers.",
+  "reason": "Adds disposable local protection candidates and validation harnesses only; no public package or deployed runtime is replaced.",
+  "breaking": false
+}

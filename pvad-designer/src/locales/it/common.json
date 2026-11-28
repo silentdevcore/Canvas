@@ -23,7 +23,17 @@
   "permissions": {
     "requiredTitle": "Autorizzazione richiesta",
     "requiredMessage": "Il ruolo nell'organizzazione non consente questa funzione del Designer.",
-    "sidebarRequired": "Autorizzazione richiesta"
+    "sidebarRequired": "Autorizzazione richiesta",
+    "accountTitle": "Restrizione dell’account",
+    "accountMessage": "Questa operazione non è inclusa nei diritti del tuo account.",
+    "approvalTitle": "Approvazione amministratore richiesta",
+    "approvalMessage": "La migrazione richiede un’approvazione separata da un amministratore PVAD. I permessi del tuo ruolo non sono sufficienti.",
+    "accountSidebar": "Restrizione dell’account",
+    "approvalSidebar": "Approvazione amministratore richiesta",
+    "xlsDeferred": "L’importazione XLS non è ancora disponibile. Scegli uno dei formati elencati.",
+    "formatDenied": "Questo formato di file non è disponibile per questo account o per questa modalità di importazione.",
+    "signInMessage": "Accedi prima di importare un foglio di calcolo.",
+    "importFailed": "Impossibile importare il foglio di calcolo. Controlla il file e riprova."
   },
   "pdfSidebar": {
     "createPdf": "Crea PDF",

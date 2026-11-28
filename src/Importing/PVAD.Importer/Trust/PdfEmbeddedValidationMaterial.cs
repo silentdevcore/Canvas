@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -40,7 +41,7 @@ internal static class PdfEmbeddedRevocationEvidenceValidator
         {
             try
             {
-                candidates.Add(PdfCrlEvidenceValidator.ValidateHistorical(
+                candidates.Add(PdfCrlEvidenceValidator.ValidateHistoricalAdmitted(
                     crl,
                     certificate,
                     issuer,
@@ -57,7 +58,7 @@ internal static class PdfEmbeddedRevocationEvidenceValidator
         {
             try
             {
-                candidates.Add(PdfOcspEvidence.ValidateHistoricalResponse(
+                candidates.Add(PdfOcspEvidence.ValidateHistoricalResponseAdmitted(
                     ocsp,
                     certificate,
                     issuer,
@@ -98,6 +99,13 @@ internal static class PdfEmbeddedValidationMaterialExtractor
 
     public static PdfEmbeddedValidationMaterial Extract(PdfObjectGraph graph)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustInspection);
+        return ExtractAdmitted(graph);
+    }
+
+    internal static PdfEmbeddedValidationMaterial ExtractAdmitted(PdfObjectGraph graph)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var catalog = Resolve(graph, graph.Trailer?["Root"]) as PdfDictionary;
         var dss = Resolve(graph, catalog?["DSS"]) as PdfDictionary;
         if (dss is null)
@@ -181,7 +189,7 @@ internal static class PdfEmbeddedValidationMaterialExtractor
                 throw new NotSupportedException("The embedded validation material uses an unsupported stream filter.");
             }
 
-            var bytes = (stream.IsDecoded ? stream.DecodedBytes : decoder.Decode(stream)).ToArray();
+            var bytes = (stream.IsDecoded ? stream.DecodedBytes : decoder.DecodeAdmitted(stream)).ToArray();
             if (bytes.Length is 0 or > MaximumItemBytes)
             {
                 throw new InvalidDataException("An embedded PDF validation item is empty or exceeds the 4 MiB item limit.");

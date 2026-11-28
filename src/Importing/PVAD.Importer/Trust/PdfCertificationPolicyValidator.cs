@@ -3,6 +3,8 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Xref;
 
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Trust;
 
 /// <summary>
@@ -532,11 +534,11 @@ internal static class PdfCertificationPolicyValidator
                 ParsePagesInParallel = false,
                 MaxParallelPageParsers = 1
             });
-            var table = new PdfCrossReferenceParser().Parse(context);
-            var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+            var table = new PdfCrossReferenceParser().ParseAdmitted(context);
+            var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
             return graph.Objects.Count == 0 ? null : (table, graph);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception exception) when (exception is not (OperationCanceledException or PvadLicenseException))
         {
             return null;
         }

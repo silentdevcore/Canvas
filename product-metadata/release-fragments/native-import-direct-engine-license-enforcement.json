@@ -1,0 +1,10 @@
+{
+  "id": "native-import-direct-engine-license-enforcement",
+  "impact": "major",
+  "components": ["importer", "documentation"],
+  "category": "breaking",
+  "summary": "Direct PDF tokenization, parsing, stream decoding, graphics interpretation, font parsing, and layout analysis now require an Importer license, including subsequent processing calls after license replacement. Metadata inspection remains available without a license.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

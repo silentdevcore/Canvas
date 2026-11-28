@@ -19,7 +19,7 @@ using Testcontainers.PostgreSql;
 
 namespace PVAD.Api.Tests;
 
-public sealed class AccountRegistrationControllerTests
+public sealed partial class AccountRegistrationControllerTests
 {
     [PostgreSqlFact]
     public async Task Registration_requires_current_legal_versions_and_records_exact_acceptances()
@@ -306,6 +306,11 @@ public sealed class AccountRegistrationControllerTests
             await finalDbContext.AuditEvents.Select(value => value.Action).ToListAsync());
         var activatedSubscription = await finalDbContext.OrganizationSubscriptions.SingleAsync();
         Assert.Equal(SubscriptionStatus.Trialing, activatedSubscription.Status);
+        var nativeRequest = await finalDbContext.NativeLicenseRegistrationJobs.SingleAsync();
+        Assert.Equal(organizationId, nativeRequest.OrganizationId);
+        Assert.Null(nativeRequest.OwnerUserId);
+        Assert.Equal(NativeLicenseRegistrationStatus.Pending, nativeRequest.Status);
+        Assert.Empty(await finalDbContext.NativeLibraryLicenses.ToListAsync());
         Assert.InRange(activatedSubscription.TrialEndsAt!.Value,
             DateTimeOffset.UtcNow.AddDays(29), DateTimeOffset.UtcNow.AddDays(31));
         var trialCapabilities = await finalDbContext.SubscriptionEntitlements

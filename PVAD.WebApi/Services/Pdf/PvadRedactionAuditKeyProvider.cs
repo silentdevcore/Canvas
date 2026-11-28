@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using PVAD.Importer.Signing;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Services.Pdf;
 
@@ -42,6 +43,7 @@ public sealed class PvadRedactionAuditKeyProvider : IPvadRedactionAuditKeyProvid
             return;
         }
 
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         if (!File.Exists(value.Pkcs12Path))
         {
             throw new InvalidOperationException(
@@ -52,7 +54,7 @@ public sealed class PvadRedactionAuditKeyProvider : IPvadRedactionAuditKeyProvid
         {
             _key = new PdfPkcs12SigningKey(File.ReadAllBytes(value.Pkcs12Path), value.Pkcs12Password);
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             logger.LogCritical(
                 "The configured redaction audit signing key could not be loaded.");

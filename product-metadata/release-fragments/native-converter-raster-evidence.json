@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-converter-raster-evidence",
+  "impact": "none",
+  "components": ["sdk", "infrastructure"],
+  "category": "improved",
+  "summary": "Added image-level and native font diagnostics for Converter package validation.",
+  "breaking": false,
+  "reason": "Only fixed synthetic test images, an isolated font probe, diagnostic tooling and CI evidence handling change; product renderers, licensing enforcement and approved baselines remain unchanged."
+}

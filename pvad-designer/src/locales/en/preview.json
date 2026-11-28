@@ -22,7 +22,7 @@
     "image": { "label": "Export Image", "sub": "PNG or a ZIP for multiple pages" },
     "json": { "label": "Export JSON", "sub": "Download template file" },
     "print": { "label": "Print", "sub": "Print the generated PDF" },
-    "more": { "label": "More formats…", "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown" }
+    "more": { "label": "More formats…", "sub": "Show formats available for this account" }
   },
   "openInPdfViewer": "Open in PDF Viewer",
   "watermarkAlt": "Watermark",

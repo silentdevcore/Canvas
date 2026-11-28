@@ -5,6 +5,7 @@ using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
 using PVAD.Core.Security;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Converters;
 
@@ -17,6 +18,7 @@ public sealed class HtmlDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.html");
         var sb = new StringBuilder();
         var plannedPages = DesignLayoutPlanner.BuildPages(design);
 

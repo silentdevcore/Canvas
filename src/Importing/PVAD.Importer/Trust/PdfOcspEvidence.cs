@@ -1,6 +1,7 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Trust;
 
@@ -21,6 +22,7 @@ public static class PdfOcspEvidence
 
     public static byte[] CreateRequest(X509Certificate2 certificate, X509Certificate2 issuer)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.validate");
         var writer = new AsnWriter(AsnEncodingRules.DER);
         writer.PushSequence();
         writer.PushSequence();
@@ -76,6 +78,29 @@ public static class PdfOcspEvidence
         string source,
         bool historical)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTrustInspection);
+        return ValidateResponseAdmitted(encodedResponse, certificate, issuer, validationTime, maximumAge, source, historical);
+    }
+
+    internal static PdfRevocationEvidence ValidateHistoricalResponseAdmitted(
+        ReadOnlyMemory<byte> encodedResponse,
+        X509Certificate2 certificate,
+        X509Certificate2 issuer,
+        DateTimeOffset trustedReferenceTime,
+        TimeSpan maximumProducedAtSkew,
+        string source) => ValidateResponseAdmitted(
+            encodedResponse, certificate, issuer, trustedReferenceTime, maximumProducedAtSkew, source, historical: true);
+
+    private static PdfRevocationEvidence ValidateResponseAdmitted(
+        ReadOnlyMemory<byte> encodedResponse,
+        X509Certificate2 certificate,
+        X509Certificate2 issuer,
+        DateTimeOffset validationTime,
+        TimeSpan maximumAge,
+        string source,
+        bool historical)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var reader = new AsnReader(encodedResponse, AsnEncodingRules.DER);
         var response = reader.ReadSequence();
         var responseStatus = response.ReadEnumeratedValue<OcspResponseStatus>();

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.Stimulsoft;
 
@@ -69,13 +70,27 @@ public sealed class MrtToDesignConverter
 
     public MrtConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "stimulsoft");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal MrtConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "stimulsoft");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public MrtConvertResult Convert(string mrt)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "stimulsoft");
+        return ConvertAdmitted(mrt);
+    }
+
+    internal MrtConvertResult ConvertAdmitted(string mrt)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "stimulsoft");
         if (string.IsNullOrWhiteSpace(mrt))
             throw new ArgumentException("Source cannot be null or empty.", nameof(mrt));
 

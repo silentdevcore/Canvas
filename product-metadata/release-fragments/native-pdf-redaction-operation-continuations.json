@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-redaction-operation-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF redaction and audit verification retain their license admission through built-in preflight, removal, rewriting and verification. New calls and custom providers still check current rights; content-removal and validation rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

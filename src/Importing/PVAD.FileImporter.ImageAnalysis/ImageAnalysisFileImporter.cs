@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Core.Contracts;
 using PVAD.FileImporter.ImageAnalysis.Analysis;
 using PVAD.FileImporter.ImageAnalysis.Templates;
@@ -35,7 +36,18 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
         double? targetWidthPt = null,
         double? targetHeightPt = null)
     {
-        var result = await ImportWithAnalysisAsync(
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return await ImportAsyncCore(stream, name, targetWidthPt, targetHeightPt);
+    }
+
+    internal async Task<DesignExportDto> ImportAsyncCore(
+        Stream stream,
+        string? name          = null,
+        double? targetWidthPt = null,
+        double? targetHeightPt = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        var result = await ImportWithAnalysisAsyncCore(
             stream,
             name,
             targetWidthPt,
@@ -51,7 +63,19 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
         double? targetHeightPt = null,
         bool includeDebugOverlay = false)
     {
-        return await ImportWithAnalysisAsync(
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return await ImportWithAnalysisAsyncCore(stream, name, targetWidthPt, targetHeightPt, includeDebugOverlay);
+    }
+
+    internal async Task<ImageAnalysisImportResult> ImportWithAnalysisAsyncCore(
+        Stream stream,
+        string? name           = null,
+        double? targetWidthPt  = null,
+        double? targetHeightPt = null,
+        bool includeDebugOverlay = false)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return await ImportWithAnalysisAsyncCore(
             stream,
             name,
             targetWidthPt,
@@ -66,6 +90,18 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
         double? targetHeightPt = null,
         ImageAnalysisOptions? options = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return await ImportWithAnalysisAsyncCore(stream, name, targetWidthPt, targetHeightPt, options);
+    }
+
+    internal async Task<ImageAnalysisImportResult> ImportWithAnalysisAsyncCore(
+        Stream stream,
+        string? name,
+        double? targetWidthPt = null,
+        double? targetHeightPt = null,
+        ImageAnalysisOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
         ms.Position = 0;
@@ -74,7 +110,7 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
             ?? throw new InvalidOperationException(
                 "Unable to decode image — unsupported or corrupt file.");
 
-        return ImportWithAnalysis(
+        return ImportWithAnalysisCore(
             bitmap,
             name ?? "Analysed Image",
             targetWidthPt,
@@ -88,7 +124,18 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
         double?  targetWidthPt  = null,
         double?  targetHeightPt = null)
     {
-        return ImportWithAnalysis(
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ImportCore(source, name, targetWidthPt, targetHeightPt);
+    }
+
+    internal static DesignExportDto ImportCore(
+        SKBitmap source,
+        string   name,
+        double?  targetWidthPt  = null,
+        double?  targetHeightPt = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return ImportWithAnalysisCore(
             source,
             name,
             targetWidthPt,
@@ -103,18 +150,30 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
         double?  targetHeightPt = null,
         ImageAnalysisOptions? options = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ImportWithAnalysisCore(source, name, targetWidthPt, targetHeightPt, options);
+    }
+
+    internal static ImageAnalysisImportResult ImportWithAnalysisCore(
+        SKBitmap source,
+        string   name,
+        double?  targetWidthPt = null,
+        double?  targetHeightPt = null,
+        ImageAnalysisOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= ImageAnalysisOptions.Default;
 
         long memoryBefore = GC.GetTotalMemory(false);
         var stopwatch = Stopwatch.StartNew();
 
-        using var prepared = Preprocessor.Prepare(source);
-        var colors     = ColorAnalyzer.Analyze(prepared);
-        var shapes     = ShapeDetector.Detect(prepared, colors);
-        var texts      = TextEngine.Analyze(prepared);
-        var primitives = SceneAssembler.Assemble(colors, shapes, texts);
+        using var prepared = Preprocessor.PrepareCore(source);
+        var colors     = ColorAnalyzer.AnalyzeCore(prepared);
+        var shapes     = ShapeDetector.DetectCore(prepared, colors);
+        var texts      = TextEngine.AnalyzeCore(prepared);
+        var primitives = SceneAssembler.AssembleCore(colors, shapes, texts);
 
-        var design = SceneAssembler.ToDesign(
+        var design = SceneAssembler.ToDesignCore(
             primitives,
             background:     colors.Background,
             imageWidthPx:   prepared.Width,
@@ -145,7 +204,7 @@ public sealed class ImageAnalysisFileImporter : PVAD.FileImporter.IFileImporter
                 stopwatch.Elapsed.TotalMilliseconds,
                 memoryAfter - memoryBefore),
             DebugOverlayPng = options.IncludeDebugOverlay
-                ? DebugOverlayRenderer.RenderPng(prepared, colors, shapes, texts)
+                ? DebugOverlayRenderer.RenderPngCore(prepared, colors, shapes, texts)
                 : null,
         };
     }

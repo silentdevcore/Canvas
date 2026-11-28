@@ -1,5 +1,6 @@
 using PVAD.Migration.Abstractions;
 using PVAD.Migration.Roslyn;
+using PVAD.Licensing;
 using ActivePdfMigration = PVAD.Migration.Pdf.Code.ActivePdf.ActivePdfMigration;
 using ApryseMigration = PVAD.Migration.Pdf.Code.Apryse.ApryseMigration;
 using AsposePdfMigration = PVAD.Migration.Pdf.Code.Aspose.AsposePdfMigration;
@@ -58,8 +59,18 @@ public static class PdfMigrationProviders
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceCode);
         var migration = Create(key);
-        var result = migration.Migrate(sourceCode);
-        var trust = result.PdfTrust ?? CSharpPdfTrustEvidenceScanner.Scan(
+        var provider = MigrationProviderCatalog.Get(MigrationDomains.Pdf, MigrationKinds.Code, key).ProviderKey;
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, provider);
+        return MigrateCore(migration, provider, sourceCode);
+    }
+
+    internal static MigrationResult MigrateAdmitted(string key, string sourceCode) =>
+        MigrateCore(Create(key), key, sourceCode);
+
+    private static MigrationResult MigrateCore(ISourceMigration migration, string key, string sourceCode)
+    {
+        var result = CodeMigrationAdmission.MigrateAdmitted(migration, PvadLicenseProducts.PdfCodeMigration, key, sourceCode);
+        var trust = result.PdfTrust ?? CSharpPdfTrustEvidenceScanner.ScanAdmitted(
             sourceCode,
             PdfTrustMigrationCatalog.Get(key));
         var diagnostics = result.Diagnostics.ToList();

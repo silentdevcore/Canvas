@@ -56,6 +56,9 @@ builder.AddPvadObservability();
 
 // Add services to the container.
 builder.Services.AddControllers(options => options.Filters.Add<PvadProblemDetailsResultFilter>());
+builder.Services.AddExceptionHandler<PvadNativeLicenseExceptionHandler>();
+builder.Services.AddOptions<PvadNativeLicenseOptions>().Bind(builder.Configuration.GetSection("NativeLicensing"));
+builder.Services.AddHostedService<PvadNativeLicenseBootstrap>();
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
@@ -331,6 +334,15 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0,
         }));
+    options.AddPolicy("native-license-issuance", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ??
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
     options.AddPolicy("identity-action", context => RateLimitPartition.GetFixedWindowLimiter(
         $"{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{context.Request.Path}",
         _ => new FixedWindowRateLimiterOptions
@@ -423,17 +435,35 @@ builder.Services.AddOptions<PvadProductAccessOptions>()
 builder.Services.AddOptions<PvadLicensingOptions>()
     .Bind(builder.Configuration.GetSection("Licensing"))
     .Validate(options => !string.IsNullOrWhiteSpace(options.KeyId) &&
-                         !string.IsNullOrWhiteSpace(options.PrivateKeyPath) &&
+                         (!options.IssuerEnabled || !string.IsNullOrWhiteSpace(options.PrivateKeyPath)) &&
                          !string.IsNullOrWhiteSpace(options.PublicKeyPath) &&
                          options.MetricsIntervalSeconds is >= 15 and <= 3600,
-        "Licensing key paths and a metrics interval between 15 and 3600 seconds are required.")
+        "A license verification key path, an issuer-only private key path, and a metrics interval between 15 and 3600 seconds are required.")
     .ValidateOnStart();
 builder.Services.AddSingleton<PvadLicenseSigningService>();
 builder.Services.AddSingleton<IPvadLicenseSigningService>(
     services => services.GetRequiredService<PvadLicenseSigningService>());
-builder.Services.AddSingleton<IPvadLicenseSignatureVerifier>(
-    services => services.GetRequiredService<PvadLicenseSigningService>());
+builder.Services.AddSingleton<IPvadLicenseSignatureVerifier, PvadLicenseSignatureVerifier>();
 builder.Services.AddSingleton<PvadOfflineLicenseValidator>();
+builder.Services.AddOptions<PvadNativeIssuerOptions>()
+    .Bind(builder.Configuration.GetSection(PvadNativeIssuerOptions.SectionName))
+    .Validate(options => !options.Enabled || (!string.IsNullOrWhiteSpace(options.KeyId) && options.KeyId.Length <= 100 &&
+        !string.IsNullOrWhiteSpace(options.PrivateKeyPath) && Path.IsPathRooted(options.PrivateKeyPath) &&
+        options.AllowedUserIds is { Length: > 0 and <= 128 } && !options.AllowedUserIds.Contains(Guid.Empty)),
+        "Native manufacturer issuance requires an explicit key ID, absolute secret path and operator user IDs.")
+    .ValidateOnStart();
+builder.Services.AddOptions<PvadNativeLicenseAutomationOptions>()
+    .Bind(builder.Configuration.GetSection(PvadNativeLicenseAutomationOptions.SectionName))
+    .Validate(options => options.IsValid(), "Native automation needs an explicitly approved policy version, issuer and license terms.")
+    .Validate(options => !options.Enabled || builder.Configuration.GetValue<bool>("NativeLicenseIssuer:Enabled"),
+        "Native automation is restricted to a manufacturer issuer deployment.")
+    .ValidateOnStart();
+builder.Services.AddScoped<PvadNativeLicenseAutomationProcessor>();
+builder.Services.AddSingleton<PvadNativeLicenseSigner>();
+builder.Services.AddScoped(services => new PvadNativeLicenseIssuanceService(
+    services.GetRequiredService<PvadDbContext>(), services.GetRequiredService<PvadNativeLicenseSigner>(),
+    services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PvadNativeIssuerOptions>>(), services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PvadStepUpOptions>>(),
+    services.GetRequiredService<PvadSystemOperatorAccess>(), services.GetRequiredService<TimeProvider>()));
 var dataProtectionKeysPath = PvadDataProtection.KeysPath(builder.Configuration, builder.Environment);
 Directory.CreateDirectory(dataProtectionKeysPath);
 builder.Services.AddDataProtection()
@@ -518,6 +548,7 @@ builder.Services.AddScoped<PvadJobRetentionService>();
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddHostedService<PvadMailWorker>();
+    builder.Services.AddHostedService<PvadNativeLicenseAutomationWorker>();
     builder.Services.AddHostedService<TrialExpiryWorker>();
     builder.Services.AddHostedService<PvadJobWorker>();
     builder.Services.AddHostedService<PvadJobRetentionWorker>();
@@ -707,6 +738,7 @@ app.UseRateLimiter();
 app.UseMiddleware<PvadPdfTrustAvailabilityMiddleware>();
 app.UseMiddleware<PvadProductAccessMiddleware>();
 app.UseAuthorization();
+app.UseMiddleware<PvadAccountCapabilityMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

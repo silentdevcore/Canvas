@@ -2,6 +2,7 @@ using System.Text;
 using System.Xml.Linq;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Converters;
 
@@ -12,7 +13,11 @@ public sealed class XmlDocumentExporter : DocumentExporter
     public string FileExtension => ".xml";
     public IExporterCapabilities Capabilities => new ExporterCapabilities();
 
-    public byte[] Export(DesignExportDto design) => ExportDocument(design, "PvadDocument");
+    public byte[] Export(DesignExportDto design)
+    {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.xml");
+        return ExportDocument(design, "PvadDocument");
+    }
 
     private static byte[] ExportDocument(DesignExportDto design, string rootName)
     {

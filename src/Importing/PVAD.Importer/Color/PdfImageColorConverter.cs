@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -25,6 +26,15 @@ internal static class PdfImageColorConverter
         PdfStreamObject image,
         Func<PdfObject?, PdfObject?> resolve)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorConversion);
+        return ConvertAdmitted(image, resolve);
+    }
+
+    internal static PdfImageColorConversionResult ConvertAdmitted(
+        PdfStreamObject image,
+        Func<PdfObject?, PdfObject?> resolve)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         // Stencil masks paint with the current graphics-state colour and intentionally have
         // no /ColorSpace. Their one-bit samples must not be treated as coloured image data.
         if (resolve(image.Dictionary["ImageMask"]) is PdfBoolean { Value: true })
@@ -32,7 +42,7 @@ internal static class PdfImageColorConverter
             return new PdfImageColorConversionResult(false);
         }
 
-        var space = PdfSrgbColorConverter.Resolve(image.Dictionary["ColorSpace"], resolve);
+        var space = PdfSrgbColorConverter.ResolveAdmitted(image.Dictionary["ColorSpace"], resolve);
         if (space.Family is PdfColorSpaceFamily.DeviceGray or PdfColorSpaceFamily.DeviceRgb)
         {
             return new PdfImageColorConversionResult(false);
@@ -71,9 +81,9 @@ internal static class PdfImageColorConverter
         {
             samples = image.IsDecoded
                 ? image.DecodedBytes.ToArray()
-                : new PdfStreamDecoderRegistry().Decode(image).ToArray();
+                : new PdfStreamDecoderRegistry().DecodeAdmitted(image).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return Block("The image samples could not be decoded within the configured safety limits.");
         }
@@ -107,7 +117,7 @@ internal static class PdfImageColorConverter
                             : sample;
                 }
 
-                var rgb = PdfSrgbColorConverter.ToSrgb(space, inputComponents);
+                var rgb = PdfSrgbColorConverter.ToSrgbAdmitted(space, inputComponents);
                 if (rgb is not { Length: >= 3 })
                 {
                     return Block("An image sample could not be mapped through its colour space to sRGB.");

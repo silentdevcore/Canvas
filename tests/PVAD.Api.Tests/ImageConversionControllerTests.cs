@@ -16,7 +16,7 @@ public sealed class ImageConversionControllerTests : IClassFixture<PvadApiTestFa
     public ImageConversionControllerTests(PvadApiTestFactory factory)
     {
         _factory = factory;
-        _client = factory.CreateClient();
+        _client = factory.CreateCompanyProductClient();
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class ImageConversionControllerTests : IClassFixture<PvadApiTestFa
                 services.AddSingleton<IOcrEngine>(new TimeoutOcrEngine());
             });
         });
-        using var client = factory.CreateClient();
+        using var client = factory.CreateCompanyProductClient();
         using var form = CreateImageForm("TIMEOUT");
         form.Add(new StringContent("eng"), "languages");
         form.Add(new StringContent("5"), "maxOcrRuntimeSeconds");

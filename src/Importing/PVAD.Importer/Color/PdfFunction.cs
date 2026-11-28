@@ -1,6 +1,7 @@
 using System.Globalization;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Color;
 
@@ -23,6 +24,20 @@ public abstract class PdfFunction
 
     public double[] Evaluate(IReadOnlyList<double> inputs)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorConversion);
+        return EvaluateAdmitted(inputs);
+    }
+
+    internal static double[] EvaluateKnownAdmitted(PdfFunction function, IReadOnlyList<double> inputs) => function switch
+    {
+        PdfFunctionArray or PdfExponentialFunction or PdfStitchingFunction or
+            PdfSampledFunction or PdfPostScriptFunction => function.EvaluateAdmitted(inputs),
+        _ => function.Evaluate(inputs),
+    };
+
+    private double[] EvaluateAdmitted(IReadOnlyList<double> inputs)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var clamped = new double[inputs.Count];
         for (var index = 0; index < inputs.Count; index++)
         {
@@ -50,6 +65,13 @@ public abstract class PdfFunction
     /// <summary>Resolves a function object, or returns null when the type is not supported.</summary>
     public static PdfFunction? TryCreate(PdfObject? value, Func<PdfObject?, PdfObject?> resolve, int depth = 0)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfColorResolution);
+        return TryCreateAdmitted(value, resolve, depth);
+    }
+
+    internal static PdfFunction? TryCreateAdmitted(PdfObject? value, Func<PdfObject?, PdfObject?> resolve, int depth = 0)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (depth > 8)
         {
             return null;
@@ -62,7 +84,7 @@ public abstract class PdfFunction
             var parts = new List<PdfFunction>(array.Items.Count);
             foreach (var item in array.Items)
             {
-                var part = TryCreate(item, resolve, depth + 1);
+                var part = TryCreateAdmitted(item, resolve, depth + 1);
                 if (part is null)
                 {
                     return null;
@@ -142,7 +164,7 @@ internal sealed class PdfFunctionArray(IReadOnlyList<PdfFunction> parts)
         var outputs = new double[parts.Count];
         for (var index = 0; index < parts.Count; index++)
         {
-            var value = parts[index].Evaluate(inputs);
+            var value = EvaluateKnownAdmitted(parts[index], inputs);
             outputs[index] = value.Length > 0 ? value[0] : 0d;
         }
 
@@ -212,7 +234,7 @@ internal sealed class PdfStitchingFunction : PdfFunction
         var functions = new List<PdfFunction>(array.Items.Count);
         foreach (var item in array.Items)
         {
-            var function = TryCreate(item, resolve, depth + 1);
+            var function = TryCreateAdmitted(item, resolve, depth + 1);
             if (function is null)
             {
                 return null;
@@ -251,7 +273,7 @@ internal sealed class PdfStitchingFunction : PdfFunction
         var encoded = high - low <= double.Epsilon
             ? encodeLow
             : encodeLow + (x - low) / (high - low) * (encodeHigh - encodeLow);
-        return _functions[index].Evaluate([encoded]);
+        return EvaluateKnownAdmitted(_functions[index], [encoded]);
     }
 }
 
@@ -307,9 +329,9 @@ internal sealed class PdfSampledFunction : PdfFunction
         byte[] samples;
         try
         {
-            samples = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
+            samples = new PdfStreamDecoderRegistry().DecodeAdmitted(stream).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return null;
         }
@@ -438,9 +460,9 @@ internal sealed class PdfPostScriptFunction : PdfFunction
         byte[] source;
         try
         {
-            source = new PdfStreamDecoderRegistry().Decode(stream).ToArray();
+            source = new PdfStreamDecoderRegistry().DecodeAdmitted(stream).ToArray();
         }
-        catch (Exception exception) when (exception is not OutOfMemoryException)
+        catch (Exception exception) when (exception is not (OutOfMemoryException or PvadLicenseException))
         {
             return null;
         }

@@ -13,6 +13,8 @@ Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Serv
 
 ## Dependencies
 
+- [ ] Complete [native library licensing and protection](PVAD.Native-Library-Licensing-And-Protection.md); native rights are separate from Cloud editions.
+
 - [x] Align organization, user, membership, and administrator ownership with `PVAD.Admin.md`.
 - [ ] Align offline deployment and license mounting with `PVAD.Api-Docker.md`.
 - [ ] Align SDK entitlement behavior with `PVAD.SDK-Roadmap.md`.
@@ -23,6 +25,20 @@ Define a consistent subscription and entitlement model for PVAD Cloud, PVAD Serv
 - [ ] Approve or revise the proposed price book with Product, Finance, Tax, and Legal owners before implementing billing.
 
 ## Subscription Dimensions
+
+Native engine activation is a separate boundary documented in
+[Native Library Activation And Renewal](../docs/guides/PVAD.Native-Library-Activation.md).
+An Account registration Trial can be assigned automatically after verification;
+a native 30-day Trial must be explicitly issued and signed. Cloud editions,
+administrator roles and developer seats do not implicitly grant local engine
+rights. Native subscriptions have their own signed validity and seven-day grace;
+these terms must not be inferred as implemented server grace behavior for the
+open server-lifecycle tasks below. Native perpetual update eligibility is based
+on the shipped library release date. Server offline-license schemas and native
+license artifacts remain distinct, and local native activation remains explicit.
+Commercial bundles may provide both artifacts; bundle prices and distribution
+rights still require approval. No billing, edition or seat task is closed by
+this documentation alignment.
 
 - [x] Keep subscription edition independent from account type.
 - [x] Model the `Individual Developer` account type with a single seat.

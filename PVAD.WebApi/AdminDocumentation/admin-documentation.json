@@ -182,14 +182,50 @@
           "apiExample": null
         },
         {
+          "title": "Native library licenses",
+          "group": "Commercial",
+          "permission": "Manufacturer-authorized System Administrator with licenses.manage and recent authentication",
+          "summary": "Issue and renew native library licenses separately from server offline licenses. Customers download only their own organization's artifacts through Account.",
+          "prerequisites": [
+            "Use an active, verified System Administrator with explicit native issuer allowlisting.",
+            "Use a recent live session and an explicitly enabled manufacturer deployment.",
+            "Confirm approved customer, model, products, exact provider keys, validity and redistribution rights."
+          ],
+          "steps": [
+            "Open Native library licenses; a customer verification-only deployment shows issuance disabled.",
+            "Search for the customer organization, choose the license model, UTC term and explicit product/provider grants.",
+            "Issue the signed artifact and inspect its Details before private delivery.",
+            "For renewal, open Details and extend only subscription validity or perpetual update eligibility. Trials cannot be renewed.",
+            "Download the new artifact; the prior artifact and audit remain unchanged. Customers use Account > Licenses > Native library licenses."
+          ],
+          "result": "A new immutable native license is stored with its successful audit event. Native licenses never inherit Cloud editions or server-license signing rights.",
+          "failures": [
+            "403 requires recent authentication and explicit manufacturer authorization; customer servers cannot enable issuance through a role alone.",
+            "409 indicates a changed retry, an existing renewal successor or stored artifact integrity failure.",
+            "Customer downloads require a live verified session, active organization and membership; foreign IDs return 404 and removed memberships cannot download."
+          ],
+          "audit": "Issuance and renewal append native-licenses.issue/native-licenses.renew events atomically. Audit details omit the full artifact, customer reference and private signing material. Downloads do not create license mutations.",
+          "endpoint": "GET/POST /api/pvad/v1/admin/native-licenses; POST /api/pvad/v1/admin/native-licenses/{licenseId}/renew; GET /api/pvad/v1/account/native-licenses/{licenseId}/download",
+          "screenshot": "native-licenses.png",
+          "notes": [
+            "Native issuer configuration and private keys are never entered in Admin or Account forms. Deployment details remain in the protected operator runbook.",
+            "Account is read-only for native licenses and always resolves organization context server-side. It works with issuance disabled and never requires a private key.",
+            "Renewal does not remotely revoke an older offline artifact. Signed revocation-list import remains a separate milestone.",
+            "The screenshot uses synthetic organizations and non-usable sample artifacts, not customer data."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
           "title": "Offline licenses",
           "group": "Commercial",
           "permission": "System Administrator",
-          "summary": "Issue, validate, download, replace, and revoke signed Enterprise licenses for approved deployments.",
+          "summary": "Read, validate, and download signed Enterprise licenses. Issuance and replacement require an explicitly enabled manufacturer issuer.",
           "prerequisites": [
             "Use an active, email-verified account.",
             "Select the intended organization.",
-            "Required access: System Administrator."
+            "Required access: System Administrator.",
+            "For issuance or replacement, use the explicitly configured manufacturer issuer; customer verification servers cannot perform these operations."
           ],
           "steps": [
             "Open Offline licenses.",
@@ -208,6 +244,10 @@
           "screenshot": "licenses.png",
           "notes": [
             "Only approved Enterprise On-Premise or Hybrid subscriptions can receive an offline license.",
+            "Customer servers use verification-only mode and do not need private signing keys. System Administrator access alone does not enable issuance or replacement.",
+            "This workspace manages existing server-license schemas 1 and 2. Native library licenses are a separate profile and are not enabled by the issuer setting alone.",
+            "Issuance and replacement require Licensing:IssuerEnabled=true on the manufacturer-operated issuer with a provisioned matching key pair; missing keys are never generated automatically.",
+            "PVAD_LICENSE_ISSUANCE_DISABLED identifies a verification-only server. PVAD_LICENSE_ISSUER_UNAVAILABLE and PVAD_LICENSE_VERIFIER_UNAVAILABLE identify issuer and public-key configuration failures without exposing secrets.",
             "The replacement API requires licenses.manage, System Administrator access, CSRF, and a reason. No replacement button is added by this migration.",
             "Replacement atomically creates a PVAD successor, marks the original Replaced, and records audit/outbox events. Signed history, validity, limits, and entitlements remain unchanged; private signing keys never enter Admin.",
             "Schema-1 replacement requires explicit productVersion and deploymentId. Schema-2 bindings cannot be changed; concurrent or repeated replacement returns 409.",
@@ -778,6 +818,10 @@
     [
       "/licenses and /licenses/{id}",
       "Offline licenses"
+    ],
+    [
+      "/native-licenses",
+      "Native library licenses"
     ],
     [
       "/service-accounts",

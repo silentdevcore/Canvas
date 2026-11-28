@@ -1,5 +1,8 @@
 # PVAD SDK Roadmap Checklist
 
+Native .NET distribution and protection are tracked separately in
+[Native Library Licensing And Protection](PVAD.Native-Library-Licensing-And-Protection.md).
+
 ## Goal
 
 Create a shared, versioned SDK platform that exposes one professional developer experience across PVAD Cloud and customer-managed PVAD Server installations.
@@ -24,6 +27,18 @@ Create a shared, versioned SDK platform that exposes one professional developer 
 - [ ] Publish the exact OpenAPI artifact used for every SDK release.
 
 ## SDK Architecture
+
+This roadmap covers remote transport clients, not the embedded .NET engine.
+[Native Library Activation And Renewal](../docs/guides/PVAD.Native-Library-Activation.md)
+describes activation only for applications loading native PVAD assemblies.
+Java/Python/TypeScript/JavaScript and C# REST clients authenticate to PVADE Server;
+the operator activates the server's native processing license separately.
+Clients contain neither an engine-activation bypass nor manufacturer signing
+keys. Native-license HTTP 503 diagnostics remain separate from 401/403 user,
+tenant, permission and entitlement failures. Renewing a server subscription or
+downloading a native artifact does not automatically reload a running native
+engine or its workers. This clarification does not implement an SDK, publish a
+package, select a publisher or complete the unchecked client tasks below.
 
 - [ ] Generate an internal transport layer from OpenAPI for each language.
 - [ ] Add a handwritten public facade with PDF, Spreadsheet, Templates, Migration, Import, and Export clients.

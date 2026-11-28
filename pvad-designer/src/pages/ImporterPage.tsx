@@ -2,11 +2,16 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FiFileText, FiUpload, FiChevronRight } from 'react-icons/fi';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
+import { useOptionalDesignerAuth } from '@/auth/DesignerAuthGate';
+import { hasAccountCapability } from '@/auth/designerPermissions';
 
 const ACCEPT = '.pdf,application/pdf';
 
 const ImporterPage: React.FC = () => {
   const { t } = useTranslation('importer');
+  const { t: common } = useTranslation('common');
+  const auth = useOptionalDesignerAuth();
+  const allowed = hasAccountCapability(auth?.user, 'import.pdf');
   const { loadFromFile } = useTemplateLoader();
   const inputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
@@ -15,7 +20,7 @@ const ImporterPage: React.FC = () => {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !allowed) return;
     e.target.value = '';
     setImporting(true);
     setError('');
@@ -41,11 +46,13 @@ const ImporterPage: React.FC = () => {
           <p>{t('subheading')}</p>
         </header>
 
+        {!allowed && <p role="status">{common('permissions.accountMessage')}</p>}
+
         <div className="importer-grid importer-grid--single">
           <button
             className={`importer-card${importing ? ' is-loading' : ''}`}
             onClick={() => inputRef.current?.click()}
-            disabled={importing}
+            disabled={importing || !allowed}
             aria-label={t('chooseFile')}
           >
             <span className="importer-card-icon">

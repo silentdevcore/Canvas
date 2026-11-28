@@ -83,6 +83,10 @@ export function useDesignerAuth(): DesignerAuthContextValue {
   return value;
 }
 
+export function useOptionalDesignerAuth(): DesignerAuthContextValue | null {
+  return useContext(DesignerAuthContext);
+}
+
 const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [state, setState] = useState<GateState>({ kind: 'loading' });
 

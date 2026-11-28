@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -25,6 +26,13 @@ public sealed class ReadingOrderEngine
 {
     public IReadOnlyList<ReadingLine> BuildLines(IEnumerable<PrimitiveObject> primitives)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildLinesAdmitted(primitives);
+    }
+
+    internal IReadOnlyList<ReadingLine> BuildLinesAdmitted(IEnumerable<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var texts = Flatten(primitives).OfType<PrimitiveText>().Where(static text => !string.IsNullOrWhiteSpace(text.Text)).ToList();
         var groups = new List<List<PrimitiveText>>();
 
@@ -55,6 +63,13 @@ public sealed class ReadingOrderEngine
 
     public IReadOnlyList<ReadingParagraph> BuildParagraphs(IEnumerable<ReadingLine> lines)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildParagraphsAdmitted(lines);
+    }
+
+    internal IReadOnlyList<ReadingParagraph> BuildParagraphsAdmitted(IEnumerable<ReadingLine> lines)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var paragraphs = new List<List<ReadingLine>>();
         foreach (var line in lines.OrderBy(static line => line.Order))
         {
@@ -76,6 +91,13 @@ public sealed class ReadingOrderEngine
 
     public IReadOnlyList<ReadingColumn> DetectColumns(IEnumerable<ReadingParagraph> paragraphs)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return DetectColumnsAdmitted(paragraphs);
+    }
+
+    internal IReadOnlyList<ReadingColumn> DetectColumnsAdmitted(IEnumerable<ReadingParagraph> paragraphs)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var ordered = paragraphs.OrderBy(static paragraph => paragraph.Bounds.Left).ToList();
         var columns = new List<List<ReadingParagraph>>();
 
@@ -104,9 +126,16 @@ public sealed class ReadingOrderEngine
 
     public ReadingOrderResult Analyze(IEnumerable<PrimitiveObject> primitives)
     {
-        var lines = BuildLines(primitives);
-        var paragraphs = BuildParagraphs(lines);
-        var columns = DetectColumns(paragraphs);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return AnalyzeAdmitted(primitives);
+    }
+
+    internal ReadingOrderResult AnalyzeAdmitted(IEnumerable<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        var lines = BuildLinesAdmitted(primitives);
+        var paragraphs = BuildParagraphsAdmitted(lines);
+        var columns = DetectColumnsAdmitted(paragraphs);
         return new ReadingOrderResult
         {
             Lines = lines,

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-private-support-artifacts",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Added encrypted support-archive preparation and recovery checks for native library builds.",
+  "reason": "Adds internal build tooling and synthetic recovery rehearsals; no customer package, production key or deployed service is changed.",
+  "breaking": false
+}

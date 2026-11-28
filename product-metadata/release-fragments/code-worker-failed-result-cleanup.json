@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "code-worker-failed-result-cleanup",
+  "impact": "patch",
+  "components": ["designer", "api"],
+  "category": "fixed",
+  "summary": "Failed code executions no longer return incomplete document previews or PDF results.",
+  "breaking": false
+}

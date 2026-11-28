@@ -395,6 +395,12 @@
   max-width: min(440px, calc(100vw - 24px));
 }
 
+/* Passive notices must not intercept controls beneath the notification stack.
+   This selector also overrides react-hot-toast's active-wrapper child rule. */
+.pvad-toast-region .pvad-toast {
+  pointer-events: none;
+}
+
 .pvad-toast-content {
   display: flex;
   align-items: center;
@@ -402,6 +408,7 @@
 }
 
 .pvad-toast-content button {
+  pointer-events: auto;
   color: #b45309;
   background: transparent;
   border: 0;

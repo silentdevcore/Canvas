@@ -7,6 +7,8 @@ using PVAD.Importer.Trust;
 using PVAD.WebApi.Security;
 using PVAD.WebApi.Services.Pdf;
 
+using PVAD.Licensing;
+
 namespace PVAD.WebApi.Controllers;
 
 [ApiController]
@@ -66,6 +68,7 @@ public sealed class PdfSignaturesController(
         byte[]? certificateBytes = null;
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             var pdfBytes = await ReadFileAsync(request.Pdf, MaximumPdfBytes, cancellationToken);
             certificateBytes = await ReadFileAsync(request.Certificate, MaximumCertificateBytes, cancellationToken);
             using var signingKey = new PdfPkcs12SigningKey(certificateBytes, request.CertificatePassword);
@@ -218,6 +221,7 @@ public sealed class PdfSignaturesController(
                 "Use a .pdf file or the application/pdf content type.");
         }
 
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var timestampAuthority = timestampAuthorityFactory.Create();
         if (timestampAuthority is null)
         {
@@ -312,6 +316,7 @@ public sealed class PdfSignaturesController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             return Ok(await trustInspector.InspectAsync(
                 stream,

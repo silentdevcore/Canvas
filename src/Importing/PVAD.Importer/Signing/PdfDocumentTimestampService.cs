@@ -5,6 +5,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -44,12 +45,23 @@ public sealed class PdfDocumentTimestampService : IPdfDocumentTimestampService
         PdfDocumentTimestampOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfTimestamp);
+        return await AddAdmittedAsync(source, timestampAuthority, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfDocumentTimestampResult> AddAdmittedAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfTimestampAuthority timestampAuthority,
+        PdfDocumentTimestampOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(timestampAuthority);
         options ??= new PdfDocumentTimestampOptions();
         ValidateOptions(options);
         var parsed = Parse(source);
         var updates = CreateUpdates(parsed.Graph, options, out var timestampObjectId);
-        var incremental = new PdfIncrementalUpdateWriter().Append(source, updates);
+        var incremental = new PdfIncrementalUpdateWriter().AppendAdmitted(source, updates);
         var timestampedBytes = incremental.Bytes;
         var marker = Convert.ToHexString(
             Enumerable.Repeat(ContentsMarkerByte, options.ContentsPlaceholderBytes).ToArray());
@@ -69,7 +81,7 @@ public sealed class PdfDocumentTimestampService : IPdfDocumentTimestampService
         documentHash.AppendData(timestampedBytes.AsSpan(0, contentsStart));
         documentHash.AppendData(timestampedBytes.AsSpan(contentsEnd));
         var digest = documentHash.GetHashAndReset();
-        var token = await timestampAuthority.GetTimestampTokenAsync(
+        var token = await PdfSigningDependencies.GetTimestampTokenAdmittedAsync(timestampAuthority,
             digest,
             HashAlgorithmName.SHA256,
             cancellationToken).ConfigureAwait(false);
@@ -221,12 +233,12 @@ public sealed class PdfDocumentTimestampService : IPdfDocumentTimestampService
     private static ParsedPdf Parse(ReadOnlyMemory<byte> source)
     {
         var context = new PdfParseContext(source, new PdfImporterOptions());
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF revision chain is invalid: {table.Diagnostics[0].Code}.");
         }
-        return new ParsedPdf(table, new PdfObjectParser(context, table).ParseDocumentGraph());
+        return new ParsedPdf(table, new PdfObjectParser(context, table).ParseDocumentGraphAdmitted());
     }
 
     private static PdfObject? Resolve(PdfObjectGraph graph, PdfObject? value)

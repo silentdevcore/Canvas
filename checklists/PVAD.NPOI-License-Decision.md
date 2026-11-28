@@ -74,9 +74,26 @@ Engineering assessment: import-only replacement is feasible; a free, maintained,
 
 ## Recommendation And Decision Gate
 
+### Product Decision Recorded On 2026-11-24
+
+The project owner confirmed in the licensing completion conversation that full
+legacy `.xls` import and export must be retained. Option C with reduced legacy
+support does not meet this requirement. The implementation route remains open
+between Option A and Option B; this product requirement does not approve an
+EULA, payment, redistribution terms or a source-build licensing interpretation.
+The named decision owner and qualified Legal approval are still outstanding.
+
+In a subsequent reply on the same date, the owner initially selected preparation
+of Option B (a reviewed source build), then explicitly clarified that the entire
+`.xls` decision is deferred for now. This later instruction supersedes the
+Option B preparation choice. Keep the existing implementation and dependency
+graph unchanged; do not start a source-build replacement or remove `.xls`
+support. The earlier full-support requirement remains historical context, not
+a final implementation-route decision. NPOI distribution approval stays open.
+
 - [x] Recommend Option A when PVADE commits to full `.xls` import and export because it has the smallest engineering and compatibility risk.
 - [x] Recommend Option C with `.xls` export retirement when legacy export has low commercial value and minimizing special licensing obligations is more important.
-- [ ] Product confirms whether full `.xls` export is a launch requirement.
+- [ ] Product confirms the final `.xls` launch scope. The initial full-support requirement was followed by explicit deferral of the entire decision (2026-11-24; see above).
 - [ ] Legal selects and signs off Option A, B, or C.
 - [ ] Engineering implements only the approved option.
 - [ ] Release Management clears `productionReady` only after evidence and implementation are complete.

@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { nativeTestProjectPaths } from '../native-licensing/test-session.mjs';
 import { collectorProjects, compareReports, expectedCollectorCount, readReports, validateSummary, xpath } from './coverage-smoke.mjs';
 
 const good = () => ({
@@ -91,6 +93,7 @@ test('every collector host resolves compatible private VSTest tools on net10', (
   const projects = collectorProjects();
   assert.equal(projects.length, expectedCollectorCount);
   for (const { name, path } of projects) {
+    const build = nativeTestProjectPaths(relative(fileURLToPath(new URL('../../', import.meta.url)), path), 'Release');
     const reference = (id, attribute) => xpath(path, `string(/Project/ItemGroup/PackageReference[@Include='${id}']/@${attribute})`);
     assert.equal(reference('coverlet.collector', 'Version'), '10.1.0', name);
     assert.equal(reference('coverlet.collector', 'PrivateAssets'), 'all', name);
@@ -99,13 +102,13 @@ test('every collector host resolves compatible private VSTest tools on net10', (
     assert.equal(reference('xunit.runner.visualstudio', 'Version'), '4.0.1', name);
     assert.equal(reference('xunit.runner.visualstudio', 'PrivateAssets'), 'all', name);
     assert.equal(xpath(path, 'string(/Project/PropertyGroup/TargetFramework)'), 'net10.0', name);
-    const assets = JSON.parse(readFileSync(join(dirname(path), 'obj/project.assets.json'), 'utf8'));
+    const assets = JSON.parse(readFileSync(build.assets, 'utf8'));
     for (const id of ['coverlet.collector/10.1.0', 'Microsoft.NET.Test.Sdk/18.11.0', 'Microsoft.TestPlatform.TestHost/18.11.0', 'xunit.runner.visualstudio/4.0.1']) {
       assert.ok(assets.libraries[id], `${name} must resolve ${id}`);
     }
-    const imports = join(dirname(path), 'obj', `${name}.csproj.nuget.g.targets`);
+    const imports = join(build.extensions, `${name}.csproj.nuget.g.targets`);
     assert.equal(xpath(imports, "count(//*[local-name()='Import' and contains(@Project,'coverlet.collector/10.1.0/')])"), '1', `${name} must import the new collector target`);
-    const deps = JSON.parse(readFileSync(join(dirname(path), 'bin/Release/net10.0', `${name}.deps.json`), 'utf8'));
+    const deps = JSON.parse(readFileSync(join(dirname(build.assembly), `${name}.deps.json`), 'utf8'));
     assert.ok(deps.libraries['Microsoft.TestPlatform.TestHost/18.11.0'], `${name} must build with the new test host`);
     if (['PVAD.FileImporter.Image.Tests', 'PVAD.FileImporter.ImageAnalysis.Tests', 'PVAD.Infrastructure.Converters.Tests'].includes(name)) {
       const native = 'SkiaSharp.NativeAssets.Linux.NoDependencies';
@@ -125,6 +128,7 @@ test('the collector-free relay uses the same private VSTest SDK', () => {
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='Microsoft.NET.Test.Sdk']/@PrivateAssets)"), 'all');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@Version)"), '4.0.1');
   assert.equal(xpath(path, "string(/Project/ItemGroup/PackageReference[@Include='xunit.runner.visualstudio']/@PrivateAssets)"), 'all');
-  const dependencies = JSON.parse(readFileSync(new URL('bin/Release/net10.0/PVAD.Observability.WebhookRelay.Tests.deps.json', project), 'utf8'));
+  const build = nativeTestProjectPaths('tests/PVAD.Observability.WebhookRelay.Tests/PVAD.Observability.WebhookRelay.Tests.csproj', 'Release');
+  const dependencies = JSON.parse(readFileSync(join(dirname(build.assembly), 'PVAD.Observability.WebhookRelay.Tests.deps.json'), 'utf8'));
   assert.ok(dependencies.libraries['Microsoft.TestPlatform.TestHost/18.11.0']);
 });

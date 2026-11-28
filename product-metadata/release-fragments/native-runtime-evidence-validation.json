@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-runtime-evidence-validation",
+  "impact": "none",
+  "components": ["importer", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Improved internal consistency checks for runtime dependency evidence.",
+  "breaking": false,
+  "reason": "Internal verification tooling, regression tests and audit reporting only; no shipped runtime behavior, asset bytes or distribution approvals change."
+}

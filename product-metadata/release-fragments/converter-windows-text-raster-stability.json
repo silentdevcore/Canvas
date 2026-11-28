@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "converter-windows-text-raster-stability",
+  "impact": "patch",
+  "components": ["infrastructure"],
+  "category": "fixed",
+  "summary": "Stabilized text rasterization in Windows PNG, JPEG and TIFF exports while preserving text layout.",
+  "breaking": false
+}

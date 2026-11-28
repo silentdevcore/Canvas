@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "profile": "fonts",
+  "scope": "catalog-of-application-owned-assets-not-proof-of-selected-deployment-or-native-transitive-licenses",
+  "sourceRegistrySha256": "d3d4968991a1c45ea89741f79299e32bb8ac1df29f5ea8c3e57187e4e37e4377",
+  "publicationReady": false,
+  "legalApprovalGranted": false,
+  "groups": [
+    {
+      "id": "liberation-serif-mono-2-1-5",
+      "profile": "fonts",
+      "provenance": "source-matched",
+      "declaredLicense": "SIL Open Font License 1.1",
+      "source": {
+        "url": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz",
+        "archiveSha256": "7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0",
+        "evidence": "assets/fonts/liberation/serif-mono-provenance.json"
+      },
+      "reviewNote": "Eight unchanged faces already pinned by the existing font provenance record. Existing adjacent license is preserved; it is not evidence for the older Sans faces.",
+      "notices": [
+        {
+          "file": "notices/Liberation-Serif-Mono-2.1.5.LICENSE.txt",
+          "sha256": "3b169ed27ce05b624bc8bf173906286150fc729bad72bda86c98aee7a4631f2f",
+          "sourceUrl": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz"
+        }
+      ],
+      "assets": [
+        {
+          "file": "assets/fonts/liberation/LiberationSerif-Regular.ttf",
+          "sha256": "058ea80864aef09a23f45cbec2bb5400bc3dfbdea01c3f10538a21fcb497fb74",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSerif-Bold.ttf",
+          "sha256": "d754ba427cfe0bca54ae052384baa8f842da5bd6550ad4da024ac441e7a7d5ce",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSerif-Italic.ttf",
+          "sha256": "0e3dea9f8d613e006ccfa62201f33e265d19167bd0907725c3e145368b04fc2e",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSerif-BoldItalic.ttf",
+          "sha256": "f17db8af71e24d2066b587546021d4f0b296be389512b658dec3c09affeb11a7",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationMono-Regular.ttf",
+          "sha256": "f2b83c763e8afd21709333370bed4774337fae82267937e2b5aea7e2fbd922c1",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationMono-Bold.ttf",
+          "sha256": "bd62a0672d0b9b6710b01df434c80ad54fa5f0835207eb7b17b7a761463067bb",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationMono-Italic.ttf",
+          "sha256": "605c01c711b44480a7508d349dfbf3264e81fa43d69e61cfa7d10b86e764c4d1",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationMono-BoldItalic.ttf",
+          "sha256": "79451f3c09fe25116098853b7a2ca6e2436220ccc11af022979adbcf195be130",
+          "optionalLocalFile": false
+        }
+      ]
+    },
+    {
+      "id": "liberation-sans-1-07-4",
+      "profile": "fonts",
+      "provenance": "source-matched",
+      "declaredLicense": "GNU General Public License v2 with Liberation font exceptions and additional terms (vendor declaration)",
+      "source": {
+        "url": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4-11_all.deb",
+        "archiveSha256": "efd381517f958b01969343634ffcbdd60056be7779af84c6f53a005090430204",
+        "evidence": "All four repository font files match the named Debian archive members byte for byte.",
+        "entries": [
+          {
+            "file": "LiberationSans-Regular.ttf",
+            "entry": "./usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "sha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f"
+          },
+          {
+            "file": "LiberationSans-Bold.ttf",
+            "entry": "./usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "sha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc"
+          },
+          {
+            "file": "LiberationSans-Italic.ttf",
+            "entry": "./usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf",
+            "sha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512"
+          },
+          {
+            "file": "LiberationSans-BoldItalic.ttf",
+            "entry": "./usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf",
+            "sha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d"
+          }
+        ],
+        "noticeEntry": "./usr/share/doc/fonts-liberation/copyright"
+      },
+      "reviewNote": "Font name table declares Version 1.07.4. Not OFL 1.1. Source availability, redistribution obligations and their fulfillment require review before shipping; a matched binary archive is not corresponding-source proof.",
+      "notices": [
+        {
+          "file": "notices/Liberation-Sans-1.07.4.COPYRIGHT.txt",
+          "sha256": "bcb5f95766d5dc969748869eef4559dd991fd31f7e0d30c29e140276cc3c24ee",
+          "sourceUrl": "https://deb.debian.org/debian/pool/main/f/fonts-liberation/fonts-liberation_1.07.4-11_all.deb"
+        },
+        {
+          "file": "notices/GPL-2.COPYING.txt",
+          "sha256": "ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6",
+          "sourceUrl": "https://raw.githubusercontent.com/liberationfonts/liberation-1.7-fonts/6cc4767aaec06038eda690ce599130e3b5cc8a49/COPYING"
+        }
+      ],
+      "assets": [
+        {
+          "file": "assets/fonts/liberation/LiberationSans-Regular.ttf",
+          "sha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSans-Bold.ttf",
+          "sha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSans-Italic.ttf",
+          "sha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512",
+          "optionalLocalFile": false
+        },
+        {
+          "file": "assets/fonts/liberation/LiberationSans-BoldItalic.ttf",
+          "sha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d",
+          "optionalLocalFile": false
+        }
+      ]
+    },
+    {
+      "id": "noto-sans-arabic",
+      "profile": "fonts",
+      "provenance": "source-matched",
+      "declaredLicense": "SIL Open Font License 1.1",
+      "source": {
+        "url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf",
+        "commit": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+        "evidence": "Repository font SHA256 matches the fixed upstream font bytes."
+      },
+      "reviewNote": "Preserve both the fixed upstream root license and the existing adjacent font notice; do not replace font bytes or infer a new release number.",
+      "notices": [
+        {
+          "file": "notices/Noto-Root-LICENSE.txt",
+          "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "sourceUrl": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE"
+        },
+        {
+          "file": "notices/Noto-Adjacent-LICENSE.txt",
+          "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "sourceUrl": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf"
+        }
+      ],
+      "assets": [
+        {
+          "file": "assets/fonts/noto-arabic/NotoSansArabic-Regular.ttf",
+          "sha256": "ceea25b464a656dc3b26849bab9356740401af62aedf1bfa8b7f0d9b75925b1b",
+          "optionalLocalFile": false
+        }
+      ]
+    }
+  ],
+  "unresolvedGroups": [],
+  "limitations": [
+    "This inventory and its notice bundles are technical attribution, not legal approval or proof of all distribution obligations.",
+    "Native assets in NuGet dependencies and container operating-system packages require their own component and source review; a managed package license alone does not cover them.",
+    "Bundled catalog entries do not certify which RID assets or distro language data are selected in a deployed image.",
+    "Unresolved Ukrainian model and local macOS binaries remain explicit release blockers; adding an adjacent generic license would not resolve provenance.",
+    "Liberation Sans corresponding-source and redistribution obligations require review. Serif and Mono remain the separately pinned OFL 1.1 version."
+  ]
+}

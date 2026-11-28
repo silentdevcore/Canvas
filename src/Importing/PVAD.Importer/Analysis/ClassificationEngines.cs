@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -8,6 +9,13 @@ public sealed class BarcodeDetector
 {
     public BarcodeDetection? DetectLinearBarcode(IEnumerable<PrimitiveObject> primitives)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return DetectLinearBarcodeAdmitted(primitives);
+    }
+
+    internal BarcodeDetection? DetectLinearBarcodeAdmitted(IEnumerable<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var bars = ReadingOrderEngine.Flatten(primitives)
             .OfType<PrimitiveShape>()
             .Where(static primitive => primitive.Bounds.Height > primitive.Bounds.Width * 4d && primitive.Bounds.Width <= 6d)
@@ -28,6 +36,13 @@ public sealed class BarcodeDetector
 
     public BarcodeDetection? DetectMatrixBarcode(IEnumerable<PrimitiveObject> primitives)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return DetectMatrixBarcodeAdmitted(primitives);
+    }
+
+    internal BarcodeDetection? DetectMatrixBarcodeAdmitted(IEnumerable<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var cells = ReadingOrderEngine.Flatten(primitives)
             .OfType<PrimitiveShape>()
             .Where(static primitive => Math.Abs(primitive.Bounds.Width - primitive.Bounds.Height) <= Math.Max(primitive.Bounds.Width, primitive.Bounds.Height) * 0.25d)
@@ -58,15 +73,22 @@ public sealed class ObjectClassifier
 
     public void Classify(IReadOnlyList<PrimitiveObject> primitives)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        ClassifyAdmitted(primitives);
+    }
+
+    internal void ClassifyAdmitted(IReadOnlyList<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         foreach (var primitive in ReadingOrderEngine.Flatten(primitives))
         {
             primitive.Classification = ClassifyOne(primitive);
         }
 
-        var linearBarcode = _barcodeDetector.DetectLinearBarcode(primitives);
+        var linearBarcode = _barcodeDetector.DetectLinearBarcodeAdmitted(primitives);
         MarkBarcode(primitives, linearBarcode);
 
-        var matrixBarcode = _barcodeDetector.DetectMatrixBarcode(primitives);
+        var matrixBarcode = _barcodeDetector.DetectMatrixBarcodeAdmitted(primitives);
         MarkBarcode(primitives, matrixBarcode);
     }
 

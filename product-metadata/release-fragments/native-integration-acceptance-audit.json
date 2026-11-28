@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-integration-acceptance-audit",
+  "impact": "patch",
+  "components": ["documentation", "sdk"],
+  "category": "improved",
+  "summary": "Documented reproducible offline SDK installation and clarified native licensing verification and release prerequisites.",
+  "breaking": false
+}

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using PVAD.Licensing;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
@@ -78,6 +79,13 @@ public sealed class PdfCrossReferenceParser
 {
     public PdfCrossReferenceTable Parse(PdfParseContext context)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(context);
+    }
+
+    internal PdfCrossReferenceTable ParseAdmitted(PdfParseContext context)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var table = new PdfCrossReferenceTable();
         if (!ParseStartXrefChain(context, table))
         {
@@ -111,7 +119,7 @@ public sealed class PdfCrossReferenceParser
         }
 
         var tokenizer = new PdfTokenizer(source[(startXrefOffset + "startxref"u8.Length)..]);
-        var offsetToken = tokenizer.ReadToken();
+        var offsetToken = tokenizer.ReadTokenAdmitted();
         if (!long.TryParse(offsetToken.Text, out var xrefOffset) || xrefOffset < 0 || xrefOffset >= source.Length)
         {
             return false;
@@ -373,7 +381,7 @@ public sealed class PdfCrossReferenceParser
 
         while (true)
         {
-            var first = tokenizer.ReadToken();
+            var first = tokenizer.ReadTokenAdmitted();
             if (first.Kind == PdfTokenKind.EndOfFile || first.Text == "trailer")
             {
                 if (first.Text == "trailer")
@@ -384,7 +392,7 @@ public sealed class PdfCrossReferenceParser
                 break;
             }
 
-            var count = tokenizer.ReadToken();
+            var count = tokenizer.ReadTokenAdmitted();
             if (!int.TryParse(first.Text, out var startObject) || !int.TryParse(count.Text, out var objectCount))
             {
                 break;
@@ -392,9 +400,9 @@ public sealed class PdfCrossReferenceParser
 
             for (var i = 0; i < objectCount; i++)
             {
-                var objectOffset = tokenizer.ReadToken();
-                var generation = tokenizer.ReadToken();
-                var status = tokenizer.ReadToken();
+                var objectOffset = tokenizer.ReadTokenAdmitted();
+                var generation = tokenizer.ReadTokenAdmitted();
+                var status = tokenizer.ReadTokenAdmitted();
                 if (!long.TryParse(objectOffset.Text, out var parsedOffset) || !int.TryParse(generation.Text, out var parsedGeneration))
                 {
                     continue;
@@ -428,7 +436,7 @@ public sealed class PdfCrossReferenceParser
     {
         entryCount = 0;
         var parser = new PdfObjectParser(context, table);
-        var indirectObject = parser.TryParseIndirectObjectAt(objectOffset);
+        var indirectObject = parser.TryParseIndirectObjectAtAdmitted(objectOffset);
         if (indirectObject?.Value is not PdfStreamObject stream ||
             stream.Dictionary["Type"] is not PdfName { Value: "XRef" })
         {
@@ -447,7 +455,7 @@ public sealed class PdfCrossReferenceParser
             indexPairs = [0, size];
         }
 
-        var decoded = new PdfStreamDecoderRegistry().Decode(stream).Span;
+        var decoded = new PdfStreamDecoderRegistry().DecodeAdmitted(stream).Span;
         var entryLength = checked((int)(widths[0] + widths[1] + widths[2]));
         if (entryLength <= 0)
         {
@@ -498,7 +506,7 @@ public sealed class PdfCrossReferenceParser
         }
 
         var parser = new PdfObjectParser(context, new PdfCrossReferenceTable());
-        var parsed = parser.ParseObjectAt(offset, baseOffset: 0);
+        var parsed = parser.ParseObjectAtAdmitted(offset, baseOffset: 0);
         return parsed as PdfDictionary;
     }
 

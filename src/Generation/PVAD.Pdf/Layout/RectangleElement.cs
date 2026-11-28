@@ -1,5 +1,6 @@
 namespace PVAD.Pdf.Layout;
 
+[System.Reflection.Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal sealed record RectangleElement(
     double X,
     double Y,

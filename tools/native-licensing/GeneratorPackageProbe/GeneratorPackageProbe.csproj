@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PvadIncludeImporter)' == 'true'">
+    <DefineConstants>$(DefineConstants);PVAD_IMPORTER_PACKAGE_PROBE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PvadIncludeExecution)' == 'true'">
+    <DefineConstants>$(DefineConstants);PVAD_EXECUTION_PACKAGE_PROBE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PvadIncludeMigrations)' == 'true'">
+    <DefineConstants>$(DefineConstants);PVAD_MIGRATION_PACKAGE_PROBE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PvadIncludeMigrations)' == 'true' And '$(PvadOriginalBaseline)' == 'true'">
+    <ProjectReference Include="../../../src/Migrations/PDF/PVAD.Migration.Pdf/PVAD.Migration.Pdf.csproj" />
+    <ProjectReference Include="../../../src/Migrations/Spreadsheet/PVAD.Migration.Spreadsheet/PVAD.Migration.Spreadsheet.csproj" />
+    <ProjectReference Include="../../../src/Migrations/Report/PVAD.Migration.Report/PVAD.Migration.Report.csproj" />
+    <ProjectReference Include="../../../src/Migrations/PDF/PVAD.Migration.Pdf.Viewer.Nutrient/PVAD.Migration.Pdf.Viewer.Nutrient.csproj" />
+    <ProjectReference Include="../MigrationCodeEngineProbe/MigrationCodeEngineProbe.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../MigrationReportEngineProbe/MigrationReportEngineProbe.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../MigrationViewerEngineProbe/MigrationViewerEngineProbe.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeMigrations)' == 'true' And '$(PvadOriginalBaseline)' != 'true'">
+    <PackageReference Include="PVAD.Migration.Pdf" Version="$(PvadVersion)" />
+    <PackageReference Include="PVAD.Migration.Spreadsheet" Version="$(PvadVersion)" />
+    <PackageReference Include="PVAD.Migration.Report" Version="$(PvadVersion)" />
+    <PackageReference Include="PVAD.Migration.Pdf.Viewer.Nutrient" Version="$(PvadVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeExecution)' != 'true'">
+    <Compile Remove="ExecutionPackageChecks.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeExecution)' == 'true' And '$(PvadOriginalBaseline)' == 'true'">
+    <ProjectReference Include="../../../src/Infrastructure/PVAD.Infrastructure.Converters/PVAD.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../../../src/Execution/PVAD.CodeWorker/PVAD.CodeWorker.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeExecution)' == 'true' And '$(PvadOriginalBaseline)' != 'true'">
+    <PackageReference Include="PVAD.Infrastructure.Converters" Version="$(PvadVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeImporter)' != 'true'">
+    <Compile Remove="ImporterPackageChecks.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeImporter)' == 'true'">
+    <Using Include="PVAD.NativeLicenseTestFixtures" />
+    <Compile Include="../ImporterEngineProbe/ImportFixtures.cs" Link="ImportFixtures.cs" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeImporter)' == 'true' And '$(PvadOriginalBaseline)' == 'true'">
+    <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageAnalysis/PVAD.FileImporter.ImageAnalysis.csproj" />
+    <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageOcr/PVAD.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../../../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadIncludeImporter)' == 'true' And '$(PvadOriginalBaseline)' != 'true'">
+    <PackageReference Include="PVAD.FileImporter.ImageAnalysis" Version="$(PvadVersion)" />
+    <PackageReference Include="PVAD.FileImporter.ImageOcr" Version="$(PvadVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadOriginalBaseline)' != 'true'">
+    <PackageReference Include="PVAD.Generator" Version="$(PvadVersion)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadOriginalBaseline)' == 'true'">
+    <ProjectReference Include="../../../src/Generation/PVAD.Generator/PVAD.Generator.csproj" />
+  </ItemGroup>
+</Project>

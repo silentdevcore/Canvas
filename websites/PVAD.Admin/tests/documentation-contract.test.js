@@ -119,6 +119,7 @@ test('protected handbook covers every Admin workspace', () => {
     '/roles and /roles/{key}',
     '/subscriptions and /subscriptions/{id}',
     '/licenses and /licenses/{id}',
+    '/native-licenses',
     '/service-accounts',
     '/mail',
     '/audit',

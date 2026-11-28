@@ -2,6 +2,7 @@ using System.Text;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
 using PVAD.Migration.Report;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Services;
 
@@ -50,8 +51,13 @@ public sealed class ReportMigrationService
         var provider = string.Equals(input.Provider, "auto", StringComparison.OrdinalIgnoreCase)
             ? DetectProvider(source)
             : input.Provider;
-        var resources = MergeResources(input.ResourceXml, input.Resources, packageResources);
-        var result = ConvertWithProvider(provider, source, resources);
+        if (!MigrationProviderCatalog.TryGet(MigrationDomains.Report, MigrationKinds.Designer, provider, out var descriptor)
+            || descriptor.ProviderKey == "auto")
+            throw new ArgumentException($"Unknown report migration provider '{provider}'.", nameof(input));
+        provider = descriptor.ProviderKey;
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, provider);
+        var resources = MergeResources(input.ResourceXml, input.Resources, packageResources, provider);
+        var result = ReportMigrationProviders.ConvertAdmitted(provider, source, resources);
         return new ReportMigrationConversion(provider, result.Design, result.Diagnostics);
     }
 
@@ -67,22 +73,6 @@ public sealed class ReportMigrationService
         return ReportMigrationProviderKeys.DevExpressReport;
     }
 
-    private static ReportMigrationResult ConvertWithProvider(
-        string provider,
-        string source,
-        IReadOnlyDictionary<string, string>? resources) => provider.ToLowerInvariant() switch
-    {
-        ReportMigrationProviderKeys.Rdl => new RdlReportMigration().Convert(source),
-        ReportMigrationProviderKeys.Rpx => new RpxReportMigration().Convert(source, resources),
-        ReportMigrationProviderKeys.FastReport => new FastReportMigration().Convert(source),
-        ReportMigrationProviderKeys.Telerik => new TelerikReportMigration().Convert(source),
-        ReportMigrationProviderKeys.JasperReports => new JasperReportsMigration().Convert(source, resources),
-        ReportMigrationProviderKeys.ActiveReportsJs => new ActiveReportsJsMigration().Convert(source),
-        ReportMigrationProviderKeys.Stimulsoft => new StimulsoftReportMigration().Convert(source),
-        ReportMigrationProviderKeys.DevExpressReport => new DevExpressReportMigration().Convert(source, resources),
-        _ => throw new ArgumentException($"Unknown report migration provider '{provider}'.", nameof(provider))
-    };
-
     private static bool LooksLikeAnyReport(string source) =>
         RdlReportMigration.LooksLike(source)
         || RpxReportMigration.LooksLike(source)
@@ -95,14 +85,15 @@ public sealed class ReportMigrationService
     private static IReadOnlyDictionary<string, string>? MergeResources(
         string? resourceXml,
         IReadOnlyDictionary<string, string>? resources,
-        IReadOnlyDictionary<string, string>? packageResources)
+        IReadOnlyDictionary<string, string>? packageResources,
+        string provider)
     {
         if (string.IsNullOrWhiteSpace(resourceXml) && resources is null && packageResources is null)
             return null;
 
         var merged = string.IsNullOrWhiteSpace(resourceXml)
             ? new Dictionary<string, string>(StringComparer.Ordinal)
-            : DevExpressReportResourceParser.ParseResx(resourceXml);
+            : DevExpressReportResourceParser.ParseResxForReport(resourceXml, provider);
 
         if (packageResources is not null)
             foreach (var (key, value) in packageResources) merged[key] = value;

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -12,6 +13,13 @@ public static class CsvSheetIo
 {
     public static string ToCsv(SheetDto sheet, char delimiter = ',')
     {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, delimiter == '\t' ? "export.tsv" : "export.csv");
+        return ToCsvAdmitted(sheet, delimiter);
+    }
+
+    internal static string ToCsvAdmitted(SheetDto sheet, char delimiter = ',')
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         int maxRow = -1, maxCol = -1;
         foreach (var c in sheet.Cells) { if (c.Row > maxRow) maxRow = c.Row; if (c.Col > maxCol) maxCol = c.Col; }
         if (maxRow < 0) return "";
@@ -32,6 +40,7 @@ public static class CsvSheetIo
 
     public static SheetDto FromCsv(string text, string name = "Sheet1", char delimiter = ',')
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, delimiter == '\t' ? "import.tsv" : "import.csv");
         var rows = Parse(text, delimiter);
         var sheet = new SheetDto { Id = Guid.NewGuid().ToString("n"), Name = name };
         for (var r = 0; r < rows.Count; r++)

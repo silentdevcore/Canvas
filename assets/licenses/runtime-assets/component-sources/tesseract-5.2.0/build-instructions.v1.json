@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scope": "upstream-build-instructions-not-exact-payload-build-proof",
+  "package": {
+    "key": "Tesseract/5.2.0",
+    "archiveSha256": "202d82fc7c7d8384df7da57206d5e1f456ccdabd648c46e67cdfaa3a911d4795"
+  },
+  "repository": "https://github.com/charlesw/tesseract",
+  "commit": "2c993543f7fa66576a8890a6c4ab053c4598aaed",
+  "upstreamPath": "docs/Compling_tesseract_and_leptonica.md",
+  "url": "https://raw.githubusercontent.com/charlesw/tesseract/2c993543f7fa66576a8890a6c4ab053c4598aaed/docs/Compling_tesseract_and_leptonica.md",
+  "file": "assets/licenses/runtime-assets/component-sources/tesseract-5.2.0/build-instructions.txt",
+  "bytes": 3331,
+  "sha256": "1af6caa90b3e23fa984429911030611d90ce78540790d8ed8f657ef8eb9e1470",
+  "gitBlob": "bcd3b7f397a359d5ab9b83ad05a9d58e16441a3b",
+  "staticDependencyRequests": [
+    "giflib:x64-windows-static",
+    "giflib:x86-windows-static",
+    "libjpeg-turbo:x64-windows-static",
+    "libjpeg-turbo:x86-windows-static",
+    "liblzma:x64-windows-static",
+    "liblzma:x86-windows-static",
+    "libpng:x64-windows-static",
+    "libpng:x86-windows-static",
+    "tiff:x64-windows-static",
+    "tiff:x86-windows-static",
+    "zlib:x64-windows-static",
+    "zlib:x86-windows-static"
+  ],
+  "sourceTags": [
+    { "branch": "1.82.0", "tag": "1.82.0" },
+    { "branch": "5.2.0", "tag": "5.2.0" }
+  ],
+  "buildInstructionsPresent": true,
+  "dependencyVersionsPinned": false,
+  "liblzmaVersion": null,
+  "exactPayloadBuildVerified": false,
+  "publisherAuthenticated": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false,
+  "limitation": "Upstream instructions at the payload-reference commit request static liblzma for both architectures but contain no vcpkg baseline or dependency versions. Their introductory versions also differ from the checkout commands. This corrects the earlier repository-wide absence claim, not the unchanged DLL source attribution or distribution gates."
+}

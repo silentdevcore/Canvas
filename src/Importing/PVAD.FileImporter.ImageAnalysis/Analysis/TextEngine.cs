@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Analysis;
@@ -47,23 +48,30 @@ public static class TextEngine
 
     public static TextAnalysisResult Analyze(PreparedImage img)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return AnalyzeCore(img);
+    }
+
+    internal static TextAnalysisResult AnalyzeCore(PreparedImage img)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         // Pass A: dark text on light background (standard binary)
-        var normalBlobs      = LabelConnectedComponents(img.Binary);
-        var normalCandidates = FilterCharCandidates(normalBlobs, img.Binary);
+        var normalBlobs      = LabelConnectedComponentsCore(img.Binary);
+        var normalCandidates = FilterCharCandidatesCore(normalBlobs, img.Binary);
 
         // Pass B: light text on dark background (inverted binary — e.g. white text in dark headers)
         using var inverted      = InvertBinary(img.Binary);
-        var invertedBlobs       = LabelConnectedComponents(inverted);
-        var invertedCandidates  = FilterCharCandidates(invertedBlobs, inverted);
+        var invertedBlobs       = LabelConnectedComponentsCore(inverted);
+        var invertedCandidates  = FilterCharCandidatesCore(invertedBlobs, inverted);
 
         if (normalCandidates.Count == 0 && invertedCandidates.Count == 0)
             return new TextAnalysisResult { Lines = [] };
 
         var texts = new List<ImageTextPrimitive>();
         if (normalCandidates.Count > 0)
-            texts.AddRange(BuildTextLines(AssembleLines(normalCandidates), img.Original, img.Binary));
+            texts.AddRange(BuildTextLines(AssembleLinesCore(normalCandidates), img.Original, img.Binary));
         if (invertedCandidates.Count > 0)
-            texts.AddRange(BuildTextLines(AssembleLines(invertedCandidates), img.Original, inverted));
+            texts.AddRange(BuildTextLines(AssembleLinesCore(invertedCandidates), img.Original, inverted));
 
         texts = MergeTextLines(texts);
         return new TextAnalysisResult { Lines = texts };
@@ -150,6 +158,13 @@ public static class TextEngine
 
     public static unsafe List<BlobInfo> LabelConnectedComponents(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return LabelConnectedComponentsCore(binary);
+    }
+
+    internal static unsafe List<BlobInfo> LabelConnectedComponentsCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = binary.Width, h = binary.Height;
         var labels = new int[w * h];
         var parent = new int[w * h + 1]; // union-find; index 0 unused
@@ -246,6 +261,13 @@ public static class TextEngine
 
     public static List<BlobInfo> FilterCharCandidates(List<BlobInfo> blobs, SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FilterCharCandidatesCore(blobs, binary);
+    }
+
+    internal static List<BlobInfo> FilterCharCandidatesCore(List<BlobInfo> blobs, SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int totalPixels = binary.Width * binary.Height;
         var candidates  = new List<BlobInfo>();
 
@@ -301,6 +323,13 @@ public static class TextEngine
 
     public static List<List<BlobInfo>> AssembleLines(List<BlobInfo> candidates)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return AssembleLinesCore(candidates);
+    }
+
+    internal static List<List<BlobInfo>> AssembleLinesCore(List<BlobInfo> candidates)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (candidates.Count == 0) return [];
 
         // Sort top-to-bottom, left-to-right
@@ -500,7 +529,7 @@ public static class TextEngine
         double wordGap = Math.Max(4, medianWidth * 0.75);
 
         var chars = ordered
-            .Select(b => GlyphRecognizer.Recognize(binary, b))
+            .Select(b => GlyphRecognizer.RecognizeCore(binary, b))
             .ToList();
         chars = MergeStackedGlyphs(chars).ToList();
 

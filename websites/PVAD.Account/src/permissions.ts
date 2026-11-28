@@ -18,5 +18,6 @@ export const accountPermissions = {
 export type AccountPermission = typeof accountPermissions[keyof typeof accountPermissions];
 
 export function hasAccountPermission(user: UserInfo, permission: AccountPermission): boolean {
-  return user.permissions?.includes(permission) ?? false;
+  return (permission === accountPermissions.licensesRead && user.canReadPersonalNativeLicenses === true) ||
+    (user.permissions?.includes(permission) ?? false);
 }

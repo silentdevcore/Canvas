@@ -14,6 +14,7 @@ public static class SandboxPolicy
         "Activator.", "AppDomain.", "HttpClient", "WebClient", "Socket", "TcpClient", "UdpClient",
         "DllImport", "Marshal.", "Thread", "Task.Run", "AssemblyLoadContext", "GCHandle",
         "typeof(", ".GetType(", ".Assembly", "Console.",
+        "PVAD.Licensing", "PvadLicense",
     ];
 
     public static List<PvadCodeDiagnosticDto> Analyze(string source)

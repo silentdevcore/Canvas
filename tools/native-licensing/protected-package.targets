@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup Condition="'$(PvadProtectedPackageDirectory)' != ''">
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PvadSelectJointProtectedAssembly</TargetsForTfmSpecificBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+    <EmbedAllSources>false</EmbedAllSources>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PvadProtectedPackageDirectory)' != '' And '$(MSBuildProjectName)' == 'PVAD.Infrastructure.Spreadsheet'">
+    <!-- The NPOI dependency graph reaches this task in external consumers too. -->
+    <PackageReference Update="Microsoft.Build.Tasks.Git" PrivateAssets="contentfiles;analyzers;build;buildMultitargeting;buildTransitive" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(PvadPackageDocumentationDirectory)' != ''">
+    <PvadPackageDocumentationRoot>$(PvadPackageDocumentationDirectory)/$(MSBuildProjectName)</PvadPackageDocumentationRoot>
+    <PackageReadmeFile>docs/README.md</PackageReadmeFile>
+    <DocumentationFile>$(PvadPackageDocumentationRoot)/$(MSBuildProjectName).xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PvadPackageDocumentationDirectory)' != ''">
+    <None Include="$(PvadPackageDocumentationRoot)/**/*"
+          Exclude="$(PvadPackageDocumentationRoot)/$(MSBuildProjectName).xml"
+          Pack="true" PackagePath="docs/" />
+  </ItemGroup>
+  <Target Name="PvadRequirePackageDocumentation" BeforeTargets="GenerateNuspec"
+          Condition="'$(PvadPackageDocumentationDirectory)' != ''">
+    <Error Condition="!Exists('$(PvadPackageDocumentationRoot)/documentation-manifest.json') Or !Exists('$(DocumentationFile)')"
+           Text="A native documentation bundle and public API XML must be prepared before packing." />
+  </Target>
+  <Target Name="PvadSelectJointProtectedAssembly">
+    <PropertyGroup>
+      <PvadJointAssembly>$(PvadProtectedPackageDirectory)/$(TargetFileName)</PvadJointAssembly>
+    </PropertyGroup>
+    <Error Condition="'$(PvadProtectedPackageDirectory)' == '' Or !Exists('$(PvadJointAssembly)')"
+           Text="A joint protected package requires its explicitly prepared assembly." />
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <BuiltProjectOutputGroupOutput Include="$(PvadJointAssembly)">
+        <FinalOutputPath>$(PvadJointAssembly)</FinalOutputPath>
+        <TargetPath>$(TargetFileName)</TargetPath>
+      </BuiltProjectOutputGroupOutput>
+      <DocumentationProjectOutputGroupOutput Remove="@(DocumentationProjectOutputGroupOutput)"
+          Condition="'$(PvadPackageDocumentationDirectory)' != ''" />
+      <DocumentationProjectOutputGroupOutput Include="$(PvadPackageDocumentationRoot)/$(MSBuildProjectName).xml"
+          Condition="'$(PvadPackageDocumentationDirectory)' != ''">
+        <FinalOutputPath>$(PvadPackageDocumentationRoot)/$(MSBuildProjectName).xml</FinalOutputPath>
+        <TargetPath>$(MSBuildProjectName).xml</TargetPath>
+      </DocumentationProjectOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,6 +1,7 @@
 using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -37,6 +38,17 @@ internal static class PdfCadesCmsBuilder
         DateTimeOffset signingTime,
         HashAlgorithmName digestAlgorithm)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return CreateDetachedAdmitted(documentDigest, signingKey, signingTime, digestAlgorithm);
+    }
+
+    internal static PdfCadesCmsResult CreateDetachedAdmitted(
+        ReadOnlySpan<byte> documentDigest,
+        IPdfSigningKey signingKey,
+        DateTimeOffset signingTime,
+        HashAlgorithmName digestAlgorithm)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(signingKey);
         if (documentDigest.Length != GetDigestSize(digestAlgorithm))
         {
@@ -46,7 +58,7 @@ internal static class PdfCadesCmsBuilder
         var certificate = signingKey.Certificate;
         var signedAttributes = BuildSignedAttributes(documentDigest, certificate, signingTime);
         var attributesDigest = HashData(digestAlgorithm, signedAttributes);
-        var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
+        var signature = PdfSigningDependencies.SignHashAdmitted(signingKey, attributesDigest, digestAlgorithm);
         var signerInfo = BuildSignerInfo(certificate, signedAttributes, signature, digestAlgorithm, timestampToken: null);
         var signedData = BuildSignedData(certificate, signerInfo, digestAlgorithm);
         var contentInfo = new AsnWriter(AsnEncodingRules.DER);
@@ -72,6 +84,20 @@ internal static class PdfCadesCmsBuilder
         HashAlgorithmName digestAlgorithm,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return await CreateDetachedWithTimestampAdmittedAsync(documentDigest, signingKey, signingTime,
+            timestampAuthority, digestAlgorithm, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<PdfCadesCmsResult> CreateDetachedWithTimestampAdmittedAsync(
+        ReadOnlyMemory<byte> documentDigest,
+        IPdfSigningKey signingKey,
+        DateTimeOffset signingTime,
+        IPdfTimestampAuthority timestampAuthority,
+        HashAlgorithmName digestAlgorithm,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(signingKey);
         ArgumentNullException.ThrowIfNull(timestampAuthority);
         if (documentDigest.Length != GetDigestSize(digestAlgorithm))
@@ -82,8 +108,8 @@ internal static class PdfCadesCmsBuilder
         var certificate = signingKey.Certificate;
         var signedAttributes = BuildSignedAttributes(documentDigest.Span, certificate, signingTime);
         var attributesDigest = HashData(digestAlgorithm, signedAttributes);
-        var signature = signingKey.SignHash(attributesDigest, digestAlgorithm);
-        var timestampToken = await timestampAuthority.GetTimestampTokenAsync(
+        var signature = PdfSigningDependencies.SignHashAdmitted(signingKey, attributesDigest, digestAlgorithm);
+        var timestampToken = await PdfSigningDependencies.GetTimestampTokenAdmittedAsync(timestampAuthority,
             HashData(digestAlgorithm, signature),
             digestAlgorithm,
             cancellationToken).ConfigureAwait(false);

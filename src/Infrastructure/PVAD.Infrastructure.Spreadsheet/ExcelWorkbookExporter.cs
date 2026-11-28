@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PVAD.Core.Contracts;
 using ClosedXML.Excel;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -15,7 +16,14 @@ public sealed class ExcelWorkbookExporter
     /// are evaluated server-side (ClosedXML) so the file carries fresh cached values.</summary>
     public byte[] Export(SpreadsheetDto workbook, bool recalculate = false)
     {
-        using var wb = Build(workbook);
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, "export.xlsx");
+        return ExportAdmitted(workbook, recalculate);
+    }
+
+    internal byte[] ExportAdmitted(SpreadsheetDto workbook, bool recalculate = false)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
+        using var wb = BuildAdmitted(workbook);
         if (recalculate) TryRecalculate(wb);
         using var ms = new MemoryStream();
         wb.SaveAs(ms);
@@ -25,6 +33,13 @@ public sealed class ExcelWorkbookExporter
     /// <summary>Builds the ClosedXML workbook from the model (without saving). Shared with the calculator.</summary>
     internal static XLWorkbook Build(SpreadsheetDto workbook)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.SpreadsheetProcessing);
+        return BuildAdmitted(workbook);
+    }
+
+    internal static XLWorkbook BuildAdmitted(SpreadsheetDto workbook)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         var wb = new XLWorkbook();
         foreach (var sheet in workbook.Sheets)
             RenderSheet(wb, sheet);

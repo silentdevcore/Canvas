@@ -10,13 +10,13 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { apiListeningAddress, childEnvironment, freePort, removeOwnedResources } from './operator-browser-rehearsal.mjs';
 import { hosts, prepareCertificates, publicOrigins, tlsWebsiteConfiguration } from './https-auth-pki.mjs';
 import { safeFailureEvidence, validateBrowserEvidence } from './https-auth-evidence.mjs';
+import { nativeTestAssemblyPath, withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const output = resolve(root, 'artifacts/rename/https-authentication');
 const label = 'pvade.operator-browser-rehearsal';
 const digest = value => createHash('sha256').update(value).digest('hex');
 const helperProject = 'tools/identity-browser-rehearsal/PVAD.IdentityBrowserRehearsal.csproj';
-const helperBinary = 'tools/identity-browser-rehearsal/bin/Debug/net10.0/PVAD.IdentityBrowserRehearsal.dll';
 const dockerCommand = (args, options = {}) => {
   const result = execFileSync('docker', args, {
     encoding: 'utf8', timeout: 90_000, maxBuffer: 32 * 1024 * 1024,
@@ -41,6 +41,10 @@ const sources = [
 ];
 
 export async function runHttpsAuthentication({ docker = dockerCommand, progress = () => {} } = {}) {
+  return await withNativeTestSession(() => runHttpsAuthenticationCore({ docker, progress }));
+}
+
+async function runHttpsAuthenticationCore({ docker, progress }) {
   const images = ['postgres:17-alpine', 'nginx:1.29-alpine', 'pvad-https-auth-browser:1.64.1'].map(tag => {
     const id = docker(['image', 'inspect', '--format', '{{.Id}}', tag]);
     assert.match(id, /^sha256:[a-f0-9]{64}$/, 'Cached images are required; no image is pulled.');
@@ -96,7 +100,7 @@ export async function runHttpsAuthentication({ docker = dockerCommand, progress 
   let connectionString, originalKeys, backupSnapshot;
   const sql = statement => { owned(names.database); return docker(['exec', '-i', names.database, 'psql', '-U', 'postgres', '-d', databaseName, '-At', '-v', 'ON_ERROR_STOP=1'], { input: statement }); };
   const helper = async values => {
-    const child = spawn('dotnet', [resolve(root, helperBinary)], { cwd: root, env: childEnvironment(process.env), stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn('dotnet', [nativeTestAssemblyPath(helperProject)], { cwd: root, env: childEnvironment(process.env), stdio: ['pipe', 'pipe', 'pipe'] });
     let text = '', diagnostics = '';
     child.stdout.on('data', chunk => { text += chunk.toString(); if (text.length > 128 * 1024) child.kill(); });
     child.stderr.on('data', chunk => { diagnostics = (diagnostics + chunk.toString()).slice(-1024); });
@@ -114,7 +118,7 @@ export async function runHttpsAuthentication({ docker = dockerCommand, progress 
     request.once('timeout', () => request.destroy()); request.once('error', no); request.end();
   });
   const startApi = async (name, mode = 'Staging') => {
-    api = command(name, ['dotnet', 'bin/Debug/net10.0/PVAD.WebApi.dll'], resolve(root, 'PVAD.WebApi'), {
+    api = command(name, ['dotnet', nativeTestAssemblyPath('PVAD.WebApi/PVAD.WebApi.csproj')], resolve(root, 'PVAD.WebApi'), {
       ...apiEnvironment, ASPNETCORE_ENVIRONMENT: mode, ASPNETCORE_URLS: `https://127.0.0.1:${apiPort ?? 0}`,
       ConnectionStrings__PvadDatabase: connectionString, DataProtection__KeysDirectory: keys,
     });
@@ -145,7 +149,7 @@ export async function runHttpsAuthentication({ docker = dockerCommand, progress 
     resources.push(['network', network]);
     docker(['network', 'create', '--label', `${label}=${runId}`, network]);
     step('build');
-    await finish(command('helper-build', ['dotnet', 'build', helperProject, '--no-restore', '--disable-build-servers', '-m:1',
+    await finish(command('helper-build', ['dotnet', 'build', helperProject, '--disable-build-servers', '-m:1',
       '-p:SkipOcrWorkerPackaging=true', '-p:SkipCodeWorkerPackaging=true', '--verbosity', 'quiet']));
     await finish(command('schema', ['dotnet', 'ef', 'migrations', 'script', '--project',
       'src/Infrastructure/PVAD.Infrastructure.Persistence/PVAD.Infrastructure.Persistence.csproj', '--no-build', '--output', resolve(work, 'schema.sql')]));
@@ -290,7 +294,7 @@ export async function runHttpsAuthentication({ docker = dockerCommand, progress 
     }));
     assert.deepEqual(await checksums(), baseline, 'Reviewed HTTPS sources changed during execution.');
     report = { schemaVersion: 1, status: 'passed', sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-      sourceChecksums: baseline, images, caSha256: certificates.caSha256, apiBinarySha256: digest(await readFile(resolve(root, 'PVAD.WebApi/bin/Debug/net10.0/PVAD.WebApi.dll'))),
+      sourceChecksums: baseline, images, caSha256: certificates.caSha256, apiBinarySha256: digest(await readFile(nativeTestAssemblyPath('PVAD.WebApi/PVAD.WebApi.csproj'))),
       helperBinarySha256: digest(await readFile(resolve(root, helperBinary))), productionStartupBlocked: true, apiEnvironment: 'Staging',
       syntheticOnly: true, deploymentAuthorized: false, hostTrustModified: false, screenshotChecksums, ...browserResult };
   } catch (cause) {

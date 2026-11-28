@@ -5,6 +5,8 @@ import { getTemplateElementsLocalized, getTemplatePagesLocalized } from '@/data/
 import type { TemplateDefinition } from '@/data/templates';
 import type { SimpleElement } from '@/types';
 import ExportService from '@/services/ExportService';
+import { useOptionalDesignerAuth } from '@/auth/DesignerAuthGate';
+import { formatCapability, hasAccountCapability } from '@/auth/designerPermissions';
 
 function createStarterElements(template: TemplateDefinition): SimpleElement[] {
   const now = Date.now();
@@ -82,6 +84,7 @@ function createStarterElements(template: TemplateDefinition): SimpleElement[] {
 }
 
 export function useTemplateLoader() {
+  const auth = useOptionalDesignerAuth();
   const { setCurrentTemplate, updatePageSettings } = useEditorStore();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
@@ -148,6 +151,10 @@ export function useTemplateLoader() {
     } = {},
   ): Promise<void> => {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const capability = formatId === 'image-analysis' ? 'image.analysis'
+      : formatId === 'image-ocr' ? 'image.ocr' : formatCapability('import', ext);
+    if (!hasAccountCapability(auth?.user, capability))
+      throw new Error('This import format is not included in your account rights.');
     const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'tif'];
     let design: any;
     let imageAnalysisMeta: any = null;

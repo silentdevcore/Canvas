@@ -2,10 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Core/PVAD.Core/PVAD.Core.csproj" />
+    <ProjectReference Include="../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="PVAD.FileImporter.ImageOcr.Tests" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +18,11 @@
   <ItemGroup>
     <Content Include="tessdata/**" Link="tessdata/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="native/**" Link="native/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../../assets/licenses/runtime-assets/bundles/ocr/**/*"
+             Link="third-party/runtime-assets/ocr/%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
+             Pack="true" PackagePath="contentFiles/any/$(TargetFramework)/third-party/runtime-assets/ocr/"
+             PackageCopyToOutput="true" PackageFlatten="false" />
   </ItemGroup>
 
   <PropertyGroup>

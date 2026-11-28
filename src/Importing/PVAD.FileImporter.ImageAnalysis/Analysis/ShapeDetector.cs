@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Analysis;
@@ -49,17 +50,24 @@ public static class ShapeDetector
 
     public static ShapeDetectionResult Detect(PreparedImage img, ColorAnalysisResult colors)
     {
-        byte[] edgeMap = ComputeSobelEdgeMap(img.Grayscale);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return DetectCore(img, colors);
+    }
 
-        var hLines = FindHorizontalSegments(edgeMap, img.Width, img.Height);
-        var vLines = FindVerticalSegments(edgeMap, img.Width, img.Height);
+    internal static ShapeDetectionResult DetectCore(PreparedImage img, ColorAnalysisResult colors)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        byte[] edgeMap = ComputeSobelEdgeMapCore(img.Grayscale);
+
+        var hLines = FindHorizontalSegmentsCore(edgeMap, img.Width, img.Height);
+        var vLines = FindVerticalSegmentsCore(edgeMap, img.Width, img.Height);
         var (gridHLines, gridVLines) = DetectGridSegments(hLines, vLines);
 
         var shapes = new List<ImageShapePrimitive>();
         int zOrder = 0;
 
         // Assemble closed rectangles from H+V segments
-        var rects = AssembleRectangles(hLines, vLines);
+        var rects = AssembleRectanglesCore(hLines, vLines);
         foreach (var r in rects)
         {
             shapes.Add(new ImageShapePrimitive
@@ -75,7 +83,7 @@ public static class ShapeDetector
         }
 
         // Filled rectangles from connected components, independent of edge closure.
-        var roundedRects = FindRoundedRectangles(img.Binary);
+        var roundedRects = FindRoundedRectanglesCore(img.Binary);
         foreach (var rounded in roundedRects)
         {
             if (rects.Any(existing => RectsSimilar(existing, rounded.Bounds)))
@@ -95,7 +103,7 @@ public static class ShapeDetector
             });
         }
 
-        var filledRects = FindFilledRectangles(img.Binary);
+        var filledRects = FindFilledRectanglesCore(img.Binary);
         foreach (var r in filledRects)
         {
             if (rects.Any(existing => RectsSimilar(existing, r)) ||
@@ -155,7 +163,7 @@ public static class ShapeDetector
             });
         }
 
-        var iconClusters = FindIconClusters(img.Binary);
+        var iconClusters = FindIconClustersCore(img.Binary);
         foreach (var icon in iconClusters)
         {
             if (shapes.Any(existing => IsMostlyCovered(icon, existing.Bounds)))
@@ -174,7 +182,7 @@ public static class ShapeDetector
             });
         }
 
-        var imageClusters = FindImageClusters(img.Binary);
+        var imageClusters = FindImageClustersCore(img.Binary);
         foreach (var cluster in imageClusters)
         {
             if (iconClusters.Any(icon => IsMostlyCovered(cluster, icon)) ||
@@ -195,7 +203,7 @@ public static class ShapeDetector
         }
 
         // Ellipses from binary connected components
-        var ellipses = FindEllipses(img.Binary);
+        var ellipses = FindEllipsesCore(img.Binary);
         foreach (var e in ellipses)
         {
             if (iconClusters.Any(icon => IsMostlyCovered(e, icon)) ||
@@ -225,6 +233,13 @@ public static class ShapeDetector
     /// </summary>
     public static unsafe byte[] ComputeSobelEdgeMap(SKBitmap gray)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ComputeSobelEdgeMapCore(gray);
+    }
+
+    internal static unsafe byte[] ComputeSobelEdgeMapCore(SKBitmap gray)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = gray.Width, h = gray.Height;
         var edges = new byte[w * h];
 
@@ -260,6 +275,13 @@ public static class ShapeDetector
 
     public static List<LineSegment> FindHorizontalSegments(byte[] edgeMap, int w, int h)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindHorizontalSegmentsCore(edgeMap, w, h);
+    }
+
+    internal static List<LineSegment> FindHorizontalSegmentsCore(byte[] edgeMap, int w, int h)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var segments = new List<LineSegment>();
         for (int y = 1; y < h - 1; y++)
         {
@@ -308,6 +330,13 @@ public static class ShapeDetector
 
     public static List<LineSegment> FindVerticalSegments(byte[] edgeMap, int w, int h)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindVerticalSegmentsCore(edgeMap, w, h);
+    }
+
+    internal static List<LineSegment> FindVerticalSegmentsCore(byte[] edgeMap, int w, int h)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var segments = new List<LineSegment>();
         for (int x = 1; x < w - 1; x++)
         {
@@ -413,6 +442,14 @@ public static class ShapeDetector
     public static List<SKRectI> AssembleRectangles(
         List<LineSegment> hSegs, List<LineSegment> vSegs)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return AssembleRectanglesCore(hSegs, vSegs);
+    }
+
+    internal static List<SKRectI> AssembleRectanglesCore(
+        List<LineSegment> hSegs, List<LineSegment> vSegs)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var rects = new List<SKRectI>();
         int t = RectAlignTolerance;
 
@@ -522,10 +559,17 @@ public static class ShapeDetector
 
     public static List<SKRectI> FindFilledRectangles(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindFilledRectanglesCore(binary);
+    }
+
+    internal static List<SKRectI> FindFilledRectanglesCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int totalPixels = binary.Width * binary.Height;
         var rects = new List<SKRectI>();
 
-        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        foreach (var blob in TextEngine.LabelConnectedComponentsCore(binary))
         {
             int bw = blob.Bounds.Width;
             int bh = blob.Bounds.Height;
@@ -556,10 +600,17 @@ public static class ShapeDetector
 
     public static List<RoundedRectCandidate> FindRoundedRectangles(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindRoundedRectanglesCore(binary);
+    }
+
+    internal static List<RoundedRectCandidate> FindRoundedRectanglesCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int totalPixels = binary.Width * binary.Height;
         var rects = new List<RoundedRectCandidate>();
 
-        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        foreach (var blob in TextEngine.LabelConnectedComponentsCore(binary))
         {
             int bw = blob.Bounds.Width;
             int bh = blob.Bounds.Height;
@@ -711,10 +762,17 @@ public static class ShapeDetector
 
     public static List<SKRectI> FindIconClusters(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindIconClustersCore(binary);
+    }
+
+    internal static List<SKRectI> FindIconClustersCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int totalPixels = binary.Width * binary.Height;
         var clusters = new List<SKRectI>();
 
-        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        foreach (var blob in TextEngine.LabelConnectedComponentsCore(binary))
         {
             int bw = blob.Bounds.Width;
             int bh = blob.Bounds.Height;
@@ -747,10 +805,17 @@ public static class ShapeDetector
 
     public static List<SKRectI> FindImageClusters(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindImageClustersCore(binary);
+    }
+
+    internal static List<SKRectI> FindImageClustersCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int totalPixels = binary.Width * binary.Height;
         var clusters = new List<SKRectI>();
 
-        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        foreach (var blob in TextEngine.LabelConnectedComponentsCore(binary))
         {
             int bw = blob.Bounds.Width;
             int bh = blob.Bounds.Height;
@@ -849,6 +914,13 @@ public static class ShapeDetector
     /// </summary>
     public static unsafe List<SKRectI> FindEllipses(SKBitmap binary)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return FindEllipsesCore(binary);
+    }
+
+    internal static unsafe List<SKRectI> FindEllipsesCore(SKBitmap binary)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = binary.Width, h = binary.Height;
         var labels    = new int[w * h];
         int nextLabel = 1;

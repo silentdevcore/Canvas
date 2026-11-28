@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -12,6 +13,13 @@ public sealed class GroupingEngine
 {
     public IReadOnlyList<VisualGroup> BuildGroups(IReadOnlyList<PrimitiveObject> primitives)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildGroupsAdmitted(primitives);
+    }
+
+    internal IReadOnlyList<VisualGroup> BuildGroupsAdmitted(IReadOnlyList<PrimitiveObject> primitives)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var flat = ReadingOrderEngine.Flatten(primitives).Where(static primitive => primitive.Kind != PrimitiveKind.Group).ToArray();
         var groups = new List<VisualGroup>();
         groups.AddRange(BuildContainmentGroups(flat));

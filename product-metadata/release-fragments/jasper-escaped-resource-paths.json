@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "jasper-escaped-resource-paths",
+  "impact": "patch",
+  "components": ["migration"],
+  "category": "fixed",
+  "summary": "JasperReports migration correctly decodes common escaped image and subreport paths while retaining the original source expression.",
+  "breaking": false
+}

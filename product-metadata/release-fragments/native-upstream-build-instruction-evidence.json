@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-upstream-build-instruction-evidence",
+  "impact": "none",
+  "components": ["infrastructure"],
+  "category": "fixed",
+  "summary": "Corrected internal dependency source evidence and validated the retained build instructions.",
+  "breaking": false,
+  "reason": "Internal source-provenance correction only; shipped runtime assets, package behavior and distribution approval remain unchanged."
+}

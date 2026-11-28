@@ -1,0 +1,10 @@
+{
+  "id": "server-license-issuer-separation",
+  "impact": "major",
+  "components": ["api", "admin", "infrastructure", "documentation"],
+  "category": "breaking",
+  "summary": "Customer deployments now verify server licenses using public keys only. License issuance and replacement require an explicitly enabled, separately provisioned issuer.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

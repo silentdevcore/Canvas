@@ -1,0 +1,10 @@
+{
+  "id": "native-converter-license-enforcement",
+  "impact": "major",
+  "components": ["infrastructure", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Native HTML, Markdown, CSV, XML, SVG, ODT and image exports now require a signed Converter license. Direct and interface calls enforce the same rights; format metadata remains available without a license.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

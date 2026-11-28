@@ -1,0 +1,10 @@
+{
+  "id": "native-import-trust-license-enforcement",
+  "impact": "major",
+  "components": ["importer", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Existing-PDF inspection, archival conversion, encryption, signing, timestamps, redaction, and invoice attachments now require an Importer license. These operations work without a separate PDF-generation grant.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

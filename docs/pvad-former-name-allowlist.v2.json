@@ -305,7 +305,7 @@
     {
       "path": "src/Migrations/Report/PVAD.Migration.Report.Designer.Rpx/RpxToDesignConverter.cs",
       "reason": "third-party-bytes",
-      "sha256": "4fe747a40e7c696f54d7d38fa30e55582e018cc82862f8c32c47bce94eb708d7"
+      "sha256": "e16f8cd5f6c954da4411433060d90be51ceb044fd73c0168b66729b956b8f20b"
     },
     {
       "path": "test-assets/e-invoicing/baselines/dotnet-10.0.13-pdfa-fixtures.json",

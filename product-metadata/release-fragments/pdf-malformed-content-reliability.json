@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "pdf-malformed-content-reliability",
+  "impact": "patch",
+  "components": ["importer"],
+  "category": "fixed",
+  "summary": "Improved PDF import reliability when documents contain malformed text commands, unterminated strings, oversized stream lengths, excessive font mapping ranges or unsupported compressed data.",
+  "breaking": false
+}

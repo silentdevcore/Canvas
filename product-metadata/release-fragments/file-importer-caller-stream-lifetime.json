@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "file-importer-caller-stream-lifetime",
+  "impact": "patch",
+  "components": ["importer"],
+  "category": "fixed",
+  "summary": "Markdown and ODT imports now leave caller-owned input streams open after completion or failure.",
+  "breaking": false
+}

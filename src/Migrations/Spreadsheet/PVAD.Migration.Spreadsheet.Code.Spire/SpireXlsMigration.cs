@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,10 +12,17 @@ namespace PVAD.Migration.Spreadsheet.Code.Spire;
 /// (<c>PvadWorkbook</c>). Roslyn-based: workbook/worksheet, <c>Range["A1"]</c> indexer, Text/Value/Number/
 /// Formula, IsBold style, merge, SaveToFile. Charts and complex styles are flagged for manual review.
 /// </summary>
-public sealed class SpireXlsMigration : CSharpSourceMigration
+public sealed class SpireXlsMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.SpreadsheetCodeMigration, "spire-xls");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.SpreadsheetCodeMigration, "spire-xls");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

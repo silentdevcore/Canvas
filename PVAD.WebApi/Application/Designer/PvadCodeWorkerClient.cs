@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
+using PVAD.WebApi.Services.Licensing;
 
 namespace PVAD.WebApi.Application.Designer;
 
@@ -23,7 +25,8 @@ public interface IPvadCodeWorkerClient
 public sealed class PvadCodeWorkerClient(
     IWebHostEnvironment environment,
     IOptions<PvadCodeWorkerOptions> options,
-    ILogger<PvadCodeWorkerClient> logger) : IPvadCodeWorkerClient
+    ILogger<PvadCodeWorkerClient> logger,
+    IOptions<PvadNativeLicenseOptions>? nativeLicensing = null) : IPvadCodeWorkerClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly PvadCodeWorkerOptions settings = options.Value;
@@ -68,6 +71,27 @@ public sealed class PvadCodeWorkerClient(
             process.StartInfo.Environment.Clear();
             process.StartInfo.Environment["DOTNET_EnableDiagnostics"] = "0";
             process.StartInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+            var accountCapabilities = PvadAccountCapabilityContext.Capture();
+            if (accountCapabilities is not null)
+                process.StartInfo.Environment["PVAD_ACCOUNT_CAPABILITIES"] = JsonSerializer.Serialize(accountCapabilities);
+            if (!string.IsNullOrWhiteSpace(nativeLicensing?.Value.LicensePath))
+                process.StartInfo.Environment["PVAD_NATIVE_LICENSE_PATH"] =
+                    Path.GetFullPath(nativeLicensing.Value.LicensePath, environment.ContentRootPath);
+            if (request.Language == PvadCodeLanguages.CSharpPdf)
+            {
+                var revocations = PvadLicense.CaptureRevocations();
+                if (revocations is not null)
+                {
+                    var path = Path.Combine(directory, "native-revocations.json");
+                    var fileOptions = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+                    if (!OperatingSystem.IsWindows()) fileOptions.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+                    await using (var stream = new FileStream(path, fileOptions)) await stream.WriteAsync(revocations, cancellationToken);
+                    process.StartInfo.Environment["PVAD_NATIVE_REVOCATIONS_PATH"] = path;
+                }
+                else if (!string.IsNullOrWhiteSpace(nativeLicensing?.Value.RevocationListPath))
+                    process.StartInfo.Environment["PVAD_NATIVE_REVOCATIONS_PATH"] =
+                        Path.GetFullPath(nativeLicensing.Value.RevocationListPath, environment.ContentRootPath);
+            }
             try
             {
                 if (!process.Start())
@@ -114,8 +138,11 @@ public sealed class PvadCodeWorkerClient(
     {
         var configured = settings.WorkerPath;
         var basePath = string.IsNullOrWhiteSpace(configured)
-            ? Path.Combine(environment.ContentRootPath, "bin", environment.EnvironmentName == "Development" ? "Debug" : "Release", "net10.0", "code-worker")
+            ? Path.Combine(AppContext.BaseDirectory, "code-worker")
             : Path.GetFullPath(configured, environment.ContentRootPath);
+        if (string.IsNullOrWhiteSpace(configured) && !Directory.Exists(basePath) &&
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "PVAD.CodeWorker.dll")))
+            basePath = AppContext.BaseDirectory;
         var dll = Path.Combine(basePath, "PVAD.CodeWorker.dll");
         if (File.Exists(dll))
             return (ResolveDotnetHost(), $"\"{dll}\" \"{inputPath}\" \"{outputPath}\"");

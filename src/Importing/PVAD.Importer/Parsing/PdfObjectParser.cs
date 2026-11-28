@@ -2,6 +2,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Streams;
 using PVAD.Importer.Tokenizer;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Parsing;
 
@@ -23,6 +24,13 @@ public sealed class PdfObjectParser
 
     public PdfObjectGraph ParseDocumentGraph(bool parseCompressedObjects = true)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseDocumentGraphAdmitted(parseCompressedObjects);
+    }
+
+    internal PdfObjectGraph ParseDocumentGraphAdmitted(bool parseCompressedObjects = true)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var graph = new PdfObjectGraph { Trailer = _xref.Trailer };
 
         foreach (var entry in _xref.Entries.Values)
@@ -60,6 +68,13 @@ public sealed class PdfObjectParser
 
     public PdfObject ParseObjectAt(int offset, long baseOffset)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseObjectAtAdmitted(offset, baseOffset);
+    }
+
+    internal PdfObject ParseObjectAtAdmitted(int offset, long baseOffset)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         _activeBaseOffset = baseOffset;
         var reader = new PdfTokenReader(_context.Source.Span[offset..]);
         return ParseObject(ref reader, depth: 0);
@@ -67,6 +82,13 @@ public sealed class PdfObjectParser
 
     public PdfIndirectObject? TryParseIndirectObjectAt(long offset)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return TryParseIndirectObjectAtAdmitted(offset);
+    }
+
+    internal PdfIndirectObject? TryParseIndirectObjectAtAdmitted(long offset)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         return TryParseIndirectObject(new PdfCrossReferenceEntry(
             new PdfObjectId(0, 0),
             offset,
@@ -117,10 +139,17 @@ public sealed class PdfObjectParser
 
     public PdfObject ParseObject(ref PdfTokenizer tokenizer)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseObjectAdmitted(ref tokenizer);
+    }
+
+    internal PdfObject ParseObjectAdmitted(ref PdfTokenizer tokenizer)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var reader = new PdfTokenReader(_context.Source.Span[checked((int)_activeBaseOffset)..]);
         reader.Seek(tokenizer.Position);
         var parsed = ParseObject(ref reader, depth: 0);
-        tokenizer.Seek(reader.Position);
+        tokenizer.SeekAdmitted(reader.Position);
         return parsed;
     }
 
@@ -139,8 +168,8 @@ public sealed class PdfObjectParser
         return token.Kind switch
         {
             PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
-            PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], IsHex: false) { SourceSpan = Span(token) },
-            PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], IsHex: true) { SourceSpan = Span(token) },
+            PdfTokenKind.LiteralString => new PdfString(token.StringContent(), IsHex: false) { SourceSpan = Span(token) },
+            PdfTokenKind.HexString => new PdfString(token.StringContent(), IsHex: true) { SourceSpan = Span(token) },
             PdfTokenKind.ArrayStart => ParseArray(ref reader, _activeBaseOffset + token.Offset, depth),
             PdfTokenKind.DictionaryStart => ParseDictionaryOrStream(ref reader, _activeBaseOffset + token.Offset, depth),
             PdfTokenKind.Number => ParseNumberOrReference(ref reader, token),
@@ -222,7 +251,8 @@ public sealed class PdfObjectParser
             streamStart++;
         }
 
-        var encoded = length > 0 && streamStart + length <= _context.Source.Length
+        // Compare against the remaining bytes so an oversized /Length cannot overflow the bound check.
+        var encoded = length > 0 && streamStart <= _context.Source.Length && length <= _context.Source.Length - streamStart
             ? _context.Source.Slice(streamStart, checked((int)length))
             : ReadUntilEndStream(streamStart);
 
@@ -390,7 +420,7 @@ public sealed class PdfObjectParser
         ReadOnlyMemory<byte> bytes;
         try
         {
-            bytes = stream.IsDecoded ? stream.DecodedBytes : _streamDecoders.Decode(stream);
+            bytes = stream.IsDecoded ? stream.DecodedBytes : _streamDecoders.DecodeAdmitted(stream);
         }
         catch (PdfParseLimitExceededException exception)
         {
@@ -428,7 +458,7 @@ public sealed class PdfObjectParser
             var objectParser = new PdfObjectParser(objectContext, _xref);
             try
             {
-                objects[objectNumber] = objectParser.ParseObjectAt(objectOffset, baseOffset: 0);
+                objects[objectNumber] = objectParser.ParseObjectAtAdmitted(objectOffset, baseOffset: 0);
             }
             catch (PdfParseLimitExceededException exception)
             {

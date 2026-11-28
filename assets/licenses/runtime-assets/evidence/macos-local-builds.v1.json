@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 1,
+  "scope": "local-macos-x64-build-correlation-not-source-or-distribution-approval",
+  "runtimeRegistrySha256": "d3d4968991a1c45ea89741f79299e32bb8ac1df29f5ea8c3e57187e4e37e4377",
+  "rows": [
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libarchive.13.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "libarchive",
+          "installedVersion": "3.8.7",
+          "candidateFile": "/usr/local/Cellar/libarchive/3.8.7/lib/libarchive.13.dylib",
+          "receiptSha256": "7c13de8a0b97e1f93b8e82d9731f52d32ce7e68c2b472cd2fbaaeb493031c4ff",
+          "pouredFromBottle": true,
+          "recipeVersion": "3.8.7",
+          "localSha256": "2cf8392b9550ab8f0a229d9f53f6ca67229120a390e1414169de2dc2c0e46223",
+          "candidateSha256": "087df54424971939e5feed475aaedd80820cf6575b3958d552135fe141f67c65",
+          "uuid": "DEFD2047-5FD2-377A-AD3F-B39C99A64D31",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 9,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libb2.1.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "libb2",
+          "installedVersion": "0.98.1",
+          "candidateFile": "/usr/local/Cellar/libb2/0.98.1/lib/libb2.1.dylib",
+          "receiptSha256": "1e66a4180b5c981770fcb9c49a5a87c0c0c6036413691f700818bea372ad2df7",
+          "pouredFromBottle": true,
+          "recipeVersion": "0.98.1",
+          "localSha256": "c92fc85a733dadac6ff1ed1392f194c9a8043c48f222de22f545bb9856a63994",
+          "candidateSha256": "3eba73ff3bcbea33b031e337aa77f258529d2f215c2d76a1885cffe7c614bad9",
+          "uuid": "2FEAB7B3-BFFE-35D0-BBB8-54D37ABB00C7",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 10,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libgif.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "giflib",
+          "installedVersion": "6.1.3",
+          "candidateFile": "/usr/local/Cellar/giflib/6.1.3/lib/libgif.7.2.0.dylib",
+          "receiptSha256": "5d06b4c4a25c54e5345c75840316dde8a56e5906ed70360c23db618b2018ecfd",
+          "pouredFromBottle": true,
+          "recipeVersion": "6.1.3",
+          "localSha256": "61e56fe15bae113b84aa8df5becec41a4af64aadc77c51e4debcb7613176088f",
+          "candidateSha256": "9c25e7c8bf0b52bd2be798b7c3246a8605894f93d177e70ca006633895d1210d",
+          "uuid": "8F67B1C8-D33A-3591-948C-97C4891CBBFC",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 7,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libjpeg.8.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "jpeg-turbo",
+          "installedVersion": "3.1.4.1",
+          "candidateFile": "/usr/local/Cellar/jpeg-turbo/3.1.4.1/lib/libjpeg.8.3.2.dylib",
+          "receiptSha256": "4f51da1cdfb7c4230c28bd0d40724927de8e696ec420e5cf0fe0a3584e03e64d",
+          "pouredFromBottle": true,
+          "recipeVersion": "3.1.4.1",
+          "localSha256": "e5b3ad1a3703c561ce644b4a431662efa8115bdfbefa69dd325e18d2a950b4f9",
+          "candidateSha256": "38c3c2bcf0f0db1154c7e4e69b5e1d334a5b3f0ca59d0682a1fce0d78940ffd8",
+          "uuid": "BA65B06D-80FE-322C-9DF9-EF6C8574A77A",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 9,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        },
+        {
+          "formula": "jpeg-turbo",
+          "installedVersion": "3.2.0",
+          "candidateFile": "/usr/local/Cellar/jpeg-turbo/3.2.0/lib/libjpeg.8.3.2.dylib",
+          "receiptSha256": "7be3b18e91cff28c997abb0500f0eb93dd72bbe0ae1348f75d240adf034ddedc",
+          "pouredFromBottle": true,
+          "recipeVersion": "3.2.0",
+          "localSha256": "e5b3ad1a3703c561ce644b4a431662efa8115bdfbefa69dd325e18d2a950b4f9",
+          "candidateSha256": "ab2a91171208a38f4f5ed1dd2ed873166c1b296b70f721f5acb8ff255775548c",
+          "uuid": "BA65B06D-80FE-322C-9DF9-EF6C8574A77A",
+          "uuidMatches": false,
+          "allSectionBytesMatch": false,
+          "sectionCount": 9,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libleptonica-1.82.0.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "leptonica",
+          "installedVersion": "1.87.0",
+          "candidateFile": "/usr/local/Cellar/leptonica/1.87.0/lib/libleptonica.6.dylib",
+          "receiptSha256": "0f219ff7a14906cd006c7b5077829294acd6181add26fe138967a7c5c2fdb00d",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.87.0",
+          "localSha256": "f090d7c57d0e51015fa37755377f4517c4796437e6619adb1ca121e0f557cedd",
+          "candidateSha256": "100fd482bc6d1d27fec1dab85a4f8318a712799a0ec1a6e67a0a9a6f097399ed",
+          "uuid": "9DE7E3B9-47CC-3E91-BEFF-AEFBB491A233",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 10,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/liblz4.1.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "lz4",
+          "installedVersion": "1.10.0",
+          "candidateFile": "/usr/local/Cellar/lz4/1.10.0/lib/liblz4.1.10.0.dylib",
+          "receiptSha256": "3bff5f6758090819f1cad3a1a011a2361c7007b5e55ae58875fc9f160391963a",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.10.0",
+          "localSha256": "f354f6c4811048b222cf706cd7fc7fd80599c2f81b28ff8bd3511af1b736516f",
+          "candidateSha256": "1d627b02194d3d26ee57e12612c218dd1adb74da0678766078bbc38e64a99794",
+          "uuid": "7360573F-D43B-33EE-B91D-A359C83D3A66",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 7,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/liblzma.5.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "xz",
+          "installedVersion": "5.8.3",
+          "candidateFile": "/usr/local/Cellar/xz/5.8.3/lib/liblzma.5.dylib",
+          "receiptSha256": "4ebbd5185ce9bdbee47c3e412d4856a38cc5fe8ced076c1f60c22e33a8d24e12",
+          "pouredFromBottle": true,
+          "recipeVersion": "5.8.3",
+          "localSha256": "c0862367f12ec2cd86644ee7155fe69be3058de558b7ed6b7fb3bb73e3728d58",
+          "candidateSha256": "3462fb62dd65540e64024732c4662e93941fc2969ea9bbe3786eab7c077ffddc",
+          "uuid": "FB302649-8AEE-3026-A228-8BD761E05160",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 7,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libopenjp2.7.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "openjpeg",
+          "installedVersion": "2.5.4",
+          "candidateFile": "/usr/local/Cellar/openjpeg/2.5.4/lib/libopenjp2.2.5.4.dylib",
+          "receiptSha256": "db86ecc37c1d238c7b77e71d2fd1dd351a4e2990b6898314bed468b21ef69063",
+          "pouredFromBottle": true,
+          "recipeVersion": "2.5.4",
+          "localSha256": "5e7440e953f8361abfd609853f5c3b46d40316e54ba54434eebae482ae7074c4",
+          "candidateSha256": "a5545d22c237ef34f0e6347a742a223638bf273396247412b56a80fdbb20755e",
+          "uuid": "513BCA42-605D-3DBC-9260-FC2B318AF5AB",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 8,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libpng16.16.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "libpng",
+          "installedVersion": "1.6.58",
+          "candidateFile": "/usr/local/Cellar/libpng/1.6.58/lib/libpng16.16.dylib",
+          "receiptSha256": "f20003a1bc00d248af2afe1e62fe5cb9d93deca3fcadc909596b22eb00c00ffd",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.6.58",
+          "localSha256": "53b9a3e56446546d534ee4802187d38e0d24fba2f1f6999ab5199648dc4e2180",
+          "candidateSha256": "b018c5075aaf20179c62b0b86c6d308c5abbc80ad2d9cc5250560892be154787",
+          "uuid": "30D9401F-6CB6-3879-9CCB-F41E2238DF6C",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 7,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libsharpyuv.0.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "webp",
+          "installedVersion": "1.6.0",
+          "candidateFile": "/usr/local/Cellar/webp/1.6.0/lib/libsharpyuv.0.1.2.dylib",
+          "receiptSha256": "1820171c61ddeed4ef2c12e81e6538569e9255334407d153496a08c2648a11e3",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.6.0",
+          "localSha256": "d643b38c0c1c7dfb6aee2f1d7f6105a9a90d2fe6b7d2718d4770434f8134237b",
+          "candidateSha256": "804cf9024c46dbd23b1394d534311dc24292ab555dc67152414f53debf3c7502",
+          "uuid": "7D162BE8-F52D-303A-8B1C-44BBD4894FA7",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 9,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libtesseract50.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "tesseract",
+          "installedVersion": "5.5.2",
+          "candidateFile": "/usr/local/Cellar/tesseract/5.5.2/lib/libtesseract.5.dylib",
+          "receiptSha256": "cf633e92cf64584b1e2b55a46f6e0b253e5288aa680b353bb634851647dbeafb",
+          "pouredFromBottle": true,
+          "recipeVersion": "5.5.2",
+          "localSha256": "0bd2c925993bfb1d203821481bb21d91ea823a4cc6c02708abec4074718b3d4d",
+          "candidateSha256": "cc6f544e76b00506cc1c62bc35074877c4ac56709c12e4358854037726b152ab",
+          "uuid": "4879E037-E76A-3E53-AA90-5E51017762E9",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 14,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libtiff.6.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "libtiff",
+          "installedVersion": "4.7.1_1",
+          "candidateFile": "/usr/local/Cellar/libtiff/4.7.1_1/lib/libtiff.6.dylib",
+          "receiptSha256": "f6f0a6b97d28af33cc440ce1ad4cfed14bef8cc1f424b93fe7cd11b88450bc29",
+          "pouredFromBottle": true,
+          "recipeVersion": "4.7.1",
+          "localSha256": "6e36cabd0db76d401b79edaab914fb37614cc2324f5a8ff4d032bcaffa2dd588",
+          "candidateSha256": "e1820db100bd558cfc809fbd9d37c62c068d7f3e7e27c5558ad4340c7e26ec37",
+          "uuid": "6CB917A4-4B66-385F-89F7-0A7EF99A72B0",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 10,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libwebp.7.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "webp",
+          "installedVersion": "1.6.0",
+          "candidateFile": "/usr/local/Cellar/webp/1.6.0/lib/libwebp.7.2.0.dylib",
+          "receiptSha256": "1820171c61ddeed4ef2c12e81e6538569e9255334407d153496a08c2648a11e3",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.6.0",
+          "localSha256": "8195350ebb4a8245dac12e58093080a09bd668d3c0d32681b0cac24ebb3d2891",
+          "candidateSha256": "44db038a21be3c46c83a922e97fedfb51f139e62d66780e37910a184038937a8",
+          "uuid": "5C22FAF4-85F0-3111-AFF7-9633B6B8A80C",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 10,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libwebpmux.3.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "webp",
+          "installedVersion": "1.6.0",
+          "candidateFile": "/usr/local/Cellar/webp/1.6.0/lib/libwebpmux.3.1.2.dylib",
+          "receiptSha256": "1820171c61ddeed4ef2c12e81e6538569e9255334407d153496a08c2648a11e3",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.6.0",
+          "localSha256": "ae25e674c3ae04223a6db0b1647c7ea4675b2c24cf7e12c9153cad5452f81d9d",
+          "candidateSha256": "54dab49e88b7352383f80ddde8020569d22c25d42b93a5f6cd855f0c87c1783f",
+          "uuid": "EECD1202-BD79-31D1-9FA8-66F68EEA3F7D",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 6,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    },
+    {
+      "file": "src/Importing/PVAD.FileImporter.ImageOcr/native/x64/libzstd.1.dylib",
+      "status": "local-build-correlation",
+      "candidates": [
+        {
+          "formula": "zstd",
+          "installedVersion": "1.5.7_1",
+          "candidateFile": "/usr/local/Cellar/zstd/1.5.7_1/lib/libzstd.1.5.7.dylib",
+          "receiptSha256": "7325d7a967d4fd0e1b1f109d7ac3e31c26fc3a6737ba4504a47d49d143881c50",
+          "pouredFromBottle": true,
+          "recipeVersion": "1.5.7",
+          "localSha256": "4c9e61d94ed4838bb16a09a7f9ba97ea868e73dfb32d036098e5e11d420fdfba",
+          "candidateSha256": "fb01d38cf980e9423cdf69d04affb2d6b7985e029e4f9d8883833df732dfe3da",
+          "uuid": "F90288F6-3749-38E6-AC22-2535E2242553",
+          "uuidMatches": true,
+          "allSectionBytesMatch": true,
+          "sectionCount": 9,
+          "exactFileMatch": false,
+          "publisherAuthenticated": false,
+          "reproducibleSourceBuildVerified": false,
+          "publicationReady": false
+        }
+      ]
+    }
+  ],
+  "legalApprovalGranted": false,
+  "publicationReady": false
+}

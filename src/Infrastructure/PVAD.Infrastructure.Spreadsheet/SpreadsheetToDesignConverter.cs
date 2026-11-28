@@ -1,5 +1,6 @@
 using System.Text.Json;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -12,6 +13,7 @@ public sealed class SpreadsheetToDesignConverter
 {
     public DesignExportDto Convert(SpreadsheetDto workbook, int sheetIndex = 0, bool gridlines = false)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var sheet = workbook.Sheets.Count > sheetIndex && sheetIndex >= 0
             ? workbook.Sheets[sheetIndex]
             : workbook.Sheets.FirstOrDefault() ?? new SheetDto();

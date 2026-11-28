@@ -12,7 +12,14 @@
   <Folder Name="/src/Generation/">
     <Project Path="src/Generation/PVAD.Pdf/PVAD.Pdf.csproj" />
   </Folder>
+  <Folder Name="/src/Licensing/">
+    <Project Path="src/Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PVAD.Infrastructure.Persistence.Tests/PVAD.Infrastructure.Persistence.Tests.csproj" />
+    <Project Path="tests/PVAD.Licensing.Tests/PVAD.Licensing.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PVAD.LicenseIssuer/PVAD.LicenseIssuer.csproj" />
   </Folder>
 </Solution>

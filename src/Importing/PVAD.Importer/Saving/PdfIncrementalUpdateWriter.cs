@@ -2,6 +2,7 @@ using System.Globalization;
 using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Saving;
 
@@ -20,6 +21,15 @@ public sealed class PdfIncrementalUpdateWriter
         ReadOnlyMemory<byte> source,
         IEnumerable<PdfIncrementalObjectUpdate> objectUpdates)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSave);
+        return AppendAdmitted(source, objectUpdates);
+    }
+
+    internal PdfIncrementalUpdateResult AppendAdmitted(
+        ReadOnlyMemory<byte> source,
+        IEnumerable<PdfIncrementalObjectUpdate> objectUpdates)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(objectUpdates);
         if (source.IsEmpty)
         {
@@ -135,7 +145,7 @@ public sealed class PdfIncrementalUpdateWriter
         IReadOnlyCollection<PdfObjectId>? expectedObjects)
     {
         var context = new PdfParseContext(source, new PdfImporterOptions());
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF revision chain is invalid: {table.Diagnostics[0].Code}.");
@@ -147,7 +157,7 @@ public sealed class PdfIncrementalUpdateWriter
                 $"Post-save validation expected {expectedRevisionCount} revisions but found {table.Revisions.Count}.");
         }
 
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         if (graph.Trailer?["Root"] is null)
         {
             throw new InvalidDataException("Post-save validation could not resolve the document trailer and catalog root.");

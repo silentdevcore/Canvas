@@ -1,5 +1,6 @@
 using System.Globalization;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
@@ -25,6 +26,7 @@ public sealed class PptxFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.pptx");
         using var pptDoc = PresentationDocument.Open(stream, isEditable: false);
         var presPart = pptDoc.PresentationPart
             ?? throw new InvalidDataException("PPTX has no PresentationPart.");

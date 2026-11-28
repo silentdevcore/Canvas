@@ -3,6 +3,37 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <ProjectReference Include="../PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.ActivePdf" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Apryse" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Aspose" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.DevExpress" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.DsPdf" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Foxit" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.GemBox" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.IronPdf" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.IText7" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Leadtools" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Nutrient" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.PdfKitNet" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.PdfTools" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.PdfToolsToolbox" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Spire" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf.Code.Syncfusion" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.Aspose" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.ClosedXml" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.Epplus" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.GemBox" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.Npoi" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.Spire" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.SpreadsheetLight" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet.Code.Syncfusion" />
+    <InternalsVisibleTo Include="PVAD.Migration.Pdf" />
+    <InternalsVisibleTo Include="PVAD.Migration.Spreadsheet" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
   <PropertyGroup>

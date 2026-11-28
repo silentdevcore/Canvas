@@ -1,0 +1,3168 @@
+{
+  "schemaVersion": 1,
+  "scope": "existing-local-image-os-metadata-and-original-notices-not-release-approval",
+  "image": {
+    "id": "sha256:fcc0bd274ce6849fa0c6dd65962b7f1524576b783c02fdc07b6ed548859cfc63",
+    "os": "linux",
+    "architecture": "arm64"
+  },
+  "currentDockerfileSha256": "a02201f3f9b722876b1176724c6419735fd045c7e4c3493b19925ba484f454b7",
+  "imageToCurrentDockerfileBindingVerified": false,
+  "packages": [
+    {
+      "name": "apt",
+      "version": "2.8.4ubuntu0.1",
+      "source": "apt",
+      "sourceVersion": "2.8.4ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/apt/copyright",
+        "bytes": 7668,
+        "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "base-files",
+      "version": "13ubuntu10.5",
+      "source": "base-files",
+      "sourceVersion": "13ubuntu10.5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/base-files/copyright",
+        "bytes": 1208,
+        "sha256": "fd7e4aae7e7b05f217bcf2d02322825c360e66c52c4c2f1b28d784d6297a1c23",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "base-passwd",
+      "version": "3.6.3build1",
+      "source": "base-passwd",
+      "sourceVersion": "3.6.3build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/base-passwd/copyright",
+        "bytes": 798,
+        "sha256": "0f1cde79bd80a75f9029ae9a8c252b642223027ef36f6989c63a8230aae576a7",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "bash",
+      "version": "5.2.21-2ubuntu4",
+      "source": "bash",
+      "sourceVersion": "5.2.21-2ubuntu4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/bash/copyright",
+        "bytes": 9764,
+        "sha256": "06319d84c3e5ed096036f6a9310a030c7e84e50dff2b8a6792285c83ec0ada73",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "bsdutils",
+      "version": "1:2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/bsdutils/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "ca-certificates",
+      "version": "20260816ubuntu0.24.04.2",
+      "source": "ca-certificates",
+      "sourceVersion": "20260816ubuntu0.24.04.2",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/ca-certificates/copyright",
+        "bytes": 18940,
+        "sha256": "e85e1bcad3a915dc7e6f41412bc5bdeba275cadd817896ea0451f2140a93967c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "coreutils",
+      "version": "9.4-3ubuntu6.3",
+      "source": "coreutils",
+      "sourceVersion": "9.4-3ubuntu6.3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/coreutils/copyright",
+        "bytes": 5551,
+        "sha256": "d23a4fb17c4a2e5bc46dafe9d22192ecf3905473317e17139d210339dcf50fa9",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "dash",
+      "version": "0.5.12-6ubuntu5",
+      "source": "dash",
+      "sourceVersion": "0.5.12-6ubuntu5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/dash/copyright",
+        "bytes": 3878,
+        "sha256": "d98c53f281321baad38164aa9ae6e368a9253be6ec51bd26a759b5e72b326f4a",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "debconf",
+      "version": "1.5.86ubuntu1",
+      "source": "debconf",
+      "sourceVersion": "1.5.86ubuntu1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/debconf/copyright",
+        "bytes": 2764,
+        "sha256": "57163c71bd8a5289660892827dd0dfaa7fef47f89deedc9dc6711ced7d0a28d7",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "debianutils",
+      "version": "5.17build1",
+      "source": "debianutils",
+      "sourceVersion": "5.17build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/debianutils/copyright",
+        "bytes": 9062,
+        "sha256": "aeb68ea374f488431b8963df24f05482692edfa70d7556d7e528dd06d255461c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "diffutils",
+      "version": "1:3.10-1ubuntu0.1",
+      "source": "diffutils",
+      "sourceVersion": "1:3.10-1ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/diffutils/copyright",
+        "bytes": 16445,
+        "sha256": "ac6fcf18142bab7569188ae75b204a9e1c73c050c0f9467adaf080759e516123",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "dpkg",
+      "version": "1.22.6ubuntu6.6",
+      "source": "dpkg",
+      "sourceVersion": "1.22.6ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/dpkg/copyright",
+        "bytes": 5661,
+        "sha256": "6511e06b27f2297fde6ee8fb2e59807b7712dda61837ca00a0980da1e5df07ac",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "e2fsprogs",
+      "version": "1.47.0-2.4~exp1ubuntu4.1",
+      "source": "e2fsprogs",
+      "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/e2fsprogs/copyright",
+        "bytes": 15209,
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "findutils",
+      "version": "4.9.0-5build1",
+      "source": "findutils",
+      "sourceVersion": "4.9.0-5build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/findutils/copyright",
+        "bytes": 24779,
+        "sha256": "601cc227b3e22ad219beeed7c86b9e146ddf9c88c25620f78169fd5451d4f966",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "fontconfig",
+      "version": "2.15.0-1.1ubuntu2",
+      "source": "fontconfig",
+      "sourceVersion": "2.15.0-1.1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/fontconfig/copyright",
+        "bytes": 1301,
+        "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "fontconfig-config",
+      "version": "2.15.0-1.1ubuntu2",
+      "source": "fontconfig",
+      "sourceVersion": "2.15.0-1.1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/fontconfig-config/copyright",
+        "bytes": 1301,
+        "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "fonts-dejavu-core",
+      "version": "2.37-8",
+      "source": "fonts-dejavu",
+      "sourceVersion": "2.37-8",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/fonts-dejavu-core/copyright",
+        "bytes": 3859,
+        "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "fonts-dejavu-mono",
+      "version": "2.37-8",
+      "source": "fonts-dejavu",
+      "sourceVersion": "2.37-8",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/fonts-dejavu-mono/copyright",
+        "bytes": 3859,
+        "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "gcc-14-base:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1",
+      "source": "gcc-14",
+      "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/gcc-14-base/copyright",
+        "bytes": 69004,
+        "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "gpgv",
+      "version": "2.4.4-2ubuntu17.6",
+      "source": "gnupg2",
+      "sourceVersion": "2.4.4-2ubuntu17.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/gpgv/copyright",
+        "bytes": 12624,
+        "sha256": "2be9a9a5d7db2584cf984de83379d395bb4a33478404160d1d77d0060b5a1bd1",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "grep",
+      "version": "3.11-4build1",
+      "source": "grep",
+      "sourceVersion": "3.11-4build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/grep/copyright",
+        "bytes": 1807,
+        "sha256": "42d9b4d610396b1e8d1303dcb9487af3f5a2d2709623cf03a04cf76acdf6c5e3",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "gzip",
+      "version": "1.12-1ubuntu3.2",
+      "source": "gzip",
+      "sourceVersion": "1.12-1ubuntu3.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/gzip/copyright",
+        "bytes": 2895,
+        "sha256": "1ca5dd5098fe2e1c0f0d05196f5b3da8b414a807702e6ca8b536eb5fd3059130",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "hostname",
+      "version": "3.23+nmu2ubuntu2",
+      "source": "hostname",
+      "sourceVersion": "3.23+nmu2ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/hostname/copyright",
+        "bytes": 1273,
+        "sha256": "94189fc5a9a7b7224d96e1a0cfdfe9be0df2018b04bf21d591627ab96b30cad1",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "init-system-helpers",
+      "version": "1.66ubuntu1",
+      "source": "init-system-helpers",
+      "sourceVersion": "1.66ubuntu1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/init-system-helpers/copyright",
+        "bytes": 3133,
+        "sha256": "7534601cc4fa513804d16490359f5831e7b6a1212da3bbf948bebdd4c8799783",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libacl1:arm64",
+      "version": "2.3.2-1build1.1",
+      "source": "acl",
+      "sourceVersion": "2.3.2-1build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libacl1/copyright",
+        "bytes": 2048,
+        "sha256": "9a2dfb4a5abc7e84be2cc41f1089be665519c9409549296f6c19de57ab1d37c2",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libapt-pkg6.0t64:arm64",
+      "version": "2.8.4ubuntu0.1",
+      "source": "apt",
+      "sourceVersion": "2.8.4ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libapt-pkg6.0t64/copyright",
+        "bytes": 7668,
+        "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libarchive13t64:arm64",
+      "version": "3.7.2-2ubuntu0.9",
+      "source": "libarchive",
+      "sourceVersion": "3.7.2-2ubuntu0.9",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libarchive13t64/copyright",
+        "bytes": 22412,
+        "sha256": "21e7f99bb2808ddf4ac9cb7126a9af6e130d4342f2bcafdbe84fe9e4344cf4c0",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libassuan0:arm64",
+      "version": "2.5.6-1build1",
+      "source": "libassuan",
+      "sourceVersion": "2.5.6-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libassuan0/copyright",
+        "bytes": 3373,
+        "sha256": "d704d521eb7ba7b9e3d82d85ac6caac4dfb4c784a4762f61a95fbb2733b05ff3",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libattr1:arm64",
+      "version": "1:2.5.2-1ubuntu0.1",
+      "source": "attr",
+      "sourceVersion": "1:2.5.2-1ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libattr1/copyright",
+        "bytes": 1947,
+        "sha256": "0cbec745d85ea775450b2d54fac55277197f429e52d611f72852ed420450620e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libaudit-common",
+      "version": "1:3.1.2-2.1ubuntu0.1",
+      "source": "audit",
+      "sourceVersion": "1:3.1.2-2.1ubuntu0.1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/libaudit-common/copyright",
+        "bytes": 1596,
+        "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libaudit1:arm64",
+      "version": "1:3.1.2-2.1ubuntu0.1",
+      "source": "audit",
+      "sourceVersion": "1:3.1.2-2.1ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libaudit1/copyright",
+        "bytes": 1596,
+        "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libblkid1:arm64",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libblkid1/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libbrotli1:arm64",
+      "version": "1.1.0-2ubuntu0.1",
+      "source": "brotli",
+      "sourceVersion": "1.1.0-2ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libbrotli1/copyright",
+        "bytes": 1354,
+        "sha256": "24a64e5bb83d0960d1835696a1e23c0896ad6055b0ca47c66ab0eb9a766324b1",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libbsd0:arm64",
+      "version": "0.12.1-1build1.1",
+      "source": "libbsd",
+      "sourceVersion": "0.12.1-1build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libbsd0/copyright",
+        "bytes": 22396,
+        "sha256": "978426553ab7b9cfb4503d98e578a77b8c3142c099100aa9791fd21be5a95f97",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libbz2-1.0:arm64",
+      "version": "1.0.8-5.1ubuntu0.1",
+      "source": "bzip2",
+      "sourceVersion": "1.0.8-5.1ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libbz2-1.0/copyright",
+        "bytes": 2228,
+        "sha256": "832ed535ff3c3d025a8d2348eb1b697b89addcf2eaadbc17650262040b9145e2",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libc-bin",
+      "version": "2.39-0ubuntu8.9",
+      "source": "glibc",
+      "sourceVersion": "2.39-0ubuntu8.9",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libc-bin/copyright",
+        "bytes": 26462,
+        "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libc6:arm64",
+      "version": "2.39-0ubuntu8.9",
+      "source": "glibc",
+      "sourceVersion": "2.39-0ubuntu8.9",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libc6/copyright",
+        "bytes": 26462,
+        "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcairo2:arm64",
+      "version": "1.18.0-3build1",
+      "source": "cairo",
+      "sourceVersion": "1.18.0-3build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcairo2/copyright",
+        "bytes": 28461,
+        "sha256": "408fb9e704e875cd42d432e7c9b3b378f568e3c89db2b5c5ef3d11c025319574",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcap-ng0:arm64",
+      "version": "0.8.4-2build2",
+      "source": "libcap-ng",
+      "sourceVersion": "0.8.4-2build2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcap-ng0/copyright",
+        "bytes": 1621,
+        "sha256": "567997de097e3738564c90e6fe13343b2daae21a7926d6fb161df41322c1840b",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcap2:arm64",
+      "version": "1:2.66-5ubuntu2.4",
+      "source": "libcap2",
+      "sourceVersion": "1:2.66-5ubuntu2.4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcap2/copyright",
+        "bytes": 4631,
+        "sha256": "e60a5642e12e340060e4e519a65b2eb0330be2917854841c644e36268f607d54",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcom-err2:arm64",
+      "version": "1.47.0-2.4~exp1ubuntu4.1",
+      "source": "e2fsprogs",
+      "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcom-err2/copyright",
+        "bytes": 15209,
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcrypt1:arm64",
+      "version": "1:4.4.36-4build1",
+      "source": "libxcrypt",
+      "sourceVersion": "1:4.4.36-4build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcrypt1/copyright",
+        "bytes": 6010,
+        "sha256": "5a5e7ca0e9f3f9679977e3a3e9ede45ad92885a3297ea78e766979f9866c5a16",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libcurl4t64:arm64",
+      "version": "8.5.0-2ubuntu10.16",
+      "source": "curl",
+      "sourceVersion": "8.5.0-2ubuntu10.16",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libcurl4t64/copyright",
+        "bytes": 21749,
+        "sha256": "a7c131b21e6e73b3b085a7d9f1637b68f5f92b832cc6f462e0c978fbe7841ccb",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libdatrie1:arm64",
+      "version": "0.2.13-3build1",
+      "source": "libdatrie",
+      "sourceVersion": "0.2.13-3build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libdatrie1/copyright",
+        "bytes": 2129,
+        "sha256": "7c994f175cb0da0bbe158f729ca43bc6193bb99d3c8bc82b41c46d93904b584d",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libdb5.3t64:arm64",
+      "version": "5.3.28+dfsg2-7",
+      "source": "db5.3",
+      "sourceVersion": "5.3.28+dfsg2-7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libdb5.3t64/copyright",
+        "bytes": 17177,
+        "sha256": "8b53da37d73289d9df7317b3a2dbe16491f1fa9fec8b77b86d69704b40ce2c26",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libdebconfclient0:arm64",
+      "version": "0.271ubuntu3",
+      "source": "cdebconf",
+      "sourceVersion": "0.271ubuntu3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libdebconfclient0/copyright",
+        "bytes": 5856,
+        "sha256": "cf63099896d1c0f6529c41b8d95738e6fea342ffba609187d339c4f38ce36ecc",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libdeflate0:arm64",
+      "version": "1.19-1build1.1",
+      "source": "libdeflate",
+      "sourceVersion": "1.19-1build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libdeflate0/copyright",
+        "bytes": 1529,
+        "sha256": "d042743cecafae11357a53f0b5ecd20d3d99fba1be62812836f9c8cc6775e61a",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libexpat1:arm64",
+      "version": "2.6.1-2ubuntu0.6",
+      "source": "expat",
+      "sourceVersion": "2.6.1-2ubuntu0.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libexpat1/copyright",
+        "bytes": 1756,
+        "sha256": "60919fe1a156395ff14511bb6ff79756c50ade2fff59ac60c9bae1d8a7fe6292",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libext2fs2t64:arm64",
+      "version": "1.47.0-2.4~exp1ubuntu4.1",
+      "source": "e2fsprogs",
+      "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libext2fs2t64/copyright",
+        "bytes": 15209,
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libffi8:arm64",
+      "version": "3.4.6-1build1",
+      "source": "libffi",
+      "sourceVersion": "3.4.6-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libffi8/copyright",
+        "bytes": 10165,
+        "sha256": "737ff68f0eb104d3b0d96b291c3a8f40a775a3ec2b53f9b2e4bcfe3188bde118",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libfontconfig1:arm64",
+      "version": "2.15.0-1.1ubuntu2",
+      "source": "fontconfig",
+      "sourceVersion": "2.15.0-1.1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libfontconfig1/copyright",
+        "bytes": 1301,
+        "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libfreetype6:arm64",
+      "version": "2.13.2+dfsg-1ubuntu0.2",
+      "source": "freetype",
+      "sourceVersion": "2.13.2+dfsg-1ubuntu0.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libfreetype6/copyright",
+        "bytes": 31209,
+        "sha256": "ce6d766883ea111e7f47acc09e9d49be8827daa6a03f2c2707243a425d41f0e9",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libfribidi0:arm64",
+      "version": "1.0.13-3build1",
+      "source": "fribidi",
+      "sourceVersion": "1.0.13-3build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libfribidi0/copyright",
+        "bytes": 1450,
+        "sha256": "39000badbcd15a4a144cfa2d2f0d906d4d9183f42350e8193ac775baded86b7c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgcc-s1:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1",
+      "source": "gcc-14",
+      "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+      "architecture": "arm64",
+      "copyright": null
+    },
+    {
+      "name": "libgcrypt20:arm64",
+      "version": "1.10.3-2ubuntu0.2",
+      "source": "libgcrypt20",
+      "sourceVersion": "1.10.3-2ubuntu0.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgcrypt20/copyright",
+        "bytes": 24896,
+        "sha256": "40162167dff80843a4b24aa8d0a4ffc50be5338d004ebe38f86ae3397ba9de3e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgif7:arm64",
+      "version": "5.2.2-1ubuntu1.2",
+      "source": "giflib",
+      "sourceVersion": "5.2.2-1ubuntu1.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgif7/copyright",
+        "bytes": 2371,
+        "sha256": "479e834b17e61f0afe5f4a62e1794a4543208dea955820399e2d9589a1938fb0",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libglib2.0-0t64:arm64",
+      "version": "2.80.0-6ubuntu3.10",
+      "source": "glib2.0",
+      "sourceVersion": "2.80.0-6ubuntu3.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libglib2.0-0t64/copyright",
+        "bytes": 54957,
+        "sha256": "b52574b109fb876dfa71dea7a98b8aee1bb583f6aa90c327d1e4dc0a1d59f211",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgmp10:arm64",
+      "version": "2:6.3.0+dfsg-2ubuntu6.1",
+      "source": "gmp",
+      "sourceVersion": "2:6.3.0+dfsg-2ubuntu6.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgmp10/copyright",
+        "bytes": 4153,
+        "sha256": "7d366aef5ba325150246de1d7820c4c9926cd27ca61a69948492b26cd3b61601",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgnutls30t64:arm64",
+      "version": "3.8.3-1.1ubuntu3.6",
+      "source": "gnutls28",
+      "sourceVersion": "3.8.3-1.1ubuntu3.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgnutls30t64/copyright",
+        "bytes": 54039,
+        "sha256": "51da5214308b87d6a0a2fbcaea1f7dbd15510be733e5921d9548ff6b88d84dd8",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgomp1:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1",
+      "source": "gcc-14",
+      "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+      "architecture": "arm64",
+      "copyright": null
+    },
+    {
+      "name": "libgpg-error0:arm64",
+      "version": "1.47-3build2.1",
+      "source": "libgpg-error",
+      "sourceVersion": "1.47-3build2.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgpg-error0/copyright",
+        "bytes": 4903,
+        "sha256": "0250e9e7cbf6c68c2bd05b6db1ea684988f91cd95da69f2936064cf302729fe5",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgraphite2-3:arm64",
+      "version": "1.3.14-2ubuntu0.24.04.1",
+      "source": "graphite2",
+      "sourceVersion": "1.3.14-2ubuntu0.24.04.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgraphite2-3/copyright",
+        "bytes": 9348,
+        "sha256": "a33017ba0308c41bdbde4751bff349ab7b26af45fadbb1e3e7ac67c372985572",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libgssapi-krb5-2:arm64",
+      "version": "1.20.1-6ubuntu2.10",
+      "source": "krb5",
+      "sourceVersion": "1.20.1-6ubuntu2.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libgssapi-krb5-2/copyright",
+        "bytes": 63047,
+        "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libharfbuzz0b:arm64",
+      "version": "8.3.0-2build2",
+      "source": "harfbuzz",
+      "sourceVersion": "8.3.0-2build2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libharfbuzz0b/copyright",
+        "bytes": 31737,
+        "sha256": "6ffcef5a169fca847bc886b052bbe9a478754850621d8661ae4ea424b7eeb26e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libhogweed6t64:arm64",
+      "version": "3.9.1-2.2build1.1",
+      "source": "nettle",
+      "sourceVersion": "3.9.1-2.2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libhogweed6t64/copyright",
+        "bytes": 24280,
+        "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libicu74:arm64",
+      "version": "74.2-1ubuntu3.1",
+      "source": "icu",
+      "sourceVersion": "74.2-1ubuntu3.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libicu74/copyright",
+        "bytes": 2214,
+        "sha256": "5bbff5f646ce750ac0a347e7f91793279b7422a1119820b5f75d98879c201c68",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libidn2-0:arm64",
+      "version": "2.3.7-2build1.1",
+      "source": "libidn2",
+      "sourceVersion": "2.3.7-2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libidn2-0/copyright",
+        "bytes": 5348,
+        "sha256": "41702469f28e8ff406345e3d1dd0c741f11bdfca319264f67036efd6aaa79e4b",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libjbig0:arm64",
+      "version": "2.1-6.1ubuntu2",
+      "source": "jbigkit",
+      "sourceVersion": "2.1-6.1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libjbig0/copyright",
+        "bytes": 1849,
+        "sha256": "89ab20c324a191652e94598f2144a65442faed4f14f77bbd10516130ee20f05a",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libjpeg-turbo8:arm64",
+      "version": "2.1.5-2ubuntu2",
+      "source": "libjpeg-turbo",
+      "sourceVersion": "2.1.5-2ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libjpeg-turbo8/copyright",
+        "bytes": 38846,
+        "sha256": "3821184e23385bf2cdc01f56bd999b34036fc3aa03d5135d41680374eb81bf8a",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libjpeg8:arm64",
+      "version": "8c-2ubuntu11",
+      "source": "libjpeg8-empty",
+      "sourceVersion": "8c-2ubuntu11",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libjpeg8/copyright",
+        "bytes": 1073,
+        "sha256": "2120036d2302821582cf29a90de0cc390f96bdb4545d2c7f700d023030f46200",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libk5crypto3:arm64",
+      "version": "1.20.1-6ubuntu2.10",
+      "source": "krb5",
+      "sourceVersion": "1.20.1-6ubuntu2.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libk5crypto3/copyright",
+        "bytes": 63047,
+        "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libkeyutils1:arm64",
+      "version": "1.6.3-3build1",
+      "source": "keyutils",
+      "sourceVersion": "1.6.3-3build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libkeyutils1/copyright",
+        "bytes": 2104,
+        "sha256": "c62fe37d22203046611112bc10a9e03a39a7f73bec1b061e7c615326166d9ff5",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libkrb5-3:arm64",
+      "version": "1.20.1-6ubuntu2.10",
+      "source": "krb5",
+      "sourceVersion": "1.20.1-6ubuntu2.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libkrb5-3/copyright",
+        "bytes": 63047,
+        "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libkrb5support0:arm64",
+      "version": "1.20.1-6ubuntu2.10",
+      "source": "krb5",
+      "sourceVersion": "1.20.1-6ubuntu2.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libkrb5support0/copyright",
+        "bytes": 63047,
+        "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "liblcms2-2:arm64",
+      "version": "2.14-2ubuntu0.1",
+      "source": "lcms2",
+      "sourceVersion": "2.14-2ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/liblcms2-2/copyright",
+        "bytes": 5362,
+        "sha256": "420fd2c72204652c08a48548a0d1002edab3d9b180d3c416578c61f74092f460",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libldap2:arm64",
+      "version": "2.6.10+dfsg-0ubuntu0.24.04.1",
+      "source": "openldap",
+      "sourceVersion": "2.6.10+dfsg-0ubuntu0.24.04.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libldap2/copyright",
+        "bytes": 62837,
+        "sha256": "b4081907f0d9a4110736fa6540dc8ca9d7d60a20878b5d78f84916cc04907bdc",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "liblept5:arm64",
+      "version": "1.82.0-3build4",
+      "source": "leptonlib",
+      "sourceVersion": "1.82.0-3build4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/liblept5/copyright",
+        "bytes": 1766,
+        "sha256": "cff4f0cb5db14528a8b84f4a3389012d5c6e0f5a75a882509367b2147c05a83e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "liblerc4:arm64",
+      "version": "4.0.0+ds-4ubuntu2",
+      "source": "lerc",
+      "sourceVersion": "4.0.0+ds-4ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/liblerc4/copyright",
+        "bytes": 1242,
+        "sha256": "192296f2c328deb2e288a7a32f1ba002183c7a2da21af5cdcfb1459d451d0391",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "liblz4-1:arm64",
+      "version": "1.9.4-1build1.1",
+      "source": "lz4",
+      "sourceVersion": "1.9.4-1build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/liblz4-1/copyright",
+        "bytes": 3275,
+        "sha256": "d3be0f43fe14da244f97c451bbae789c0acf868612598a69f5f22a289abeca40",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "liblzma5:arm64",
+      "version": "5.6.1+really5.4.5-1ubuntu0.4",
+      "source": "xz-utils",
+      "sourceVersion": "5.6.1+really5.4.5-1ubuntu0.4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/liblzma5/copyright",
+        "bytes": 15465,
+        "sha256": "a2dc8fac0f496e1c58aff67018cf0c6b88336316afa5642f9335b71642e28aa8",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libmd0:arm64",
+      "version": "1.1.0-2build1.1",
+      "source": "libmd",
+      "sourceVersion": "1.1.0-2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libmd0/copyright",
+        "bytes": 8018,
+        "sha256": "4365ef6255ad553fce69dd4bc0e093472c5d0e41b8ea493a545cc926ce171aa6",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libmount1:arm64",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libmount1/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libncursesw6:arm64",
+      "version": "6.4+20240113-1ubuntu2.2",
+      "source": "ncurses",
+      "sourceVersion": "6.4+20240113-1ubuntu2.2",
+      "architecture": "arm64",
+      "copyright": null
+    },
+    {
+      "name": "libnettle8t64:arm64",
+      "version": "3.9.1-2.2build1.1",
+      "source": "nettle",
+      "sourceVersion": "3.9.1-2.2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libnettle8t64/copyright",
+        "bytes": 24280,
+        "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libnghttp2-14:arm64",
+      "version": "1.59.0-1ubuntu0.4",
+      "source": "nghttp2",
+      "sourceVersion": "1.59.0-1ubuntu0.4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libnghttp2-14/copyright",
+        "bytes": 6535,
+        "sha256": "a34ae32a5eba61e535835a8de7c398f47e420247d339bc400a3b9c618ba29a3d",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libnpth0t64:arm64",
+      "version": "1.6-3.1build1",
+      "source": "npth",
+      "sourceVersion": "1.6-3.1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libnpth0t64/copyright",
+        "bytes": 1164,
+        "sha256": "df6909abb38f4e84d237d8617e948bdbb391b2004ecf573863011d54a88ccf22",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libopenjp2-7:arm64",
+      "version": "2.5.0-2ubuntu0.5",
+      "source": "openjpeg2",
+      "sourceVersion": "2.5.0-2ubuntu0.5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libopenjp2-7/copyright",
+        "bytes": 42620,
+        "sha256": "eee37e01db9d8eabac77a49dbacb9ea8962e5cfc98a35b87ee02cc81eef94f40",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libp11-kit0:arm64",
+      "version": "0.25.3-4ubuntu2.2",
+      "source": "p11-kit",
+      "sourceVersion": "0.25.3-4ubuntu2.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libp11-kit0/copyright",
+        "bytes": 15380,
+        "sha256": "d33af1e069981d1c1b576cb22e4bc260a134ffa2fce6ddd3cbbbb5b181113f0c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpam-modules:arm64",
+      "version": "1.5.3-5ubuntu5.7",
+      "source": "pam",
+      "sourceVersion": "1.5.3-5ubuntu5.7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpam-modules/copyright",
+        "bytes": 9477,
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpam-modules-bin",
+      "version": "1.5.3-5ubuntu5.7",
+      "source": "pam",
+      "sourceVersion": "1.5.3-5ubuntu5.7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpam-modules-bin/copyright",
+        "bytes": 9477,
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpam-runtime",
+      "version": "1.5.3-5ubuntu5.7",
+      "source": "pam",
+      "sourceVersion": "1.5.3-5ubuntu5.7",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/libpam-runtime/copyright",
+        "bytes": 9477,
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpam0g:arm64",
+      "version": "1.5.3-5ubuntu5.7",
+      "source": "pam",
+      "sourceVersion": "1.5.3-5ubuntu5.7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpam0g/copyright",
+        "bytes": 9477,
+        "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpango-1.0-0:arm64",
+      "version": "1.52.1+ds-1build1",
+      "source": "pango1.0",
+      "sourceVersion": "1.52.1+ds-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpango-1.0-0/copyright",
+        "bytes": 20042,
+        "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpangocairo-1.0-0:arm64",
+      "version": "1.52.1+ds-1build1",
+      "source": "pango1.0",
+      "sourceVersion": "1.52.1+ds-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpangocairo-1.0-0/copyright",
+        "bytes": 20042,
+        "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpangoft2-1.0-0:arm64",
+      "version": "1.52.1+ds-1build1",
+      "source": "pango1.0",
+      "sourceVersion": "1.52.1+ds-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpangoft2-1.0-0/copyright",
+        "bytes": 20042,
+        "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpcre2-8-0:arm64",
+      "version": "10.42-4ubuntu2.2",
+      "source": "pcre2",
+      "sourceVersion": "10.42-4ubuntu2.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpcre2-8-0/copyright",
+        "bytes": 6626,
+        "sha256": "030511beb4d9d620ad09914c369c36ec0528dcf301d1923cc643c948ee7c6a38",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpixman-1-0:arm64",
+      "version": "0.42.2-1build1",
+      "source": "pixman",
+      "sourceVersion": "0.42.2-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpixman-1-0/copyright",
+        "bytes": 2247,
+        "sha256": "1b3fb5690861e15ca4fd6640fd4def4b2576617942eec04b6fcb7d8bc6c4c9da",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpng16-16t64:arm64",
+      "version": "1.6.43-5ubuntu0.7",
+      "source": "libpng1.6",
+      "sourceVersion": "1.6.43-5ubuntu0.7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpng16-16t64/copyright",
+        "bytes": 13051,
+        "sha256": "4620d402b97601a910946acccbbe2e15bdffac11615bf9046520990d3b00f2b9",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libproc2-0:arm64",
+      "version": "2:4.0.4-4ubuntu3.3",
+      "source": "procps",
+      "sourceVersion": "2:4.0.4-4ubuntu3.3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libproc2-0/copyright",
+        "bytes": 3974,
+        "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libpsl5t64:arm64",
+      "version": "0.21.2-1.1build1",
+      "source": "libpsl",
+      "sourceVersion": "0.21.2-1.1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libpsl5t64/copyright",
+        "bytes": 3310,
+        "sha256": "bbafb0cf52d34465fc69f5ffd22d724224f6a2f28402c88b045c69d88af06aaf",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "librtmp1:arm64",
+      "version": "2.4+20151223.gitfa8646d.1-2build7",
+      "source": "rtmpdump",
+      "sourceVersion": "2.4+20151223.gitfa8646d.1-2build7",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/librtmp1/copyright",
+        "bytes": 2726,
+        "sha256": "4302abcc1ea1b6cbe8d19c79b892acf78878030220210707c19006828866207c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsasl2-2:arm64",
+      "version": "2.1.28+dfsg1-5ubuntu3.1",
+      "source": "cyrus-sasl2",
+      "sourceVersion": "2.1.28+dfsg1-5ubuntu3.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsasl2-2/copyright",
+        "bytes": 24643,
+        "sha256": "ddb128a81d3a140ef5b3574ae000a1a50d0cb9a2ec59917121a155f91b670166",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsasl2-modules-db:arm64",
+      "version": "2.1.28+dfsg1-5ubuntu3.1",
+      "source": "cyrus-sasl2",
+      "sourceVersion": "2.1.28+dfsg1-5ubuntu3.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsasl2-modules-db/copyright",
+        "bytes": 24643,
+        "sha256": "ddb128a81d3a140ef5b3574ae000a1a50d0cb9a2ec59917121a155f91b670166",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libseccomp2:arm64",
+      "version": "2.5.5-1ubuntu3.1",
+      "source": "libseccomp",
+      "sourceVersion": "2.5.5-1ubuntu3.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libseccomp2/copyright",
+        "bytes": 1429,
+        "sha256": "6da0653a365b80ab31478dbfe9e7c358e80d58b6d2b52b4e16b4dbb42d7d9f5c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libselinux1:arm64",
+      "version": "3.5-2ubuntu2.1",
+      "source": "libselinux",
+      "sourceVersion": "3.5-2ubuntu2.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libselinux1/copyright",
+        "bytes": 1957,
+        "sha256": "864f1bb189f609075d580b8c4aada16d85a44546884f1687989e1cacc8c56751",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsemanage-common",
+      "version": "3.5-1build5",
+      "source": "libsemanage",
+      "sourceVersion": "3.5-1build5",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/libsemanage-common/copyright",
+        "bytes": 1921,
+        "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsemanage2:arm64",
+      "version": "3.5-1build5",
+      "source": "libsemanage",
+      "sourceVersion": "3.5-1build5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsemanage2/copyright",
+        "bytes": 1921,
+        "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsepol2:arm64",
+      "version": "3.5-2build1",
+      "source": "libsepol",
+      "sourceVersion": "3.5-2build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsepol2/copyright",
+        "bytes": 3750,
+        "sha256": "78d2a34606a0302057ec499a3b3c07bcbc43ca334064ce4c80891a0f69c8f6c6",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsharpyuv0:arm64",
+      "version": "1.3.2-0.4build3",
+      "source": "libwebp",
+      "sourceVersion": "1.3.2-0.4build3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsharpyuv0/copyright",
+        "bytes": 6293,
+        "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libsmartcols1:arm64",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsmartcols1/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libss2:arm64",
+      "version": "1.47.0-2.4~exp1ubuntu4.1",
+      "source": "e2fsprogs",
+      "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libss2/copyright",
+        "bytes": 15209,
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libssh-4:arm64",
+      "version": "0.10.6-2ubuntu0.5",
+      "source": "libssh",
+      "sourceVersion": "0.10.6-2ubuntu0.5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libssh-4/copyright",
+        "bytes": 12158,
+        "sha256": "1b33ec0b1d0d521afb21d8e6b98fa4abf52b1ffb69a8461a045db9d586ce141f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libssl3t64:arm64",
+      "version": "3.0.13-0ubuntu3.16",
+      "source": "openssl",
+      "sourceVersion": "3.0.13-0ubuntu3.16",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libssl3t64/copyright",
+        "bytes": 2543,
+        "sha256": "6a7da622fe0637a334d2a8fc470852d2ffb77d9a2b2f930f854e32a41ad6ef35",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libstdc++6:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1",
+      "source": "gcc-14",
+      "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+      "architecture": "arm64",
+      "copyright": null
+    },
+    {
+      "name": "libsystemd0:arm64",
+      "version": "255.4-1ubuntu8.18",
+      "source": "systemd",
+      "sourceVersion": "255.4-1ubuntu8.18",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libsystemd0/copyright",
+        "bytes": 12776,
+        "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libtasn1-6:arm64",
+      "version": "4.19.0-3ubuntu0.24.04.2",
+      "source": "libtasn1-6",
+      "sourceVersion": "4.19.0-3ubuntu0.24.04.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libtasn1-6/copyright",
+        "bytes": 3451,
+        "sha256": "572ad60ad184d8f52c6dc66d83a61a68f137db560b3452ce00588c9ecf128a65",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libtesseract5:arm64",
+      "version": "5.3.4-1build5",
+      "source": "tesseract",
+      "sourceVersion": "5.3.4-1build5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libtesseract5/copyright",
+        "bytes": 1231,
+        "sha256": "2442a6ad56b34fc1e0ec4b13509e22d4e428c856e488b2a709456ce4e9f0ab4e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libthai-data",
+      "version": "0.1.29-2build1",
+      "source": "libthai",
+      "sourceVersion": "0.1.29-2build1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/libthai-data/copyright",
+        "bytes": 2458,
+        "sha256": "62d2835587b92a6abdbe62fe4524a7b6a59ac478df2c591eb98c3fbce6c3fa08",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libthai0:arm64",
+      "version": "0.1.29-2build1",
+      "source": "libthai",
+      "sourceVersion": "0.1.29-2build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libthai0/copyright",
+        "bytes": 2458,
+        "sha256": "62d2835587b92a6abdbe62fe4524a7b6a59ac478df2c591eb98c3fbce6c3fa08",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libtiff6:arm64",
+      "version": "4.5.1+git230720-4ubuntu2.5",
+      "source": "tiff",
+      "sourceVersion": "4.5.1+git230720-4ubuntu2.5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libtiff6/copyright",
+        "bytes": 1935,
+        "sha256": "d73e31b03a0d7a515851601c19fee5792c7db03a312efacae146ddf9c91f86f1",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libtinfo6:arm64",
+      "version": "6.4+20240113-1ubuntu2.2",
+      "source": "ncurses",
+      "sourceVersion": "6.4+20240113-1ubuntu2.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libtinfo6/copyright",
+        "bytes": 4670,
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libudev1:arm64",
+      "version": "255.4-1ubuntu8.18",
+      "source": "systemd",
+      "sourceVersion": "255.4-1ubuntu8.18",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libudev1/copyright",
+        "bytes": 12776,
+        "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libunistring5:arm64",
+      "version": "1.1-2build1.1",
+      "source": "libunistring",
+      "sourceVersion": "1.1-2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libunistring5/copyright",
+        "bytes": 6564,
+        "sha256": "dbbfee567c5eb53ad1c75ce666779e596b5f794b52be7f5834685ddd633185ea",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libuuid1:arm64",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libuuid1/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libwebp7:arm64",
+      "version": "1.3.2-0.4build3",
+      "source": "libwebp",
+      "sourceVersion": "1.3.2-0.4build3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libwebp7/copyright",
+        "bytes": 6293,
+        "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libwebpmux3:arm64",
+      "version": "1.3.2-0.4build3",
+      "source": "libwebp",
+      "sourceVersion": "1.3.2-0.4build3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libwebpmux3/copyright",
+        "bytes": 6293,
+        "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libx11-6:arm64",
+      "version": "2:1.8.7-1ubuntu0.1",
+      "source": "libx11",
+      "sourceVersion": "2:1.8.7-1ubuntu0.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libx11-6/copyright",
+        "bytes": 47102,
+        "sha256": "0b380a7fd5b2228f26e9585e56f14812efd3350f3df307507d2bc055dfd8de3e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libx11-data",
+      "version": "2:1.8.7-1ubuntu0.1",
+      "source": "libx11",
+      "sourceVersion": "2:1.8.7-1ubuntu0.1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/libx11-data/copyright",
+        "bytes": 47102,
+        "sha256": "0b380a7fd5b2228f26e9585e56f14812efd3350f3df307507d2bc055dfd8de3e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxau6:arm64",
+      "version": "1:1.0.9-1build6",
+      "source": "libxau",
+      "sourceVersion": "1:1.0.9-1build6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxau6/copyright",
+        "bytes": 1224,
+        "sha256": "118dd263a7b91c8f21c489f949bf13281dff9e766deea92b829dac4dce66601a",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxcb-render0:arm64",
+      "version": "1.15-1ubuntu2",
+      "source": "libxcb",
+      "sourceVersion": "1.15-1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxcb-render0/copyright",
+        "bytes": 1781,
+        "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxcb-shm0:arm64",
+      "version": "1.15-1ubuntu2",
+      "source": "libxcb",
+      "sourceVersion": "1.15-1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxcb-shm0/copyright",
+        "bytes": 1781,
+        "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxcb1:arm64",
+      "version": "1.15-1ubuntu2",
+      "source": "libxcb",
+      "sourceVersion": "1.15-1ubuntu2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxcb1/copyright",
+        "bytes": 1781,
+        "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxdmcp6:arm64",
+      "version": "1:1.1.3-0ubuntu6",
+      "source": "libxdmcp",
+      "sourceVersion": "1:1.1.3-0ubuntu6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxdmcp6/copyright",
+        "bytes": 1265,
+        "sha256": "1bcbb50f8603fe8b86d330bfa460b772ea04fbd3c70e4499f0768b5340b9fd6e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxext6:arm64",
+      "version": "2:1.3.4-1build2",
+      "source": "libxext",
+      "sourceVersion": "2:1.3.4-1build2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxext6/copyright",
+        "bytes": 10421,
+        "sha256": "bc57e445ca1d9fe082c8d54189dd411ff26caa8552c9c63d44ea06a982f32124",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxml2:arm64",
+      "version": "2.9.14+dfsg-1.3ubuntu3.10",
+      "source": "libxml2",
+      "sourceVersion": "2.9.14+dfsg-1.3ubuntu3.10",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxml2/copyright",
+        "bytes": 3067,
+        "sha256": "ee746b96cfa5be73c3ea3e4cfb1285e9b315d4c9267f99b2ee9c5d911d9fe3f4",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxrender1:arm64",
+      "version": "1:0.9.10-1.1build1",
+      "source": "libxrender",
+      "sourceVersion": "1:0.9.10-1.1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxrender1/copyright",
+        "bytes": 2252,
+        "sha256": "ed2a78123a5076b4f11da38cb1ffb85b5cb9fdc26b5746c517b1d7e7a9029704",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libxxhash0:arm64",
+      "version": "0.8.2-2build1",
+      "source": "xxhash",
+      "sourceVersion": "0.8.2-2build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libxxhash0/copyright",
+        "bytes": 3213,
+        "sha256": "53acfd069ef57d3a68fc03d3ecdbcb7939c8083bae3fe52851da69b0383d7ee0",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "libzstd1:arm64",
+      "version": "1.5.5+dfsg2-2build1.1",
+      "source": "libzstd",
+      "sourceVersion": "1.5.5+dfsg2-2build1.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/libzstd1/copyright",
+        "bytes": 5389,
+        "sha256": "35e85e8e9bbb71492c5f5dddf39ed65b68775a02ad8d710c25d097b497f06c49",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "login",
+      "version": "1:4.13+dfsg1-4ubuntu3.2",
+      "source": "shadow",
+      "sourceVersion": "1:4.13+dfsg1-4ubuntu3.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/login/copyright",
+        "bytes": 7044,
+        "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "logsave",
+      "version": "1.47.0-2.4~exp1ubuntu4.1",
+      "source": "e2fsprogs",
+      "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/logsave/copyright",
+        "bytes": 15209,
+        "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "mawk",
+      "version": "1.3.4.20240123-1build1",
+      "source": "mawk",
+      "sourceVersion": "1.3.4.20240123-1build1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/mawk/copyright",
+        "bytes": 22806,
+        "sha256": "f6b94f461b09398ef192207356d89d7bf59833fe03082a14b910b3c740f2a318",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "mount",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/mount/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "ncurses-base",
+      "version": "6.4+20240113-1ubuntu2.2",
+      "source": "ncurses",
+      "sourceVersion": "6.4+20240113-1ubuntu2.2",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/ncurses-base/copyright",
+        "bytes": 4670,
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "ncurses-bin",
+      "version": "6.4+20240113-1ubuntu2.2",
+      "source": "ncurses",
+      "sourceVersion": "6.4+20240113-1ubuntu2.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/ncurses-bin/copyright",
+        "bytes": 4670,
+        "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "openssl",
+      "version": "3.0.13-0ubuntu3.16",
+      "source": "openssl",
+      "sourceVersion": "3.0.13-0ubuntu3.16",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/openssl/copyright",
+        "bytes": 0,
+        "sha256": null,
+        "status": "link-or-empty-entry-needs-review"
+      }
+    },
+    {
+      "name": "passwd",
+      "version": "1:4.13+dfsg1-4ubuntu3.2",
+      "source": "shadow",
+      "sourceVersion": "1:4.13+dfsg1-4ubuntu3.2",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/passwd/copyright",
+        "bytes": 7044,
+        "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "perl-base",
+      "version": "5.38.2-3.2ubuntu0.6",
+      "source": "perl",
+      "sourceVersion": "5.38.2-3.2ubuntu0.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/perl-base/copyright",
+        "bytes": 108292,
+        "sha256": "657ac19622868be1f2bf8ac3823a952b28c7a2a467f61353743e9c9d89291921",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "procps",
+      "version": "2:4.0.4-4ubuntu3.3",
+      "source": "procps",
+      "sourceVersion": "2:4.0.4-4ubuntu3.3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/procps/copyright",
+        "bytes": 3974,
+        "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "sed",
+      "version": "4.9-2ubuntu0.24.04.1",
+      "source": "sed",
+      "sourceVersion": "4.9-2ubuntu0.24.04.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/sed/copyright",
+        "bytes": 8618,
+        "sha256": "719320e425e8e6da53a55e0fcfa2f2ed9b1332cea16abd65321bd651b2a88568",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "sensible-utils",
+      "version": "0.0.22",
+      "source": "sensible-utils",
+      "sourceVersion": "0.0.22",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/sensible-utils/copyright",
+        "bytes": 6752,
+        "sha256": "4405a7fb92b693f790887d5f1d6b190e2fd00d824d80ef0b3d10e64cf21275dc",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "sysvinit-utils",
+      "version": "3.08-6ubuntu3",
+      "source": "sysvinit",
+      "sourceVersion": "3.08-6ubuntu3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/sysvinit-utils/copyright",
+        "bytes": 5881,
+        "sha256": "53c7ef3839f64b24cc25a0937d11ce228517a48be0cc794f0d67b7e209b2a9ba",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tar",
+      "version": "1.35+dfsg-3ubuntu0.4",
+      "source": "tar",
+      "sourceVersion": "1.35+dfsg-3ubuntu0.4",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/tar/copyright",
+        "bytes": 6560,
+        "sha256": "a0a44d41b2a045eb5946a8952487151cfa6ff0cd080bbf4b2eec220751d23024",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tesseract-ocr",
+      "version": "5.3.4-1build5",
+      "source": "tesseract",
+      "sourceVersion": "5.3.4-1build5",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/tesseract-ocr/copyright",
+        "bytes": 1231,
+        "sha256": "2442a6ad56b34fc1e0ec4b13509e22d4e428c856e488b2a709456ce4e9f0ab4e",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tesseract-ocr-deu",
+      "version": "1:4.1.0-2",
+      "source": "tesseract-lang",
+      "sourceVersion": "1:4.1.0-2",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/tesseract-ocr-deu/copyright",
+        "bytes": 1245,
+        "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tesseract-ocr-eng",
+      "version": "1:4.1.0-2",
+      "source": "tesseract-lang",
+      "sourceVersion": "1:4.1.0-2",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/tesseract-ocr-eng/copyright",
+        "bytes": 1245,
+        "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tesseract-ocr-osd",
+      "version": "1:4.1.0-2",
+      "source": "tesseract-lang",
+      "sourceVersion": "1:4.1.0-2",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/tesseract-ocr-osd/copyright",
+        "bytes": 1245,
+        "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tzdata",
+      "version": "2026e-0ubuntu0.24.04.1",
+      "source": "tzdata",
+      "sourceVersion": "2026e-0ubuntu0.24.04.1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/tzdata/copyright",
+        "bytes": 3794,
+        "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "tzdata-legacy",
+      "version": "2026e-0ubuntu0.24.04.1",
+      "source": "tzdata",
+      "sourceVersion": "2026e-0ubuntu0.24.04.1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/tzdata-legacy/copyright",
+        "bytes": 3794,
+        "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "ubuntu-keyring",
+      "version": "2023.11.28.1",
+      "source": "ubuntu-keyring",
+      "sourceVersion": "2023.11.28.1",
+      "architecture": "all",
+      "copyright": {
+        "file": "usr/share/doc/ubuntu-keyring/copyright",
+        "bytes": 1242,
+        "sha256": "191cdb1291b2fc3b9fdcd8648b16ab7f9e4f15b74dc5b30959a9fdcfb4782b6c",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "unminimize",
+      "version": "0.2.1",
+      "source": "unminimize",
+      "sourceVersion": "0.2.1",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/unminimize/copyright",
+        "bytes": 948,
+        "sha256": "3d2c2c55ac1cc4a77652fa1d33aa7cb9b3f3cbc92c200c69f52b32825585085f",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "util-linux",
+      "version": "2.39.3-9ubuntu6.6",
+      "source": "util-linux",
+      "sourceVersion": "2.39.3-9ubuntu6.6",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/util-linux/copyright",
+        "bytes": 23160,
+        "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+        "status": "original-text-retained-unreviewed"
+      }
+    },
+    {
+      "name": "zlib1g:arm64",
+      "version": "1:1.3.dfsg-3.1ubuntu2.3",
+      "source": "zlib",
+      "sourceVersion": "1:1.3.dfsg-3.1ubuntu2.3",
+      "architecture": "arm64",
+      "copyright": {
+        "file": "usr/share/doc/zlib1g/copyright",
+        "bytes": 2927,
+        "sha256": "9e5b96d63773a5d177ba264254390f792be07e41748ebd94730981c6cac31cc6",
+        "status": "original-text-retained-unreviewed"
+      }
+    }
+  ],
+  "notices": [
+    {
+      "file": "usr/share/doc/libsmartcols1/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libproc2-0/copyright",
+      "bytes": 3974,
+      "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgmp10/copyright",
+      "bytes": 4153,
+      "sha256": "7d366aef5ba325150246de1d7820c4c9926cd27ca61a69948492b26cd3b61601",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/diffutils/copyright",
+      "bytes": 16445,
+      "sha256": "ac6fcf18142bab7569188ae75b204a9e1c73c050c0f9467adaf080759e516123",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/dash/copyright",
+      "bytes": 3878,
+      "sha256": "d98c53f281321baad38164aa9ae6e368a9253be6ec51bd26a759b5e72b326f4a",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/mount/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcap2/copyright",
+      "bytes": 4631,
+      "sha256": "e60a5642e12e340060e4e519a65b2eb0330be2917854841c644e36268f607d54",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libseccomp2/copyright",
+      "bytes": 1429,
+      "sha256": "6da0653a365b80ab31478dbfe9e7c358e80d58b6d2b52b4e16b4dbb42d7d9f5c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/perl-base/copyright",
+      "bytes": 108292,
+      "sha256": "657ac19622868be1f2bf8ac3823a952b28c7a2a467f61353743e9c9d89291921",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/mawk/copyright",
+      "bytes": 22806,
+      "sha256": "f6b94f461b09398ef192207356d89d7bf59833fe03082a14b910b3c740f2a318",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/login/copyright",
+      "bytes": 7044,
+      "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/liblzma5/copyright",
+      "bytes": 15465,
+      "sha256": "a2dc8fac0f496e1c58aff67018cf0c6b88336316afa5642f9335b71642e28aa8",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libc-bin/copyright",
+      "bytes": 26462,
+      "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/base-files/copyright",
+      "bytes": 1208,
+      "sha256": "fd7e4aae7e7b05f217bcf2d02322825c360e66c52c4c2f1b28d784d6297a1c23",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/ubuntu-keyring/copyright",
+      "bytes": 1242,
+      "sha256": "191cdb1291b2fc3b9fdcd8648b16ab7f9e4f15b74dc5b30959a9fdcfb4782b6c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpam-modules/copyright",
+      "bytes": 9477,
+      "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libffi8/copyright",
+      "bytes": 10165,
+      "sha256": "737ff68f0eb104d3b0d96b291c3a8f40a775a3ec2b53f9b2e4bcfe3188bde118",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libzstd1/copyright",
+      "bytes": 5389,
+      "sha256": "35e85e8e9bbb71492c5f5dddf39ed65b68775a02ad8d710c25d097b497f06c49",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/dpkg/copyright",
+      "bytes": 5661,
+      "sha256": "6511e06b27f2297fde6ee8fb2e59807b7712dda61837ca00a0980da1e5df07ac",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libapt-pkg6.0t64/copyright",
+      "bytes": 7668,
+      "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libdb5.3t64/copyright",
+      "bytes": 17177,
+      "sha256": "8b53da37d73289d9df7317b3a2dbe16491f1fa9fec8b77b86d69704b40ce2c26",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/base-passwd/copyright",
+      "bytes": 798,
+      "sha256": "0f1cde79bd80a75f9029ae9a8c252b642223027ef36f6989c63a8230aae576a7",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libmd0/copyright",
+      "bytes": 8018,
+      "sha256": "4365ef6255ad553fce69dd4bc0e093472c5d0e41b8ea493a545cc926ce171aa6",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsemanage-common/copyright",
+      "bytes": 1921,
+      "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/gcc-14-base/copyright",
+      "bytes": 69004,
+      "sha256": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libattr1/copyright",
+      "bytes": 1947,
+      "sha256": "0cbec745d85ea775450b2d54fac55277197f429e52d611f72852ed420450620e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/zlib1g/copyright",
+      "bytes": 2927,
+      "sha256": "9e5b96d63773a5d177ba264254390f792be07e41748ebd94730981c6cac31cc6",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libext2fs2t64/copyright",
+      "bytes": 15209,
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsepol2/copyright",
+      "bytes": 3750,
+      "sha256": "78d2a34606a0302057ec499a3b3c07bcbc43ca334064ce4c80891a0f69c8f6c6",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/passwd/copyright",
+      "bytes": 7044,
+      "sha256": "a4c3e5b19700dd3cc5961663d204bd7150f65f913314682aede5931548c436d5",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/util-linux/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/gpgv/copyright",
+      "bytes": 12624,
+      "sha256": "2be9a9a5d7db2584cf984de83379d395bb4a33478404160d1d77d0060b5a1bd1",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/findutils/copyright",
+      "bytes": 24779,
+      "sha256": "601cc227b3e22ad219beeed7c86b9e146ddf9c88c25620f78169fd5451d4f966",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgpg-error0/copyright",
+      "bytes": 4903,
+      "sha256": "0250e9e7cbf6c68c2bd05b6db1ea684988f91cd95da69f2936064cf302729fe5",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgcrypt20/copyright",
+      "bytes": 24896,
+      "sha256": "40162167dff80843a4b24aa8d0a4ffc50be5338d004ebe38f86ae3397ba9de3e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcap-ng0/copyright",
+      "bytes": 1621,
+      "sha256": "567997de097e3738564c90e6fe13343b2daae21a7926d6fb161df41322c1840b",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libselinux1/copyright",
+      "bytes": 1957,
+      "sha256": "864f1bb189f609075d580b8c4aada16d85a44546884f1687989e1cacc8c56751",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libidn2-0/copyright",
+      "bytes": 5348,
+      "sha256": "41702469f28e8ff406345e3d1dd0c741f11bdfca319264f67036efd6aaa79e4b",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/init-system-helpers/copyright",
+      "bytes": 3133,
+      "sha256": "7534601cc4fa513804d16490359f5831e7b6a1212da3bbf948bebdd4c8799783",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/sed/copyright",
+      "bytes": 8618,
+      "sha256": "719320e425e8e6da53a55e0fcfa2f2ed9b1332cea16abd65321bd651b2a88568",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/e2fsprogs/copyright",
+      "bytes": 15209,
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libss2/copyright",
+      "bytes": 15209,
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libaudit1/copyright",
+      "bytes": 1596,
+      "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/unminimize/copyright",
+      "bytes": 948,
+      "sha256": "3d2c2c55ac1cc4a77652fa1d33aa7cb9b3f3cbc92c200c69f52b32825585085f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libdebconfclient0/copyright",
+      "bytes": 5856,
+      "sha256": "cf63099896d1c0f6529c41b8d95738e6fea342ffba609187d339c4f38ce36ecc",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/sensible-utils/copyright",
+      "bytes": 6752,
+      "sha256": "4405a7fb92b693f790887d5f1d6b190e2fd00d824d80ef0b3d10e64cf21275dc",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tar/copyright",
+      "bytes": 6560,
+      "sha256": "a0a44d41b2a045eb5946a8952487151cfa6ff0cd080bbf4b2eec220751d23024",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libassuan0/copyright",
+      "bytes": 3373,
+      "sha256": "d704d521eb7ba7b9e3d82d85ac6caac4dfb4c784a4762f61a95fbb2733b05ff3",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/apt/copyright",
+      "bytes": 7668,
+      "sha256": "b4701305243d8d746f4acaafe15d94f946251b05691bd6917fef41dd15e9ee12",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libunistring5/copyright",
+      "bytes": 6564,
+      "sha256": "dbbfee567c5eb53ad1c75ce666779e596b5f794b52be7f5834685ddd633185ea",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libudev1/copyright",
+      "bytes": 12776,
+      "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpam-runtime/copyright",
+      "bytes": 9477,
+      "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/liblz4-1/copyright",
+      "bytes": 3275,
+      "sha256": "d3be0f43fe14da244f97c451bbae789c0acf868612598a69f5f22a289abeca40",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcom-err2/copyright",
+      "bytes": 15209,
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/bash/copyright",
+      "bytes": 9764,
+      "sha256": "06319d84c3e5ed096036f6a9310a030c7e84e50dff2b8a6792285c83ec0ada73",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsemanage2/copyright",
+      "bytes": 1921,
+      "sha256": "fe5876a94047cafbeb8b164fd98304912d94b6028e19415f08b7a8a2f90645fe",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpam-modules-bin/copyright",
+      "bytes": 9477,
+      "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgnutls30t64/copyright",
+      "bytes": 54039,
+      "sha256": "51da5214308b87d6a0a2fbcaea1f7dbd15510be733e5921d9548ff6b88d84dd8",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libtasn1-6/copyright",
+      "bytes": 3451,
+      "sha256": "572ad60ad184d8f52c6dc66d83a61a68f137db560b3452ce00588c9ecf128a65",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libmount1/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/logsave/copyright",
+      "bytes": 15209,
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libhogweed6t64/copyright",
+      "bytes": 24280,
+      "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/hostname/copyright",
+      "bytes": 1273,
+      "sha256": "94189fc5a9a7b7224d96e1a0cfdfe9be0df2018b04bf21d591627ab96b30cad1",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcrypt1/copyright",
+      "bytes": 6010,
+      "sha256": "5a5e7ca0e9f3f9679977e3a3e9ede45ad92885a3297ea78e766979f9866c5a16",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpam0g/copyright",
+      "bytes": 9477,
+      "sha256": "9596b9028339d66c285422237728d6170e1e29d0b0d9adf0e9f1bda82e2391ce",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/coreutils/copyright",
+      "bytes": 5551,
+      "sha256": "d23a4fb17c4a2e5bc46dafe9d22192ecf3905473317e17139d210339dcf50fa9",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libp11-kit0/copyright",
+      "bytes": 15380,
+      "sha256": "d33af1e069981d1c1b576cb22e4bc260a134ffa2fce6ddd3cbbbb5b181113f0c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libnettle8t64/copyright",
+      "bytes": 24280,
+      "sha256": "2cecdc7ac1913beb31299a41a8092fc936d9e6a1d00872fc3bf6e2263aecf842",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/ncurses-base/copyright",
+      "bytes": 4670,
+      "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/ncurses-bin/copyright",
+      "bytes": 4670,
+      "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/debianutils/copyright",
+      "bytes": 9062,
+      "sha256": "aeb68ea374f488431b8963df24f05482692edfa70d7556d7e528dd06d255461c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libssl3t64/copyright",
+      "bytes": 2543,
+      "sha256": "6a7da622fe0637a334d2a8fc470852d2ffb77d9a2b2f930f854e32a41ad6ef35",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/grep/copyright",
+      "bytes": 1807,
+      "sha256": "42d9b4d610396b1e8d1303dcb9487af3f5a2d2709623cf03a04cf76acdf6c5e3",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/procps/copyright",
+      "bytes": 3974,
+      "sha256": "90a66617c36d83068b52bbb77cbfef1234f526bfa287156d9d05f7df4d339539",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libuuid1/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libtinfo6/copyright",
+      "bytes": 4670,
+      "sha256": "7c9d2c8dbee48b6f4bbbffb1f370cc5858de11cc4f5a70c5c622c274917e1c65",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/bsdutils/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libbz2-1.0/copyright",
+      "bytes": 2228,
+      "sha256": "832ed535ff3c3d025a8d2348eb1b697b89addcf2eaadbc17650262040b9145e2",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libc6/copyright",
+      "bytes": 26462,
+      "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libnpth0t64/copyright",
+      "bytes": 1164,
+      "sha256": "df6909abb38f4e84d237d8617e948bdbb391b2004ecf573863011d54a88ccf22",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/sysvinit-utils/copyright",
+      "bytes": 5881,
+      "sha256": "53c7ef3839f64b24cc25a0937d11ce228517a48be0cc794f0d67b7e209b2a9ba",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpcre2-8-0/copyright",
+      "bytes": 6626,
+      "sha256": "030511beb4d9d620ad09914c369c36ec0528dcf301d1923cc643c948ee7c6a38",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxxhash0/copyright",
+      "bytes": 3213,
+      "sha256": "53acfd069ef57d3a68fc03d3ecdbcb7939c8083bae3fe52851da69b0383d7ee0",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/debconf/copyright",
+      "bytes": 2764,
+      "sha256": "57163c71bd8a5289660892827dd0dfaa7fef47f89deedc9dc6711ced7d0a28d7",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsystemd0/copyright",
+      "bytes": 12776,
+      "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libacl1/copyright",
+      "bytes": 2048,
+      "sha256": "9a2dfb4a5abc7e84be2cc41f1089be665519c9409549296f6c19de57ab1d37c2",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libblkid1/copyright",
+      "bytes": 23160,
+      "sha256": "3492fb92cb56cf517d9a899828b4f989038421a38736e49e5525ffbd33196eab",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/gzip/copyright",
+      "bytes": 2895,
+      "sha256": "1ca5dd5098fe2e1c0f0d05196f5b3da8b414a807702e6ca8b536eb5fd3059130",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libaudit-common/copyright",
+      "bytes": 1596,
+      "sha256": "6c7011e93f643b112c4cc3622131e28a30477afad6c4f5efe466b13aa7f603cc",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libjpeg8/copyright",
+      "bytes": 1073,
+      "sha256": "2120036d2302821582cf29a90de0cc390f96bdb4545d2c7f700d023030f46200",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxml2/copyright",
+      "bytes": 3067,
+      "sha256": "ee746b96cfa5be73c3ea3e4cfb1285e9b315d4c9267f99b2ee9c5d911d9fe3f4",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/fontconfig/copyright",
+      "bytes": 1301,
+      "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libkrb5-3/copyright",
+      "bytes": 63047,
+      "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libdatrie1/copyright",
+      "bytes": 2129,
+      "sha256": "7c994f175cb0da0bbe158f729ca43bc6193bb99d3c8bc82b41c46d93904b584d",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libexpat1/copyright",
+      "bytes": 1756,
+      "sha256": "60919fe1a156395ff14511bb6ff79756c50ade2fff59ac60c9bae1d8a7fe6292",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libdeflate0/copyright",
+      "bytes": 1529,
+      "sha256": "d042743cecafae11357a53f0b5ecd20d3d99fba1be62812836f9c8cc6775e61a",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxext6/copyright",
+      "bytes": 10421,
+      "sha256": "bc57e445ca1d9fe082c8d54189dd411ff26caa8552c9c63d44ea06a982f32124",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/fonts-dejavu-mono/copyright",
+      "bytes": 3859,
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxcb1/copyright",
+      "bytes": 1781,
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libkrb5support0/copyright",
+      "bytes": 63047,
+      "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libwebpmux3/copyright",
+      "bytes": 6293,
+      "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgif7/copyright",
+      "bytes": 2371,
+      "sha256": "479e834b17e61f0afe5f4a62e1794a4543208dea955820399e2d9589a1938fb0",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tesseract-ocr-deu/copyright",
+      "bytes": 1245,
+      "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/liblept5/copyright",
+      "bytes": 1766,
+      "sha256": "cff4f0cb5db14528a8b84f4a3389012d5c6e0f5a75a882509367b2147c05a83e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxdmcp6/copyright",
+      "bytes": 1265,
+      "sha256": "1bcbb50f8603fe8b86d330bfa460b772ea04fbd3c70e4499f0768b5340b9fd6e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgraphite2-3/copyright",
+      "bytes": 9348,
+      "sha256": "a33017ba0308c41bdbde4751bff349ab7b26af45fadbb1e3e7ac67c372985572",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libjbig0/copyright",
+      "bytes": 1849,
+      "sha256": "89ab20c324a191652e94598f2144a65442faed4f14f77bbd10516130ee20f05a",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpangoft2-1.0-0/copyright",
+      "bytes": 20042,
+      "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libtiff6/copyright",
+      "bytes": 1935,
+      "sha256": "d73e31b03a0d7a515851601c19fee5792c7db03a312efacae146ddf9c91f86f1",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tesseract-ocr-eng/copyright",
+      "bytes": 1245,
+      "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/fonts-dejavu-core/copyright",
+      "bytes": 3859,
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libbsd0/copyright",
+      "bytes": 22396,
+      "sha256": "978426553ab7b9cfb4503d98e578a77b8c3142c099100aa9791fd21be5a95f97",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libarchive13t64/copyright",
+      "bytes": 22412,
+      "sha256": "21e7f99bb2808ddf4ac9cb7126a9af6e130d4342f2bcafdbe84fe9e4344cf4c0",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libglib2.0-0t64/copyright",
+      "bytes": 54957,
+      "sha256": "b52574b109fb876dfa71dea7a98b8aee1bb583f6aa90c327d1e4dc0a1d59f211",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libkeyutils1/copyright",
+      "bytes": 2104,
+      "sha256": "c62fe37d22203046611112bc10a9e03a39a7f73bec1b061e7c615326166d9ff5",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxrender1/copyright",
+      "bytes": 2252,
+      "sha256": "ed2a78123a5076b4f11da38cb1ffb85b5cb9fdc26b5746c517b1d7e7a9029704",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpng16-16t64/copyright",
+      "bytes": 13051,
+      "sha256": "4620d402b97601a910946acccbbe2e15bdffac11615bf9046520990d3b00f2b9",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcurl4t64/copyright",
+      "bytes": 21749,
+      "sha256": "a7c131b21e6e73b3b085a7d9f1637b68f5f92b832cc6f462e0c978fbe7841ccb",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libx11-data/copyright",
+      "bytes": 47102,
+      "sha256": "0b380a7fd5b2228f26e9585e56f14812efd3350f3df307507d2bc055dfd8de3e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpsl5t64/copyright",
+      "bytes": 3310,
+      "sha256": "bbafb0cf52d34465fc69f5ffd22d724224f6a2f28402c88b045c69d88af06aaf",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libharfbuzz0b/copyright",
+      "bytes": 31737,
+      "sha256": "6ffcef5a169fca847bc886b052bbe9a478754850621d8661ae4ea424b7eeb26e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libwebp7/copyright",
+      "bytes": 6293,
+      "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsasl2-2/copyright",
+      "bytes": 24643,
+      "sha256": "ddb128a81d3a140ef5b3574ae000a1a50d0cb9a2ec59917121a155f91b670166",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libjpeg-turbo8/copyright",
+      "bytes": 38846,
+      "sha256": "3821184e23385bf2cdc01f56bd999b34036fc3aa03d5135d41680374eb81bf8a",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tesseract-ocr-osd/copyright",
+      "bytes": 1245,
+      "sha256": "33fb8161898e34fcf5c6b8585d6be97642d7e8f34a922e783c6c5c970d0b09ad",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libopenjp2-7/copyright",
+      "bytes": 42620,
+      "sha256": "eee37e01db9d8eabac77a49dbacb9ea8962e5cfc98a35b87ee02cc81eef94f40",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libldap2/copyright",
+      "bytes": 62837,
+      "sha256": "b4081907f0d9a4110736fa6540dc8ca9d7d60a20878b5d78f84916cc04907bdc",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/liblerc4/copyright",
+      "bytes": 1242,
+      "sha256": "192296f2c328deb2e288a7a32f1ba002183c7a2da21af5cdcfb1459d451d0391",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libthai0/copyright",
+      "bytes": 2458,
+      "sha256": "62d2835587b92a6abdbe62fe4524a7b6a59ac478df2c591eb98c3fbce6c3fa08",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libfreetype6/copyright",
+      "bytes": 31209,
+      "sha256": "ce6d766883ea111e7f47acc09e9d49be8827daa6a03f2c2707243a425d41f0e9",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libssh-4/copyright",
+      "bytes": 12158,
+      "sha256": "1b33ec0b1d0d521afb21d8e6b98fa4abf52b1ffb69a8461a045db9d586ce141f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/fontconfig-config/copyright",
+      "bytes": 1301,
+      "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsasl2-modules-db/copyright",
+      "bytes": 24643,
+      "sha256": "ddb128a81d3a140ef5b3574ae000a1a50d0cb9a2ec59917121a155f91b670166",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/librtmp1/copyright",
+      "bytes": 2726,
+      "sha256": "4302abcc1ea1b6cbe8d19c79b892acf78878030220210707c19006828866207c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libcairo2/copyright",
+      "bytes": 28461,
+      "sha256": "408fb9e704e875cd42d432e7c9b3b378f568e3c89db2b5c5ef3d11c025319574",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libk5crypto3/copyright",
+      "bytes": 63047,
+      "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxau6/copyright",
+      "bytes": 1224,
+      "sha256": "118dd263a7b91c8f21c489f949bf13281dff9e766deea92b829dac4dce66601a",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libtesseract5/copyright",
+      "bytes": 1231,
+      "sha256": "2442a6ad56b34fc1e0ec4b13509e22d4e428c856e488b2a709456ce4e9f0ab4e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libfribidi0/copyright",
+      "bytes": 1450,
+      "sha256": "39000badbcd15a4a144cfa2d2f0d906d4d9183f42350e8193ac775baded86b7c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpangocairo-1.0-0/copyright",
+      "bytes": 20042,
+      "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libgssapi-krb5-2/copyright",
+      "bytes": 63047,
+      "sha256": "936728f4181718f42951b881c1e8f1386bf6b2723c4fbc533c374d6f42c71816",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpixman-1-0/copyright",
+      "bytes": 2247,
+      "sha256": "1b3fb5690861e15ca4fd6640fd4def4b2576617942eec04b6fcb7d8bc6c4c9da",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxcb-shm0/copyright",
+      "bytes": 1781,
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libfontconfig1/copyright",
+      "bytes": 1301,
+      "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libnghttp2-14/copyright",
+      "bytes": 6535,
+      "sha256": "a34ae32a5eba61e535835a8de7c398f47e420247d339bc400a3b9c618ba29a3d",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libsharpyuv0/copyright",
+      "bytes": 6293,
+      "sha256": "eee23313fcb4cac326f7a3a5c646474062440bd8665f706747b2eba33d72e97f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libthai-data/copyright",
+      "bytes": 2458,
+      "sha256": "62d2835587b92a6abdbe62fe4524a7b6a59ac478df2c591eb98c3fbce6c3fa08",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libbrotli1/copyright",
+      "bytes": 1354,
+      "sha256": "24a64e5bb83d0960d1835696a1e23c0896ad6055b0ca47c66ab0eb9a766324b1",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/liblcms2-2/copyright",
+      "bytes": 5362,
+      "sha256": "420fd2c72204652c08a48548a0d1002edab3d9b180d3c416578c61f74092f460",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libpango-1.0-0/copyright",
+      "bytes": 20042,
+      "sha256": "10e2b3c2cd6c6ecd7c65ebb7319be463f514096a16e832441ee61dfef72a107f",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libxcb-render0/copyright",
+      "bytes": 1781,
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/libx11-6/copyright",
+      "bytes": 47102,
+      "sha256": "0b380a7fd5b2228f26e9585e56f14812efd3350f3df307507d2bc055dfd8de3e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tesseract-ocr/copyright",
+      "bytes": 1231,
+      "sha256": "2442a6ad56b34fc1e0ec4b13509e22d4e428c856e488b2a709456ce4e9f0ab4e",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tzdata-legacy/copyright",
+      "bytes": 3794,
+      "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/ca-certificates/examples/ca-certificates-local/debian/copyright",
+      "bytes": 164,
+      "sha256": "ccfe62f0f73541f1c76a6d33aed26290391685c43f914a5e24c6b1f72cddcdff",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/ca-certificates/copyright",
+      "bytes": 18940,
+      "sha256": "e85e1bcad3a915dc7e6f41412bc5bdeba275cadd817896ea0451f2140a93967c",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/openssl/copyright",
+      "bytes": 0,
+      "sha256": null,
+      "status": "link-or-empty-entry-needs-review"
+    },
+    {
+      "file": "usr/share/doc/libicu74/copyright",
+      "bytes": 2214,
+      "sha256": "5bbff5f646ce750ac0a347e7f91793279b7422a1119820b5f75d98879c201c68",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/doc/tzdata/copyright",
+      "bytes": 3794,
+      "sha256": "97fad960bf4aea7cb5faf6dc8a536bf91bf85a69a7869cfa8254a0162134c1d8",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/Apache-2.0",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/Artistic",
+      "bytes": 6111,
+      "sha256": "b7fd9b73ea99602016a326e0b62e6646060d18febdd065ceca8bb482208c3d88",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/GPL-3",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/GFDL-1.2",
+      "bytes": 20432,
+      "sha256": "d8e94ae5fdb5433fcae2961aeb1a8cf17174d6f4a0465d24bf37dd8a038bd439",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/MPL-2.0",
+      "bytes": 16726,
+      "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/LGPL-2",
+      "bytes": 25381,
+      "sha256": "681e386e44a19d7d0674b4320272c90e66b6610b741e7e6305f8219c42e85366",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/LGPL-2.1",
+      "bytes": 26530,
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/GPL-2",
+      "bytes": 18092,
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/MPL-1.1",
+      "bytes": 25755,
+      "sha256": "f849fc26a7a99981611a3a370e83078deb617d12a45776d6c4cada4d338be469",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/BSD",
+      "bytes": 1499,
+      "sha256": "5d588eb3b157d52112afea935c88a7ff9efddc1e2d95a42c25d3b96ad9055008",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/GFDL-1.3",
+      "bytes": 22955,
+      "sha256": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/LGPL",
+      "bytes": 0,
+      "sha256": null,
+      "status": "link-or-empty-entry-needs-review"
+    },
+    {
+      "file": "usr/share/common-licenses/GPL",
+      "bytes": 0,
+      "sha256": null,
+      "status": "link-or-empty-entry-needs-review"
+    },
+    {
+      "file": "usr/share/common-licenses/LGPL-3",
+      "bytes": 7652,
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/CC0-1.0",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "status": "original-text-retained-unreviewed"
+    },
+    {
+      "file": "usr/share/common-licenses/GFDL",
+      "bytes": 0,
+      "sha256": null,
+      "status": "link-or-empty-entry-needs-review"
+    },
+    {
+      "file": "usr/share/common-licenses/GPL-1",
+      "bytes": 12632,
+      "sha256": "d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912",
+      "status": "original-text-retained-unreviewed"
+    }
+  ],
+  "packageQuerySha256": "447d3ffcf471c7e945e8c46107609820dc1e64a5bd1aa641a45c568fd73e0c39",
+  "osReleaseSha256": "87458b3b1f1ca0e5c693ade771de7007c3783bdc692fa6b39eb6414bf2af2763",
+  "noticeArchiveSha256": "a1b897c84f8d8c3bff2125f234cb07167286a8ff2292253cd27396345e42c259",
+  "containersRemoved": true,
+  "appStarted": false,
+  "networkEnabled": false,
+  "sourcePackagesAcquired": false,
+  "publisherAuthenticated": false,
+  "managedRuntimeAndStaticComponentReviewComplete": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false
+}

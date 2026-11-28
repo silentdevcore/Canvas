@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "scope": "liberation-sans-candidate-rebuild-from-pinned-debian-source-not-reproduction-or-approval",
+  "source": {
+    "version": "1:1.07.4-11",
+    "descriptorSha256": "c9cb6abc8b8ab1887d78f5fc1aef1fc06a220efbfa3424ca7e8bc379242654ba",
+    "signatureVerified": false
+  },
+  "environment": {
+    "image": "debian@sha256:268fb24c39bca92d326dd83ea3abebe4a3f7751c804ffef23bb6d857dd343ff8",
+    "architecture": "arm64",
+    "toolchain": {
+      "debhelper": "13.11.4",
+      "dpkg-dev": "1.21.23",
+      "fontforge-nox": "1:20230101~dfsg-1.1~deb12u1",
+      "fonttools": "4.38.0-1+deb12u1"
+    },
+    "command": "dpkg-source --no-check -x; SOURCE_DATE_EPOCH=<changelog> dpkg-buildpackage -b -uc -us",
+    "networkDuringBuild": "enabled-for-apt-install",
+    "containersRemoved": true
+  },
+  "builtPackage": {
+    "file": "fonts-liberation_1.07.4-11_all.deb",
+    "sha256": "6806fb1f20a8c7e811f0ea7c4b8ca83480c20a82e0631eeb512ee1f08861a094"
+  },
+  "faces": [
+    {
+      "file": "assets/fonts/liberation/LiberationSans-Regular.ttf",
+      "shippedSha256": "f8ace1f892b2bd9dc1792ba7f097fa7588f84fed48321480e04de5390828221f",
+      "builtSha256": "dfb550b5141df4601de2926b836584d85d309a4d6d21c84571e851a1522f2948",
+      "glyphCount": 681,
+      "glyphOutlinesEqual": true,
+      "differingTables": [
+        "FFTM",
+        "cmap",
+        "head"
+      ],
+      "headFieldsDiffering": [
+        "checkSumAdjustment"
+      ],
+      "cmapSubtablesEqual": true,
+      "cmapMappingsEqual": true
+    },
+    {
+      "file": "assets/fonts/liberation/LiberationSans-Bold.ttf",
+      "shippedSha256": "361c61b82d575c5c35fd9157fda8b0194bcfcd0d88ea8521a4fb5dd53d33dddc",
+      "builtSha256": "c1ad57bd3bdfdb73255011082df0594ef0d80640ebb8f5abfc706298c4d95b09",
+      "glyphCount": 681,
+      "glyphOutlinesEqual": true,
+      "differingTables": [
+        "FFTM",
+        "cmap",
+        "head"
+      ],
+      "headFieldsDiffering": [
+        "checkSumAdjustment"
+      ],
+      "cmapSubtablesEqual": true,
+      "cmapMappingsEqual": true
+    },
+    {
+      "file": "assets/fonts/liberation/LiberationSans-Italic.ttf",
+      "shippedSha256": "832b4406dbef23628800d3aaad21048534ac84d7e3ad955be83b8172ed8ef512",
+      "builtSha256": "b4aceace52776f0ec736bce323a65a4b519afc712b306799e14e4453471ea130",
+      "glyphCount": 681,
+      "glyphOutlinesEqual": true,
+      "differingTables": [
+        "FFTM",
+        "cmap",
+        "head"
+      ],
+      "headFieldsDiffering": [
+        "checkSumAdjustment"
+      ],
+      "cmapSubtablesEqual": true,
+      "cmapMappingsEqual": true
+    },
+    {
+      "file": "assets/fonts/liberation/LiberationSans-BoldItalic.ttf",
+      "shippedSha256": "a224075ac17495ad0a3af3bc0a419ac0704a8b3fd1095456201fb9b095fc281d",
+      "builtSha256": "3aa0cf849578ac1d8ffc4ee16703fb7c55c0a703ef239cceb8d530600b41fae3",
+      "glyphCount": 681,
+      "glyphOutlinesEqual": true,
+      "differingTables": [
+        "FFTM",
+        "cmap",
+        "head"
+      ],
+      "headFieldsDiffering": [
+        "checkSumAdjustment"
+      ],
+      "cmapSubtablesEqual": true,
+      "cmapMappingsEqual": true
+    }
+  ],
+  "byteReproduced": false,
+  "shippedFontsReplaced": false,
+  "legalApprovalGranted": false,
+  "publicationReady": false
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-importer-public-api-contract",
+  "impact": "none",
+  "components": ["importer"],
+  "category": "improved",
+  "summary": "Expanded automated validation of native importer licensing contracts.",
+  "breaking": false,
+  "reason": "Adds a reviewed public API inventory and native probe coverage gates without changing shipped library behavior or introducing new licensing requirements."
+}

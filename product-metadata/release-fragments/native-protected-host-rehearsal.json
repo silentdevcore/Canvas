@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-protected-host-rehearsal",
+  "impact": "none",
+  "components": ["api", "infrastructure", "migration", "documentation"],
+  "category": "improved",
+  "summary": "Added protected-host compatibility checks for API authorization, document export, migration and code execution.",
+  "reason": "Adds an isolated synthetic host rehearsal; no deployed server or publicly distributed package is replaced.",
+  "breaking": false
+}

@@ -1,4 +1,5 @@
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,10 +7,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PVAD.Migration.Pdf.Code.IText7;
 
-public sealed class IText7Migration : CSharpSourceMigration
+/// <summary>Rewrites supported iText 7 C# source to native PVAD PDF code.</summary>
+/// <remarks>Requires PDF Code Migration rights for <c>itext7</c>. Returned diagnostics identify
+/// unsupported or approximated behavior; this operation does not execute or render the source.</remarks>
+public sealed class IText7Migration : CSharpSourceMigration, IAdmittedCodeMigration
 {
+    /// <inheritdoc cref="ISourceMigration.Migrate"/>
+    /// <exception cref="PvadLicenseException">Native migration rights for this provider are unavailable.</exception>
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "itext7");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, "itext7");
         if (string.IsNullOrWhiteSpace(sourceCode))
         {
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));

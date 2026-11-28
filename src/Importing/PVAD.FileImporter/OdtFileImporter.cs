@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter;
 
@@ -28,7 +29,8 @@ public sealed class OdtFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
-        using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.odt");
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
 
         var styleMap = new Dictionary<string, ParaStyle>();
         ParseStyles(zip, "styles.xml",  styleMap);

@@ -3,6 +3,7 @@ using System.Text.Json;
 using PVAD.Core.Contracts;
 using PVAD.FileImporter;
 using PVAD.Migration.Pdf.Viewer.Nutrient;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Services;
 
@@ -20,7 +21,8 @@ public sealed class NutrientViewerDesignMigrationService
         IReadOnlyList<string>? compilerDiagnostics,
         CancellationToken cancellationToken)
     {
-        var design = await PdfFileImporter.DoImportAsync(
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfDesignerMigration, NutrientInstantJsonConverter.ProviderKey);
+        var design = await PdfFileImporter.ImportNutrientDesignerSourceAsync(
             pdf,
             Path.GetFileNameWithoutExtension(pdfName),
             new PdfFileImportOptions { ChartRecognition = PdfChartRecognitionMode.Safe },
@@ -37,7 +39,7 @@ public sealed class NutrientViewerDesignMigrationService
 
         if (inputType.Equals("instantJson", StringComparison.OrdinalIgnoreCase))
         {
-            var converted = new NutrientInstantJsonConverter().Convert(source, pages, sourceName ?? pdfName);
+            var converted = new NutrientInstantJsonConverter().ConvertForDesigner(source, pages, sourceName ?? pdfName);
             annotations = JsonSerializer.Deserialize<PvadViewerAnnotationSidecar>(converted.AnnotationSidecarJson, JsonOptions);
             formValues = JsonSerializer.Deserialize<PvadViewerFormValuePayload>(converted.FormValuePayloadJson, JsonOptions);
             diagnostics.AddRange(converted.Diagnostics);
@@ -48,12 +50,12 @@ public sealed class NutrientViewerDesignMigrationService
         else
         {
             var converted = inputType.Equals("typescript", StringComparison.OrdinalIgnoreCase)
-                ? new NutrientViewerSourceConverter().ConvertTranspiledTypeScript(
+                ? new NutrientViewerSourceConverter().ConvertTranspiledTypeScriptForDesigner(
                     source,
                     transpiledSource ?? throw new ArgumentException("TypeScript compiler output is required."),
                     sourceName ?? pdfName,
                     compilerDiagnostics)
-                : new NutrientViewerSourceConverter().Convert(source, "javascript", sourceName ?? pdfName);
+                : new NutrientViewerSourceConverter().ConvertForDesigner(source, "javascript", sourceName ?? pdfName);
             viewerSettings = JsonDocument.Parse(converted.NormalizedViewerSettingsJson).RootElement.Clone();
             diagnostics.AddRange(converted.Diagnostics);
             fidelity = converted.DocumentFidelity;

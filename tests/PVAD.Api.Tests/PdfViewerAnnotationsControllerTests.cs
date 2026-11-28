@@ -29,7 +29,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<PvadApiT
                     });
                 });
             })
-            .CreateClient();
+            .CreateCompanyProductClient();
     }
 
     [Fact]

@@ -60,6 +60,8 @@ jobs:
           npm ci --prefix pvad-designer
           cd pvad-designer
           npx playwright install --with-deps chromium
+      - name: Prepare isolated signed native test session
+        run: node tools/native-licensing/test-session.mjs prepare-ci
       - name: Restore backend dependencies
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --disable-parallel
       - name: Test tooling and shared date vectors
@@ -69,6 +71,9 @@ jobs:
           dotnet test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --no-restore -m:1 -p:BuildInParallel=false --filter FullyQualifiedName~DateFormattingParityTests --nologo
       - name: Compare native platform outputs
         run: node tools/visual-parity/platforms.mjs
+      - name: Remove synthetic native licenses and test binaries
+        if: always()
+        run: node tools/native-licensing/test-session.mjs cleanup-ci
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

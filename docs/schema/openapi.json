@@ -20161,6 +20161,126 @@
           }
         }
       }
+    },
+    "/api/pvad/v1/account/native-licenses": {
+      "get": {
+        "tags": [
+          "AccountNativeLicenses"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicensePage"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicensePage"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicensePage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pvad/v1/account/native-licenses/{licenseId}": {
+      "get": {
+        "tags": [
+          "AccountNativeLicenses"
+        ],
+        "parameters": [
+          {
+            "name": "licenseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicenseDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicenseDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeLicenseDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pvad/v1/account/native-licenses/{licenseId}/download": {
+      "get": {
+        "tags": [
+          "AccountNativeLicenses"
+        ],
+        "parameters": [
+          {
+            "name": "licenseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -36478,6 +36598,159 @@
               "string"
             ],
             "format": "double"
+          }
+        }
+      },
+      "NativeLicenseDetails": {
+        "required": [
+          "license",
+          "customerReference",
+          "redistributionAllowed",
+          "grants",
+          "renewedByLicenseId"
+        ],
+        "type": "object",
+        "properties": {
+          "license": {
+            "$ref": "#/components/schemas/NativeLicenseResponse"
+          },
+          "customerReference": {
+            "type": "string"
+          },
+          "redistributionAllowed": {
+            "type": "boolean"
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PvadLicenseGrant"
+            }
+          },
+          "renewedByLicenseId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "PvadLicenseGrant": {
+        "required": [
+          "product",
+          "providers"
+        ],
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "A product grant. Migration providers use canonical registry keys, never aliases."
+      },
+      "NativeLicenseResponse": {
+        "required": [
+          "id",
+          "organizationId",
+          "previousLicenseId",
+          "model",
+          "issuedAt",
+          "validFrom",
+          "validUntil",
+          "updatesUntil",
+          "artifactSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previousLicenseId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "model": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatesUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "artifactSha256": {
+            "type": "string"
+          }
+        }
+      },
+      "NativeLicensePage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NativeLicenseResponse"
+            }
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       }

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "scope": "report-converter-and-wrapper-entry-points",
+  "entries": [
+    {
+      "product": "migration.report.designer",
+      "provider": "activereports-js",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.ActiveReportsJs/ActiveReportsJsToDesignConverter.cs",
+      "type": "ActiveReportsJsToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/ActiveReportsJsMigration.cs",
+      "wrapper": "ActiveReportsJsMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "devexpress-report",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.DevExpress/XtraReportToDesignConverter.cs",
+      "type": "XtraReportToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/DevExpressReportMigration.cs",
+      "wrapper": "DevExpressReportMigration",
+      "publicConverterOverloads": 5
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "fastreport",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.FastReport/FrxToDesignConverter.cs",
+      "type": "FrxToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/FastReportMigration.cs",
+      "wrapper": "FastReportMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "jasperreports",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.JasperReports/JrxmlToDesignConverter.cs",
+      "type": "JrxmlToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/JasperReportsMigration.cs",
+      "wrapper": "JasperReportsMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "rdl",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs",
+      "type": "RdlToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/RdlReportMigration.cs",
+      "wrapper": "RdlReportMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "rpx",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.Rpx/RpxToDesignConverter.cs",
+      "type": "RpxToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/RpxReportMigration.cs",
+      "wrapper": "RpxReportMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "stimulsoft",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.Stimulsoft/MrtToDesignConverter.cs",
+      "type": "MrtToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/StimulsoftReportMigration.cs",
+      "wrapper": "StimulsoftReportMigration",
+      "publicConverterOverloads": 2
+    },
+    {
+      "product": "migration.report.designer",
+      "provider": "telerik",
+      "source": "src/Migrations/Report/PVAD.Migration.Report.Designer.Telerik/TrdxToDesignConverter.cs",
+      "type": "TrdxToDesignConverter",
+      "wrapperSource": "src/Migrations/Report/PVAD.Migration.Report/TelerikReportMigration.cs",
+      "wrapper": "TelerikReportMigration",
+      "publicConverterOverloads": 2
+    }
+  ]
+}

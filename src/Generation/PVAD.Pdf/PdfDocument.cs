@@ -1,6 +1,7 @@
 using PVAD.Pdf.Serialization;
 using System.Collections.ObjectModel;
 using System.Xml;
+using PVAD.Licensing;
 
 namespace PVAD.Pdf;
 
@@ -48,13 +49,33 @@ public sealed class PdfDocument
     /// <c>PVAD.Generator.Pdf.CreateDocument(...)</c> so the public entry point follows the PVAD generator facade.
     /// </remarks>
     /// <param name="defaultFont">The standard font used by pages and text drawing unless overridden.</param>
+    /// <exception cref="PvadLicenseException">No current native PDF grant permits creation.</exception>
     [Obsolete(
         "Direct PVAD.Pdf.PdfDocument construction is discouraged. Use PVAD.Generator.Pdf.CreateDocument(...) for new code.",
         DiagnosticId = "PVAD0001")]
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
+        : this(defaultFont, PvadLicense.RequireCapability(PvadLicenseProducts.Pdf, "document.create"))
     {
+    }
+
+    private PdfDocument(PdfStandardFont defaultFont, PvadLicenseOperation admission)
+    {
+        ArgumentNullException.ThrowIfNull(admission);
         DefaultFont = defaultFont;
         _associatedFilesView = _associatedFiles.AsReadOnly();
+    }
+
+    internal PdfDocument(double width, double height, PvadLicenseOperation importerAdmission)
+        : this(importerAdmission)
+    {
+        AddPage(width, height);
+    }
+
+    internal PdfDocument(PvadLicenseOperation importerAdmission)
+        : this(PdfStandardFont.Helvetica, importerAdmission)
+    {
+        if (importerAdmission.Product != PvadLicenseProducts.Importer)
+            throw new ArgumentException("An Importer admission is required.", nameof(importerAdmission));
     }
 
     /// <summary>The pages of the document, in order. Add pages with <see cref="AddPage(double, double)"/>.</summary>

@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-license-processing-inventory",
+  "impact": "patch",
+  "components": ["api", "documentation"],
+  "category": "fixed",
+  "summary": "Documented native library license issuance and renewal records in the data-processing inventory.",
+  "breaking": false
+}

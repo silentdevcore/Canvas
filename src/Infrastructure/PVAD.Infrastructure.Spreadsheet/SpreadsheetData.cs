@@ -1,5 +1,6 @@
 using System.Text.Json;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -14,6 +15,7 @@ public sealed class SpreadsheetData
     /// plus one typed row per object.</summary>
     public SheetDto FromRows(IReadOnlyList<Dictionary<string, JsonElement>> rows, string name = "Sheet1")
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var sheet = new SheetDto { Id = Guid.NewGuid().ToString("n"), Name = name };
         if (rows.Count == 0) return sheet;
 
@@ -43,6 +45,7 @@ public sealed class SpreadsheetData
     /// <paramref name="data"/> (dotted keys resolve nested objects). Returns the number of cells changed.</summary>
     public int Fill(SpreadsheetDto workbook, Dictionary<string, JsonElement> data)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var count = 0;
         foreach (var sheet in workbook.Sheets)
             foreach (var cell in sheet.Cells)

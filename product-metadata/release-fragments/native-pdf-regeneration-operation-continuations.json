@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-regeneration-operation-continuations",
+  "impact": "patch",
+  "components": ["generator", "importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF regeneration, mapping, XObject resolution and debug processing retain their license admission through built-in completion. New calls and custom callbacks still check current rights; rendering and output rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

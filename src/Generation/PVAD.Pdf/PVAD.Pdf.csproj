@@ -11,9 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
     <InternalsVisibleTo Include="PVAD.Infrastructure.Pdf" />
     <InternalsVisibleTo Include="PVAD.Infrastructure.Pdf.Tests" />
     <InternalsVisibleTo Include="PVAD.Importer" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
   <ItemGroup>

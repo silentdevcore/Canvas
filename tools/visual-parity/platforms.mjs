@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { withNativeTestSession } from '../native-licensing/test-session.mjs';
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -76,4 +77,4 @@ export async function runPlatformValidation() {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url)
-  await runPlatformValidation();
+  await withNativeTestSession(runPlatformValidation);

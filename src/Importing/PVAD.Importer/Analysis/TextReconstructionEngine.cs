@@ -1,3 +1,5 @@
+using PVAD.Licensing;
+
 namespace PVAD.Importer.Analysis;
 
 public sealed record ReconstructedWord(string Text, IReadOnlyList<PrimitiveText> GlyphRuns, Graphics.PdfRectangle Bounds);
@@ -6,6 +8,13 @@ public sealed class TextReconstructionEngine
 {
     public IReadOnlyList<ReconstructedWord> BuildWords(ReadingLine line)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildWordsAdmitted(line);
+    }
+
+    internal IReadOnlyList<ReconstructedWord> BuildWordsAdmitted(ReadingLine line)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var words = new List<ReconstructedWord>();
         var current = new List<PrimitiveText>();
         PrimitiveText? previous = null;
@@ -28,7 +37,14 @@ public sealed class TextReconstructionEngine
 
     public string BuildParagraphText(ReadingParagraph paragraph)
     {
-        return string.Join(Environment.NewLine, paragraph.Lines.Select(line => string.Join(" ", BuildWords(line).Select(static word => word.Text))));
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildParagraphTextAdmitted(paragraph);
+    }
+
+    internal string BuildParagraphTextAdmitted(ReadingParagraph paragraph)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return string.Join(Environment.NewLine, paragraph.Lines.Select(line => string.Join(" ", BuildWordsAdmitted(line).Select(static word => word.Text))));
     }
 
     private static bool StartsNewWord(PrimitiveText previous, PrimitiveText current)

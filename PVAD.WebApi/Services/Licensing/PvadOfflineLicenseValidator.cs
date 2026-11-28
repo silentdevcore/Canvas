@@ -97,6 +97,10 @@ public sealed class PvadOfflineLicenseValidator(IPvadLicenseSignatureVerifier si
 
             return Complete(new PvadLicenseValidationResult(true, true, "PVAD_LICENSE_VALID", envelope));
         }
+        catch (PvadLicenseVerificationUnavailableException)
+        {
+            return Complete(Invalid(PvadLicenseVerificationUnavailableException.Code));
+        }
         catch
         {
             PvadTelemetry.RecordLicensingOperation(
@@ -126,6 +130,7 @@ public sealed class PvadOfflineLicenseValidator(IPvadLicenseSignatureVerifier si
         "PVAD_LICENSE_NOT_YET_VALID" or
         "PVAD_LICENSE_INACTIVE" => "inactive",
         "PVAD_LICENSE_INSTANCE_LIMIT_EXCEEDED" => "limit_exceeded",
+        PvadLicenseVerificationUnavailableException.Code => "failed",
         _ => "incompatible",
     };
 }

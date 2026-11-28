@@ -1,0 +1,10 @@
+{
+  "id": "native-image-ocr-license-enforcement",
+  "impact": "major",
+  "components": ["importer", "generator", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Image analysis and OCR now require an Importer license, including direct processing and isolated workers. Built-in image-to-PDF output needs no separate PDF grant, and worker license errors retain their diagnostic codes.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

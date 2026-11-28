@@ -8,6 +8,8 @@
   href: code-designer-workspace.md
 - name: Native Designer Project Formats
   href: native-designer-project-formats.md
+- name: Native Library Licensing
+  href: native-library-licensing.md
 - name: PDF Trust Generator Examples
   href: guides/PVAD.Pdf-Trust-Generator-Examples.md
 - name: PDF Trust Migration Examples

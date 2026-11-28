@@ -1,0 +1,36 @@
+<Project>
+  <PropertyGroup Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true' And '$(ArtifactsPath)' != ''">
+    <PvadNativeOwnedArtifactsRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'artifacts'))</PvadNativeOwnedArtifactsRoot>
+    <PvadNativeActualArtifactsRoot>$([MSBuild]::NormalizeDirectory('$(ArtifactsPath)'))</PvadNativeActualArtifactsRoot>
+    <PvadNativeSessionArtifactsRoot Condition="'$(PVAD_NATIVE_TEST_BUILD_ROOT)' != ''">$([MSBuild]::NormalizeDirectory('$(PVAD_NATIVE_TEST_BUILD_ROOT)'))</PvadNativeSessionArtifactsRoot>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true'">
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>PVAD.NativeTestArtifact</_Parameter1>
+      <_Parameter2>not-for-publication</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true' And ('$(MSBuildProjectName)' == 'PVAD.PdfParserFuzzer' Or '$(MSBuildProjectName)' == 'PVAD.PdfTrustCorpus' Or '$(MSBuildProjectName)' == 'PVAD.PdfTrustExternalCorpus' Or '$(MSBuildProjectName)' == 'PVAD.PdfTrustPadesCorpus')">
+    <Compile Include="$(MSBuildThisFileDirectory)tests/Shared/PvadNativeLicenseBootstrap.cs" Link="Shared/PvadNativeLicenseBootstrap.cs" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)src/Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+  </ItemGroup>
+  <Target Name="PvadRequireIsolatedNativeTestBuild" BeforeTargets="CoreCompile" Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true'">
+    <PropertyGroup>
+      <PvadNativeTargetOutput>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(TargetDir)'))</PvadNativeTargetOutput>
+      <PvadNativeIntermediateOutput>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)'))</PvadNativeIntermediateOutput>
+      <PvadNativeTargetIsIsolated>$([System.String]::Copy('$(PvadNativeTargetOutput)').StartsWith('$(PvadNativeActualArtifactsRoot)'))</PvadNativeTargetIsIsolated>
+      <PvadNativeIntermediateIsIsolated>$([System.String]::Copy('$(PvadNativeIntermediateOutput)').StartsWith('$(PvadNativeActualArtifactsRoot)'))</PvadNativeIntermediateIsIsolated>
+    </PropertyGroup>
+    <Error Condition="'$(ArtifactsPath)' == '' Or '$(UseArtifactsOutput)' != 'true' Or '$(PvadLicenseTrustStorePath)' == ''"
+           Text="Signed native tests require isolated artifacts output and an explicit test trust register." />
+    <Error Condition="'$(PvadNativeActualArtifactsRoot)' == '' Or !$([System.String]::Copy('$(PvadNativeActualArtifactsRoot)').StartsWith('$(PvadNativeOwnedArtifactsRoot)'))"
+           Text="Signed native test builds must remain inside the repository artifacts directory." />
+    <Error Condition="'$(PVAD_NATIVE_TEST_BUILD_ROOT)' != '' And '$(PvadNativeActualArtifactsRoot)' != '$(PvadNativeSessionArtifactsRoot)'"
+           Text="Native test build output must match the active session." />
+    <Error Condition="'$(PvadNativeTargetIsIsolated)' != 'true' Or '$(PvadNativeIntermediateIsIsolated)' != 'true'"
+           Text="Native test output and intermediate directories must remain inside the isolated build." />
+  </Target>
+  <Target Name="PvadRejectNativeTestPublication" BeforeTargets="Pack;Publish;GenerateNuspec;ComputeFilesToPublish" Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true' Or '$(PVAD_NATIVE_TEST_SESSION)' != ''">
+    <Error Text="Synthetic native-license test builds must not be packaged or published. Use a clean manufacturer-provisioned release build." />
+  </Target>
+</Project>

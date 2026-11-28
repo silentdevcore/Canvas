@@ -123,6 +123,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
             poppler-utils qpdf imagemagick libreoffice-writer libreoffice-calc fonts-liberation
+      - name: Prepare isolated signed native test session
+        run: node tools/native-licensing/test-session.mjs prepare-ci
       - name: Restore
         run: dotnet restore PVAD.sln
       - name: Build
@@ -339,6 +341,9 @@ jobs:
           PVAD_POSTGRES_STARTUP_DELAY_SECONDS: "2"
           PVAD_POSTGRES_READY_ATTEMPTS: "90"
         run: tools/legal/run-backup-restore-smoke-test.sh
+      - name: Remove synthetic native licenses and test binaries
+        if: always()
+        run: node tools/native-licensing/test-session.mjs cleanup-ci
 
   dependency-security:
     runs-on: ubuntu-latest
@@ -595,6 +600,8 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
+      - name: Prepare isolated signed native test session
+        run: node tools/native-licensing/test-session.mjs prepare-ci
       - name: Restore visual-parity test dependencies
         run: dotnet restore tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj
       - name: Restore PDF Trust visual operation dependencies
@@ -681,6 +688,9 @@ jobs:
         env:
           PVAD_PDF_TRUST_OPERATION_ENFORCE: true
         run: node tools/visual-parity/pdf-trust-operations.mjs
+      - name: Remove synthetic native licenses and test binaries
+        if: always()
+        run: node tools/native-licensing/test-session.mjs cleanup-ci
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

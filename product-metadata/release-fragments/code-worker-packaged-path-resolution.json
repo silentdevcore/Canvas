@@ -1,0 +1,10 @@
+{
+  "id": "code-worker-packaged-path-resolution",
+  "impact": "patch",
+  "components": ["api", "infrastructure"],
+  "category": "fixed",
+  "summary": "Code execution now resolves its packaged worker from the running application instead of a fixed development build directory.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

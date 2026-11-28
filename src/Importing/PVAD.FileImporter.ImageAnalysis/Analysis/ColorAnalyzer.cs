@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Analysis;
@@ -36,10 +37,17 @@ public static class ColorAnalyzer
 
     public static ColorAnalysisResult Analyze(PreparedImage img)
     {
-        SKColor background = DetectBackground(img.Original);
-        var regions        = SegmentRegions(img.Original, background);
-        var imageRegions   = DetectImageLikeRegions(img.Original, background, regions);
-        var palette        = BuildPalette(img.Original);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return AnalyzeCore(img);
+    }
+
+    internal static ColorAnalysisResult AnalyzeCore(PreparedImage img)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        SKColor background = DetectBackgroundCore(img.Original);
+        var regions        = SegmentRegionsCore(img.Original, background);
+        var imageRegions   = DetectImageLikeRegionsCore(img.Original, background, regions);
+        var palette        = BuildPaletteCore(img.Original);
 
         return new ColorAnalysisResult
         {
@@ -57,6 +65,13 @@ public static class ColorAnalyzer
     /// </summary>
     public static SKColor DetectBackground(SKBitmap bmp)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return DetectBackgroundCore(bmp);
+    }
+
+    internal static SKColor DetectBackgroundCore(SKBitmap bmp)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = bmp.Width, h = bmp.Height;
         const int border = 5;
 
@@ -91,6 +106,13 @@ public static class ColorAnalyzer
     /// </summary>
     public static IReadOnlyList<SKColor> BuildPalette(SKBitmap bmp)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return BuildPaletteCore(bmp);
+    }
+
+    internal static IReadOnlyList<SKColor> BuildPaletteCore(SKBitmap bmp)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         const int gridSize = 16;
         int cellW = Math.Max(1, bmp.Width  / gridSize);
         int cellH = Math.Max(1, bmp.Height / gridSize);
@@ -142,6 +164,13 @@ public static class ColorAnalyzer
     /// </summary>
     public static IReadOnlyList<ColorRegion> SegmentRegions(SKBitmap bmp, SKColor background)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return SegmentRegionsCore(bmp, background);
+    }
+
+    internal static IReadOnlyList<ColorRegion> SegmentRegionsCore(SKBitmap bmp, SKColor background)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = bmp.Width, h = bmp.Height;
         var visited = new bool[w, h];
         var regions = new List<ColorRegion>();
@@ -194,13 +223,22 @@ public static class ColorAnalyzer
             }
         }
 
-        return MergeAdjacentRegions(regions, totalPixels);
+        return MergeAdjacentRegionsCore(regions, totalPixels);
     }
 
     public static IReadOnlyList<ColorRegion> MergeAdjacentRegions(
         IReadOnlyList<ColorRegion> regions,
         int totalPixels)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return MergeAdjacentRegionsCore(regions, totalPixels);
+    }
+
+    internal static IReadOnlyList<ColorRegion> MergeAdjacentRegionsCore(
+        IReadOnlyList<ColorRegion> regions,
+        int totalPixels)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var merged = regions.ToList();
         bool changed;
 
@@ -230,6 +268,16 @@ public static class ColorAnalyzer
         SKColor background,
         IReadOnlyList<ColorRegion>? existingRegions = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return DetectImageLikeRegionsCore(bmp, background, existingRegions);
+    }
+
+    internal static IReadOnlyList<ColorRegion> DetectImageLikeRegionsCore(
+        SKBitmap bmp,
+        SKColor background,
+        IReadOnlyList<ColorRegion>? existingRegions = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         int w = bmp.Width, h = bmp.Height;
         int totalPixels = w * h;
         var visited = new bool[w, h];

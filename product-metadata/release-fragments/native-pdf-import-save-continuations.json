@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-import-save-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted typed PDF imports and full or incremental saves can finish after license expiry or renewal. New public operations still validate the current license, while custom extensions and document validation remain effective.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

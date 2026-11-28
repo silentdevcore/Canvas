@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -54,6 +55,18 @@ public sealed class SemanticLayoutEngine
         IReadOnlyList<VisualGroup> groups,
         PdfRectangle? pageBounds)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildPageAdmitted(pageIndex, primitives, readingOrder, groups, pageBounds);
+    }
+
+    internal SemanticLayoutPage BuildPageAdmitted(
+        int pageIndex,
+        IReadOnlyList<PrimitiveObject> primitives,
+        ReadingOrderResult readingOrder,
+        IReadOnlyList<VisualGroup> groups,
+        PdfRectangle? pageBounds)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var bounds = pageBounds ?? (primitives.Count == 0 ? new PdfRectangle(0, 0, 0, 0) : ReadingOrderEngine.Union(primitives.Select(static primitive => primitive.Bounds)));
         var page = new SemanticLayoutPage(pageIndex, bounds);
 
@@ -92,7 +105,7 @@ public sealed class SemanticLayoutEngine
 
         var node = new SemanticLayoutNode(kind, paragraph.Bounds)
         {
-            Text = _textReconstruction.BuildParagraphText(paragraph)
+            Text = _textReconstruction.BuildParagraphTextAdmitted(paragraph)
         };
 
         node.Primitives.AddRange(paragraph.Lines.SelectMany(static line => line.Texts).Cast<PrimitiveObject>());

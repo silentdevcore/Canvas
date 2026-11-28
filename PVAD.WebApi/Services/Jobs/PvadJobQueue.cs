@@ -4,6 +4,7 @@ using PVAD.Domain.Entities;
 using PVAD.Infrastructure.Persistence;
 using PVAD.WebApi.Observability;
 using PVAD.WebApi.Security;
+using PVAD.Licensing;
 
 namespace PVAD.WebApi.Services.Jobs;
 
@@ -51,6 +52,7 @@ public sealed class PvadJobQueue(
         CancellationToken cancellationToken,
         PvadJobRetentionMode retentionMode = PvadJobRetentionMode.Transient)
     {
+        PvadAccountCapabilityContext.Require("export.pdf");
         var organizationId = tenantContext.OrganizationId ??
             throw new UnauthorizedAccessException("An active organization is required.");
         var userId = tenantContext.UserId ??
@@ -88,6 +90,21 @@ public sealed class PvadJobQueue(
     {
         if (type is not (DocumentImportType or DocumentExportType or CodeMigrationType or PdfTrustInspectionType))
             throw new ArgumentException("The document job type is unsupported.", nameof(type));
+        switch (payload)
+        {
+            case DocumentImportJobPayload import:
+                PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ImportCapability(import.Extension));
+                break;
+            case DocumentExportJobPayload export:
+                PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ExportCapability(export.Format));
+                break;
+            case CodeMigrationJobPayload:
+                PvadAccountCapabilityContext.Require("migration.pdf.code");
+                break;
+            case PdfTrustInspectionJobPayload:
+                PvadAccountCapabilityContext.Require("pdf.trust.inspect");
+                break;
+        }
         var organizationId = tenantContext.OrganizationId ??
             throw new UnauthorizedAccessException("An active organization is required.");
         var userId = tenantContext.UserId ??

@@ -5,12 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);CS1591;CS1570;CS1572;CS1573;CS1574;CS1584</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Esprima" Version="3.0.6" />
     <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+    <InternalsVisibleTo Include="PVAD.WebApi" />
   </ItemGroup>
 
 </Project>

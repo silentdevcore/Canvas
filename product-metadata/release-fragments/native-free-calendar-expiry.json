@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-free-calendar-expiry",
+  "impact": "major",
+  "components": ["account", "api", "sdk", "documentation"],
+  "category": "breaking",
+  "summary": "Free native registration licenses support three calendar months with no grace period. Updated native libraries are required to read the signed strict-expiry rule.",
+  "breaking": true,
+  "documentation": ["/docs/guides/PVAD.Native-Library-Activation.md", "/docs/native-library-licensing.md"]
+}

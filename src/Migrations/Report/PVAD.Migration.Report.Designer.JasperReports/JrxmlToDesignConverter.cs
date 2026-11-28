@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.JasperReports;
 
@@ -56,13 +57,27 @@ public sealed class JrxmlToDesignConverter
 
     public JrxmlConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "jasperreports");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal JrxmlConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "jasperreports");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public JrxmlConvertResult Convert(string jrxml, IReadOnlyDictionary<string, string>? subreportSources = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "jasperreports");
+        return ConvertAdmitted(jrxml, subreportSources);
+    }
+
+    internal JrxmlConvertResult ConvertAdmitted(string jrxml, IReadOnlyDictionary<string, string>? subreportSources = null)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "jasperreports");
         var previousSources = _subreportSources;
         var previousDepth = _subreportDepth;
         if (subreportSources is not null)
@@ -1619,8 +1634,19 @@ public sealed class JrxmlToDesignConverter
             yield return Path.Combine(Environment.CurrentDirectory, source);
     }
 
-    private static string StripJasperStringLiteral(string value) =>
-        value.Length >= 2 && value[0] == '"' && value[^1] == '"' ? value[1..^1] : value;
+    private static string StripJasperStringLiteral(string value)
+    {
+        if (value.Length < 2 || value[0] != '"' || value[^1] != '"') return value;
+        try
+        {
+            // JSON and Java share the common quoted path/string escapes.
+            return JsonSerializer.Deserialize<string>(value) ?? value[1..^1];
+        }
+        catch (JsonException)
+        {
+            return value[1..^1];
+        }
+    }
 
     private static bool IsLikelyBase64(string value) =>
         value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");

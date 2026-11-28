@@ -1,6 +1,7 @@
 namespace PVAD.Importer;
 
 using System.Security.Cryptography.X509Certificates;
+using PVAD.Licensing;
 
 public sealed record PdfImporterOptions
 {
@@ -50,9 +51,25 @@ public sealed class PdfImporter
         X509Certificate2? certificate,
         CancellationToken cancellationToken)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return await LoadAdmittedCoreAsync(pdfStream, password, certificate, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal Task<Document.PdfDocumentModel> LoadAdmittedAsync(Stream pdfStream, CancellationToken cancellationToken = default)
+        => LoadAdmittedCoreAsync(pdfStream, password: null, certificate: null, cancellationToken);
+
+    private async Task<Document.PdfDocumentModel> LoadAdmittedCoreAsync(
+        Stream pdfStream,
+        string? password,
+        X509Certificate2? certificate,
+        CancellationToken cancellationToken)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        cancellationToken.ThrowIfCancellationRequested();
         using var owner = await Infrastructure.PdfBuffer.FromStreamAsync(pdfStream, cancellationToken).ConfigureAwait(false);
-        var context = new Parsing.PdfParseContext(owner.Memory, _options, cancellationToken);
-        var xref = new Xref.PdfCrossReferenceParser().Parse(context);
+        // Parsed stream objects retain slices of the source beyond the pooled read buffer's lifetime.
+        var context = new Parsing.PdfParseContext(owner.Memory.ToArray(), _options, cancellationToken);
+        var xref = new Xref.PdfCrossReferenceParser().ParseAdmitted(context);
         var objectParser = new Parsing.PdfObjectParser(context, xref);
         Objects.PdfObjectGraph graph;
         if (Security.PdfDocumentDecryptor.IsEncrypted(xref))
@@ -64,18 +81,18 @@ public sealed class PdfImporter
             }
 
             graph = certificate is not null
-                ? Security.PdfDocumentDecryptor.ParseAndDecrypt(context, xref, certificate).Graph
-                : Security.PdfDocumentDecryptor.ParseAndDecrypt(context, xref, password!).Graph;
+                ? Security.PdfDocumentDecryptor.ParseAndDecryptAdmitted(context, xref, certificate).Graph
+                : Security.PdfDocumentDecryptor.ParseAndDecryptAdmitted(context, xref, password!).Graph;
         }
         else
         {
-            graph = objectParser.ParseDocumentGraph();
+            graph = objectParser.ParseDocumentGraphAdmitted();
         }
 
         return new Document.PdfDocumentBuilder(
                 new Content.PdfContentStreamParser(),
                 new Graphics.PdfGraphicsInterpreter(),
                 limits: _options.Limits)
-            .Build(graph);
+            .BuildAdmitted(graph);
     }
 }

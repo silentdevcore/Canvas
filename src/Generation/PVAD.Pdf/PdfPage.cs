@@ -11,6 +11,7 @@ namespace PVAD.Pdf;
 /// </summary>
 public sealed class PdfPage
 {
+    [System.Reflection.Obfuscation(Exclude = true)]
     private readonly List<PdfPageElement> _elements = new();
     private readonly List<PdfLinkAnnotation> _linkAnnotations = new();
     private readonly List<PdfComboBoxAnnotation> _comboBoxAnnotations = new();

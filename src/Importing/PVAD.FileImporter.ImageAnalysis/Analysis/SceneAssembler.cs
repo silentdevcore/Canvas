@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.Core.Contracts;
 using SkiaSharp;
 using System.Globalization;
@@ -18,6 +19,16 @@ public static class SceneAssembler
         ShapeDetectionResult shapes,
         TextAnalysisResult   texts)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return AssembleCore(colors, shapes, texts);
+    }
+
+    internal static IReadOnlyList<ImagePrimitive> AssembleCore(
+        ColorAnalysisResult  colors,
+        ShapeDetectionResult shapes,
+        TextAnalysisResult   texts)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var all = new List<ImagePrimitive>();
         int z   = 0;
 
@@ -459,6 +470,23 @@ public static class SceneAssembler
         ImageAnalysisOptions? options = null,
         string? fallbackImageDataUri = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ToDesignCore(primitives, background, imageWidthPx, imageHeightPx, scaleFactor, name, targetWidthPt, targetHeightPt, options, fallbackImageDataUri);
+    }
+
+    internal static DesignExportDto ToDesignCore(
+        IReadOnlyList<ImagePrimitive> primitives,
+        SKColor background,
+        int imageWidthPx,
+        int imageHeightPx,
+        double scaleFactor,
+        string name,
+        double? targetWidthPt  = null,
+        double? targetHeightPt = null,
+        ImageAnalysisOptions? options = null,
+        string? fallbackImageDataUri = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= ImageAnalysisOptions.Default;
 
         // Source page dimensions in points (after preprocessing downscale)

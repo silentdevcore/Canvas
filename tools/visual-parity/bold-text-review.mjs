@@ -8,6 +8,7 @@ import playwright from '../../pvad-designer/node_modules/@playwright/test/index.
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 import { comparePdfGlyphRun } from './text-metrics.mjs';
 import { boldTextPixelHash, matchesBoldTextApproval } from './bold-text-approval.mjs';
+import { withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = path.join(root, 'artifacts', 'bold-text-review');
@@ -20,7 +21,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 function run(command, args, extra = {}) {
   const result = command === 'magick'
     ? spawnImageMagick(args, { cwd: root, encoding: 'utf8', timeout: 30_000 })
-    : spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 180_000,
+    : spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: command === 'dotnet' ? 900_000 : 180_000,
       maxBuffer: 8 * 1024 * 1024, env: { ...process.env, ...extra } });
   if (result.status !== 0)
     throw new Error(`${command} failed: ${result.error?.message ?? ''}\n${result.stdout ?? ''}\n${result.stderr ?? ''}`);
@@ -30,7 +31,7 @@ function run(command, args, extra = {}) {
 async function prepare(entry) {
   const directory = path.join(output, entry.id);
   await mkdir(directory, { recursive: true });
-  run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-build', '--no-restore',
+  run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--disable-build-servers', '-m:1',
     '--filter', 'FullyQualifiedName~VisualParityArtifactTests', '--nologo'], {
     PVAD_VISUAL_PARITY_FIXTURE: entry.fixture, PVAD_VISUAL_PARITY_ARTIFACTS: directory,
   });
@@ -168,4 +169,4 @@ ${results.map(result => `<section><h2>${result.id}</h2><div class="images"><img 
   }
 }
 
-main().catch(error => { console.error(error.stack ?? error); process.exitCode = 1; });
+withNativeTestSession(main).catch(error => { console.error(error.stack ?? error); process.exitCode = 1; });

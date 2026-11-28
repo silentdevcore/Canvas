@@ -8,7 +8,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
+import { designerPermissionDenial, designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
 
 // "Use Template" and "Viewer" are intentionally absent: neither a spreadsheet
 // template gallery nor a standalone read-only spreadsheet viewer exists today
@@ -21,6 +21,8 @@ const SpreadsheetLayout: React.FC = () => {
   const { features } = useProductExperience();
   const { user } = useDesignerAuth();
   const permissionRequired = t('permissions.sidebarRequired');
+  const migrationPermissions = [designerPermissions.migrationSpreadsheetExecute, migrationKindPermission('spreadsheet', 'code', 'execute')];
+  const migrationDenial = designerPermissionDenial(user, migrationPermissions);
   const spreadsheetFeature = features.find(feature => feature.id === 'designer.spreadsheet');
 
   const spreadsheetSidebarItems: HubSidebarItem[] = [
@@ -41,10 +43,8 @@ const SpreadsheetLayout: React.FC = () => {
       disabled: !hasDesignerPermission(user, designerPermissions.spreadsheetImport), disabledReason: permissionRequired },
     { path: '/spreadsheet/convert', label: t('spreadsheetSidebar.convertToSpreadsheet'), icon: FiRefreshCw, disabled: true },
     { path: '/spreadsheet/migrations', label: t('spreadsheetSidebar.migrations'), icon: FiGitMerge,
-      disabled: !hasAnyDesignerPermission(user, [
-        designerPermissions.migrationSpreadsheetExecute,
-        migrationKindPermission('spreadsheet', 'code', 'execute'),
-      ]), disabledReason: permissionRequired },
+      disabled: !hasAnyDesignerPermission(user, migrationPermissions),
+      disabledReason: t(migrationDenial === 'approval' ? 'permissions.approvalSidebar' : 'permissions.sidebarRequired') },
   ];
 
   return (

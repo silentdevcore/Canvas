@@ -3,4 +3,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Shared/PvadTestEnvironment.cs" Link="Shared/PvadTestEnvironment.cs" />
   </ItemGroup>
+  <ItemGroup Condition="'$(PvadNativeLicenseTestBootstrap)' == 'true' And '$(MSBuildProjectName)' != 'PVAD.Licensing.Tests'">
+    <Compile Include="$(MSBuildThisFileDirectory)Shared/PvadNativeLicenseBootstrap.cs" Link="Shared/PvadNativeLicenseBootstrap.cs" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../src/Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+  </ItemGroup>
 </Project>

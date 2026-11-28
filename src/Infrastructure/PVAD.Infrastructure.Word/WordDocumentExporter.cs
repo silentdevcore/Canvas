@@ -7,6 +7,7 @@ using ZXing;
 using ZXing.Common;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -62,6 +63,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
 
     public byte[] Export(DesignExportDto design, ExportOptions? options)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Word, "export.docx");
         var cancellationToken = options?.CancellationToken ?? CancellationToken.None;
         var fidelityV2 = options?.WordFidelityV2 ?? true;
         cancellationToken.ThrowIfCancellationRequested();

@@ -108,6 +108,20 @@ checks. This change does not certify arbitrary font files, scripts or every
 operating-system rasterizer. Form-widget normal appearances continue to use
 their existing PDF appearance contract rather than arbitrary text-family styling.
 
+## Arabic And Mixed-Direction Text
+
+Arabic PDF text uses the packaged Noto Sans Arabic font. Mixed-direction
+shaping preserves the order of embedded numbers and Latin runs, including
+dates and currency amounts. The same font data is used by normal backend
+export and generated C# PDF output.
+
+Native text shaping owns its font bytes independently of the managed heap.
+Garbage collection and concurrent document generation must not change glyph
+advances, offsets, or measured text widths. This correction does not require
+new template settings or replacement font files. Existing font choices,
+direction settings, and visual comparison thresholds are unchanged; native
+rasterization differences between operating systems remain a separate concern.
+
 ## Dates, Timezones And Binding
 
 1. Insert a Date element and select it.

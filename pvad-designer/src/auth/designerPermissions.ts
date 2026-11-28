@@ -70,11 +70,63 @@ export const designerPermissions = {
 export type DesignerPermission = typeof designerPermissions[keyof typeof designerPermissions];
 
 export function hasDesignerPermission(user: DesignerUser, permission: DesignerPermission): boolean {
-  return user.permissions.includes(permission);
+  return user.permissions.includes(permission) && accountAllowsPermission(user, permission);
 }
 
 export function hasAnyDesignerPermission(user: DesignerUser, permissions: readonly string[]): boolean {
-  return permissions.some(permission => user.permissions.includes(permission));
+  return permissions.some(permission => user.permissions.includes(permission) && accountAllowsPermission(user, permission));
+}
+
+export function hasAccountCapability(user: DesignerUser | undefined, capability: string): boolean {
+  // Older servers omit this field. New servers always send an explicit list,
+  // including an empty list; the API remains the enforcement authority.
+  return user?.accountCapabilities === undefined || user.accountCapabilities.includes(capability);
+}
+
+export function formatCapability(direction: 'import' | 'export', format: string): string {
+  let normalized = format.trim().replace(/^\.+/, '').toLowerCase();
+  normalized = ({ markdown: 'md', jpg: 'jpeg', tif: 'tiff', htm: 'html', word: 'docx', excel: 'xlsx' } as Record<string, string>)[normalized] ?? normalized;
+  if (direction === 'import' && ['png', 'jpeg', 'gif', 'webp', 'bmp', 'tiff'].includes(normalized)) normalized = 'image';
+  return `${direction}.${normalized}`;
+}
+
+export function designerPermissionDenial(user: DesignerUser, permissions: readonly string[]): 'role' | 'account' | 'approval' | null {
+  if (hasAnyDesignerPermission(user, permissions)) return null;
+  const held = permissions.filter(permission => user.permissions.includes(permission));
+  if (held.length === 0) return 'role';
+  return held.some(permission => permission.startsWith('designer.migration.')) ? 'approval' : 'account';
+}
+
+function accountAllowsPermission(user: DesignerUser, permission: string): boolean {
+  const capability = ({
+    'designer.pdf.import': 'import.pdf',
+    'designer.pdf.signatures.sign': 'pdf.signature.sign',
+    'designer.pdf.signatures.key-providers.use': 'pdf.signature.sign',
+    'designer.pdf.signatures.key-providers.manage': 'pdf.signature.sign',
+    'designer.pdf.signatures.trust-policies.manage': 'pdf.trust.inspect',
+    'designer.pdf.signatures.validate': 'pdf.signature.validate',
+    'designer.pdf.redactions.apply': 'pdf.redaction.apply',
+    'designer.pdf-viewer.redact': 'pdf.redaction.apply',
+    'designer.pdf.redactions.inspect': 'pdf.redaction.inspect',
+    'designer.pdf.compliance.convert': 'pdf.compliance.convert',
+    'designer.pdf.compliance.validate': 'pdf.compliance.validate',
+    'designer.pdf.trust.inspect': 'pdf.trust.inspect',
+    'designer.pdf.e-invoices.create': 'pdf.e-invoice.create',
+    'designer.pdf.e-invoices.generate': 'pdf.e-invoice.create',
+    'designer.pdf.e-invoices.validate': 'pdf.e-invoice.validate',
+    'designer.pdf.e-invoices.read': 'pdf.e-invoice.read',
+    'designer.pdf.e-invoices.attach': 'pdf.e-invoice.attach',
+  } as Record<string, string>)[permission];
+  if (capability) return hasAccountCapability(user, capability);
+  if (permission.startsWith('designer.migration.')) {
+    const match = /^designer\.migration\.(pdf|spreadsheet|report)\.(code|viewer|designer)\./.exec(permission);
+    const domain = /^designer\.migration\.(pdf|spreadsheet|report)\./.exec(permission);
+    return match
+      ? hasAccountCapability(user, `migration.${match[1]}.${match[2]}`)
+      : user.accountCapabilities === undefined || user.accountCapabilities.some(value =>
+          value.startsWith(domain ? `migration.${domain[1]}.` : 'migration.'));
+  }
+  return true;
 }
 
 export function migrationKindPermission(

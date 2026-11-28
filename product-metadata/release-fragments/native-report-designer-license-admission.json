@@ -1,0 +1,10 @@
+{
+  "id": "native-report-designer-license-admission",
+  "impact": "major",
+  "components": ["migration", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Report Designer conversion now requires the selected provider license, including direct converters and resource parsing. Automatic detection resolves to a concrete provider, while built-in resource and subreport processing retain one admission without additional engine rights.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

@@ -1,0 +1,10 @@
+{
+  "id": "native-import-color-font-license-enforcement",
+  "impact": "major",
+  "components": ["importer", "documentation"],
+  "category": "breaking",
+  "summary": "PDF color conversion, function evaluation, and glyph decoding now require an Importer license, including processing through retained fonts and functions. License failures propagate instead of appearing as unsupported content.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

@@ -22,6 +22,7 @@ public sealed class OcrWorkerImagePage
 public sealed class OcrWorkerResponse
 {
     public bool Success { get; init; }
+    public string? LicenseErrorCode { get; init; }
     public string? Error { get; init; }
     public IReadOnlyList<OcrPage> Pages { get; init; } = [];
 }

@@ -1,7 +1,9 @@
 namespace PVAD.Migration.Pdf.Viewer.Nutrient;
 
+/// <summary>Provides synthetic Viewer migration inputs; accessing samples does not grant conversion rights.</summary>
 public static class NutrientViewerExamples
 {
+    /// <summary>Gets a synthetic TypeScript integration sample that must be transpiled before source conversion.</summary>
     public const string ComprehensiveTypeScript = """
         import NutrientViewer, {
           type Configuration,
@@ -40,6 +42,7 @@ public static class NutrientViewerExamples
         });
         """;
 
+    /// <summary>Gets synthetic Instant JSON annotations and form values for migration testing.</summary>
     public const string ComprehensiveInstantJson = """
         {
           "format": "https://pspdfkit.com/instant-json/v1",
@@ -100,6 +103,7 @@ public static class NutrientViewerExamples
         }
         """;
 
+    /// <summary>Gets source-page geometry corresponding to the synthetic Instant JSON sample.</summary>
     public static IReadOnlyList<NutrientPageGeometry> ComprehensivePageGeometry { get; } =
     [
         new(595, 842),

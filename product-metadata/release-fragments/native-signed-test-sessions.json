@@ -1,0 +1,11 @@
+{
+  "id": "native-signed-test-sessions",
+  "impact": "none",
+  "components": ["infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Native license regression workflows now share isolated signed test sessions with cleanup and publication guards.",
+  "reason": "This changes internal test and CI orchestration only; native product licensing requirements remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

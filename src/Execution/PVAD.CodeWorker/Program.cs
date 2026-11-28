@@ -8,6 +8,7 @@ using PVAD.CodeWorker;
 using PVAD.Core.Contracts;
 using PVAD.Generator;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 return await RunAsync(args);
 
@@ -17,6 +18,9 @@ static async Task<int> RunAsync(string[] args)
     var response = new PvadCodeWorkerResponse();
     try
     {
+        var accountCapabilities = Environment.GetEnvironmentVariable("PVAD_ACCOUNT_CAPABILITIES");
+        using var accountScope = accountCapabilities is null ? null : PvadAccountCapabilityContext.Restore(
+            JsonSerializer.Deserialize<string[]>(accountCapabilities) ?? []);
         var requestBytes = await File.ReadAllBytesAsync(args[0]);
         if (requestBytes.Length > PvadCodeLimits.MaximumWorkerRequestBytes) throw new InvalidOperationException("PVADCODE009: Worker request is too large.");
         var request = JsonSerializer.Deserialize<PvadCodeWorkerRequest>(requestBytes,
@@ -45,6 +49,13 @@ static async Task<int> RunAsync(string[] args)
         }
         else
         {
+            // Host configuration is consumed outside the script. Scripts cannot access
+            // the environment, filesystem, or licensing APIs through the sandbox.
+            var revocationPath = Environment.GetEnvironmentVariable("PVAD_NATIVE_REVOCATIONS_PATH");
+            if (!string.IsNullOrWhiteSpace(revocationPath)) PvadLicense.ImportRevocationsFromFile(revocationPath);
+            var licensePath = Environment.GetEnvironmentVariable("PVAD_NATIVE_LICENSE_PATH");
+            if (!string.IsNullOrWhiteSpace(licensePath)) PvadLicense.LoadFromFile(licensePath);
+            _ = PvadLicense.Require(PvadLicenseProducts.Pdf);
             var options = ScriptOptions.Default.WithReferences(references)
                 .AddReferences(typeof(PdfDocument).Assembly)
                 .AddReferences(typeof(PvadPdfCodeBuilder).Assembly)
@@ -79,6 +90,14 @@ static async Task<int> RunAsync(string[] args)
             }
         }
         response.Success = response.CanonicalDesign is not null;
+    }
+    catch (PvadLicenseException exception)
+    {
+        response.Diagnostics.Add(new PvadCodeDiagnosticDto
+        {
+            Code = exception.Code, Severity = "error",
+            Message = "The native PDF license is unavailable. Contact the server operator.",
+        });
     }
     catch (CompilationErrorException exception)
     {
@@ -175,6 +194,13 @@ static List<MetadataReference> TrustedReferences() =>
 
 static async Task<int> WriteAsync(string path, PvadCodeWorkerResponse response)
 {
+    if (!response.Success)
+    {
+        response.CanonicalDesign = null;
+        response.PdfBytes = null;
+        response.SourceMap.Clear();
+        response.Fidelity = PvadCodeFidelity.Unsupported;
+    }
     await File.WriteAllTextAsync(path, JsonSerializer.Serialize(response, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

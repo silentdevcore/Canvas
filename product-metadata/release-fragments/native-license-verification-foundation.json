@@ -1,0 +1,10 @@
+{
+  "id": "native-license-verification-foundation",
+  "impact": "minor",
+  "components": ["sdk", "documentation"],
+  "category": "added",
+  "summary": "Added an offline native-license verification foundation with explicit Trial, subscription grace-period, and perpetual update-eligibility status.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

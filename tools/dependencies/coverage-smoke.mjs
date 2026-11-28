@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { nativeTestAssemblyPath, withNativeTestSession } from '../native-licensing/test-session.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const settings = join(root, 'tools/dependencies/coverage.runsettings');
@@ -136,6 +137,9 @@ function run(output) {
   const projects = collectorProjects();
   assert.equal(projects.length, expectedCollectorCount, 'Collector project catalog changed; review smoke coverage');
   mkdirSync(output, { recursive: true });
+  if (!existsSync(nativeTestAssemblyPath('tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj', 'Release')))
+    execFileSync('dotnet', ['build', 'PVAD.sln', '--configuration', 'Release', '--disable-build-servers', '-m:1'],
+      { cwd: root, stdio: 'inherit', timeout: 900_000 });
   const results = [];
   for (const project of projects) {
     assert.ok(Object.hasOwn(filters, project.name) || project.name.startsWith('PVAD.Migration.'), `Missing selection for ${project.name}`);
@@ -179,6 +183,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     audit(resolve(process.argv[3]));
   } else {
     assert.equal(process.argv.length, 3, 'Usage: coverage-smoke.mjs new-output-directory');
-    run(resolve(process.argv[2]));
+    await withNativeTestSession(() => run(resolve(process.argv[2])));
   }
 }

@@ -3,9 +3,19 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { apiListeningAddress, childEnvironment, gatewayAddress, removeOwnedResources, runOperatorBrowserRehearsal } from './operator-browser-rehearsal.mjs';
+import { closeNativeTestSession, createNativeTestSession, nativeTestEnvironment } from '../native-licensing/test-session.mjs';
 import { assertOperatorIdentityHeaders } from './operator-browser-scenarios.mjs';
 import { gatewayProtocol } from './operator-gateway-rehearsal.mjs';
 
+test('browser child processes inherit validated native test configuration without customer settings', () => {
+  const session = createNativeTestSession();
+  try {
+    const environment = childEnvironment({ ...session.environment, ConnectionStrings__PvadDatabase: 'customer-database',
+      PVAD_BOOTSTRAP_ADMIN_PASSWORD: 'private', HTTP_PROXY: 'private' });
+    assert.deepEqual(nativeTestEnvironment(environment), session.environment);
+    for (const key of ['ConnectionStrings__PvadDatabase', 'PVAD_BOOTSTRAP_ADMIN_PASSWORD', 'HTTP_PROXY']) assert.equal(environment[key], undefined);
+  } finally { closeNativeTestSession(session.descriptor); }
+});
 test('operator identity requires the canonical header and rejects retired output even when values match', async () => {
   const { legacyOperatorHeader } = await gatewayProtocol();
   const identity = 'pvad-' + 'a'.repeat(24);

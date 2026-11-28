@@ -1,0 +1,489 @@
+name: PVAD Native Library Licensing
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'src/Licensing/**'
+      - 'src/Core/PVAD.Domain/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Persistence/**'
+      - 'src/Generation/PVAD.Pdf/**'
+      - 'src/Generation/PVAD.Generator/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Word/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Spreadsheet/**'
+      - 'src/Infrastructure/PVAD.Infrastructure.Converters/**'
+      - 'src/Importing/**'
+      - 'src/Execution/PVAD.CodeWorker/**'
+      - 'PVAD.WebApi/**'
+      - 'websites/PVAD.Admin/**'
+      - 'websites/PVAD.Account/**'
+      - 'tools/PVAD.LicenseIssuer/**'
+      - 'tools/native-licensing/**'
+      - 'operator-docs/PVAD.Native-Library-License-Issuance.md'
+      - 'docs/guides/PVAD.Native-Library-Activation.md'
+      - 'tests/PVAD.Licensing.Tests/**'
+      - 'tests/Directory.Build.props'
+      - 'tests/Shared/PvadNativeLicenseBootstrap.cs'
+      - 'tests/PVAD.Api.Tests/**'
+      - 'tests/PVAD.Infrastructure.Word.Tests/**'
+      - 'tests/PVAD.Infrastructure.Spreadsheet.Tests/**'
+      - 'tests/PVAD.Infrastructure.Converters.Tests/**'
+      - 'tests/PVAD.Infrastructure.Pdf.Tests/**'
+      - 'tests/PVAD.Generator.Tests/**'
+      - 'tests/PVAD.Importer.Tests/**'
+      - 'tests/PVAD.FileImporter.Tests/**'
+      - 'tests/PVAD.FileImporter.ImageAnalysis.Tests/**'
+      - 'tests/PVAD.FileImporter.ImageOcr.Tests/**'
+      - 'src/Migrations/Common/PVAD.Migration.Abstractions/**'
+      - 'src/Migrations/Common/PVAD.Migration.Roslyn/**'
+      - 'src/Migrations/PDF/**'
+      - 'src/Migrations/Spreadsheet/**'
+      - 'src/Migrations/Report/**'
+      - 'tests/PVAD.Migration.Pdf*/**'
+      - 'tests/PVAD.Migration.Spreadsheet*/**'
+      - 'tests/PVAD.Migration.Report*/**'
+      - 'product-metadata/native-library-products.v1.json'
+      - 'product-metadata/native-library-dependencies.v1.json'
+      - 'product-metadata/native-code-migration-entries.v1.json'
+      - 'product-metadata/native-report-migration-entries.v1.json'
+      - 'product-metadata/native-file-importer-entries.v1.json'
+      - 'product-metadata/native-importer-public-surface.v1.json'
+      - 'product-metadata/pvad-releases.json'
+      - 'tools/versioning/**'
+      - 'Directory.Build.props'
+      - 'Directory.Build.targets'
+      - 'VERSION'
+      - '.github/workflows/native-library-licensing.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  licensing:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+      DOTNET_PROCESSOR_COUNT: '2'
+    steps:
+      - name: Preserve source bytes on Windows
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install pinned workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Validate native metadata and preparation contracts
+        run: node --test tools/native-licensing/*.test.mjs
+      - name: Rehearse encrypted support retention using disposable recipient keys
+        run: node tools/native-licensing/support-retention-rehearsal.mjs
+      - name: Test signed license verification and all registered provider grants
+        run: dotnet test tests/PVAD.Licensing.Tests/PVAD.Licensing.Tests.csproj -c Release --logger "trx;LogFileName=native-licensing.trx" --results-directory artifacts/native-licensing-tests
+      - name: Rehearse a protected synthetic package without publishing
+        run: node tools/native-licensing/pvad-native-licensing.mjs rehearse
+      - name: Prepare Linux OCR runtime for signed admission tests
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libtesseract5 liblept5
+          native="$PWD/src/Importing/PVAD.FileImporter.ImageOcr/native"
+          mkdir -p "$native/x64"
+          ln -s /usr/lib/x86_64-linux-gnu/liblept.so.5 "$native/x64/libleptonica-1.82.0.so"
+          ln -s /usr/lib/x86_64-linux-gnu/libtesseract.so.5 "$native/x64/libtesseract50.so"
+          ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 "$native/libdl.so"
+          echo "LD_LIBRARY_PATH=$native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+      - name: Prepare macOS OCR runtime for signed admission tests
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install tesseract leptonica
+          native="$PWD/src/Importing/PVAD.FileImporter.ImageOcr/native"
+          mkdir -p "$native/x64"
+          ln -s "$(brew --prefix leptonica)/lib/libleptonica.dylib" "$native/x64/libleptonica-1.82.0.dylib"
+          ln -s "$(brew --prefix tesseract)/lib/libtesseract.dylib" "$native/x64/libtesseract50.dylib"
+      - name: Verify direct PDF admission and non-destructive export failures
+        run: node tools/native-licensing/with-test-license.mjs pdf
+      - name: Verify offline revocations and Code/OCR worker propagation
+        run: node tools/native-licensing/with-test-license.mjs revocation
+      - name: Verify direct Word export and signing admission
+        run: node tools/native-licensing/with-test-license.mjs word
+      - name: Verify Spreadsheet admission, retained handles, and non-destructive IO
+        run: node tools/native-licensing/with-test-license.mjs spreadsheet
+      - name: Verify Converter admission, interfaces, output formats, and continuations
+        run: node tools/native-licensing/with-test-license.mjs converter
+      - name: Verify all 24 Code migration providers and cross-domain provider isolation
+        run: node tools/native-licensing/with-test-license.mjs migration-code
+      - name: Verify native Viewer entry admission and callback isolation
+        run: node tools/native-licensing/with-test-license.mjs migration-viewer
+      - name: Verify all eight Report Designer providers and native entry overloads
+        run: node tools/native-licensing/with-test-license.mjs migration-report
+      - name: Test Report Designer providers, resource continuations, detection and API compatibility
+        run: node tools/native-licensing/report-regressions.mjs
+      - name: Test existing Nutrient Viewer output and diagnostics with signed grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests/PVAD.Migration.Pdf.Viewer.Nutrient.Tests.csproj --verbosity minimal
+      - name: Test separate Viewer and Designer licenses through real API routes
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativeViewerMigrationLicenseTests|FullyQualifiedName~NutrientViewerMigrationControllerTests|FullyQualifiedName~MigrationControllerTests|FullyQualifiedName~UnifiedMigrationsControllerTests|FullyQualifiedName~PvadDesignerMigrationAccessTests" --verbosity minimal
+      - name: Test PDF migration factories and compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Pdf.Tests/PVAD.Migration.Pdf.Tests.csproj --verbosity minimal
+      - name: Test Spreadsheet migration wrappers with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Migration.Spreadsheet.Tests/PVAD.Migration.Spreadsheet.Tests.csproj --verbosity minimal
+      - name: Test Converter compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Converters.Tests/PVAD.Infrastructure.Converters.Tests.csproj --verbosity minimal
+      - name: Verify all public Importer APIs, native admission, and independent OCR worker handoff
+        run: node tools/native-licensing/importer-surface.mjs verify
+      - name: Test image analysis compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.ImageAnalysis.Tests/PVAD.FileImporter.ImageAnalysis.Tests.csproj --verbosity minimal
+      - name: Test OCR compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.ImageOcr.Tests/PVAD.FileImporter.ImageOcr.Tests.csproj --verbosity minimal
+      - name: Test Word exporter compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Word.Tests/PVAD.Infrastructure.Word.Tests.csproj --verbosity minimal
+      - name: Test Spreadsheet compatibility with signed native grants
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Spreadsheet.Tests/PVAD.Infrastructure.Spreadsheet.Tests.csproj --verbosity minimal
+      - name: Test built-in file importer compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.FileImporter.Tests/PVAD.FileImporter.Tests.csproj --verbosity minimal
+      - name: Test existing PDF importer and Trust compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Importer.Tests/PVAD.Importer.Tests.csproj --verbosity minimal
+      - name: Test shared PDF writer and Generator compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Generator.Tests/PVAD.Generator.Tests.csproj --verbosity minimal
+      - name: Test PDF infrastructure compatibility
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Infrastructure.Pdf.Tests/PVAD.Infrastructure.Pdf.Tests.csproj --verbosity minimal
+      - name: Test API diagnostics, exports, and licensed code-worker handoff
+        run: node tools/native-licensing/with-test-license.mjs test tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj --filter "FullyQualifiedName~PvadNativePdfLicenseTests|FullyQualifiedName~PvadNativeWordLicenseTests|FullyQualifiedName~PvadNativeSpreadsheetLicenseTests|FullyQualifiedName~PvadNativeConverterLicenseTests|FullyQualifiedName~PvadNativeCodeMigrationLicenseTests|FullyQualifiedName~PvadNativeImporterLicenseTests|FullyQualifiedName~PvadNativeTrustLicenseTests|FullyQualifiedName~ExportControllerTests|FullyQualifiedName~SpreadsheetControllerTests|FullyQualifiedName~DocumentOpsControllerTests|FullyQualifiedName~MigrationGeneratedCodeExecutionTests|FullyQualifiedName~CodeWorkspaceConversionTests|FullyQualifiedName~PvadDesignerAccessProblemTests|FullyQualifiedName~PdfTrust|FullyQualifiedName~PdfSignature|FullyQualifiedName~PdfRedaction|FullyQualifiedName~PdfViewerRedaction|FullyQualifiedName~PdfViewerAnnotationsControllerTests|FullyQualifiedName~PdfEInvoice|FullyQualifiedName~PvadPdfTrust|FullyQualifiedName~PvadEInvoice|FullyQualifiedName~PvadRedaction" --verbosity minimal
+      - name: Upload content-free evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-license-evidence-${{ matrix.os }}
+          path: |
+            artifacts/native-licensing-tests/*.trx
+            artifacts/native-licensing/*/report.json
+            artifacts/native-support-retention/*/report.json
+            artifacts/native-support-retention/*/cleanup.json
+            artifacts/native-engine-tests/*/run.json
+            artifacts/native-engine-tests/*/pdf-admission.json
+            artifacts/native-engine-tests/*/revocation-admission.json
+            artifacts/native-engine-tests/*/word-admission.json
+            artifacts/native-engine-tests/*/spreadsheet-admission.json
+            artifacts/native-engine-tests/*/converter-admission.json
+            artifacts/native-engine-tests/*/migration-code-admission.json
+            artifacts/native-engine-tests/*/migration-viewer-admission.json
+            artifacts/native-engine-tests/*/migration-report-admission.json
+            artifacts/native-test-sessions/*/report-*.trx
+            artifacts/native-test-sessions/*/report-process-results.json
+            artifacts/native-test-sessions/*/report-sources-unchanged.json
+            artifacts/native-test-sessions/*/cleanup.json
+            artifacts/native-engine-tests/*/importer-admission.json
+            artifacts/native-engine-tests/*/image-admission.json
+            artifacts/native-test-sessions/*/surface-validation.json
+            artifacts/native-engine-tests/*/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+
+  font-raster-diagnostics:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+      DOTNET_PROCESSOR_COUNT: '2'
+    steps:
+      - name: Preserve source bytes on Windows
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Investigate fixed synthetic font raster repeatability
+        run: node tools/native-licensing/raster-repeatability.mjs
+      - name: Upload native font diagnostic reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-font-repeatability-windows-2025
+          path: |
+            artifacts/native-font-repeatability/*/report.json
+            artifacts/native-font-repeatability/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  generator-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse joint Generator packages without publication
+        run: node tools/native-licensing/joint-package-rehearsal.mjs
+      - name: Rehearse protected Importer packages and OCR worker boundaries
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --importer
+      - name: Compile and execute the public native activation example
+        run: node tools/native-licensing/activation-guide-check.mjs
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-generator-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload activation guide evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-activation-guide-evidence
+          path: |
+            artifacts/native-activation-guide/*/report.json
+            artifacts/native-activation-guide/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  execution-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse protected Converter packages and CodeWorker execution
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --execution
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-execution-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  migration-package-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate joint packaging contracts
+        run: node --test tools/native-licensing/joint-package-rehearsal.test.mjs
+      - name: Rehearse all native packages and Migration providers
+        run: node tools/native-licensing/joint-package-rehearsal.mjs --migrations
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-migration-protection-evidence
+          path: |
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  platform-package-protection:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+      DOTNET_PROCESSOR_COUNT: '2'
+    steps:
+      - name: Preserve source bytes on Windows
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install contract parsers
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install Linux native runtime and PDF tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils libtesseract5 liblept5
+      - name: Install macOS native runtime and PDF tools
+        if: runner.os == 'macOS'
+        run: brew install poppler tesseract leptonica
+      - name: Install Windows PDF tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install poppler --version=26.9.0 --yes --no-progress --limit-output
+          if ($LASTEXITCODE -ne 0) { throw "Poppler installation failed: $LASTEXITCODE" }
+          $binary = Get-ChildItem "$env:ChocolateyInstall\lib\poppler" -Recurse -Filter pdftoppm.exe | Select-Object -First 1
+          if (-not $binary) { throw 'Poppler executable was not installed' }
+          $binary.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          magick -version
+          if ($LASTEXITCODE -ne 0) { throw 'ImageMagick is unavailable' }
+      - name: Validate platform evidence contracts
+        run: node --test tools/native-licensing/platform-package-check.test.mjs
+      - name: Verify all protected packages with real OCR and CodeWorker
+        run: node tools/native-licensing/platform-package-check.mjs
+      - name: Upload content-free platform evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-platform-package-evidence-${{ matrix.os }}
+          path: |
+            artifacts/native-platform-packages/*/report.json
+            artifacts/native-platform-packages/*/cleanup.json
+            artifacts/native-joint-packages/*/report.json
+            artifacts/native-joint-packages/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload fixed synthetic Converter raster review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-converter-raster-review-${{ matrix.os }}
+          path: |
+            artifacts/native-joint-packages/*/raster-review/index.html
+            artifacts/native-joint-packages/*/raster-review/report.json
+            artifacts/native-joint-packages/*/raster-review/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+  webapi-protection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Install workflow-contract parser dependencies
+        run: npm ci --prefix pvad-designer --ignore-scripts --no-audit --no-fund
+      - name: Install local PDF comparison tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Validate protected host contracts
+        run: node --test tools/native-licensing/webapi-protection-rehearsal.test.mjs
+      - name: Verify the isolated jointly rewritten WebApi and workers
+        run: node tools/native-licensing/webapi-protection-rehearsal.mjs
+      - name: Upload non-secret reports only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: joint-webapi-protection-evidence
+          path: |
+            artifacts/native-webapi-protection/*/report.json
+            artifacts/native-webapi-protection/*/cleanup.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  native-issuer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PVAD_RUN_POSTGRES_TESTS: '1'
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+      MSBUILDNOINPROCNODE: '1'
+      DOTNET_CLI_USE_MSBUILD_SERVER: '0'
+      MSBUILDDISABLENODEREUSE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Test manufacturer issuance and immutable renewal against PostgreSQL
+        run: node tools/native-licensing/with-test-license.mjs native-issuer
+      - name: Upload synthetic test results and cleanup evidence only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-issuer-evidence
+          path: |
+            artifacts/native-engine-tests/*/licensed-tests.trx
+            artifacts/native-engine-tests/*/run.json
+          if-no-files-found: warn
+          retention-days: 14

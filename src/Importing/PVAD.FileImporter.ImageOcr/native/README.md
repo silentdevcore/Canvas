@@ -3,6 +3,13 @@
 This folder contains app-owned native libraries used by the embedded Tesseract
 adapter.
 
+Application-managed does not mean authored by PVAD or approved for
+redistribution. The fifteen ignored local dylibs have hash-bound inventory
+entries but no verified build receipts, exact upstream versions or complete
+component notices. These remain release blockers in the
+[runtime asset registry](../../../../assets/licenses/runtime-assets/README.md).
+Filename/ABI compatibility numbers must not be treated as version provenance.
+
 Current macOS x64 bundle:
 
 - `x64/libleptonica-1.82.0.dylib`

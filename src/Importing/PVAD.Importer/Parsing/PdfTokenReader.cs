@@ -21,7 +21,7 @@ internal ref struct PdfTokenReader
     {
         if (!_hasLookahead)
         {
-            return _tokenizer.ReadToken();
+            return _tokenizer.ReadTokenAdmitted();
         }
 
         var token = _lookahead;
@@ -37,14 +37,14 @@ internal ref struct PdfTokenReader
             return _lookahead;
         }
 
-        _lookahead = _tokenizer.ReadToken();
+        _lookahead = _tokenizer.ReadTokenAdmitted();
         _hasLookahead = true;
         return _lookahead;
     }
 
     public void Seek(int position)
     {
-        _tokenizer.Seek(position);
+        _tokenizer.SeekAdmitted(position);
         _lookahead = default;
         _hasLookahead = false;
     }

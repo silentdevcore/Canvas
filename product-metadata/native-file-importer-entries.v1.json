@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "scope": "registry-file-importer-processing-entry-points",
+  "entries": [
+    { "key": "doc", "type": "DocFileImporter", "publicProcessingOverloads": 2 },
+    { "key": "docx", "type": "DocxFileImporter", "publicProcessingOverloads": 2 },
+    { "key": "image", "type": "ImageFileImporter", "publicProcessingOverloads": 2 },
+    { "key": "md", "type": "MarkdownFileImporter", "publicProcessingOverloads": 4 },
+    { "key": "odt", "type": "OdtFileImporter", "publicProcessingOverloads": 2 },
+    { "key": "pdf", "type": "PdfFileImporter", "publicProcessingOverloads": 4 },
+    { "key": "pptx", "type": "PptxFileImporter", "publicProcessingOverloads": 2 },
+    { "key": "svg", "type": "SvgFileImporter", "publicProcessingOverloads": 2 }
+  ]
+}

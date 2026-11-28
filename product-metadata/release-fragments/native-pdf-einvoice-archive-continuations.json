@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-einvoice-archive-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted invoice attachment, extraction and archival conversion retain their license admission through built-in processing. New calls and custom providers still check current rights; modification approvals and validation rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

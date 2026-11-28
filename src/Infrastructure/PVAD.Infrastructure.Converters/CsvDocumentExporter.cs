@@ -1,6 +1,7 @@
 using System.Text;
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Converters;
 
@@ -13,6 +14,7 @@ public sealed class CsvDocumentExporter : DocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.ConverterExport, "export.csv");
         var sb = new StringBuilder();
 
         // UTF-8 BOM so Excel opens it correctly

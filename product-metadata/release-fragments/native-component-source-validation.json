@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-component-source-validation",
+  "impact": "none",
+  "components": ["importer", "infrastructure", "documentation"],
+  "category": "fixed",
+  "summary": "Improved internal validation of native component source and font build evidence.",
+  "breaking": false,
+  "reason": "Internal evidence checks, reference metadata, regression tests and reports only; no shipped runtime behavior, assets or distribution approvals change."
+}

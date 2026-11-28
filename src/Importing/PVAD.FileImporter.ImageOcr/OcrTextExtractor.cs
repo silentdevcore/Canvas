@@ -19,10 +19,13 @@ internal sealed class OcrTextExtractor
         IReadOnlyList<string> preprocessingSteps,
         CancellationToken cancellationToken = default)
     {
-        var pages = await _ocrEngine.RecognizeAsync(
-            [new OcrImagePage(0, ocrWidthPx, ocrHeightPx, encodedImageBytes)],
-            options,
-            cancellationToken);
+        OcrImagePage[] input = [new OcrImagePage(0, ocrWidthPx, ocrHeightPx, encodedImageBytes)];
+        var pages = await (_ocrEngine switch
+        {
+            EmbeddedTesseractOcrEngine embedded => embedded.RecognizeAdmittedAsync(input, options, cancellationToken),
+            ProcessIsolatedTesseractOcrEngine isolated => isolated.RecognizeAdmittedAsync(input, options, cancellationToken),
+            _ => _ocrEngine.RecognizeAsync(input, options, cancellationToken),
+        }).ConfigureAwait(false);
 
         var scaleX = sourceWidthPx / (double)Math.Max(1, ocrWidthPx);
         var scaleY = sourceHeightPx / (double)Math.Max(1, ocrHeightPx);

@@ -1,4 +1,5 @@
 using PVAD.Pdf;
+using PVAD.Licensing;
 using PVAD.Core.Contracts;
 using PVAD.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -80,6 +81,7 @@ public sealed class ImageConversionController : ControllerBase
 
         try
         {
+            using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr);
             _logger?.LogInformation(
                 PvadLogEvents.OcrImportStarted,
                 "Starting image OCR import ({FileLength} bytes), debug={Debug}, diagnostics={Diagnostics}, overlay={Overlay}, ocrPages={OcrPages}",
@@ -90,7 +92,7 @@ public sealed class ImageConversionController : ControllerBase
                 includeOcrPages);
 
             await using var stream = file.OpenReadStream();
-            var result = await _converter.ConvertAsync(
+            var result = await _converter.ConvertAdmittedAsync(
                 stream,
                 file.FileName,
                 new ImageToPdfConversionOptions
@@ -136,8 +138,7 @@ public sealed class ImageConversionController : ControllerBase
                 });
             }
 
-            var document = DesignJsonMapper.MapToPdfDocument(result.Design, _fontLoader);
-            var pdfBytes = document.ToBytes();
+            var pdfBytes = DesignJsonMapper.RenderImportedImage(result.Design, _fontLoader);
             var safeName = SanitizeFileName(Path.GetFileNameWithoutExtension(file.FileName));
             return File(pdfBytes, "application/pdf", $"{safeName}.pdf");
         }

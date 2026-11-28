@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-runtime-asset-notices",
+  "impact": "patch",
+  "components": ["sdk", "importer", "api", "designer", "documentation"],
+  "category": "improved",
+  "summary": "Included source-linked font and OCR notices with application builds and native OCR packages, with explicit reporting of unresolved attribution.",
+  "breaking": false
+}

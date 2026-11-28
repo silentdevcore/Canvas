@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.Net;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.Rdl;
 
@@ -54,15 +55,29 @@ public sealed class RdlToDesignConverter
     /// <summary>Validates the input and converts it (symmetry with the DevExpress converter's entry point).</summary>
     public RdlConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rdl");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal RdlConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rdl");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     // ── RDL XML → RawReport ────────────────────────────────────────────────────────────────────────
 
     public RdlConvertResult Convert(string rdlXml)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "rdl");
+        return ConvertAdmitted(rdlXml);
+    }
+
+    internal RdlConvertResult ConvertAdmitted(string rdlXml)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "rdl");
         if (string.IsNullOrWhiteSpace(rdlXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(rdlXml));
 

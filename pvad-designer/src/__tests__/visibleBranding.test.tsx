@@ -82,7 +82,7 @@ describe('Account diagnostic rendering', () => {
     expect(host(page.message('info', 'PVAD Customer Ltd.')).textContent).toBe('PVAD Customer Ltd.');
   });
   test.each([
-    ['licenses', 'licensesPage', ['licenseRow'], { licenses: [], validation: {} }],
+    ['licenses', 'licensesPage', ['licenseRow', 'nativeLicensesSection'], { licenses: [], validation: {}, native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null }],
     ['subscription', 'subscriptionPage', [], { subscription: null }],
     ['usage', 'usagePage', [], { subscription: null, usage: null }],
     ['security', 'securityPage', ['sessionRow'], { sessions: [] }],
@@ -99,8 +99,9 @@ describe('Account diagnostic rendering', () => {
     const state = { loaded: true, loading: false, error: null,
       licenses: [{ id: 'license-1', licenseNumber: 'PVAD-CUSTOMER-001', edition: 'Enterprise',
         deploymentMode: 'OnPremise', status: 'Active', instanceLimit: 1,
-        validFrom: '2026-01-01', validUntil: '2027-01-01' }], validation: { 'license-1': message } };
-    const page = functions('websites/PVAD.Account/src/pages/licenses.ts', ['licenseRow', 'licensesPage'], {
+        validFrom: '2026-01-01', validUntil: '2027-01-01' }], validation: { 'license-1': message },
+      native: [], nativeError: null, nativePage: 1, nativeTotal: 0, nativeDetail: null };
+    const page = functions('websites/PVAD.Account/src/pages/licenses.ts', ['licenseRow', 'nativeLicensesSection', 'licensesPage'], {
       state, escapeHtml, accountLicenseDownloadUrl: (id: string) => `/api/pvad/v1/account/licenses/${id}/download`,
     });
     const element = host(page.licensesPage());
@@ -108,6 +109,24 @@ describe('Account diagnostic rendering', () => {
     expect(element.querySelector('td')?.textContent).toContain('PVAD-CUSTOMER-001');
     expect(element.querySelector('a')?.getAttribute('href')).toBe('/api/pvad/v1/account/licenses/license-1/download');
     expect(state.validation['license-1']).toBe(message);
+  });
+
+  test('native library diagnostics use the actual section and preserve license/download identities', () => {
+    const state = { loaded: true, loading: false, error: null, licenses: [], validation: {},
+      native: [{ id: 'native-synthetic-1', model: 'subscription', validUntil: '2027-01-01' }],
+      nativeError: message, nativePage: 1, nativeTotal: 1, nativeDetail: null };
+    const before = JSON.stringify(state);
+    const page = functions('websites/PVAD.Account/src/pages/licenses.ts', ['licenseRow', 'nativeLicensesSection', 'licensesPage'], {
+      state, escapeHtml, accountNativeLicenseDownloadUrl: (id: string) => `/api/pvad/v1/account/native-licenses/${id}/download`,
+    });
+    const element = host(page.licensesPage());
+    expect(element.querySelector('[role="alert"]')?.textContent).toBe(shown);
+    expect(element.querySelector('img')).toBeNull();
+    const row = element.querySelector('.account-native-detail')?.closest('tr');
+    expect(row?.textContent).toContain('native-synthetic-1');
+    expect(row?.querySelector('a')?.getAttribute('href')).toBe('/api/pvad/v1/account/native-licenses/native-synthetic-1/download');
+    expect(element.textContent).toContain('Native library licenses');
+    expect(JSON.stringify(state)).toBe(before);
   });
 
   test.each(['PVADAPI010', 'PVADAPI015', 'PVADAPI016', 'PVADAPI018'])('login handles %s with projected text and unchanged diagnostics', async code => {

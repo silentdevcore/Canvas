@@ -13,6 +13,8 @@ using PVAD.Importer.Signing;
 using PVAD.WebApi.Security;
 using PVAD.WebApi.Services.Pdf;
 
+using PVAD.Licensing;
+
 namespace PVAD.WebApi.Controllers;
 
 [ApiController]
@@ -76,6 +78,7 @@ public sealed class PdfRedactionsController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             return Ok(await preflight.PreflightAsync(stream, parsedRegions, null, cancellationToken));
         }
@@ -152,6 +155,7 @@ public sealed class PdfRedactionsController(
 
         try
         {
+            PvadLicense.Require(PvadLicenseProducts.Importer);
             await using var stream = file.OpenReadStream();
             var result = await applier.ApplyAsync(
                 stream,
@@ -279,6 +283,8 @@ public sealed class PdfRedactionsController(
                 "PVADPDFREDACTAPI009");
         }
 
+        // Returning retained evidence includes cryptographic verification, not just metadata.
+        PvadLicense.Require(PvadLicenseProducts.Importer);
         var normalizedHash = recordSha256.ToLowerInvariant();
         var auditJson = await dbContext.AuditEvents.AsNoTracking()
             .Where(value => value.OrganizationId == organizationId &&

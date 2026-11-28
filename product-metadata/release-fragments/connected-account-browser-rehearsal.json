@@ -1,0 +1,11 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "connected-account-browser-rehearsal",
+  "impact": "none",
+  "components": ["account", "designer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Internal browser checks exercise account workflows and signed license renewal against an isolated backend.",
+  "breaking": false,
+  "reason": "This change adds local test tooling and review evidence without changing shipped application behavior or license terms.",
+  "documentation": ["/tools/native-licensing/README.md"]
+}

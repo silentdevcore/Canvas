@@ -4,6 +4,7 @@ using PVAD.Application.UseCases;
 using PVAD.WebApi.Infrastructure;
 using PVAD.Core.Primitives;
 using Microsoft.AspNetCore.Mvc;
+using PVAD.Licensing;
 using PvadDesignExportDto = PVAD.Core.Contracts.DesignExportDto;
 using PvadExportOptions = PVAD.Core.Contracts.ExportOptions;
 
@@ -40,6 +41,16 @@ public class ExportController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(format))
             return BadRequest(new { error = "Query parameter 'format' is required." });
+        if (!format.Equals("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !_useCase.GetSupportedFormats().Any(supported => supported.Key.Equals(format, StringComparison.OrdinalIgnoreCase)))
+            return StatusCode(415, new
+            {
+                error = $"Export format '{format}' is not supported.",
+                supportedFormats = _useCase.GetSupportedFormats()
+                    .Where(supported => PvadAccountCapabilityContext.IsAllowed(PvadAccountLicensePolicy.ExportCapability(supported.Key)))
+                    .Select(supported => supported.Key).Order().ToList(),
+            });
+        PvadAccountCapabilityContext.Require(PvadAccountLicensePolicy.ExportCapability(format));
 
         if (design is null)
             return BadRequest(new { error = "Request body is required." });
@@ -83,6 +94,7 @@ public class ExportController : ControllerBase
             {
                 error = ex.Message,
                 supportedFormats = _useCase.GetSupportedFormats()
+                    .Where(supported => PvadAccountCapabilityContext.IsAllowed(PvadAccountLicensePolicy.ExportCapability(supported.Key)))
                     .Select(f => f.Key)
                     .Order()
                     .ToList()
@@ -149,6 +161,7 @@ public class ExportController : ControllerBase
     public IActionResult GetFormats()
     {
         var formats = _useCase.GetSupportedFormats()
+            .Where(format => PvadAccountCapabilityContext.IsAllowed(PvadAccountLicensePolicy.ExportCapability(format.Key)))
             .OrderBy(f => f.Key)
             .Select(f => new
             {

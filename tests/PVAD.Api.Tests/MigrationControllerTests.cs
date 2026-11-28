@@ -19,7 +19,7 @@ public sealed class MigrationControllerTests : IClassFixture<PvadApiTestFactory>
 
     public MigrationControllerTests(PvadApiTestFactory factory)
     {
-        client = factory.CreateClient();
+        client = factory.CreateCompanyProductClient();
     }
 
     [Fact]

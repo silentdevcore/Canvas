@@ -29,6 +29,8 @@ public sealed class PvadDbContext
     public DbSet<SubscriptionLifecycleEvent> SubscriptionLifecycleEvents => Set<SubscriptionLifecycleEvent>();
     public DbSet<SubscriptionUsageEvent> SubscriptionUsageEvents => Set<SubscriptionUsageEvent>();
     public DbSet<OfflineLicense> OfflineLicenses => Set<OfflineLicense>();
+    public DbSet<NativeLicenseRegistrationJob> NativeLicenseRegistrationJobs => Set<NativeLicenseRegistrationJob>();
+    public DbSet<NativeLibraryLicense> NativeLibraryLicenses => Set<NativeLibraryLicense>();
     public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
@@ -120,6 +122,8 @@ public sealed class PvadDbContext
 
     private void EnsureAuditEventsAreAppendOnly()
     {
+        if (ChangeTracker.Entries<NativeLibraryLicense>().Any(entry => entry.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Native license artifacts are append-only.");
         if (ChangeTracker.Entries<AuditEvent>().Any(entry =>
                 entry.State is EntityState.Modified or EntityState.Deleted))
         {

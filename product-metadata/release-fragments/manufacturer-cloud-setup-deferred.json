@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "manufacturer-cloud-setup-deferred",
+  "impact": "none",
+  "components": ["documentation", "infrastructure"],
+  "category": "improved",
+  "summary": "Manufacturer setup documentation records the deferred hosting and production key setup.",
+  "breaking": false,
+  "reason": "This records an operational planning decision only; runtime behavior and production acceptance requirements are unchanged."
+}

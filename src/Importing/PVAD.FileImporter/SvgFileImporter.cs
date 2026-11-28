@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter;
 
@@ -27,6 +28,7 @@ public sealed class SvgFileImporter : IFileImporter
 
     public static DesignExportDto Import(Stream stream, string? name = null)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "import.svg");
         var doc  = XDocument.Load(stream);
         var root = doc.Root ?? throw new InvalidDataException("Not a valid SVG file.");
 

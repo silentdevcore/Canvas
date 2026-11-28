@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using SkiaSharp;
 
 namespace PVAD.FileImporter.ImageAnalysis.Templates;
@@ -31,12 +32,26 @@ public static class CharacterTemplates
     /// </summary>
     public static (char ch, double score) Match(float[] patch)
     {
-        var best = MatchTop(patch, 1).FirstOrDefault();
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return MatchCore(patch);
+    }
+
+    internal static (char ch, double score) MatchCore(float[] patch)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        var best = MatchTopCore(patch, 1).FirstOrDefault();
         return best == default ? ('?', 0) : best;
     }
 
     public static IReadOnlyList<(char ch, double score)> MatchTop(float[] patch, int count)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return MatchTopCore(patch, count);
+    }
+
+    internal static IReadOnlyList<(char ch, double score)> MatchTopCore(float[] patch, int count)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var atlas = _atlas.Value;
 
         return atlas
@@ -50,6 +65,13 @@ public static class CharacterTemplates
 
     public static bool TryGetTemplate(char ch, out float[] template)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return TryGetTemplateCore(ch, out template);
+    }
+
+    internal static bool TryGetTemplateCore(char ch, out float[] template)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         if (_atlas.Value.TryGetValue(ch, out var templates) && templates.Count > 0)
         {
             template = templates[0];
@@ -62,6 +84,13 @@ public static class CharacterTemplates
 
     public static bool TryGetBestTemplate(char ch, float[] patch, out float[] template, out double score)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return TryGetBestTemplateCore(ch, patch, out template, out score);
+    }
+
+    internal static bool TryGetBestTemplateCore(char ch, float[] patch, out float[] template, out double score)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         template = [];
         score = 0;
 

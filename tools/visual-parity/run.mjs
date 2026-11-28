@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { requireImageMagick, spawnImageMagick } from './image-tools.mjs';
 import { comparePdfTextRun } from './text-metrics.mjs';
 import { expectedElementBounds } from './fixture-layout.mjs';
+import { withNativeTestSession } from '../native-licensing/test-session.mjs';
 import playwright from '../../pvad-designer/node_modules/@playwright/test/index.js';
 import { createServer } from '../../pvad-designer/node_modules/vite/dist/node/index.js';
 
@@ -517,7 +518,7 @@ async function main() {
   const fixture = JSON.parse(await readFile(fixturePath, 'utf8'));
   if (!reuseArtifacts) {
     process.stdout.write('Generating backend and C# PDF artifacts...\n');
-    run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '--no-restore', '-m:1',
+    run('dotnet', ['test', 'tests/PVAD.Api.Tests/PVAD.Api.Tests.csproj', '-m:1',
       '-p:BuildInParallel=false', '--filter', 'FullyQualifiedName~VisualParityArtifactTests', '--nologo'], {
       env: {
         ...process.env,
@@ -582,7 +583,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+withNativeTestSession(main).catch(error => {
   process.stderr.write(`${error.stack ?? error}\n`);
   process.exitCode = 1;
 });

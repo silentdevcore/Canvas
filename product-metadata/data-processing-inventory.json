@@ -64,21 +64,21 @@
       "id": "subscriptions-usage-and-licensing",
       "name": "Subscriptions, entitlements, usage, seats, and offline licenses",
       "role": "controller",
-      "purposes": ["Deliver subscribed products", "Enforce quotas and seats", "Manage Trial and license lifecycle", "Prepare future billing integration"],
-      "dataSubjects": ["subscribers", "organization members", "billing contacts"],
-      "dataCategories": ["subscription edition and state", "seat assignment", "product entitlements", "aggregated usage events", "license identifiers and validity", "lifecycle history"],
+      "purposes": ["Deliver subscribed products", "Enforce quotas and seats", "Manage Trial and license lifecycle", "Issue, renew, and provide authorized downloads of native library licenses", "Prepare future billing integration"],
+      "dataSubjects": ["subscribers", "organization members", "billing contacts", "manufacturer operators"],
+      "dataCategories": ["subscription edition and state", "seat assignment", "product entitlements", "aggregated usage events", "license identifiers and validity", "lifecycle history", "native license artifacts and hashes", "customer reference and issuer identifiers", "idempotency and renewal-chain references"],
       "systems": ["PostgreSQL", "PVAD API", "PVAD Admin"],
-      "entities": ["OrganizationSubscription", "SubscriptionEntitlement", "SubscriptionSeatAssignment", "SubscriptionLifecycleEvent", "SubscriptionUsageEvent", "OfflineLicense"],
+      "entities": ["OrganizationSubscription", "SubscriptionEntitlement", "SubscriptionSeatAssignment", "SubscriptionLifecycleEvent", "SubscriptionUsageEvent", "OfflineLicense", "NativeLibraryLicense"],
       "providerIds": ["postgresql"],
       "region": "PVAD Server deployment region",
       "transfer": "none-by-default; a future payment provider requires a reviewed processor entry before activation",
       "retention": {
         "status": "legal-review-required",
         "approvalStatus": "pending-legal",
-        "rule": "Commercial and tax retention periods are not yet approved; no payment-card data is currently processed by PVAD.",
+        "rule": "Commercial, tax, and immutable native license issuance/renewal evidence retention periods are not yet approved; no payment-card data is currently processed by PVAD. Native license records contain signed artifacts and references, never private signing keys; deletion must preserve renewal and audit evidence until an approved retention policy exists.",
         "legalApprovalRequired": true
       },
-      "sources": ["PVAD.WebApi/Services/Entitlements/PvadUsageService.cs", "PVAD.WebApi/Application/Subscriptions/SubscriptionQueryService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs"]
+      "sources": ["PVAD.WebApi/Services/Entitlements/PvadUsageService.cs", "PVAD.WebApi/Application/Subscriptions/SubscriptionQueryService.cs", "src/Infrastructure/PVAD.Infrastructure.Persistence/PvadDbContext.cs", "src/Core/PVAD.Domain/Entities/NativeLibraryLicense.cs", "PVAD.WebApi/Services/Licensing/PvadNativeLicenseIssuanceService.cs", "PVAD.WebApi/Controllers/AccountNativeLicensesController.cs"]
     },
     {
       "id": "designer-content",

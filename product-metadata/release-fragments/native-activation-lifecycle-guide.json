@@ -1,0 +1,9 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-activation-lifecycle-guide",
+  "impact": "patch",
+  "components": ["documentation", "sdk"],
+  "category": "improved",
+  "summary": "Documented native library activation, renewal and offline operation with verified C# examples.",
+  "breaking": false
+}

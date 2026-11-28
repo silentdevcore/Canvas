@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 
 namespace PVAD.Migration.Report.Designer.FastReport;
 
@@ -51,13 +52,27 @@ public sealed class FrxToDesignConverter
 
     public FrxConvertResult ConvertAuto(string source)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "fastreport");
+        return ConvertAutoAdmitted(source);
+    }
+
+    internal FrxConvertResult ConvertAutoAdmitted(string source)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "fastreport");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return Convert(source);
+        return ConvertAdmitted(source);
     }
 
     public FrxConvertResult Convert(string frxXml)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "fastreport");
+        return ConvertAdmitted(frxXml);
+    }
+
+    internal FrxConvertResult ConvertAdmitted(string frxXml)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "fastreport");
         if (string.IsNullOrWhiteSpace(frxXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(frxXml));
 

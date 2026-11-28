@@ -1,5 +1,6 @@
 using PVAD.Core.Abstractions;
 using PVAD.Core.Contracts;
+using PVAD.Licensing;
 using ClosedXML.Excel;
 using System.Text.Json;
 
@@ -14,6 +15,7 @@ public sealed class ExcelDocumentExporter : IDocumentExporter
 
     public byte[] Export(DesignExportDto design)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Spreadsheet, "export.xlsx");
         using var wb = new XLWorkbook();
 
         var allElements = design.Pages

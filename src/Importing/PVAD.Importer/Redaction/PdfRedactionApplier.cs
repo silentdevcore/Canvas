@@ -9,6 +9,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Redaction;
 
@@ -45,14 +46,26 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         PdfRedactionApplyOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfRedaction);
+        return await ApplyAdmittedAsync(pdfStream, regions, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<PdfRedactionApplyResult> ApplyAdmittedAsync(
+        Stream pdfStream,
+        IReadOnlyList<PdfRedactionRegion> regions,
+        PdfRedactionApplyOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(pdfStream);
         ArgumentNullException.ThrowIfNull(regions);
         options ??= new PdfRedactionApplyOptions();
 
         var source = await ReadAllAsync(pdfStream, cancellationToken).ConfigureAwait(false);
         await using var preflightStream = new MemoryStream(source, writable: false);
-        var report = await preflight
-            .PreflightAsync(preflightStream, regions, options.Preflight, cancellationToken)
+        var report = await (preflight is PdfRedactionPreflight builtin
+            ? builtin.PreflightAdmittedAsync(preflightStream, regions, options.Preflight, cancellationToken)
+            : preflight.PreflightAsync(preflightStream, regions, options.Preflight, cancellationToken))
             .ConfigureAwait(false);
 
         var blocking = CollectBlockingFindings(report, options.Sanitization);
@@ -65,9 +78,9 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         }
 
         var context = new PdfParseContext(source, new PdfImporterOptions(), cancellationToken);
-        var table = new PdfCrossReferenceParser().Parse(context);
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
-        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).Build(graph);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
+        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).BuildAdmitted(graph);
 
         var regionsByPage = regions
             .GroupBy(static region => region.PageNumber)
@@ -124,7 +137,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             removedElements += removedOnPage;
             rewrittenPages.Add(pageNumber);
-            AppendContentStreamUpdates(graph, page, rewriter.Rewrite(page), resourceOverride, updates);
+            AppendContentStreamUpdates(graph, page, rewriter.RewriteAdmitted(page), resourceOverride, updates);
         }
 
         var removedAnnotations = 0;
@@ -150,10 +163,10 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
         var edited = updates.Count == 0
             ? source
-            : new PdfIncrementalUpdateWriter().Append(source, updates).Bytes;
+            : new PdfIncrementalUpdateWriter().AppendAdmitted(source, updates).Bytes;
         // The intermediate revision still contains the original content streams; the full
         // rewrite is what drops them.
-        var rewritten = new PdfFullRewriteWriter().Rewrite(
+        var rewritten = new PdfFullRewriteWriter().RewriteAdmitted(
             edited,
             new PdfFullRewriteOptions { AllowSignatureInvalidation = true });
 
@@ -373,7 +386,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 continue;
             }
 
-            if (!PdfImageRedactionEngine.TryCreateRedactedStream(
+            if (!PdfImageRedactionEngine.TryCreateRedactedStreamAdmitted(
                     graph, page.Resources, image, regions, out var redactedResult, out var reason))
             {
                 throw new InvalidDataException(
@@ -382,7 +395,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
 
             if (string.IsNullOrEmpty(image.ResourceName))
             {
-                image.ReplacementStream = PdfImageRedactionEngine.MakeInlineSafe(redactedResult.Image);
+                image.ReplacementStream = PdfImageRedactionEngine.MakeInlineSafeAdmitted(redactedResult.Image);
             }
             else
             {
@@ -723,9 +736,9 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
     {
         var findings = new List<PdfRedactionFinding>();
         var context = new PdfParseContext(result, new PdfImporterOptions(), cancellationToken);
-        var table = new PdfCrossReferenceParser().Parse(context);
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
-        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).Build(graph);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
+        var document = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter()).BuildAdmitted(graph);
 
         var residualElements = 0;
         foreach (var (pageNumber, regions) in regionsByPage)
@@ -776,7 +789,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
                 $"{residualMatches} removed text run(s) are still extractable from the result."));
         }
 
-        PdfRedactionResidueScanner.Scan(graph, document, regionsByPage, findings);
+        PdfRedactionResidueScanner.ScanAdmitted(graph, document, regionsByPage, findings);
 
         if (table.Revisions.Count != 1)
         {
@@ -813,7 +826,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
         }
 
         if (element is PdfImageElement image &&
-            PdfImageRedactionEngine.IsSecurelyRedacted(graph, resources, image, regions, out _))
+            PdfImageRedactionEngine.IsSecurelyRedactedAdmitted(graph, resources, image, regions, out _))
         {
             return 0;
         }
@@ -882,7 +895,7 @@ public sealed class PdfRedactionApplier(IPdfRedactionPreflight preflight) : IPdf
             appliedSanitizations,
             verification.Passed,
             recordSha,
-            await PdfRedactionAuditSigner.SignAsync(
+            await PdfRedactionAuditSigner.SignAdmittedAsync(
                 recordSha,
                 options.AuditSigningKey,
                 options.AuditTimestampAuthority,

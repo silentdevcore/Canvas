@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using PVAD.Migration.Roslyn;
 
 namespace PVAD.Migration.Pdf.Code.Nutrient;
@@ -11,10 +12,17 @@ namespace PVAD.Migration.Pdf.Code.Nutrient;
 /// Migrates supported Nutrient .NET SDK and legacy GdPicture.NET PDF-generation
 /// patterns to PVAD.Pdf while diagnosing operations that need manual review.
 /// </summary>
-public sealed class NutrientMigration : CSharpSourceMigration
+public sealed class NutrientMigration : CSharpSourceMigration, IAdmittedCodeMigration
 {
     public override MigrationResult Migrate(string sourceCode)
     {
+        using var operation = CodeMigrationAdmission.Begin(PvadLicenseProducts.PdfCodeMigration, "nutrient");
+        return ((IAdmittedCodeMigration)this).MigrateAdmitted(sourceCode);
+    }
+
+    MigrationResult IAdmittedCodeMigration.MigrateAdmitted(string sourceCode)
+    {
+        CodeMigrationAdmission.Demand(PvadLicenseProducts.PdfCodeMigration, "nutrient");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 

@@ -3,13 +3,18 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using Esprima;
 using Esprima.Ast;
 
 namespace PVAD.Migration.Pdf.Viewer.Nutrient;
 
+/// <summary>Analyzes supported Nutrient/PSPDFKit Viewer initialization source and generates PVAD integration artifacts.</summary>
+/// <remarks>Public conversion requires native PDF Viewer Migration rights for <c>nutrient-viewer</c>.
+/// Source is parsed, not executed; callback/application logic and unsupported settings require review.</remarks>
 public sealed class NutrientViewerSourceConverter
 {
+    /// <summary>The maximum accepted UTF-8 source size, two MiB.</summary>
     public const int MaximumSourceBytes = 2 * 1024 * 1024;
 
     private static readonly HashSet<string> PackageNames = new(StringComparer.OrdinalIgnoreCase)
@@ -18,7 +23,26 @@ public sealed class NutrientViewerSourceConverter
         "pspdfkit"
     };
 
+    /// <summary>Converts supported JavaScript initialization without evaluating customer code.</summary>
+    /// <param name="source">The JavaScript source text.</param>
+    /// <param name="sourceLanguage">JavaScript language identifier, <c>javascript</c> or <c>js</c>.</param>
+    /// <param name="sourceName">Optional source label used in the conversion result.</param>
+    /// <returns>Normalized settings, integration source, review diagnostics and checksums.</returns>
+    /// <exception cref="PvadLicenseException">Native PDF Viewer Migration rights for Nutrient are unavailable.</exception>
+    /// <exception cref="NutrientViewerSourceException">The language, size, syntax or supported initialization shape is invalid.</exception>
     public NutrientViewerSourceResult Convert(string source, string sourceLanguage = "javascript", string? sourceName = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfViewerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertCore(source, sourceLanguage, sourceName);
+    }
+
+    internal NutrientViewerSourceResult ConvertForDesigner(string source, string sourceLanguage, string? sourceName)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.PdfDesignerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertCore(source, sourceLanguage, sourceName);
+    }
+
+    private static NutrientViewerSourceResult ConvertCore(string source, string sourceLanguage, string? sourceName)
     {
         ArgumentNullException.ThrowIfNull(source);
         if (!string.Equals(sourceLanguage, "javascript", StringComparison.OrdinalIgnoreCase)
@@ -32,11 +56,36 @@ public sealed class NutrientViewerSourceConverter
         return ConvertParsedSource(source, source, "javascript", sourceName ?? "nutrient-viewer.js", []);
     }
 
+    /// <summary>Converts externally transpiled JavaScript while retaining the original TypeScript checksum.</summary>
+    /// <param name="source">Original TypeScript source; not compiled by this method.</param>
+    /// <param name="transpiledJavaScript">JavaScript produced by the caller's TypeScript compiler.</param>
+    /// <param name="sourceName">Optional source label.</param>
+    /// <param name="compilerDiagnostics">Optional compiler messages, capped and returned as review diagnostics.</param>
+    /// <returns>Integration artifacts with original-source and generated-artifact checksums.</returns>
+    /// <remarks>The caller is responsible for the original/transpiled source correspondence.
+    /// This API neither runs a TypeScript compiler nor executes the generated JavaScript.
+    /// Source-map locations refer to the transpiled JavaScript, not original TypeScript positions.</remarks>
+    /// <exception cref="PvadLicenseException">Native PDF Viewer Migration rights for Nutrient are unavailable.</exception>
+    /// <exception cref="NutrientViewerSourceException">Input limits or supported initialization requirements are violated.</exception>
     public NutrientViewerSourceResult ConvertTranspiledTypeScript(
         string source,
         string transpiledJavaScript,
         string? sourceName = null,
         IReadOnlyList<string>? compilerDiagnostics = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfViewerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertTranspiledTypeScriptCore(source, transpiledJavaScript, sourceName, compilerDiagnostics);
+    }
+
+    internal NutrientViewerSourceResult ConvertTranspiledTypeScriptForDesigner(
+        string source, string transpiledJavaScript, string? sourceName, IReadOnlyList<string>? compilerDiagnostics)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.PdfDesignerMigration, NutrientInstantJsonConverter.ProviderKey);
+        return ConvertTranspiledTypeScriptCore(source, transpiledJavaScript, sourceName, compilerDiagnostics);
+    }
+
+    private static NutrientViewerSourceResult ConvertTranspiledTypeScriptCore(
+        string source, string transpiledJavaScript, string? sourceName, IReadOnlyList<string>? compilerDiagnostics)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(transpiledJavaScript);
@@ -433,6 +482,21 @@ public sealed class NutrientViewerSourceConverter
     private static NutrientViewerDiagnostic Warning(string code, string message) => new(code, "Warning", message);
 }
 
+/// <summary>Contains Viewer integration artifacts and conversion evidence, not an imported or rendered PDF.</summary>
+/// <param name="Provider">Display name of the source provider.</param>
+/// <param name="ProviderKey">Stable migration provider identifier.</param>
+/// <param name="DetectedProduct">Detected source SDK/product name.</param>
+/// <param name="SourceLanguage">The recognized source representation.</param>
+/// <param name="DocumentFidelity">Reported conversion fidelity; not a guarantee of document equivalence.</param>
+/// <param name="SourcePreservation">Reported source-preservation outcome.</param>
+/// <param name="NormalizedViewerSettingsJson">Normalized target settings as JSON.</param>
+/// <param name="GeneratedIntegrationModule">Generated integration source for review.</param>
+/// <param name="Diagnostics">Unsupported, approximated and review findings.</param>
+/// <param name="SourceMap">Parsed JavaScript positions associated with generated symbols/routes; not a TypeScript compiler source map.</param>
+/// <param name="SourceChecksum">SHA-256 of the original UTF-8 source text.</param>
+/// <param name="NormalizedChecksum">SHA-256 of normalized settings.</param>
+/// <param name="GeneratedChecksum">SHA-256 of the generated module.</param>
+/// <param name="CapabilityReport">Diagnostic-derived conversion counts.</param>
 public sealed record NutrientViewerSourceResult(
     string Provider,
     string ProviderKey,
@@ -449,15 +513,27 @@ public sealed record NutrientViewerSourceResult(
     string GeneratedChecksum,
     NutrientMigrationCapabilityReport CapabilityReport)
 {
+    /// <summary>Gets Trust-related source claims, not independent PDF validation.</summary>
     public PdfTrustMigrationReport? PdfTrust { get; init; }
 }
 
+/// <summary>Maps a one-based source location to a generated integration symbol and target route.</summary>
+/// <param name="SourceLine">One-based source line.</param>
+/// <param name="SourceColumn">One-based source column.</param>
+/// <param name="TargetSymbol">Generated target symbol.</param>
+/// <param name="TargetRoute">Target application route.</param>
 public sealed record NutrientViewerSourceMap(int SourceLine, int SourceColumn, string TargetSymbol, string TargetRoute);
 
+/// <summary>Reports a source-conversion failure with a stable migration diagnostic code.</summary>
 public sealed class NutrientViewerSourceException : Exception
 {
+    /// <summary>Creates a source-conversion failure without changing license state.</summary>
+    /// <param name="code">The stable diagnostic identifier.</param>
+    /// <param name="message">An explanatory error message.</param>
+    /// <param name="innerException">Optional underlying parsing exception.</param>
     public NutrientViewerSourceException(string code, string message, Exception? innerException = null)
         : base(message, innerException) => Code = code;
 
+    /// <summary>Gets the stable diagnostic identifier.</summary>
     public string Code { get; }
 }

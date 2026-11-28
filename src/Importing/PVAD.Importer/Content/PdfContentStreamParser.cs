@@ -1,5 +1,6 @@
 using PVAD.Importer.Objects;
 using PVAD.Importer.Tokenizer;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Content;
 
@@ -7,6 +8,13 @@ public sealed class PdfContentStreamParser
 {
     public IReadOnlyList<PdfContentCommand> Parse(ReadOnlyMemory<byte> contentBytes)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(contentBytes);
+    }
+
+    internal IReadOnlyList<PdfContentCommand> ParseAdmitted(ReadOnlyMemory<byte> contentBytes)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var tokenizer = new PdfTokenizer(contentBytes.Span);
         var operands = new List<PdfObject>(8);
         var commands = new List<PdfContentCommand>();
@@ -14,7 +22,7 @@ public sealed class PdfContentStreamParser
 
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind == PdfTokenKind.EndOfFile)
             {
                 break;
@@ -52,7 +60,7 @@ public sealed class PdfContentStreamParser
 
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind == PdfTokenKind.EndOfFile)
             {
                 return CreateInlineImageCommand(startToken, dictionary, ReadOnlyMemory<byte>.Empty, sequence);
@@ -70,13 +78,13 @@ public sealed class PdfContentStreamParser
 
             if (token.Kind == PdfTokenKind.Name)
             {
-                dictionary[PdfNameCodec.Decode(token.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(token.Text[1..])] = ParseOperand(tokenizer.ReadTokenAdmitted(), ref tokenizer);
             }
         }
 
         var dataStart = SkipInlineImageDataPrefix(contentBytes.Span, tokenizer.Position);
         var dataEnd = FindInlineImageDataEnd(contentBytes.Span, dataStart, out var resumePosition);
-        tokenizer.Seek(resumePosition);
+        tokenizer.SeekAdmitted(resumePosition);
 
         return CreateInlineImageCommand(startToken, dictionary, contentBytes.Slice(dataStart, dataEnd - dataStart), sequence);
     }
@@ -98,8 +106,8 @@ public sealed class PdfContentStreamParser
             PdfTokenKind.Name => new PdfName(PdfNameCodec.Decode(token.Text[1..])) { SourceSpan = Span(token) },
             PdfTokenKind.Number when long.TryParse(token.Text, out var integer) => new PdfInteger(integer) { SourceSpan = Span(token) },
             PdfTokenKind.Number when double.TryParse(token.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) => new PdfNumber(number) { SourceSpan = Span(token) },
-            PdfTokenKind.LiteralString => new PdfString(token.Bytes[1..^1], false) { SourceSpan = Span(token) },
-            PdfTokenKind.HexString => new PdfString(token.Bytes[1..^1], true) { SourceSpan = Span(token) },
+            PdfTokenKind.LiteralString => new PdfString(token.AvailableStringContent(), false) { SourceSpan = Span(token) },
+            PdfTokenKind.HexString => new PdfString(token.AvailableStringContent(), true) { SourceSpan = Span(token) },
             PdfTokenKind.ArrayStart => ParseArray(ref tokenizer, token),
             PdfTokenKind.DictionaryStart => ParseDictionary(ref tokenizer, token),
             _ => new PdfName(token.Text) { SourceSpan = Span(token) }
@@ -121,7 +129,7 @@ public sealed class PdfContentStreamParser
         var array = new PdfArray { SourceSpan = Span(start) };
         while (true)
         {
-            var token = tokenizer.ReadToken();
+            var token = tokenizer.ReadTokenAdmitted();
             if (token.Kind is PdfTokenKind.ArrayEnd or PdfTokenKind.EndOfFile)
             {
                 return array;
@@ -136,7 +144,7 @@ public sealed class PdfContentStreamParser
         var dictionary = new PdfDictionary { SourceSpan = Span(start) };
         while (true)
         {
-            var key = tokenizer.ReadToken();
+            var key = tokenizer.ReadTokenAdmitted();
             if (key.Kind is PdfTokenKind.DictionaryEnd or PdfTokenKind.EndOfFile)
             {
                 return dictionary;
@@ -144,7 +152,7 @@ public sealed class PdfContentStreamParser
 
             if (key.Kind == PdfTokenKind.Name)
             {
-                dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseOperand(tokenizer.ReadToken(), ref tokenizer);
+                dictionary[PdfNameCodec.Decode(key.Text[1..])] = ParseOperand(tokenizer.ReadTokenAdmitted(), ref tokenizer);
             }
         }
     }

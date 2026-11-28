@@ -1,0 +1,10 @@
+{
+  "id": "native-pdf-signing-operation-continuations",
+  "impact": "patch",
+  "components": ["importer", "documentation"],
+  "category": "fixed",
+  "summary": "Already admitted PDF signing and timestamp operations retain their license admission through built-in signing, long-term evidence and validation. New calls and custom providers still check current rights; signature and timestamp validation rules remain unchanged.",
+  "breaking": false,
+  "featureIds": [],
+  "documentation": []
+}

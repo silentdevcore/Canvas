@@ -252,8 +252,9 @@ public sealed class PvadLicenseReplacementTests
         public async ValueTask DisposeAsync() => await postgres.DisposeAsync();
     }
 
-    private sealed class MemorySigner : IPvadLicenseSigningService
+    private sealed class MemorySigner : IPvadLicenseSigningService, IPvadLicenseSignatureVerifier
     {
+        public bool CanSign => true;
         private readonly string privateKey;
         public string PublicKeyPem { get; }
         public string KeyId => "pvad-synthetic-retained-key";

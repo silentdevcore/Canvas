@@ -7,20 +7,40 @@ using PdfPoint = PVAD.Pdf.PdfPoint;
 
 namespace PVAD.Infrastructure.Pdf.Charts;
 
+/// <summary>Identifies the chart representation actually drawn onto a PDF page.</summary>
 public enum ChartRenderMode
 {
+    /// <summary>The renderer drew native PDF text, paths and shapes.</summary>
     Vector,
+    /// <summary>Vector drawing failed and a high-resolution raster image was drawn instead.</summary>
     RasterFallback,
+    /// <summary>No renderable chart data was present; an empty-state marker was drawn.</summary>
     Empty
 }
 
+/// <summary>Reports the chart rendering outcome without granting native processing rights.</summary>
+/// <param name="Mode">The representation actually used.</param>
+/// <param name="Diagnostic">An optional stable chart diagnostic and explanation.</param>
 public sealed record ChartRenderResult(ChartRenderMode Mode, string? Diagnostic = null);
 
+/// <summary>Draws a normalized Designer chart onto an existing native PDF page.</summary>
 public interface IChartRenderer
 {
+    /// <summary>Draws within bounds expressed in PDF points, using the page's native coordinate system.</summary>
+    /// <param name="page">Destination page; not null.</param>
+    /// <param name="element">Designer element carrying the current or legacy chart definition.</param>
+    /// <param name="x">Left coordinate of the chart bounds.</param>
+    /// <param name="y">Bottom coordinate of the chart bounds.</param>
+    /// <param name="width">Width in PDF points.</param>
+    /// <param name="height">Height in PDF points.</param>
+    /// <returns>The actual render mode and any empty/fallback diagnostic.</returns>
+    /// <remarks>Drawing remains subject to the native PDF engine's license checks.</remarks>
     ChartRenderResult Render(PdfPage page, ElementDto element, double x, double y, double width, double height);
 }
 
+/// <summary>Renders Designer charts as PDF vectors, with an explicit raster fallback or empty state.</summary>
+/// <remarks>Supports the normalized chart contract rather than executing arbitrary chart code.
+/// No demonstration values are substituted for missing data.</remarks>
 public sealed class PvadChartPdfRenderer : IChartRenderer
 {
     private static readonly PdfColor GridColor = PdfColor.FromRgb(226, 232, 240);
@@ -31,6 +51,7 @@ public sealed class PvadChartPdfRenderer : IChartRenderer
         "#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed", "#0891b2"
     ];
 
+    /// <inheritdoc cref="IChartRenderer.Render"/>
     public ChartRenderResult Render(PdfPage page, ElementDto element, double x, double y, double width, double height)
     {
         ArgumentNullException.ThrowIfNull(page);

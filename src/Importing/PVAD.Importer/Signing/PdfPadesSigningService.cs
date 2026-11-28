@@ -8,6 +8,7 @@ using PVAD.Importer.Parsing;
 using PVAD.Importer.Saving;
 using PVAD.Importer.Trust;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Signing;
 
@@ -35,6 +36,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
         if (options?.Profile is PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA)
         {
             throw new InvalidOperationException("PAdES Baseline T, LT, and LTA require SignAsync and a timestamp authority.");
@@ -50,8 +52,34 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfSigningKey signingKey,
         PdfSigningOptions? options = null,
         IPdfTimestampAuthority? timestampAuthority = null,
-        CancellationToken cancellationToken = default) =>
-        SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Importer, "pdf.signature.sign");
+        return SignWithAdmissionAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+    }
+
+    private static async Task<PdfSigningResult> SignWithAdmissionAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfSigningKey signingKey,
+        PdfSigningOptions? options,
+        IPdfTimestampAuthority? timestampAuthority,
+        CancellationToken cancellationToken)
+    {
+        // Preserve synchronous public license denial without leaking an async scope to the caller.
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSigning);
+        return await SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal Task<PdfSigningResult> SignAdmittedAsync(
+        ReadOnlyMemory<byte> source,
+        IPdfSigningKey signingKey,
+        PdfSigningOptions? options = null,
+        IPdfTimestampAuthority? timestampAuthority = null,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return SignCoreAsync(source, signingKey, options, timestampAuthority, cancellationToken);
+    }
 
     private static async Task<PdfSigningResult> SignCoreAsync(
         ReadOnlyMemory<byte> source,
@@ -60,6 +88,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         IPdfTimestampAuthority? timestampAuthority,
         CancellationToken cancellationToken)
     {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         ArgumentNullException.ThrowIfNull(signingKey);
         options ??= new PdfSigningOptions();
         ValidateOptions(options);
@@ -78,7 +107,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             options,
             signingTime,
             out var signatureObjectId);
-        var incrementalResult = new PdfIncrementalUpdateWriter().Append(source, updates);
+        var incrementalResult = new PdfIncrementalUpdateWriter().AppendAdmitted(source, updates);
         var signedBytes = incrementalResult.Bytes;
 
         var contentMarker = Convert.ToHexString(Enumerable.Repeat(ContentsMarkerByte, options.ContentsPlaceholderBytes).ToArray());
@@ -101,14 +130,14 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         var digest = documentHash.GetHashAndReset();
         cancellationToken.ThrowIfCancellationRequested();
         var cmsResult = options.Profile is PdfPadesProfile.BaselineT or PdfPadesProfile.BaselineLT or PdfPadesProfile.BaselineLTA
-            ? await PdfCadesCmsBuilder.CreateDetachedWithTimestampAsync(
+            ? await PdfCadesCmsBuilder.CreateDetachedWithTimestampAdmittedAsync(
                 digest,
                 signingKey,
                 signingTime,
                 timestampAuthority!,
                 digestAlgorithm,
                 cancellationToken).ConfigureAwait(false)
-            : PdfCadesCmsBuilder.CreateDetached(digest, signingKey, signingTime, digestAlgorithm);
+            : PdfCadesCmsBuilder.CreateDetachedAdmitted(digest, signingKey, signingTime, digestAlgorithm);
         var cms = cmsResult.Cms;
         if (cms.Length > options.ContentsPlaceholderBytes)
         {
@@ -144,7 +173,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 suppliedMaterial,
                 signingKey.Certificate,
                 cmsResult.TimestampToken!);
-            var longTermResult = PdfLongTermValidationWriter.Append(signedBytes, cms, validationMaterial);
+            var longTermResult = PdfLongTermValidationWriter.AppendAdmitted(signedBytes, cms, validationMaterial);
             await ValidateLongTermResultAsync(
                 longTermResult.Bytes,
                 signatureObjectId,
@@ -155,7 +184,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
             finalDocument = Parse(signedBytes);
             if (options.Profile == PdfPadesProfile.BaselineLTA)
             {
-                var archiveTimestamp = await new PdfDocumentTimestampService().AddAsync(
+                var archiveTimestamp = await new PdfDocumentTimestampService().AddAdmittedAsync(
                     signedBytes,
                     timestampAuthority!,
                     new PdfDocumentTimestampOptions
@@ -642,13 +671,13 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
     private static ParsedPdf Parse(ReadOnlyMemory<byte> source)
     {
         var context = new PdfParseContext(source, new PdfImporterOptions());
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The PDF revision chain is invalid: {table.Diagnostics[0].Code}.");
         }
 
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         return new ParsedPdf(table, graph);
     }
 
@@ -768,7 +797,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
         CancellationToken cancellationToken)
     {
         await using var stream = new MemoryStream(signedPdf, writable: false);
-        var report = await new PdfTrustInspector().InspectAsync(
+        var report = await new PdfTrustInspector().InspectAdmittedAsync(
             stream,
             new PdfTrustInspectionOptions(),
             cancellationToken).ConfigureAwait(false);
@@ -837,7 +866,7 @@ public sealed class PdfPadesSigningService : IPdfPadesSigningService
                 .Select(bytes => LoadCertificate(bytes, ownedCertificates))
                 .ToArray();
             await using var stream = new MemoryStream(signedPdf, writable: false);
-            var report = await new PdfTrustInspector().InspectAsync(
+            var report = await new PdfTrustInspector().InspectAdmittedAsync(
                 stream,
                 new PdfTrustInspectionOptions
                 {

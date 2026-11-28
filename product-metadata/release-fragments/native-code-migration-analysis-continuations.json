@@ -1,0 +1,10 @@
+{
+  "id": "native-code-migration-analysis-continuations",
+  "impact": "major",
+  "components": ["migration", "api", "documentation"],
+  "category": "breaking",
+  "summary": "Standalone PDF migration analysis now requires the selected provider license. Built-in conversion and diagnostics retain one provider-bound admission. PDF previews still require PDF rights; spreadsheet HTML previews require no additional engine license.",
+  "breaking": true,
+  "featureIds": [],
+  "documentation": []
+}

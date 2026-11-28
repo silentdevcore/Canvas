@@ -1,5 +1,7 @@
 using PVAD.Importer.Objects;
+using PVAD.Importer.Parsing;
 using PVAD.Importer.Streams;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Fonts;
 
@@ -14,6 +16,13 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
 
     public PdfFontResource Parse(string resourceName, PdfDictionary fontDictionary, IPdfObjectResolver resolver)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return ParseAdmitted(resourceName, fontDictionary, resolver);
+    }
+
+    internal PdfFontResource ParseAdmitted(string resourceName, PdfDictionary fontDictionary, IPdfObjectResolver resolver)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var subtype = ResolveName(fontDictionary["Subtype"], resolver);
         var kind = subtype switch
         {
@@ -113,6 +122,13 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
         return widths;
     }
 
+    /// <summary>
+    /// Maximum widths expanded from <c>c_first c_last w</c> ranges of one CID font /W array.
+    /// CIDs stop at 65,535, so real fonts stay far below this bound, while a single hostile
+    /// range could otherwise expand billions of entries.
+    /// </summary>
+    internal const int MaximumCidWidthCount = 262_144;
+
     private static IReadOnlyDictionary<int, double> ReadCidWidths(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
     {
         if (fontDictionary["W"] is not { } widthsValue || resolver.Resolve(widthsValue) is not PdfArray widthsArray)
@@ -122,6 +138,7 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
 
         var widths = new Dictionary<int, double>();
         var index = 0;
+        long expanded = 0;
         while (index < widthsArray.Items.Count)
         {
             var startCode = ResolveInteger(widthsArray.Items[index++], resolver);
@@ -156,9 +173,21 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
                 continue;
             }
 
-            for (var code = startCode.Value; code <= endCode.Value; code++)
+            if (endCode.Value >= startCode.Value)
             {
-                widths[code] = rangeWidth.Value;
+                expanded += (long)endCode.Value - startCode.Value + 1;
+                if (expanded > MaximumCidWidthCount)
+                {
+                    throw new PdfParseLimitExceededException(
+                        "PVADPDFPARSE013",
+                        $"A CID font width array exceeds the maximum of {MaximumCidWidthCount} widths.");
+                }
+            }
+
+            // A long counter cannot wrap when the range ends at int.MaxValue.
+            for (long code = startCode.Value; code <= endCode.Value; code++)
+            {
+                widths[(int)code] = rangeWidth.Value;
             }
         }
 
@@ -255,7 +284,7 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
 
         try
         {
-            stream.SetDecodedBytes(_streamDecoders.Decode(stream));
+            stream.SetDecodedBytes(_streamDecoders.DecodeAdmitted(stream));
         }
         catch (NotSupportedException)
         {

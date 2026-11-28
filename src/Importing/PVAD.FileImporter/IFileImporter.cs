@@ -4,6 +4,7 @@ namespace PVAD.FileImporter;
 
 /// <summary>
 /// Converts a source file stream into a PVADE design document.
+/// The caller owns and disposes the supplied stream, including when import fails.
 /// </summary>
 public interface IFileImporter
 {

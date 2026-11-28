@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using PVAD.Core.Contracts;
 using PVAD.Migration.Abstractions;
+using PVAD.Licensing;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,9 +34,16 @@ public sealed class XtraReportToDesignConverter
     /// <summary>Detects whether the source is a <c>.repx</c> XML layout (vs a C# class) and converts it.</summary>
     public XtraReportConvertResult ConvertAuto(string source, IReadOnlyDictionary<string, string>? resources)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "devexpress-report");
+        return ConvertAutoAdmitted(source, resources);
+    }
+
+    internal XtraReportConvertResult ConvertAutoAdmitted(string source, IReadOnlyDictionary<string, string>? resources)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "devexpress-report");
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return LooksLikeRepx(source) ? ConvertRepx(source) : Convert(source, resources);
+        return LooksLikeRepx(source) ? ConvertLayoutAdmitted(source) : ConvertAdmitted(source, resources);
     }
 
     private static bool LooksLikeRepx(string source)
@@ -52,6 +60,13 @@ public sealed class XtraReportToDesignConverter
 
     public XtraReportConvertResult Convert(string sourceCode, IReadOnlyDictionary<string, string>? resources)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "devexpress-report");
+        return ConvertAdmitted(sourceCode, resources);
+    }
+
+    internal XtraReportConvertResult ConvertAdmitted(string sourceCode, IReadOnlyDictionary<string, string>? resources)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "devexpress-report");
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
 
@@ -241,6 +256,13 @@ public sealed class XtraReportToDesignConverter
 
     public XtraReportConvertResult ConvertRepx(string repxXml)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ReportDesignerMigration, "devexpress-report");
+        return ConvertLayoutAdmitted(repxXml);
+    }
+
+    internal XtraReportConvertResult ConvertLayoutAdmitted(string repxXml)
+    {
+        PvadLicense.DemandMigrationContinuation(PvadLicenseProducts.ReportDesignerMigration, "devexpress-report");
         if (string.IsNullOrWhiteSpace(repxXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(repxXml));
 

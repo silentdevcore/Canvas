@@ -1,6 +1,7 @@
 using System.Globalization;
 using PVAD.Core.Contracts;
 using PVAD.Core.Primitives;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Spreadsheet;
 
@@ -26,6 +27,7 @@ public sealed class PvadWorkbook
 
     public PvadWorkbook(string name = "Workbook")
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         _wb = new SpreadsheetDto { Id = Guid.NewGuid().ToString("n"), Name = name };
     }
 
@@ -33,6 +35,7 @@ public sealed class PvadWorkbook
 
     public PvadWorksheet AddSheet(string name = "Sheet1")
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var dto = new SheetDto { Id = Guid.NewGuid().ToString("n"), Name = name };
         _wb.Sheets.Add(dto);
         var ws = new PvadWorksheet(dto);
@@ -47,6 +50,7 @@ public sealed class PvadWorkbook
     /// <summary>Adds a named range, e.g. <c>DefineName("Sales", "Sheet1!A1:A10")</c>.</summary>
     public PvadWorkbook DefineName(string name, string refersTo)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         _wb.DefinedNames.Add(new DefinedNameDto { Name = name, RefersTo = refersTo });
         return this;
     }
@@ -59,12 +63,22 @@ public sealed class PvadWorkbook
     /// <summary>Writes the workbook to disk; format is chosen by extension (.xlsx, .xls, .csv, .tsv).</summary>
     public void Save(string path)
     {
+        using var operation = PvadLicense.BeginCapability(PvadNativeOperation.SpreadsheetProcessing, Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".xls" => "export.xls", ".csv" => "export.csv", ".tsv" => "export.tsv", _ => "export.xlsx",
+        });
+        SaveAdmitted(path);
+    }
+
+    internal void SaveAdmitted(string path)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Spreadsheet);
         var bytes = Path.GetExtension(path).ToLowerInvariant() switch
         {
-            ".xls" => new XlsWorkbookIo().Export(_wb),
-            ".csv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsv(_wb.Sheets[0]) : ""),
-            ".tsv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsv(_wb.Sheets[0], '\t') : ""),
-            _ => ToXlsx(),
+            ".xls" => new XlsWorkbookIo().ExportAdmitted(_wb),
+            ".csv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsvAdmitted(_wb.Sheets[0]) : ""),
+            ".tsv" => System.Text.Encoding.UTF8.GetBytes(_wb.Sheets.Count > 0 ? CsvSheetIo.ToCsvAdmitted(_wb.Sheets[0], '\t') : ""),
+            _ => new ExcelWorkbookExporter().ExportAdmitted(_wb),
         };
         File.WriteAllBytes(path, bytes);
     }
@@ -85,6 +99,7 @@ public sealed class PvadWorksheet
 
     public PvadCell Cell(int row, int col)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         if (!_cells.TryGetValue((row, col), out var dto))
         {
             dto = new CellDto { Row = row, Col = col };
@@ -100,16 +115,28 @@ public sealed class PvadWorksheet
         return Cell(r.Row, r.Col);
     }
 
-    public PvadWorksheet Merge(string a1Range) { _sheet.Merges.Add(a1Range); return this; }
+    public PvadWorksheet Merge(string a1Range)
+    {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        _sheet.Merges.Add(a1Range);
+        return this;
+    }
 
     public PvadRange Range(string a1Range) => new(this, a1Range);
 
     public PvadColumn Column(int index) => new(GetColumn(index));
 
-    public PvadWorksheet Freeze(int rows, int cols) { _sheet.FrozenRows = rows; _sheet.FrozenCols = cols; return this; }
+    public PvadWorksheet Freeze(int rows, int cols)
+    {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
+        _sheet.FrozenRows = rows;
+        _sheet.FrozenCols = cols;
+        return this;
+    }
 
     private SheetColumnDto GetColumn(int index)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         var col = _sheet.Columns.FirstOrDefault(c => c.Index == index);
         if (col is null) { col = new SheetColumnDto { Index = index }; _sheet.Columns.Add(col); }
         return col;
@@ -128,9 +155,9 @@ public sealed class PvadColumn
 {
     private readonly SheetColumnDto _col;
     internal PvadColumn(SheetColumnDto col) { _col = col; }
-    public PvadColumn Width(double width) { _col.Width = width; return this; }
-    public PvadColumn Hidden(bool hidden = true) { _col.Hidden = hidden; return this; }
-    public PvadColumn OutlineLevel(int level) { _col.OutlineLevel = level; return this; }
+    public PvadColumn Width(double width) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _col.Width = width; return this; }
+    public PvadColumn Hidden(bool hidden = true) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _col.Hidden = hidden; return this; }
+    public PvadColumn OutlineLevel(int level) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _col.OutlineLevel = level; return this; }
 }
 
 public sealed class PvadCell
@@ -145,6 +172,7 @@ public sealed class PvadCell
     /// <summary>Sets the value, inferring the cell type from the runtime type.</summary>
     public PvadCell Value(object? value)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         switch (value)
         {
             case null: _dto.Type = "empty"; _dto.Value = null; break;
@@ -159,17 +187,19 @@ public sealed class PvadCell
 
     public PvadCell Formula(string formula)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         _dto.Type = "formula";
         _dto.Formula = formula.StartsWith('=') ? formula : "=" + formula;
         return this;
     }
 
-    public PvadCell NumberFormat(string format) { _dto.NumberFormat = format; return this; }
-    public PvadCell Comment(string text) { _dto.Comment = text; return this; }
-    public PvadCell Hyperlink(string url) { _dto.Hyperlink = url; return this; }
+    public PvadCell NumberFormat(string format) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _dto.NumberFormat = format; return this; }
+    public PvadCell Comment(string text) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _dto.Comment = text; return this; }
+    public PvadCell Hyperlink(string url) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _dto.Hyperlink = url; return this; }
 
     public PvadCell Style(Action<PvadCellStyle> build)
     {
+        PvadLicense.Require(PvadLicenseProducts.Spreadsheet);
         _dto.Style ??= new CellStyleDto();
         build(new PvadCellStyle(_dto.Style));
         return this;
@@ -180,11 +210,11 @@ public sealed class PvadCellStyle
 {
     private readonly CellStyleDto _s;
     internal PvadCellStyle(CellStyleDto s) { _s = s; }
-    public PvadCellStyle Bold(bool on = true) { _s.Bold = on; return this; }
-    public PvadCellStyle Italic(bool on = true) { _s.Italic = on; return this; }
-    public PvadCellStyle Background(string color) { _s.BackgroundColor = color; return this; }
-    public PvadCellStyle Color(string color) { _s.Color = color; return this; }
-    public PvadCellStyle Font(string family) { _s.FontFamily = family; return this; }
-    public PvadCellStyle FontSize(double size) { _s.FontSize = size; return this; }
-    public PvadCellStyle Align(string textAlign) { _s.TextAlign = textAlign; return this; }
+    public PvadCellStyle Bold(bool on = true) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.Bold = on; return this; }
+    public PvadCellStyle Italic(bool on = true) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.Italic = on; return this; }
+    public PvadCellStyle Background(string color) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.BackgroundColor = color; return this; }
+    public PvadCellStyle Color(string color) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.Color = color; return this; }
+    public PvadCellStyle Font(string family) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.FontFamily = family; return this; }
+    public PvadCellStyle FontSize(double size) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.FontSize = size; return this; }
+    public PvadCellStyle Align(string textAlign) { PvadLicense.Require(PvadLicenseProducts.Spreadsheet); _s.TextAlign = textAlign; return this; }
 }

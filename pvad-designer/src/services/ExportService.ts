@@ -17,7 +17,6 @@ export interface FormatInfo {
   multiPagePackaging?: 'native' | 'zip';
 }
 
-let _formatsCache: FormatInfo[] | null = null;
 
 export class DesignerAccessibilityPreflightError extends Error {
   constructor(public readonly issues: DesignerAccessibilityIssue[]) {
@@ -726,12 +725,12 @@ export class ExportService {
   }
 
   static async listSupportedFormats(): Promise<FormatInfo[]> {
-    if (_formatsCache) return _formatsCache;
     try {
       const res = await fetch(`${this.API_BASE_URL}/export/formats`);
       if (!res.ok) return [];
-      _formatsCache = await res.json();
-      return _formatsCache!;
+      // Account-specific formats can change on sign-in, organization switch or
+      // approval changes. Never reuse another account's cached list.
+      return await res.json();
     } catch {
       return [];
     }

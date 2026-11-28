@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-source-regression-validation",
+  "impact": "none",
+  "components": ["sdk", "generator", "infrastructure", "importer", "api", "designer"],
+  "category": "improved",
+  "summary": "Added repeatable internal licensing regression checks for native document processing, code conversions and visual output.",
+  "breaking": false,
+  "reason": "Internal test orchestration and evidence only; shipped behavior, licensing rules and rendering thresholds are unchanged."
+}

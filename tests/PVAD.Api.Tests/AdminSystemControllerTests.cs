@@ -212,7 +212,9 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(HttpStatusCode.OK, catalogResponse.StatusCode);
         Assert.Contains("no-store", catalogResponse.Headers.CacheControl?.ToString());
         var catalog = await catalogResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(2, catalog.GetProperty("documents").GetArrayLength());
+        Assert.Equal(3, catalog.GetProperty("documents").GetArrayLength());
+        Assert.Contains(catalog.GetProperty("documents").EnumerateArray(), document =>
+            document.GetProperty("slug").GetString() == "native-library-license-issuance");
 
         using var runbookResponse = await systemClient.GetAsync(
             "/api/pvad/v1/admin/operator/documentation/legal-backup-restore-recovery");

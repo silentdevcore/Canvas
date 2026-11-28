@@ -9,8 +9,9 @@ namespace PVAD.WebApi.Services.Licensing;
 
 public sealed class PvadLicensingOptions
 {
+    public bool IssuerEnabled { get; set; }
     public string KeyId { get; set; } = "pvad-development-1";
-    public string PrivateKeyPath { get; set; } = "App_Data/licensing/private-key.pem";
+    public string? PrivateKeyPath { get; set; } = "App_Data/licensing/private-key.pem";
     public string PublicKeyPath { get; set; } = "App_Data/licensing/public-key.pem";
     public int MetricsIntervalSeconds { get; set; } = 60;
 }
@@ -22,30 +23,35 @@ public interface IPvadLicenseSignatureVerifier
     string KeyId { get; }
 }
 
-public interface IPvadLicenseSigningService : IPvadLicenseSignatureVerifier
+public interface IPvadLicenseSigningService
 {
+    bool CanSign { get; }
+    string KeyId { get; }
     PvadSignedLicenseArtifact Sign(PvadOfflineLicenseEnvelope envelope);
 }
 
-public sealed class PvadLicenseSigningService : IPvadLicenseSigningService
+public sealed class PvadLicenseSigningService : IPvadLicenseSigningService, IDisposable
 {
-    private static readonly object KeyCreationLock = new();
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly string privateKeyPem;
+    private readonly Lazy<ECDsa> signingKey;
+    private readonly object signingLock = new();
+    private bool disposed;
 
     public PvadLicenseSigningService(
         IOptions<PvadLicensingOptions> options,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IPvadLicenseSignatureVerifier? signatureVerifier = null)
     {
-        KeyId = options.Value.KeyId;
-        var privatePath = ResolvePath(environment.ContentRootPath, options.Value.PrivateKeyPath);
-        var publicPath = ResolvePath(environment.ContentRootPath, options.Value.PublicKeyPath);
-        EnsureKeys(privatePath, publicPath, environment.IsDevelopment() || environment.IsEnvironment("Testing"));
-        privateKeyPem = File.ReadAllText(privatePath);
-        PublicKeyPem = File.ReadAllText(publicPath);
+        var configuration = options.Value;
+        CanSign = configuration.IssuerEnabled;
+        KeyId = configuration.KeyId;
+        var privatePath = configuration.PrivateKeyPath;
+        var root = environment.ContentRootPath;
+        var verifier = signatureVerifier ?? new PvadLicenseSignatureVerifier(options, environment);
+        signingKey = new Lazy<ECDsa>(() => LoadKey(root, privatePath, verifier, KeyId));
     }
 
-    public string PublicKeyPem { get; }
+    public bool CanSign { get; }
     public string KeyId { get; }
 
     public PvadSignedLicenseArtifact Sign(PvadOfflineLicenseEnvelope envelope)
@@ -53,12 +59,18 @@ public sealed class PvadLicenseSigningService : IPvadLicenseSigningService
         var stopwatch = Stopwatch.StartNew();
         try
         {
+            if (!CanSign)
+                throw new PvadLicenseSigningException("PVAD_LICENSE_ISSUANCE_DISABLED");
+            ArgumentNullException.ThrowIfNull(envelope);
             var envelopeJson = JsonSerializer.Serialize(envelope, JsonOptions);
-            using var signer = ECDsa.Create();
-            signer.ImportFromPem(privateKeyPem);
-            var signature = signer.SignData(
-                Encoding.UTF8.GetBytes(envelopeJson),
-                HashAlgorithmName.SHA256);
+            byte[] signature;
+            lock (signingLock)
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                signature = signingKey.Value.SignData(
+                    Encoding.UTF8.GetBytes(envelopeJson), HashAlgorithmName.SHA256,
+                    DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+            }
             PvadTelemetry.RecordLicensingOperation("sign", "completed", stopwatch.Elapsed);
             return new PvadSignedLicenseArtifact(
                 envelopeJson,
@@ -73,45 +85,55 @@ public sealed class PvadLicenseSigningService : IPvadLicenseSigningService
         }
     }
 
-    public bool Verify(string envelopeJson, string signature)
+    private static ECDsa LoadKey(string root, string? privatePath, IPvadLicenseSignatureVerifier verifier, string keyId)
     {
+        ECDsa? key = null;
         try
         {
-            using var verifier = ECDsa.Create();
-            verifier.ImportFromPem(PublicKeyPem);
-            return verifier.VerifyData(
-                Encoding.UTF8.GetBytes(envelopeJson),
-                Convert.FromBase64String(signature),
-                HashAlgorithmName.SHA256);
+            if (verifier.KeyId != keyId) throw new CryptographicException();
+            using var publicKey = ECDsa.Create();
+            publicKey.ImportFromPem(verifier.PublicKeyPem);
+            key = ECDsa.Create();
+            key.ImportFromPem(PvadLicenseKeyFile.Read(root, privatePath));
+            var parameters = key.ExportParameters(true);
+            try
+            {
+                if (parameters.D is null || parameters.Curve.Oid.Value != ECCurve.NamedCurves.nistP256.Oid.Value)
+                    throw new CryptographicException();
+            }
+            finally
+            {
+                if (parameters.D is not null)
+                    CryptographicOperations.ZeroMemory(parameters.D);
+            }
+            if (!key.ExportSubjectPublicKeyInfo().AsSpan().SequenceEqual(publicKey.ExportSubjectPublicKeyInfo()))
+                throw new CryptographicException();
+            return key;
         }
-        catch (Exception exception) when (exception is CryptographicException or FormatException)
+        catch (Exception exception) when (exception is CryptographicException or ArgumentException or InvalidOperationException)
         {
-            return false;
+            key?.Dispose();
+            throw new PvadLicenseSigningException("PVAD_LICENSE_ISSUER_UNAVAILABLE");
         }
     }
 
-    private static string ResolvePath(string contentRoot, string configuredPath) =>
-        Path.IsPathRooted(configuredPath) ? configuredPath : Path.Combine(contentRoot, configuredPath);
-
-    private static void EnsureKeys(string privatePath, string publicPath, bool mayCreate)
+    public void Dispose()
     {
-        lock (KeyCreationLock)
+        lock (signingLock)
         {
-            if (File.Exists(privatePath) && File.Exists(publicPath))
-                return;
-            if (File.Exists(privatePath) || File.Exists(publicPath))
-                throw new InvalidOperationException("The offline-license key pair is incomplete. Restore the missing key; existing keys will not be replaced.");
-            if (!mayCreate)
-                throw new InvalidOperationException("Mounted offline-license signing keys are required outside Development.");
-            Directory.CreateDirectory(Path.GetDirectoryName(privatePath)!);
-            Directory.CreateDirectory(Path.GetDirectoryName(publicPath)!);
-            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            File.WriteAllText(privatePath, key.ExportECPrivateKeyPem());
-            File.WriteAllText(publicPath, key.ExportSubjectPublicKeyInfoPem());
-            if (!OperatingSystem.IsWindows())
-                File.SetUnixFileMode(privatePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            if (disposed) return;
+            disposed = true;
+            if (signingKey.IsValueCreated) signingKey.Value.Dispose();
         }
     }
+}
+
+public sealed class PvadLicenseSigningException(string code) : InvalidOperationException(
+    code == "PVAD_LICENSE_ISSUANCE_DISABLED"
+        ? "License issuance is disabled on this server."
+        : "The configured license issuer is unavailable.")
+{
+    public string Code { get; } = code;
 }
 
 public sealed record PvadOfflineLicenseEnvelope(

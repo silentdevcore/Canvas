@@ -1,4 +1,5 @@
 using System.Text;
+using PVAD.Licensing;
 using PVAD.Importer.Content;
 using PVAD.Importer.Fonts;
 using PVAD.Importer.Objects;
@@ -9,7 +10,14 @@ public sealed class PdfGraphicsInterpreter
 {
     public IReadOnlyList<PdfGraphicsElement> Interpret(IReadOnlyList<PdfContentCommand> commands)
     {
-        return Interpret(commands, null);
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return InterpretAdmitted(commands);
+    }
+
+    internal IReadOnlyList<PdfGraphicsElement> InterpretAdmitted(IReadOnlyList<PdfContentCommand> commands)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return InterpretAdmitted(commands, null);
     }
 
     public IReadOnlyList<PdfGraphicsElement> Interpret(
@@ -17,6 +25,16 @@ public sealed class PdfGraphicsInterpreter
         IReadOnlyDictionary<string, PdfFontResource>? fontResources,
         IReadOnlyDictionary<string, PdfColorSpace>? colorSpaceResources = null)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfImport);
+        return InterpretAdmitted(commands, fontResources, colorSpaceResources);
+    }
+
+    internal IReadOnlyList<PdfGraphicsElement> InterpretAdmitted(
+        IReadOnlyList<PdfContentCommand> commands,
+        IReadOnlyDictionary<string, PdfFontResource>? fontResources,
+        IReadOnlyDictionary<string, PdfColorSpace>? colorSpaceResources = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var state = new GraphicsStateStack();
         var elements = new List<PdfGraphicsElement>();
         var groups = new Stack<PdfGroupElement>();
@@ -26,6 +44,7 @@ public sealed class PdfGraphicsInterpreter
 
         foreach (var command in commands)
         {
+            ValidateTextOperands(command);
             switch (command.Operator.Name)
             {
                 case "q":
@@ -293,6 +312,22 @@ public sealed class PdfGraphicsInterpreter
         return elements;
     }
 
+    private static void ValidateTextOperands(PdfContentCommand command)
+    {
+        var operands = command.Operands;
+        var valid = command.Operator.Name switch
+        {
+            "Tj" or "'" => operands.Count == 1 && operands[0] is PdfString,
+            "\"" => operands.Count == 3 && operands[0] is PdfInteger or PdfNumber
+                && operands[1] is PdfInteger or PdfNumber && operands[2] is PdfString,
+            "TJ" => operands.Count == 1 && operands[0] is PdfArray array
+                && array.Items.All(item => item is PdfString or PdfInteger or PdfNumber),
+            _ => true
+        };
+        if (!valid)
+            throw new FormatException($"Invalid operands for PDF text operator '{command.Operator.Name}'.");
+    }
+
     private static PdfMatrix ReadMatrix(IReadOnlyList<PdfObject> operands)
     {
         return new PdfMatrix(Number(operands, 0), Number(operands, 1), Number(operands, 2), Number(operands, 3), Number(operands, 4), Number(operands, 5));
@@ -385,7 +420,7 @@ public sealed class PdfGraphicsInterpreter
                 }
 
                 advance *= state.HorizontalScaling;
-                var decoded = state.CurrentFont?.Decode(glyphBytes) ?? Encoding.Latin1.GetString(glyphBytes);
+                var decoded = state.CurrentFont?.DecodeAdmitted(glyphBytes) ?? Encoding.Latin1.GetString(glyphBytes);
                 glyphs.Add(new PdfTextGlyph(glyphBytes, decoded, offset, advance));
                 offset += advance;
             }
@@ -464,7 +499,7 @@ public sealed class PdfGraphicsInterpreter
 
         var glyphAdvance = 0d;
         var font = state.CurrentFont;
-        foreach (var glyph in font?.GetGlyphCodes(glyphBytes) ?? glyphBytes.ToArray().Select(static value => (int)value))
+        foreach (var glyph in font?.GetGlyphCodesAdmitted(glyphBytes) ?? glyphBytes.ToArray().Select(static value => (int)value))
         {
             glyphAdvance += font?.GetGlyphWidth(glyph) ?? 0;
             glyphAdvance += state.CharacterSpacing * 1000d / Math.Max(state.FontSize, 1);
@@ -679,7 +714,7 @@ public sealed class PdfGraphicsInterpreter
 
     private static string Text(PdfObject operand, PdfFontResource? font)
     {
-        return operand is PdfString text ? (font?.Decode(text.GetDecodedBytes().Span) ?? text.ToLatin1String()) : string.Empty;
+        return operand is PdfString text ? (font?.DecodeAdmitted(text.GetDecodedBytes().Span) ?? text.ToLatin1String()) : string.Empty;
     }
 
     private static string TextArray(PdfObject? operand, PdfFontResource? font)
@@ -689,7 +724,7 @@ public sealed class PdfGraphicsInterpreter
             return string.Empty;
         }
 
-        return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.Decode(item.GetDecodedBytes().Span) ?? item.ToLatin1String()));
+        return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.DecodeAdmitted(item.GetDecodedBytes().Span) ?? item.ToLatin1String()));
     }
 
     private static bool IsBold(string? baseFontName) =>

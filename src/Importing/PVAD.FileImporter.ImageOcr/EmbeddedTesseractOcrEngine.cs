@@ -1,4 +1,5 @@
 using Tesseract;
+using PVAD.Licensing;
 
 namespace PVAD.FileImporter.ImageOcr;
 
@@ -22,11 +23,21 @@ public sealed class EmbeddedTesseractOcrEngine : IOcrEngine
 
     public string Version => "5.2.0";
 
-    public Task<IReadOnlyList<OcrPage>> RecognizeAsync(
+    public async Task<IReadOnlyList<OcrPage>> RecognizeAsync(
         IReadOnlyList<OcrImagePage> pages,
         ImageToPdfConversionOptions options,
         CancellationToken cancellationToken = default)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageOcr);
+        return await RecognizeAdmittedAsync(pages, options, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal Task<IReadOnlyList<OcrPage>> RecognizeAdmittedAsync(
+        IReadOnlyList<OcrImagePage> pages, ImageToPdfConversionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(pages);
         ArgumentNullException.ThrowIfNull(options);
         EnsureLanguageDataExists(options.Languages);

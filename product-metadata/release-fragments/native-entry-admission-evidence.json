@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-entry-admission-evidence",
+  "impact": "none",
+  "components": ["sdk", "generator", "infrastructure", "spreadsheet", "importer", "migration"],
+  "category": "improved",
+  "summary": "Expanded internal native licensing checks and reconciled migration and import coverage with executed tests.",
+  "breaking": false,
+  "reason": "Test-only coverage and reporting changes; shipped APIs, product licensing rules and document output are unchanged."
+}

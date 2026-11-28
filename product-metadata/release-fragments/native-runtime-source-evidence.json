@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-runtime-source-evidence",
+  "impact": "none",
+  "components": ["importer", "infrastructure", "documentation"],
+  "category": "improved",
+  "summary": "Expanded internal verification of runtime asset sources and retained distribution evidence.",
+  "breaking": false,
+  "reason": "Internal provenance records and verification tools only; no shipped runtime asset, notice bundle, application behavior or distribution approval changes."
+}

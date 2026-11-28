@@ -17,7 +17,7 @@ import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import FeatureBadge from '@/product/FeatureBadge';
 import { useProductExperience } from '@/product/ProductExperienceProvider';
 import { useDesignerAuth } from '@/auth/DesignerAuthGate';
-import { designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
+import { designerPermissionDenial, designerPermissions, hasAnyDesignerPermission, hasDesignerPermission, migrationKindPermission } from '@/auth/designerPermissions';
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
@@ -25,6 +25,14 @@ const PdfLayout: React.FC = () => {
   const { features } = useProductExperience();
   const { user } = useDesignerAuth();
   const permissionRequired = t('permissions.sidebarRequired');
+  const denialHint = (permissions: readonly string[]) => {
+    const denial = designerPermissionDenial(user, permissions);
+    return t(denial === 'approval' ? 'permissions.approvalSidebar' : denial === 'account' ? 'permissions.accountSidebar' : 'permissions.sidebarRequired');
+  };
+  const migrationPermissions = [designerPermissions.migrationPdfExecute,
+    migrationKindPermission('pdf', 'code', 'execute'), migrationKindPermission('pdf', 'viewer', 'execute'),
+    migrationKindPermission('pdf', 'designer', 'execute'), designerPermissions.migrationReportExecute,
+    migrationKindPermission('report', 'designer', 'execute')];
   const pdfViewerFeature = features.find(feature => feature.id === 'designer.pdf-viewer');
   const eInvoiceFeature = features.find(feature => feature.id === 'designer.e-invoice');
 
@@ -51,7 +59,7 @@ const PdfLayout: React.FC = () => {
     { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon,
       disabled: !hasDesignerPermission(user, designerPermissions.pdfTemplatesRead), disabledReason: permissionRequired },
     { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload,
-      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport), disabledReason: permissionRequired },
+      disabled: !hasDesignerPermission(user, designerPermissions.pdfImport), disabledReason: denialHint([designerPermissions.pdfImport]) },
     { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye,
       disabled: !hasDesignerPermission(user, designerPermissions.pdfConvert), disabledReason: permissionRequired },
     {
@@ -73,18 +81,11 @@ const PdfLayout: React.FC = () => {
       disabled: (eInvoiceFeature ? !eInvoiceFeature.enabled : false)
         || !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead),
       disabledReason: !hasDesignerPermission(user, designerPermissions.pdfEInvoicesRead)
-        ? permissionRequired
+        ? denialHint([designerPermissions.pdfEInvoicesRead])
         : undefined,
     },
     { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge,
-      disabled: !hasAnyDesignerPermission(user, [
-        designerPermissions.migrationPdfExecute,
-        migrationKindPermission('pdf', 'code', 'execute'),
-        migrationKindPermission('pdf', 'viewer', 'execute'),
-        migrationKindPermission('pdf', 'designer', 'execute'),
-        designerPermissions.migrationReportExecute,
-        migrationKindPermission('report', 'designer', 'execute'),
-      ]), disabledReason: permissionRequired },
+      disabled: !hasAnyDesignerPermission(user, migrationPermissions), disabledReason: denialHint(migrationPermissions) },
   ];
 
   return (

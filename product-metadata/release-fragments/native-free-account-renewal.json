@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "native-free-account-renewal",
+  "impact": "minor",
+  "components": ["account", "api", "documentation"],
+  "category": "added",
+  "summary": "Eligible account owners can renew expired free native licenses for three calendar months and download their replacement for offline use.",
+  "breaking": false,
+  "documentation": ["/docs/guides/PVAD.Native-Library-Activation.md", "/operator-docs/PVAD.Native-Library-License-Issuance.md"]
+}

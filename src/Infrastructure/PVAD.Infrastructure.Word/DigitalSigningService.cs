@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
+using PVAD.Licensing;
 
 namespace PVAD.Infrastructure.Word;
 
@@ -43,6 +44,7 @@ public static class DigitalSigningService
 
     public static byte[] SignDocx(Stream docxStream, byte[] pfxBytes, string? pfxPassword = null)
     {
+        PvadLicense.RequireCapability(PvadLicenseProducts.Word, "export.docx");
         // EphemeralKeySet keeps the private key out of the disk-backed key store, but it is
         // unsupported on macOS/Linux - fall back to the default (temporary on-disk) key set there.
         var storageFlags = OperatingSystem.IsWindows()

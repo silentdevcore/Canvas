@@ -1,3 +1,4 @@
+using PVAD.Licensing;
 using PVAD.FileImporter.ImageAnalysis.Templates;
 using SkiaSharp;
 
@@ -15,8 +16,15 @@ public static class GlyphRecognizer
 
     public static RecognizedChar Recognize(SKBitmap binary, BlobInfo blob)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return RecognizeCore(binary, blob);
+    }
+
+    internal static RecognizedChar RecognizeCore(SKBitmap binary, BlobInfo blob)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var patch = ExtractPatch(binary, blob.Bounds);
-        var matches = CharacterTemplates.MatchTop(patch, 8);
+        var matches = CharacterTemplates.MatchTopCore(patch, 8);
         var selection = SelectCandidate(matches, patch, blob.Bounds);
         bool resolved = selection.Score >= MinimumConfidence;
 
@@ -40,12 +48,28 @@ public static class GlyphRecognizer
         };
     }
 
-    public static int CountEnclosedWhiteRegionsForTest(SKBitmap binary, BlobInfo blob) =>
-        CountEnclosedWhiteRegions(ExtractPatch(binary, blob.Bounds));
+    public static int CountEnclosedWhiteRegionsForTest(SKBitmap binary, BlobInfo blob)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return CountEnclosedWhiteRegionsForTestCore(binary, blob);
+    }
+
+    internal static int CountEnclosedWhiteRegionsForTestCore(SKBitmap binary, BlobInfo blob)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return CountEnclosedWhiteRegions(ExtractPatch(binary, blob.Bounds));
+    }
 
     public static double ProjectionProfileDistanceForTest(float[] patch, char candidate)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(candidate, patch, out var template, out _))
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ProjectionProfileDistanceForTestCore(patch, candidate);
+    }
+
+    internal static double ProjectionProfileDistanceForTestCore(float[] patch, char candidate)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        if (!CharacterTemplates.TryGetBestTemplateCore(candidate, patch, out var template, out _))
             return double.PositiveInfinity;
 
         return ProjectionProfileDistance(patch, template);
@@ -53,14 +77,30 @@ public static class GlyphRecognizer
 
     public static double ZoningDistanceForTest(float[] patch, char candidate)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(candidate, patch, out var template, out _))
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ZoningDistanceForTestCore(patch, candidate);
+    }
+
+    internal static double ZoningDistanceForTestCore(float[] patch, char candidate)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        if (!CharacterTemplates.TryGetBestTemplateCore(candidate, patch, out var template, out _))
             return double.PositiveInfinity;
 
         return ZoningDistance(patch, template);
     }
 
-    public static float[] ExtractPatchForTest(SKBitmap binary, SKRectI bounds) =>
-        ExtractPatch(binary, bounds);
+    public static float[] ExtractPatchForTest(SKBitmap binary, SKRectI bounds)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.ImageAnalysis);
+        return ExtractPatchForTestCore(binary, bounds);
+    }
+
+    internal static float[] ExtractPatchForTestCore(SKBitmap binary, SKRectI bounds)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return ExtractPatch(binary, bounds);
+    }
 
     private sealed record Selection(
         char Ch,
@@ -250,7 +290,7 @@ public static class GlyphRecognizer
 
     private static double ProjectionSignal(float[] patch, char ch)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(ch, patch, out var template, out _))
+        if (!CharacterTemplates.TryGetBestTemplateCore(ch, patch, out var template, out _))
             return 0;
 
         return 1 - Math.Clamp(ProjectionProfileDistance(patch, template), 0, 1);
@@ -258,7 +298,7 @@ public static class GlyphRecognizer
 
     private static double ZoningSignal(float[] patch, char ch)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(ch, patch, out var template, out _))
+        if (!CharacterTemplates.TryGetBestTemplateCore(ch, patch, out var template, out _))
             return 0;
 
         return 1 - Math.Clamp(ZoningDistance(patch, template), 0, 1);
@@ -272,7 +312,7 @@ public static class GlyphRecognizer
         float[] patch,
         (char ch, double score) best)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(best.ch, patch, out var bestTemplate, out _))
+        if (!CharacterTemplates.TryGetBestTemplateCore(best.ch, patch, out var bestTemplate, out _))
             return best;
 
         double bestDistance = ProjectionProfileDistance(patch, bestTemplate);
@@ -283,7 +323,7 @@ public static class GlyphRecognizer
             if (candidate.ch == best.ch ||
                 !char.IsLetterOrDigit(candidate.ch) ||
                 candidate.score < best.score - 0.04 ||
-                !CharacterTemplates.TryGetBestTemplate(candidate.ch, patch, out var template, out _))
+                !CharacterTemplates.TryGetBestTemplateCore(candidate.ch, patch, out var template, out _))
                 continue;
 
             double distance = ProjectionProfileDistance(patch, template);
@@ -302,7 +342,7 @@ public static class GlyphRecognizer
         float[] patch,
         (char ch, double score) best)
     {
-        if (!CharacterTemplates.TryGetBestTemplate(best.ch, patch, out var bestTemplate, out _))
+        if (!CharacterTemplates.TryGetBestTemplateCore(best.ch, patch, out var bestTemplate, out _))
             return best;
 
         double bestDistance = ZoningDistance(patch, bestTemplate);
@@ -313,7 +353,7 @@ public static class GlyphRecognizer
             if (candidate.ch == best.ch ||
                 !CanUseZoningRerank(best.ch, candidate.ch) ||
                 candidate.score < best.score - 0.035 ||
-                !CharacterTemplates.TryGetBestTemplate(candidate.ch, patch, out var template, out _))
+                !CharacterTemplates.TryGetBestTemplateCore(candidate.ch, patch, out var template, out _))
                 continue;
 
             double distance = ZoningDistance(patch, template);

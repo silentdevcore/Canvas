@@ -31,6 +31,11 @@ public sealed class OperatorDocumentationController(
             "Legal Backup, Restore, and Disaster Recovery",
             "Full-database Legal continuity, verification, rollback, and isolated recovery drills.",
             "PVAD.Legal-Backup-Restore-And-Recovery.md"),
+        new(
+            "native-library-license-issuance",
+            "Native Library License Issuance",
+            "Manufacturer-only native issuance, immutable renewal, audit, and customer deployment boundaries.",
+            "PVAD.Native-Library-License-Issuance.md"),
     ];
 
     private readonly string documentationRoot = ResolveDocumentationRoot(environment);

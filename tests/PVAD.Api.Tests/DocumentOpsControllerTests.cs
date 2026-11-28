@@ -14,7 +14,7 @@ public sealed class DocumentOpsControllerTests : IClassFixture<PvadApiTestFactor
 
     public DocumentOpsControllerTests(PvadApiTestFactory factory)
     {
-        client = factory.CreateClient();
+        client = factory.CreateCompanyProductClient();
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using PVAD.Importer.Graphics;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Analysis;
 
@@ -13,6 +14,13 @@ public sealed class PrimitiveBuilder
 
     public IReadOnlyList<PrimitiveObject> Build(IEnumerable<PdfGraphicsElement> elements)
     {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfAnalysis);
+        return BuildAdmitted(elements);
+    }
+
+    internal IReadOnlyList<PrimitiveObject> BuildAdmitted(IEnumerable<PdfGraphicsElement> elements)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         var primitives = new List<PrimitiveObject>();
         foreach (var element in elements.Where(static element => !element.IsDeleted).OrderBy(static element => element.ZOrder))
         {
@@ -27,28 +35,28 @@ public sealed class PrimitiveBuilder
         return element switch
         {
             PdfTextElement text => BuildText(text),
-            PdfPathElement path when IsShape(path) => new PrimitiveShape(path, _bounds.ComputePathBounds(path), Snapshot(path)),
-            PdfPathElement path => new PrimitivePath(path, _bounds.ComputePathBounds(path), Snapshot(path)),
-            PdfImageElement image => new PrimitiveImage(image, _bounds.ComputeImageBounds(image), Snapshot(image)),
+            PdfPathElement path when IsShape(path) => new PrimitiveShape(path, _bounds.ComputePathBoundsAdmitted(path), Snapshot(path)),
+            PdfPathElement path => new PrimitivePath(path, _bounds.ComputePathBoundsAdmitted(path), Snapshot(path)),
+            PdfImageElement image => new PrimitiveImage(image, _bounds.ComputeImageBoundsAdmitted(image), Snapshot(image)),
             PdfGroupElement group => BuildGroup(group),
-            _ => new PrimitiveGroup(element, _bounds.ComputeElementBounds(element), Snapshot(element))
+            _ => new PrimitiveGroup(element, _bounds.ComputeElementBoundsAdmitted(element), Snapshot(element))
         };
     }
 
     private PrimitiveText BuildText(PdfTextElement text)
     {
-        var geometry = _bounds.ComputeTextGeometry(text);
+        var geometry = _bounds.ComputeTextGeometryAdmitted(text);
         return new PrimitiveText(text, geometry.Bounds, geometry, Snapshot(text));
     }
 
     private PrimitiveGroup BuildGroup(PdfGroupElement group)
     {
-        var primitive = new PrimitiveGroup(group, _bounds.ComputeGroupBounds(group), Snapshot(group))
+        var primitive = new PrimitiveGroup(group, _bounds.ComputeGroupBoundsAdmitted(group), Snapshot(group))
         {
             Name = group.MarkedContentTag
         };
 
-        primitive.Children.AddRange(Build(group.Children));
+        primitive.Children.AddRange(BuildAdmitted(group.Children));
         return primitive;
     }
 

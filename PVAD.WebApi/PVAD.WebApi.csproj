@@ -18,6 +18,7 @@
     <Content Include="../assets/fonts/liberation/*" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../assets/fonts/noto-arabic/*.ttf" Link="fonts/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../assets/fonts/noto-arabic/LICENSE" Link="fonts/NotoSansArabic.LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../assets/licenses/runtime-assets/bundles/fonts/**/*" Link="third-party/runtime-assets/fonts/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../product-metadata/designer-features.json" LogicalName="PVAD.ProductMetadata.designer-features.json" />
     <EmbeddedResource Include="../product-metadata/pvad-releases.json" LogicalName="PVAD.ProductMetadata.pvad-releases.json" />
     <EmbeddedResource Include="../product-metadata/data-processing-inventory.json" LogicalName="PVAD.ProductMetadata.data-processing-inventory.json" />
@@ -74,16 +75,22 @@
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build" Condition="'$(SkipOcrWorkerPackaging)' != 'true'">
     <MSBuild Projects="../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="../src/Importing/PVAD.FileImporter.ImageOcr.Worker/PVAD.FileImporter.ImageOcr.Worker.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+      <Output TaskParameter="TargetOutputs" PropertyName="ImageOcrWorkerTargetPath" />
+    </MSBuild>
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../src/Importing/PVAD.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="$([System.IO.Path]::GetDirectoryName('$(ImageOcrWorkerTargetPath)'))/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)" DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="CopyCodeWorker" AfterTargets="Build" Condition="'$(SkipCodeWorkerPackaging)' != 'true'">
     <MSBuild Projects="../src/Execution/PVAD.CodeWorker/PVAD.CodeWorker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="../src/Execution/PVAD.CodeWorker/PVAD.CodeWorker.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+      <Output TaskParameter="TargetOutputs" PropertyName="CodeWorkerTargetPath" />
+    </MSBuild>
     <ItemGroup>
-      <CodeWorkerFiles Include="../src/Execution/PVAD.CodeWorker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <CodeWorkerFiles Include="$([System.IO.Path]::GetDirectoryName('$(CodeWorkerTargetPath)'))/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(CodeWorkerFiles)" DestinationFiles="@(CodeWorkerFiles->'$(OutputPath)code-worker/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>

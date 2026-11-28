@@ -1,0 +1,12 @@
+# Manufacturer-operated issuer only. Never apply this overlay to customer servers.
+services:
+  pvad-webapi:
+    environment:
+      Licensing__IssuerEnabled: 'true'
+      Licensing__PrivateKeyPath: /run/secrets/pvad_license_private_key
+    secrets:
+      - pvad_license_public_key
+      - pvad_license_private_key
+secrets:
+  pvad_license_private_key:
+    file: '${PVAD_LICENSE_PRIVATE_KEY_FILE:?Set PVAD_LICENSE_PRIVATE_KEY_FILE for the manufacturer issuer}'

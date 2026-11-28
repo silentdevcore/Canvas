@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-account-format-rights",
+  "impact": "patch",
+  "components": ["designer", "documentation"],
+  "category": "fixed",
+  "summary": "Designer quick exports now follow account format rights. Spreadsheet import omits deferred XLS, and restriction messages distinguish account rights, roles and administrator approval.",
+  "breaking": false,
+  "documentation": ["/checklists/PVAD.Account-Roles-Workflow-Review.md"]
+}

@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="../../../Licensing/PVAD.Licensing/PVAD.Licensing.csproj" />
+    <InternalsVisibleTo Include="PVAD.Migration.Report" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <ProjectReference Include="../../Common/PVAD.Migration.Abstractions/PVAD.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../../Core/PVAD.Core/PVAD.Core.csproj" />

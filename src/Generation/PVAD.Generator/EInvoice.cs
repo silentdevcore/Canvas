@@ -2,6 +2,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Globalization;
 using PVAD.Pdf;
+using PVAD.Licensing;
 
 namespace PVAD.Generator;
 
@@ -117,13 +118,19 @@ public static partial class EInvoice
         ReadOnlyMemory<byte> xml,
         PvadEInvoiceOptions options)
     {
+        PvadLicense.RequireAccountCapability("pdf.e-invoice.validate");
+        return ValidateCore(xml, options);
+    }
+
+    private static PvadEInvoiceValidationReport ValidateCore(ReadOnlyMemory<byte> xml, PvadEInvoiceOptions options)
+    {
         ArgumentNullException.ThrowIfNull(options);
         var diagnostics = new List<PvadEInvoiceDiagnostic>();
         ValidateOptions(options, diagnostics);
         if (diagnostics.Any(static item => item.Severity == "error"))
             return Report(false, null, null, diagnostics);
 
-        var recognition = Recognize(xml);
+        var recognition = RecognizeCore(xml);
         diagnostics.AddRange(recognition.Diagnostics);
         if (!recognition.IsRecognized)
             return Report(false, recognition.Syntax, recognition.GuidelineIdentifier, diagnostics);
@@ -155,6 +162,12 @@ public static partial class EInvoice
     }
 
     public static PvadEInvoiceRecognitionReport Recognize(ReadOnlyMemory<byte> xml)
+    {
+        PvadLicense.RequireAccountCapability("pdf.e-invoice.read");
+        return RecognizeCore(xml);
+    }
+
+    private static PvadEInvoiceRecognitionReport RecognizeCore(ReadOnlyMemory<byte> xml)
     {
         var diagnostics = new List<PvadEInvoiceDiagnostic>();
         if (xml.IsEmpty)
@@ -376,8 +389,9 @@ public static partial class EInvoice
         ReadOnlyMemory<byte> xml,
         PvadEInvoiceOptions options)
     {
+        PvadLicense.RequireAccountCapability("pdf.e-invoice.attach");
         ArgumentNullException.ThrowIfNull(document);
-        var validation = Validate(xml, options);
+        var validation = ValidateCore(xml, options);
         if (!validation.IsStructurallyValid)
         {
             var message = string.Join(

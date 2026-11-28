@@ -420,6 +420,7 @@ public sealed class AdminSubscriptionsControllerTests
                 }));
             builder.ConfigureServices(services =>
             {
+                PvadSyntheticLicenseIssuer.Configure(services);
                 services.RemoveAll<DbContextOptions<PvadDbContext>>();
                 services.AddDbContext<PvadDbContext>(options => options.UseNpgsql(connectionString));
             });

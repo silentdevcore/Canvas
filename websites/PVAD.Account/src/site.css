@@ -83,3 +83,9 @@ body { min-width: 320px; background: #f4f6f9; }
 
 @media (max-width: 900px) { .account-auth-shell { grid-template-columns: 1fr; }.account-brand-panel { min-height: auto; padding: var(--pvad-space-8); }.account-brand-panel dl { display: none; }.account-summary { grid-template-columns: 1fr; }.account-section { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 620px) { .account-form-panel { padding: var(--pvad-space-6) var(--pvad-space-4); }.account-form-grid,.account-company-fields,.account-account-type { grid-template-columns: 1fr; }.account-form-links,.account-section-heading { align-items: flex-start; flex-direction: column; }.account-page-header { flex-direction: column; }.account-table { display: block; overflow-x: auto; }.account-usage-grid article > div { align-items: flex-start; flex-direction: column; } }
+.account-license-hash { overflow-wrap: anywhere; }
+.account-table-scroll { overflow-x: auto; max-width: 100%; }
+.account-licenses-section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.account-native-metadata { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 8px 16px; }
+.account-native-metadata dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 620px) { .account-native-metadata { grid-template-columns: minmax(0, 1fr); } }

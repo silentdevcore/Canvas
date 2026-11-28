@@ -5,6 +5,7 @@ using PVAD.Importer.Objects;
 using PVAD.Importer.Parsing;
 using PVAD.Importer.Security;
 using PVAD.Importer.Xref;
+using PVAD.Licensing;
 
 namespace PVAD.Importer.Saving;
 
@@ -58,8 +59,17 @@ public sealed record PdfFullRewriteResult(
 /// </summary>
 public sealed class PdfFullRewriteWriter
 {
-    public PdfFullRewriteResult Rewrite(ReadOnlyMemory<byte> source, PdfFullRewriteOptions? options = null) =>
-        RewriteCore(source, [], options);
+    public PdfFullRewriteResult Rewrite(ReadOnlyMemory<byte> source, PdfFullRewriteOptions? options = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSave);
+        return RewriteAdmitted(source, options);
+    }
+
+    internal PdfFullRewriteResult RewriteAdmitted(ReadOnlyMemory<byte> source, PdfFullRewriteOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return RewriteCore(source, [], options);
+    }
 
     /// <summary>
     /// Applies typed object changes and emits one fresh revision. Password-encrypted input is
@@ -68,14 +78,27 @@ public sealed class PdfFullRewriteWriter
     public PdfFullRewriteResult RewriteWithUpdates(
         ReadOnlyMemory<byte> source,
         IEnumerable<PdfIncrementalObjectUpdate> objectUpdates,
-        PdfFullRewriteOptions? options = null) =>
-        RewriteCore(source, NormalizeUpdates(objectUpdates), options);
+        PdfFullRewriteOptions? options = null)
+    {
+        using var operation = PvadLicense.BeginOperation(PvadNativeOperation.PdfSave);
+        return RewriteWithUpdatesAdmitted(source, objectUpdates, options);
+    }
+
+    internal PdfFullRewriteResult RewriteWithUpdatesAdmitted(
+        ReadOnlyMemory<byte> source,
+        IEnumerable<PdfIncrementalObjectUpdate> objectUpdates,
+        PdfFullRewriteOptions? options = null)
+    {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
+        return RewriteCore(source, NormalizeUpdates(objectUpdates), options);
+    }
 
     private static PdfFullRewriteResult RewriteCore(
         ReadOnlyMemory<byte> source,
         IReadOnlyList<PdfIncrementalObjectUpdate> updates,
         PdfFullRewriteOptions? options)
     {
+        PvadLicense.DemandContinuation(PvadLicenseProducts.Importer);
         options ??= new PdfFullRewriteOptions();
         if (source.IsEmpty)
         {
@@ -83,7 +106,7 @@ public sealed class PdfFullRewriteWriter
         }
 
         var context = new PdfParseContext(source, new PdfImporterOptions { Limits = options.Limits });
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"The source PDF cross-reference data is invalid: {table.Diagnostics[0].Code}.");
@@ -106,7 +129,7 @@ public sealed class PdfFullRewriteWriter
         PdfObjectGraph graph;
         if (sourceIsEncrypted)
         {
-            var decrypted = PdfDocumentDecryptor.ParseAndDecrypt(context, table, options.SourcePassword!);
+            var decrypted = PdfDocumentDecryptor.ParseAndDecryptAdmitted(context, table, options.SourcePassword!);
             if (decrypted.Result.PasswordKind != PdfPasswordKind.Owner)
             {
                 throw new UnauthorizedAccessException(
@@ -117,7 +140,7 @@ public sealed class PdfFullRewriteWriter
         }
         else
         {
-            graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+            graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         }
         if (context.Diagnostics.Count > 0)
         {
@@ -193,7 +216,7 @@ public sealed class PdfFullRewriteWriter
         }
 
         using var security = options.Encryption is { } encryptionOptions
-            ? PdfStandardSecurityHandler.Create(encryptionOptions)
+            ? PdfStandardSecurityHandler.CreateAdmitted(encryptionOptions)
             : null;
         PdfObjectId? encryptId = null;
         if (security is not null)
@@ -228,7 +251,7 @@ public sealed class PdfFullRewriteWriter
         if (security is not null && encryptId is { } encryptObjectId)
         {
             offsets[encryptObjectId] = stream.Position;
-            PdfObjectSerializer.WriteIndirectObject(stream, encryptObjectId, security.BuildEncryptDictionary());
+            PdfObjectSerializer.WriteIndirectObject(stream, encryptObjectId, security.BuildEncryptDictionaryAdmitted());
         }
 
         var crossReferenceOffset = stream.Position;
@@ -340,7 +363,7 @@ public sealed class PdfFullRewriteWriter
         switch (value)
         {
             case PdfString text:
-                return new PdfString(security.EncryptValue(text.GetDecodedBytes().Span), IsHex: false);
+                return new PdfString(security.EncryptValueAdmitted(text.GetDecodedBytes().Span), IsHex: false);
             case PdfArray array:
                 return new PdfArray(array.Items.Select(item => Encrypt(item, security, encryptMetadata, depth + 1)));
             case PdfDictionary dictionary:
@@ -360,7 +383,7 @@ public sealed class PdfFullRewriteWriter
 
                 return new PdfStreamObject(
                     encryptedDictionary,
-                    security.EncryptValue(streamObject.EncodedBytes.Span));
+                    security.EncryptValueAdmitted(streamObject.EncodedBytes.Span));
             default:
                 return value;
         }
@@ -373,7 +396,7 @@ public sealed class PdfFullRewriteWriter
         bool encrypted)
     {
         var context = new PdfParseContext(result, new PdfImporterOptions { Limits = limits });
-        var table = new PdfCrossReferenceParser().Parse(context);
+        var table = new PdfCrossReferenceParser().ParseAdmitted(context);
         if (table.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"Post-save validation rejected the rewritten PDF: {table.Diagnostics[0].Code}.");
@@ -385,7 +408,7 @@ public sealed class PdfFullRewriteWriter
                 $"A full rewrite must produce exactly one revision but produced {table.Revisions.Count}.");
         }
 
-        var graph = new PdfObjectParser(context, table).ParseDocumentGraph();
+        var graph = new PdfObjectParser(context, table).ParseDocumentGraphAdmitted();
         if (context.Diagnostics.Count > 0)
         {
             throw new InvalidDataException($"Post-save validation could not parse the rewritten PDF: {context.Diagnostics[0].Code}.");
