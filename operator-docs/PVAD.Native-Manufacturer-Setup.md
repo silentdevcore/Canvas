@@ -222,6 +222,17 @@ material now. Cloud/key custody is still undecided.
 
 ## Remaining Inputs Before Production
 
+### Owner deferral — 2026-11-28
+
+No Cloud provider has been selected. The owner explicitly deferred provider
+selection and the dependent production setup until later: secret-storage
+integration, production signing-key generation/provisioning and Cloud deployment
+acceptance. Continue with local synthetic keys and isolated testing; keep
+production issuance/renewal automation disabled. Resume this work when the owner
+returns to the hosting decision. These remain open production gates, not
+completed requirements. Independent local engineering and distribution review
+can continue without selecting a provider.
+
 The concrete open inputs are the provider, secret-storage system, operational
 custody/backup/review roles and authentic evidence for trust provisioning,
 mount permissions, recovery, migration, acceptance, distribution and release
