@@ -7,6 +7,78 @@ const designer = 'http://127.0.0.1:5186', account = 'http://127.0.0.1:5188';
 const owner = '11111111-1111-1111-1111-111111111111', organization = '22222222-2222-2222-2222-222222222222';
 const oldId = '33333333-3333-3333-3333-333333333333', newId = '44444444-4444-4444-4444-444444444444';
 const policy = readFileSync(path.resolve('../src/Licensing/PVAD.Licensing/PvadAccountLicensePolicy.cs'), 'utf8');
+
+test('notifications leave controls reachable and preserve pointer and keyboard actions', async ({ page }) => {
+  await fixture(page, true);
+  const mobile = test.info().project.use.isMobile;
+  await page.goto(`${designer}${mobile ? '/' : '/pdf/create'}`);
+  if (!mobile) await page.getByRole('button', { name: 'Preview', exact: true }).click();
+  await page.evaluate(async () => {
+    const { notify } = await import('/src/notifications/toast.tsx');
+    notify.success('Template published', { id: 'nonblocking-notice', duration: 60_000 });
+  });
+  const notice = page.locator('.pvad-toast').filter({ hasText: 'Template published' });
+  await expect(notice).toBeVisible();
+  await expect(notice).toHaveCSS('pointer-events', 'none');
+  await expect.poll(async () => {
+    const box = await notice.boundingBox();
+    return !!box && box.y + box.height <= page.viewportSize()!.height - 8;
+  }).toBe(true);
+  const bounds = await notice.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.y).toBeGreaterThan(page.viewportSize()!.height / 2);
+  if (!mobile) {
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
+    await expect(page.getByRole('button', { name: /Export PDF/ })).toBeVisible();
+    await expect(notice).toBeVisible();
+  }
+  // Exercise actual browser hit testing underneath the still-visible notice.
+  await page.evaluate(({ x, y }) => {
+    const button = document.createElement('button');
+    button.id = 'under-notice'; button.textContent = 'Underlying test control';
+    Object.assign(button.style, { position: 'fixed', left: `${x}px`, top: `${y}px`, width: '160px', height: '24px', zIndex: '9998' });
+    button.onclick = () => button.textContent = 'Underlying control activated';
+    document.body.append(button);
+  }, { x: bounds!.x + 4, y: bounds!.y + 4 });
+  await page.locator('#under-notice').click();
+  await expect(page.locator('#under-notice')).toHaveText('Underlying control activated');
+  await expect(notice).toBeVisible();
+  await page.screenshot({ path: test.info().outputPath('nonblocking-notice.png'), fullPage: true });
+  await page.evaluate(async () => {
+    document.getElementById('under-notice')?.remove();
+    const { notify } = await import('/src/notifications/toast.tsx');
+    notify.dismiss();
+  });
+  await expect(page.locator('.pvad-toast')).toHaveCount(0);
+  await page.evaluate(async () => {
+    const { notify } = await import('/src/notifications/toast.tsx');
+    notify.info('Short passive notice', { duration: 2000 });
+  });
+  const timed = page.locator('.pvad-toast').filter({ hasText: 'Short passive notice' });
+  await expect(timed).toBeVisible();
+  await expect.poll(async () => {
+    const box = await timed.boundingBox();
+    return !!box && box.y + box.height <= page.viewportSize()!.height - 8;
+  }).toBe(true);
+  const timedBounds = await timed.boundingBox();
+  await page.mouse.move(timedBounds!.x + 8, timedBounds!.y + 8);
+  await expect(timed).toHaveCount(0, { timeout: 5000 });
+  for (const keyboard of [false, true]) {
+    await page.evaluate(async () => {
+      const { notify } = await import('/src/notifications/toast.tsx');
+      notify.info('Action remains available', { id: 'action-notice', duration: 60_000,
+        action: { label: 'Confirm notice action', onClick: () => document.body.dataset.noticeAction = 'activated' } });
+      delete document.body.dataset.noticeAction;
+    });
+    const action = page.getByRole('button', { name: 'Confirm notice action' });
+    await expect(action).toHaveCSS('pointer-events', 'auto');
+    if (keyboard) { await action.focus(); await action.press('Enter'); }
+    else await action.click();
+    await expect(page.locator('body')).toHaveAttribute('data-notice-action', 'activated');
+    await expect(action).toHaveCount(0);
+  }
+});
+
 function capabilities(company: boolean) {
   return [...policy.matchAll(/new\("([a-z0-9.-]+)", (Allow|Deny|Approval|Undecided|Deferred)(?:, (Allow|Deny|Approval|Undecided|Deferred))?\)/g)]
     .filter(row => (company ? row[3] ?? 'Allow' : row[2]) === 'Allow').map(row => row[1]);

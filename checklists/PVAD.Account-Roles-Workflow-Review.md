@@ -221,7 +221,7 @@ edit the visible editor instead of an inactive Monaco model or a version-specifi
 textarea; and use the platform's actual end-of-file shortcut. These runs are not
 added to the passing count.
 
-**Observed UI issue, still open:** success toasts can cover the Preview export
+**Observed UI issue at this checkpoint (corrected below on 2026-11-28):** success toasts can cover the Preview export
 button. Hovering that area pauses the toast timer, so a pointer left there can
 keep the button covered. The failed company screenshot and diagnostics in
 `artifacts/connected-account-browser/1795815834952-8d5f51be/` record this. The
@@ -242,3 +242,37 @@ removed; source trust and regular licensing outputs are unchanged. No production
 key, deployment or commit was made. The existing owner changes to `PVAD.sln` and
 `.vscode/` were left alone. Primary release acceptance stays **70/76**. The new
 release fragment is **None / improved** for internal test tooling and evidence.
+
+## Nonblocking notification correction — 2026-11-28
+
+The success-toast overlap finding is corrected. Designer notifications now appear
+at the bottom right with the device's bottom safe-area inset. Passive notices
+let pointer events reach underlying controls, so moving over them does not pause
+their expiry timer. Explicit notification action buttons retain pointer events,
+keyboard activation and the existing dismissal behavior. Status/alert live
+regions and notification durations are preserved.
+
+The browser regression keeps a publication notice visible while opening the
+actual Preview export menu, then clicks a control positioned underneath the
+notice. It also checks automatic dismissal with the pointer over a passive notice
+and exercises an action button by click and Enter. The generic notification
+checks run on desktop and mobile; the actual visual-editor export check runs on
+desktop because mobile retains its existing visual-editing gate. These tests use
+synthetic account API responses and the real notification component.
+
+Validation: **22/22 Chromium browser cases**, no skips or flaky outcomes;
+the two notification cases also pass a targeted repeat after tightening the
+visible-hover probe.
+Designer typecheck and production build pass, with existing bundler warnings.
+Version/release-author tests pass **29/29** and the release fragment validates.
+The first expanded run had two failures because the test positioned its probe
+while the notice was still animating into view. Its evidence is retained; the
+final test waits for the notice to be inside the viewport and uses ordinary
+clicks, without forced interaction or notification suppression. Screenshots were
+inspected. Evidence: `artifacts/toast-controls/20261128/`.
+
+The connected PostgreSQL/native-signing workflow was not repeated for this
+presentation-only correction; the preceding connected result remains its
+separate evidence. Release impact is **Patch / fixed** for Designer and
+documentation. No commit, deployment or production-key change is included.
+Primary licensing release acceptance remains **70/76**.

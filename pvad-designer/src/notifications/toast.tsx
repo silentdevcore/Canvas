@@ -63,7 +63,8 @@ export const notify = {
 
 export const PvadToaster: React.FC = () => (
   <Toaster
-    position="top-right"
+    position="bottom-right"
+    containerStyle={{ bottom: 'calc(16px + env(safe-area-inset-bottom))' }}
     gutter={10}
     containerClassName="pvad-toast-region"
     toastOptions={{

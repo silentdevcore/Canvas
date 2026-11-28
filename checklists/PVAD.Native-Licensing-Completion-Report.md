@@ -642,13 +642,28 @@ builds and owned containers have been removed. Evidence:
 `artifacts/connected-account-browser/1795816254945-cb419e45/`.
 
 See `checklists/PVAD.Account-Roles-Workflow-Review.md` for the exact format matrix,
-failed development runs, the still-open success-toast overlap observation and
+failed development runs, the success-toast overlap observation (corrected below) and
 limitations. The passing test waits for ordinary toast dismissal; no product
 correction is claimed. This local run uses development mail transport, explicit
 processor invocation, an issuer-only test clock and synthetic signing keys. It
 does not close SMTP, background scheduling, hardened sandbox, cloud, production
 key or release/platform gates. No production configuration or application
 behavior was changed. Nothing was committed. Primary status remains **70/76**.
+
+### Notification overlap correction — 2026-11-28
+
+The success-notification overlap observed in the connected run is corrected:
+notices appear at the bottom right and passive notices allow clicks through to
+underlying controls. Action buttons remain pointer- and keyboard-accessible.
+The account-policy browser suite passes **22/22** desktop/mobile cases, including
+export while a publication notice remains visible, an underlying-control hit
+test, passive-notice expiry and click/Enter action activation. Designer typecheck
+and production build pass; version/release-author checks pass **29/29**.
+Evidence and the initial test-animation failures are retained under
+`artifacts/toast-controls/20261128/`. See the workflow review for scope and detail.
+This UI correction does not rerun or replace the preceding connected native
+workflow evidence. Release impact is **Patch / fixed**; no commit or deployment
+is included and primary licensing acceptance remains **70/76**.
 
 ### Commercial Model To Revisit Later (2026-11-24)
 

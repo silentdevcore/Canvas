@@ -1,0 +1,10 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-nonblocking-notifications",
+  "impact": "patch",
+  "components": ["designer", "documentation"],
+  "category": "fixed",
+  "summary": "Designer notifications appear below the main toolbar and allow interaction with underlying controls while keeping notification actions accessible.",
+  "breaking": false,
+  "documentation": ["/checklists/PVAD.Account-Roles-Workflow-Review.md"]
+}
